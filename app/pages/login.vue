@@ -41,6 +41,7 @@
             v-model="password" 
             type="password" 
             placeholder="••••••••"
+            minlength="6"
             class="w-full px-6 py-4 rounded-full bg-white border-2 border-[#E6F7FF] focus:border-[#45a6d5] outline-none text-sky-900 font-bold transition-colors placeholder:text-sky-200"
             required
           />
@@ -73,6 +74,15 @@
       <div v-if="successMsg" class="mt-4 p-3 bg-green-50 text-green-500 rounded-xl text-center text-sm font-bold border-2 border-green-100">
         {{ successMsg }}
       </div>
+
+      <div class="mt-6 text-center">
+        <NuxtLink to="/" class="inline-flex items-center gap-2 text-sky-500 font-bold hover:text-sky-700 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          返回首页
+        </NuxtLink>
+      </div>
     </div>
   </div>
 </template>
@@ -103,6 +113,10 @@ const handleLogin = async () => {
   successMsg.value = ''
   
   try {
+    if (!isMagicLink.value && password.value.length < 6) {
+      throw new Error('密码长度至少需要 6 位')
+    }
+
     if (isSignUp.value) {
       // 注册
       const { error } = await supabase.auth.signUp({
