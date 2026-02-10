@@ -1,8 +1,13 @@
 <template>
-  <div class="min-h-screen w-full relative bg-watercolor font-sans custom-scroll" :class="{ 'h-screen overflow-hidden': showIntro }">
+  <div class="min-h-screen w-full relative bg-watercolor font-sans custom-scroll overflow-x-hidden" :class="{ 'h-screen overflow-hidden': showIntro }">
     
     <!-- 视频引导层 -->
-    <div v-if="showIntro" class="fixed inset-0 z-[100] bg-sky-50 flex flex-col items-center justify-center h-[100dvh] w-screen overflow-hidden" @wheel.prevent="handleIntroScroll" @touchmove.prevent="handleIntroScroll">
+    <div 
+      class="fixed inset-0 z-[100] bg-sky-50 flex flex-col items-center justify-center h-[100dvh] w-screen overflow-hidden transition-all duration-1000 ease-in-out"
+      :class="{ 'opacity-0 pointer-events-none translate-y-[-100%]': !showIntro }"
+      @wheel.prevent="handleIntroScroll" 
+      @touchmove.prevent="handleIntroScroll"
+    >
       
       <!-- 背景氛围层 (极简白/浅蓝) -->
       <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-40">
@@ -26,18 +31,21 @@
       </div>
 
       <!-- 前景视频层 -->
-      <div class="relative z-10 flex-1 w-full flex flex-col items-center justify-center p-8 animate-float-slow">
+      <div class="relative z-10 flex-1 w-full flex flex-col items-center justify-center p-8 animate-float-slow" @click="handleIntroClick">
         <div class="relative w-full max-w-4xl aspect-square flex items-center justify-center">
           <!-- 循环播放的引导视频 -->
           <video
             v-show="!isPlayingOutro"
             ref="introVideoRef"
             src="/bbbssp.mp4"
-            class="max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-[3rem] video-glow bg-white"
+            class="max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-[3rem] video-glow bg-white cursor-pointer"
             autoplay
             loop
             muted
             playsinline
+            x5-video-player-type="h5-page"
+            x5-playsinline="true"
+            webkit-playsinline="true"
           ></video>
           
           <!-- 过渡视频 -->
@@ -99,7 +107,7 @@
       <!-- 用户状态区 -->
       <div v-if="user" class="group relative">
         <div class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-white shadow-sm flex items-center gap-2 cursor-pointer transition-all hover:bg-white">
-          <img src="/bbbswbj.png" class="w-6 h-6 rounded-full" />
+          <img src="/bbbswz.png" class="w-6 h-6 rounded-full" />
           <span class="text-xs font-bold text-sky-800">@ {{ user?.email?.split('@')[0] || 'guest' }}</span>
         </div>
         <!-- 登出菜单 -->
@@ -118,21 +126,26 @@
 
     <main class="relative z-20 flex flex-col items-center pt-4 h-full">
       
-      <div class="relative mb-6 flex flex-col items-center">
-        <div class="absolute -top-6 -right-12 text-5xl animate-bounce">☀️</div>
-        <div class="absolute top-10 -left-16 text-4xl -rotate-12">🐦</div>
+      <div class="relative mb-6 flex flex-col items-center max-w-full px-4 w-full">
+        <!-- 装饰元素：移除 hidden sm:block 限制，确保所有尺寸显示 -->
+        <div class="absolute -top-6 -right-4 md:-right-12 text-3xl md:text-5xl animate-bounce">☀️</div>
+        <img src="/xiaoniao.png" class="absolute top-4 -left-2 md:top-10 md:-left-20 w-10 h-10 md:w-16 md:h-16 -rotate-12 object-contain drop-shadow-md animate-bounce" style="animation-duration: 3s;" />
         
-        <div class="hero-figure">
+        <div class="hero-figure transform scale-90 md:scale-100 transition-transform">
           <img 
             src="/bbbswbj.png" 
-            class="hero-img h-56 md:h-64 object-contain" 
+            class="hero-img h-40 sm:h-48 md:h-64 object-contain" 
           />
         </div>
         
-        <h2 class="mt-3 text-5xl md:text-6xl font-black text-[#45a6d5] tracking-widest drop-shadow-[0_3px_0_#fff]">
-          宝宝巴士 <span class="text-[#f9b11d]">军团</span>
+        <h2 class="mt-4 relative text-3xl sm:text-5xl md:text-7xl font-black tracking-widest drop-shadow-[0_2px_0_#fff] md:drop-shadow-[0_4px_0_#fff] flex flex-col md:block items-center gap-2">
+          <span class="inline-block transform hover:scale-110 transition-transform duration-300 cursor-default text-[#0ea5e9]" style="text-shadow: 2px 2px 0px #0284c7, 4px 4px 0px #bae6fd;">宝宝巴士</span>
+          <span class="inline-block ml-0 md:ml-4 transform -rotate-3 md:-rotate-6 bg-[#f9b11d] text-white px-3 py-1 md:px-4 md:py-1 rounded-2xl text-2xl sm:text-4xl md:text-6xl shadow-[3px_3px_0_0_#d98a00] md:shadow-[4px_4px_0_0_#d98a00] hover:rotate-0 hover:scale-110 transition-all duration-300 cursor-pointer border-2 border-white">
+            军团
+            <span class="absolute -top-2 -right-2 text-xl md:text-2xl animate-ping">✨</span>
+          </span>
         </h2>
-        <p class="mt-2 text-sky-700 font-bold">冲哇</p>
+        <p class="mt-2 text-sky-700 font-bold text-sm md:text-base">宝宝巴士，带你的每一个本都是宝宝本</p>
         <div class="mt-1 flex gap-2">
           <span class="w-2 h-2 rounded-full bg-[#45a6d5]"></span>
           <span class="w-2 h-2 rounded-full bg-[#AEE2F9]"></span>
@@ -140,19 +153,32 @@
         </div>
       </div>
 
-      <div class="w-full max-w-5xl px-6 pb-20">
-        <div class="flex justify-center gap-3 mb-4">
+      <div class="w-full max-w-5xl px-4 md:px-6 pb-20">
+        <div class="flex justify-center gap-4 mb-8 flex-wrap">
           <button 
             v-for="tab in tabs" :key="tab.id"
             @click="activeTab = tab.id"
-            :class="[
-              'tab-btn',
-              activeTab === tab.id 
-                ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-lg -translate-y-1' 
-                : 'bg-white/80 text-[#45a6d5] border-white hover:bg-white shadow-sm'
-            ]"
+            class="relative group"
           >
-            {{ tab.name }}
+            <!-- 选中时的小鸟 (绝对定位在左上角/左侧) -->
+            <transition name="pop">
+              <img 
+                v-if="activeTab === tab.id" 
+                src="/xiaoniao.png" 
+                class="absolute -top-3 -left-4 w-8 h-8 object-contain z-10 animate-bounce" 
+                style="animation-duration: 1s;"
+              />
+            </transition>
+            
+            <!-- 按钮主体 -->
+            <div :class="[
+              'relative px-6 py-2 rounded-full font-black text-lg border-4 transition-all duration-300 flex items-center',
+              activeTab === tab.id 
+                ? 'bg-[#f9b11d] text-white border-white shadow-[0_6px_0_#d98a00] scale-110 rotate-1' 
+                : 'bg-white text-[#45a6d5] border-[#E6F7FF] shadow-[0_4px_0_#AEE2F9] hover:-translate-y-1 hover:shadow-[0_6px_0_#AEE2F9]'
+            ]">
+              {{ tab.name }}
+            </div>
           </button>
         </div>
 
@@ -232,12 +258,35 @@
       </div>
     </main>
 
-    <div class="absolute bottom-0 w-full h-24 pointer-events-none">
-      <div class="absolute bottom-0 w-[110%] left-[-5%] h-full bg-[#B2E455] rounded-t-[100%] shadow-[inset_0_10px_20px_rgba(255,255,255,0.3)]"></div>
-      <div class="absolute bottom-4 w-full flex justify-center gap-16 text-3xl">
-        <span class="animate-bounce" style="animation-duration: 3s">🌻</span>
-        <span class="animate-bounce" style="animation-duration: 4s">🌷</span>
-        <span class="animate-pulse">🐑</span>
+    <!-- 底部动态草地层 -->
+    <div class="absolute bottom-0 w-full h-32 md:h-48 pointer-events-none overflow-hidden z-10">
+      <!-- 远景草坡 -->
+      <svg class="absolute bottom-0 w-[120%] -left-[10%] h-full text-[#A3D95B]" viewBox="0 0 1200 120" preserveAspectRatio="none">
+        <path d="M0,40 C200,80 400,0 600,40 C800,80 1000,20 1200,60 L1200,120 L0,120 Z" fill="currentColor"/>
+      </svg>
+      
+      <!-- 近景草坡 (带波浪动画) -->
+      <svg class="absolute -bottom-4 w-[150%] -left-[25%] h-[80%] text-[#B2E455] animate-grass-wave" viewBox="0 0 1200 120" preserveAspectRatio="none">
+        <path d="M0,60 C300,20 600,100 900,40 C1050,10 1200,80 1200,80 L1200,150 L0,150 Z" fill="currentColor"/>
+      </svg>
+
+      <!-- 随机花朵 -->
+      <div class="absolute bottom-6 left-[15%] text-2xl animate-sway origin-bottom" style="animation-delay: 0.2s">🌼</div>
+      <div class="absolute bottom-8 left-[45%] text-xl animate-sway origin-bottom" style="animation-delay: 1.5s">🌷</div>
+      <div class="absolute bottom-5 left-[85%] text-3xl animate-sway origin-bottom" style="animation-delay: 0.8s">🌻</div>
+      <div class="absolute bottom-10 left-[65%] text-xl animate-sway origin-bottom" style="animation-delay: 2.1s">�</div>
+
+      <!-- 奔跑的小羊 (CSS 动画位移) -->
+      <div class="absolute bottom-4 -left-16 animate-walk-across text-4xl" style="animation-duration: 20s;">
+        🐑
+        <div class="absolute -top-4 -right-2 text-xs font-bold text-sky-600 bg-white/80 px-2 py-0.5 rounded-full whitespace-nowrap opacity-0 animate-speech-bubble">
+          咩~
+        </div>
+      </div>
+      
+      <!-- 追逐的小鸡 -->
+      <div class="absolute bottom-5 -left-16 animate-walk-across text-2xl" style="animation-duration: 20s; animation-delay: 2s;">
+        🐥
       </div>
     </div>
   </div>
@@ -261,6 +310,15 @@ const isPlayingOutro = ref(false)
 const introVideoRef = ref(null)
 const outroVideoRef = ref(null)
 const outroBgRef = ref(null)
+
+const handleIntroClick = () => {
+  // 点击时如果未播放则尝试播放，如果正在播放则触发离场
+  if (introVideoRef.value && introVideoRef.value.paused) {
+    introVideoRef.value.play().catch(e => console.error('Manual play failed:', e))
+  } else {
+    handleIntroScroll({ type: 'click', deltaY: 100 })
+  }
+}
 
 const handleIntroScroll = (e) => {
   // 简单的防抖或阈值判断，防止误触
@@ -298,7 +356,10 @@ const triggerOutro = () => {
 const onOutroEnded = () => {
   showIntro.value = false
   // 视频结束后初始化内容动画
-  initScrollReveal()
+  // 延迟一点点，让幕布上拉的动画先开始，内容再入场，形成交错感
+  setTimeout(() => {
+    initScrollReveal()
+  }, 300)
 }
 
 const initScrollReveal = async () => {
@@ -433,6 +494,15 @@ onMounted(() => {
   resetSpawner()
   startDrift()
   window.addEventListener('resize', () => { viewport.w = window.innerWidth; viewport.h = window.innerHeight })
+  nextTick(() => {
+    // 强制触发播放（兼容移动端省电策略）
+    if (introVideoRef.value) {
+      introVideoRef.value.play().catch(() => {
+        // 如果自动播放被拦截，显示一个点击播放的遮罩（或者静默失败）
+        console.log('Autoplay blocked')
+      })
+    }
+  })
 })
 
 onUnmounted(() => { if (cloudTimer) clearInterval(cloudTimer); if (driftRaf) cancelAnimationFrame(driftRaf) })
@@ -466,6 +536,10 @@ const tabs = [
 .animate-cloud-soft { animation: cloud-bob 9s ease-in-out infinite; }
 .animate-float-slow { animation: float-slow 4s ease-in-out infinite; }
 .animate-arrow { animation: arrow-up 1.5s ease-in-out infinite; }
+.animate-grass-wave { animation: grass-wave 8s ease-in-out infinite alternate; }
+.animate-sway { animation: sway 3s ease-in-out infinite; }
+.animate-walk-across { animation: walk-across linear infinite; }
+.animate-speech-bubble { animation: speech-bubble 5s infinite; }
 .cloud-item { --tx:0px; --ty:0px; --rot:0deg; --scale:1; will-change: transform, opacity, filter; transform: translate(calc(var(--tx) + var(--offset-x, 0px)), calc(var(--ty) + var(--offset-y, 0px))) rotate(var(--rot)) scale(var(--scale)); transition: transform .2s linear; animation: cloud-bob 8s ease-in-out infinite, cloud-wiggle 15s ease-in-out infinite, cloud-breathe 13s ease-in-out infinite, cloud-sway 17s ease-in-out infinite; filter: drop-shadow(0 4px 0 rgba(255,255,255,.45)); }
 .cloud-item.cloud-fade-enter-active, .cloud-item.cloud-fade-leave-active { animation-play-state: paused; }
 .cloud-fade-enter-active, .cloud-fade-leave-active { transition: opacity 1.2s cubic-bezier(.4,0,.2,1), transform 1.2s cubic-bezier(.4,0,.2,1), filter 1.2s ease; }
@@ -502,4 +576,43 @@ const tabs = [
 
 .fade-enter-active, .fade-leave-active { transition: all 0.3s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(10px); }
+
+/* Pop transition for bird */
+.pop-enter-active { animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.pop-leave-active { transition: all 0.2s ease; }
+.pop-leave-to { opacity: 0; transform: scale(0); }
+
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0) translateY(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes grass-wave {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-20px); }
+}
+
+@keyframes sway {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+@keyframes walk-across {
+  0% { transform: translateX(0) rotate(0deg); }
+  10% { transform: translateX(10vw) rotate(-5deg); }
+  20% { transform: translateX(20vw) rotate(5deg); }
+  30% { transform: translateX(30vw) rotate(-5deg); }
+  40% { transform: translateX(40vw) rotate(5deg); }
+  50% { transform: translateX(50vw) rotate(-5deg); }
+  60% { transform: translateX(60vw) rotate(5deg); }
+  70% { transform: translateX(70vw) rotate(-5deg); }
+  80% { transform: translateX(80vw) rotate(5deg); }
+  90% { transform: translateX(90vw) rotate(-5deg); }
+  100% { transform: translateX(110vw) rotate(0deg); }
+}
+
+@keyframes speech-bubble {
+  0%, 40%, 60%, 100% { opacity: 0; transform: scale(0.8); }
+  45%, 55% { opacity: 1; transform: scale(1); }
+}
 </style>
