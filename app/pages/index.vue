@@ -95,9 +95,24 @@
       <div class="flex-1 text-center">
         <span class="text-2xl md:text-3xl font-black text-[#45a6d5] tracking-widest">AION2</span>
       </div>
-      <div class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-white shadow-sm flex items-center gap-2">
-        <img src="/bbbswbj.png" class="w-6 h-6 rounded-full" />
-        <span class="text-xs font-bold text-sky-800">@ {{ user?.email?.split('@')[0] || 'guest' }}</span>
+      
+      <!-- 用户状态区 -->
+      <div v-if="user" class="group relative">
+        <div class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-white shadow-sm flex items-center gap-2 cursor-pointer transition-all hover:bg-white">
+          <img src="/bbbswbj.png" class="w-6 h-6 rounded-full" />
+          <span class="text-xs font-bold text-sky-800">@ {{ user?.email?.split('@')[0] || 'guest' }}</span>
+        </div>
+        <!-- 登出菜单 -->
+        <div class="absolute right-0 top-full mt-2 w-32 bg-white rounded-xl shadow-lg border border-sky-100 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top-right scale-95 group-hover:scale-100">
+          <button @click="logout" class="w-full text-left px-4 py-3 text-xs font-bold text-red-400 hover:bg-red-50 transition-colors">
+            退出登录
+          </button>
+        </div>
+      </div>
+      <div v-else>
+        <NuxtLink to="/login" class="bg-[#f9b11d] hover:bg-[#fbc02d] text-white px-5 py-2 rounded-full font-black text-sm shadow-[0_3px_0_0_#d98a00] active:translate-y-1 active:shadow-none transition-all">
+          登录 / 注册
+        </NuxtLink>
       </div>
     </nav>
 
@@ -230,7 +245,15 @@
 
 <script setup>
 const user = useSupabaseUser()
+const supabase = useSupabaseClient()
+const router = useRouter()
 const activeTab = ref('news')
+
+const logout = async () => {
+  const { error } = await supabase.auth.signOut()
+  if (error) console.error(error)
+  router.push('/login')
+}
 
 // 视频引导相关逻辑
 const showIntro = ref(true)
