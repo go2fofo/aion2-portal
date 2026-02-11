@@ -1,20 +1,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* 模拟图片背景的淡蓝色水彩渐变 */
+.bg-watercolor {
+  background: linear-gradient(180deg, #CEF1FF 0%, #EDF9FF 50%, #FFFFFF 100%);
+}
 
-@layer components {
-  /* 模拟图片背景的淡蓝色水彩渐变 */
-  .bg-watercolor {
-    background: linear-gradient(180deg, #CEF1FF 0%, #EDF9FF 50%, #FFFFFF 100%);
-  }
+/* 模仿 Logo 外圈的波浪圆角质感 */
+.panel-cartoon {
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  border: 6px solid #AEE2F9;
+  border-radius: 3rem;
+  box-shadow: 0 12px 24px rgba(174, 226, 249, 0.4);
+}
 
-  /* 模仿 Logo 外圈的波浪圆角质感 */
-  .panel-cartoon {
-    @apply bg-white/90 backdrop-blur-md border-[6px] border-[#AEE2F9] rounded-[3rem] shadow-[0_12px_24px_rgba(174,226,249,0.4)];
-  }
-
-  /* 游戏化 Tab 按钮 */
-  .tab-btn {
-    @apply px-6 py-3 font-black transition-all duration-300 rounded-2xl border-2;
-  }
+/* 游戏化 Tab 按钮 */
+.tab-btn {
+  padding: 0.75rem 1.5rem;
+  font-weight: 900;
+  transition: all 0.3s;
+  border-radius: 1rem;
+  border-width: 2px;
 }

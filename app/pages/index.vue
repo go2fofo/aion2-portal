@@ -187,24 +187,27 @@
           
           <transition name="fade" mode="out-in">
             <div :key="activeTab" class="h-full">
-              <div v-if="activeTab === 'news'" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="p-6 bg-white/70 backdrop-blur-sm rounded-3xl shadow-md">
-                  <h3 class="text-[#45a6d5] font-black text-xl flex items-center gap-2"><span>🔔</span> MVIF</h3>
-                  <div class="mt-3 space-y-3">
-                    <div class="p-4 bg-white rounded-2xl border-2 border-white flex justify-between items-center">
-                      <span class="font-bold text-sky-900 italic">军团宣言：今晚 8 点发车！</span>
-                      <span class="text-xs text-sky-400">2026-02-10</span>
-                    </div>
-                    <div class="p-4 bg-white rounded-2xl border-2 border-white flex justify-between items-center">
-                      <span class="font-bold text-sky-900 italic">乘务员 勇的尖刺勋章</span>
-                      <span class="text-xs text-sky-400">2026-02-10</span>
-                    </div>
-                    <div class="p-4 bg-white rounded-2xl border-2 border-white flex justify-between items-center">
-                      <span class="font-bold text-sky-900 italic">起操偏发富豆 #888+87</span>
-                      <span class="text-xs text-sky-400">2026-02-10</span>
+              <!-- Tab 1: 军团伴说 (News) -->
+              <div v-if="activeTab === 'news'" class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+                <!-- 左侧置顶/重要公告 -->
+                <div class="p-6 bg-white/70 backdrop-blur-sm rounded-3xl shadow-md flex flex-col h-full">
+                  <h3 class="text-[#45a6d5] font-black text-xl flex items-center gap-2 mb-4"><span>🔔</span> 最新动态</h3>
+                  
+                  <div v-if="loadingPosts" class="flex-1 flex items-center justify-center text-slate-400 font-bold">
+                    加载中...
+                  </div>
+                  <div v-else-if="posts.length === 0" class="flex-1 flex items-center justify-center text-slate-400 font-bold">
+                    暂无动态
+                  </div>
+                  <div v-else class="space-y-3 flex-1 overflow-y-auto custom-scroll pr-2">
+                    <div v-for="post in posts" :key="post.id" class="p-4 bg-white rounded-2xl border-2 border-white flex justify-between items-center hover:scale-[1.02] transition-transform">
+                      <span class="font-bold text-sky-900 italic truncate flex-1 mr-4">{{ post.title }}</span>
+                      <span class="text-xs text-sky-400 whitespace-nowrap">{{ new Date(post.created_at).toLocaleDateString() }}</span>
                     </div>
                   </div>
                 </div>
+
+                <!-- 右侧模拟列表 (这里可以保留静态，或者也从 posts 读取不同类型的) -->
                 <div class="space-y-4">
                   <div v-for="i in 3" :key="i" class="flex items-center gap-4 p-3 bg-white/80 backdrop-blur-sm rounded-2xl shadow-md">
                     <div class="w-12 h-12 flex items-center justify-center bg-[#f9b11d] text-white font-black rounded-xl">#{{ i }}</div>
@@ -216,21 +219,36 @@
                 </div>
               </div>
 
-              <div v-else-if="activeTab === 'fresh'" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div v-for="i in 3" :key="i" class="p-4 bg-[#F0F9FF] rounded-2xl border-2 border-white">
-                  <div class="text-4xl mb-2">🐼</div>
-                  <p class="text-sky-900 font-bold">新鲜速递 #{{ i }}</p>
-                </div>
+              <!-- Tab 2: 军团鲜哒 (Fresh) -->
+              <div v-else-if="activeTab === 'fresh'" class="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
+                 <div v-if="loadingPosts" class="col-span-full flex items-center justify-center text-slate-400 font-bold">加载中...</div>
+                 <template v-else>
+                    <div v-for="post in posts" :key="post.id" class="p-4 bg-[#F0F9FF] rounded-2xl border-2 border-white hover:-translate-y-1 transition-transform">
+                      <div class="text-4xl mb-2">🐼</div>
+                      <p class="text-sky-900 font-bold line-clamp-2">{{ post.title }}</p>
+                      <p class="text-xs text-sky-400 mt-2">{{ new Date(post.created_at).toLocaleDateString() }}</p>
+                    </div>
+                    <!-- 补充空位 -->
+                    <div v-if="posts.length === 0" class="col-span-full flex flex-col items-center justify-center text-slate-400 py-10">
+                      <span class="text-4xl mb-2">📭</span>
+                      <span class="font-bold">暂无新鲜事</span>
+                    </div>
+                 </template>
               </div>
 
-              <div v-else-if="activeTab === 'analysis'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="p-6 bg-white rounded-2xl border-2 border-[#E6F7FF]">
-                  <p class="text-sky-900 font-bold">战力解析面板（示例）</p>
-                  <div class="mt-3 h-32 bg-[#F0F9FF] rounded-xl"></div>
+              <!-- 其他 Tab 内容暂保持静态或后续扩展 -->
+              <div v-else-if="activeTab === 'analysis'" class="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
+                <div class="p-6 bg-white rounded-2xl border-2 border-[#E6F7FF] flex flex-col">
+                  <p class="text-sky-900 font-bold mb-4">战力解析面板</p>
+                  <div class="flex-1 min-h-[300px]">
+                    <VChart class="w-full h-full" :option="radarOption" autoresize />
+                  </div>
                 </div>
-                <div class="p-6 bg-white rounded-2xl border-2 border-[#E6F7FF]">
-                  <p class="text-sky-900 font-bold">趋势折线（示例）</p>
-                  <div class="mt-3 h-32 bg-[#F0F9FF] rounded-xl"></div>
+                <div class="p-6 bg-white rounded-2xl border-2 border-[#E6F7FF] flex flex-col">
+                  <p class="text-sky-900 font-bold mb-4">趋势折线</p>
+                  <div class="flex-1 min-h-[300px]">
+                    <VChart class="w-full h-full" :option="lineOption" autoresize />
+                  </div>
                 </div>
               </div>
 
@@ -296,7 +314,64 @@
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 const router = useRouter()
+
+// Tab 标签页配置 (改用异步数据)
+const tabs = ref([])
+// 默认占位 Tab
+const defaultTabs = [
+  { id: 'news', name: '军团伴说' },
+  { id: 'fresh', name: '军团鲜哒' },
+  { id: 'analysis', name: '战力解析' },
+  { id: 'rank', name: '战力排行' },
+  { id: 'join', name: '入团手续' }
+]
+
 const activeTab = ref('news')
+
+// 动态内容列表
+const posts = ref([])
+const loadingPosts = ref(false)
+
+// 1. 获取 Tab 配置
+const fetchTabs = async () => {
+  const { data } = await supabase
+    .from('site_config')
+    .select('value')
+    .eq('key', 'home_tabs')
+    .single()
+  
+  if (data?.value) {
+    tabs.value = data.value
+    // 如果当前选中的 tab 不在新的列表中，默认选第一个
+    if (tabs.value.length > 0 && !tabs.value.find(t => t.id === activeTab.value)) {
+      activeTab.value = tabs.value[0].id
+    }
+  } else {
+    tabs.value = defaultTabs
+  }
+}
+
+// 2. 根据当前 Tab 获取内容
+const fetchPosts = async () => {
+  loadingPosts.value = true
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*')
+    .eq('type', activeTab.value) // 筛选当前 Tab 类型
+    .order('created_at', { ascending: false }) // 按时间倒序
+  
+  if (data) {
+    posts.value = data
+  } else {
+    posts.value = []
+  }
+  loadingPosts.value = false
+}
+
+// 监听 Tab 切换，自动拉取对应内容
+watch(activeTab, () => {
+  fetchPosts()
+})
 
 const logout = async () => {
   const { error } = await supabase.auth.signOut()
@@ -305,7 +380,88 @@ const logout = async () => {
 }
 
 // 视频引导相关逻辑
-const showIntro = ref(true)
+  const showIntro = ref(true)
+
+// ECharts 配置
+const radarOption = ref({
+  radar: {
+    indicator: [
+      { name: '攻击', max: 100 },
+      { name: '防御', max: 100 },
+      { name: '敏捷', max: 100 },
+      { name: '智力', max: 100 },
+      { name: '体力', max: 100 },
+      { name: '幸运', max: 100 }
+    ],
+    radius: '70%',
+    center: ['50%', '50%'],
+  },
+  series: [
+    {
+      name: '战力分布',
+      type: 'radar',
+      data: [
+        {
+          value: [80, 50, 90, 80, 70, 60],
+          name: '当前角色',
+          areaStyle: {
+            color: 'rgba(69, 166, 213, 0.3)'
+          },
+          lineStyle: {
+            color: '#45a6d5'
+          },
+          itemStyle: {
+            color: '#45a6d5'
+          }
+        }
+      ]
+    }
+  ]
+})
+
+const lineOption = ref({
+  tooltip: {
+    trigger: 'axis'
+  },
+  grid: {
+    top: '10%',
+    left: '3%',
+    right: '4%',
+    bottom: '3%',
+    containLabel: true
+  },
+  xAxis: {
+    type: 'category',
+    boundaryGap: false,
+    data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+    axisLine: { lineStyle: { color: '#94a3b8' } }
+  },
+  yAxis: {
+    type: 'value',
+    axisLine: { lineStyle: { color: '#94a3b8' } },
+    splitLine: { lineStyle: { type: 'dashed', color: '#e2e8f0' } }
+  },
+  series: [
+    {
+      name: '活跃度',
+      type: 'line',
+      smooth: true,
+      data: [120, 132, 101, 134, 90, 230, 210],
+      areaStyle: {
+        color: {
+          type: 'linear',
+          x: 0, y: 0, x2: 0, y2: 1,
+          colorStops: [
+            { offset: 0, color: 'rgba(69, 166, 213, 0.5)' },
+            { offset: 1, color: 'rgba(69, 166, 213, 0.01)' }
+          ]
+        }
+      },
+      itemStyle: { color: '#45a6d5' }
+    }
+  ]
+})
+
 const isPlayingOutro = ref(false)
 const introVideoRef = ref(null)
 const outroVideoRef = ref(null)
@@ -335,22 +491,24 @@ const triggerOutro = () => {
   if (isPlayingOutro.value) return
   isPlayingOutro.value = true
   
-  nextTick(() => {
-    // 播放前景过渡视频
-    if (outroVideoRef.value) {
-      outroVideoRef.value.currentTime = 0
-      outroVideoRef.value.play().catch(err => {
-        console.error('Play outro failed:', err)
-        // 兜底：如果播放失败直接结束
-        onOutroEnded()
-      })
-    }
-    // 同步播放背景模糊视频
-    if (outroBgRef.value) {
-      outroBgRef.value.currentTime = 0
-      outroBgRef.value.play().catch(() => {}) // 背景播放失败忽略
-    }
-  })
+  if (process.client) {
+    nextTick(() => {
+      // 播放前景过渡视频
+      if (outroVideoRef.value) {
+        outroVideoRef.value.currentTime = 0
+        outroVideoRef.value.play().catch(err => {
+          console.error('Play outro failed:', err)
+          // 兜底：如果播放失败直接结束
+          onOutroEnded()
+        })
+      }
+      // 同步播放背景模糊视频
+      if (outroBgRef.value) {
+        outroBgRef.value.currentTime = 0
+        outroBgRef.value.play().catch(() => {}) // 背景播放失败忽略
+      }
+    })
+  }
 }
 
 const onOutroEnded = () => {
@@ -488,21 +646,26 @@ const startDrift = () => {
 }
 
 onMounted(() => {
+  fetchTabs()
+  fetchPosts()
+
   viewport.w = window.innerWidth
   viewport.h = window.innerHeight
-  for (let i = 0; i < Math.min(2, cloudConfig.maxClouds); i++) spawnCloud()
-  resetSpawner()
-  startDrift()
-  window.addEventListener('resize', () => { viewport.w = window.innerWidth; viewport.h = window.innerHeight })
-  nextTick(() => {
-    // 强制触发播放（兼容移动端省电策略）
-    if (introVideoRef.value) {
-      introVideoRef.value.play().catch(() => {
-        // 如果自动播放被拦截，显示一个点击播放的遮罩（或者静默失败）
-        console.log('Autoplay blocked')
-      })
-    }
-  })
+  if (process.client) {
+    for (let i = 0; i < Math.min(2, cloudConfig.maxClouds); i++) spawnCloud()
+    resetSpawner()
+    startDrift()
+    window.addEventListener('resize', () => { viewport.w = window.innerWidth; viewport.h = window.innerHeight })
+    nextTick(() => {
+      // 强制触发播放（兼容移动端省电策略）
+      if (introVideoRef.value) {
+        introVideoRef.value.play().catch(() => {
+          // 如果自动播放被拦截，显示一个点击播放的遮罩（或者静默失败）
+          console.log('Autoplay blocked')
+        })
+      }
+    })
+  }
 })
 
 onUnmounted(() => { if (cloudTimer) clearInterval(cloudTimer); if (driftRaf) cancelAnimationFrame(driftRaf) })
@@ -515,14 +678,6 @@ watch(clouds, (arr) => {
   if (!cloudConfig.hardCleanup && arr.length >= cloudConfig.maxClouds && cloudTimer) { clearInterval(cloudTimer) }
   else if (arr.length < cloudConfig.maxClouds && !cloudTimer && cloudConfig.enable) { resetSpawner() }
 }, { deep: true })
-
-const tabs = [
-  { id: 'news', name: '军团伴说' },
-  { id: 'fresh', name: '军团鲜哒' },
-  { id: 'analysis', name: '战力解析' },
-  { id: 'rank', name: '战力排行' },
-  { id: 'join', name: '入团手续' }
-]
 </script>
 
 <style scoped>
