@@ -190,31 +190,40 @@
              ></div>
            </transition>
 
-           <!-- 扇形/弧形展开菜单 -->
-           <div 
-             v-if="showMobileMenu"
-             class="fixed z-40 pointer-events-none"
-             :style="{ 
-               top: btnPos.y + 28 + 'px', 
-               left: btnPos.x + 28 + 'px'
-             }"
-           >
-             <div class="relative">
-               <button 
-                 v-for="(tab, index) in tabs" :key="tab.id"
-                 @click="activeTab = tab.id; showMobileMenu = false"
-                class="absolute flex items-center justify-center px-4 h-10 rounded-full border-2 shadow-lg font-black text-xs pointer-events-auto transition-all duration-300 hover:scale-110 active:scale-95 whitespace-nowrap min-w-[4rem]"
-                :class="activeTab === tab.id ? 'bg-[#45a6d5] text-white border-white' : 'bg-white text-[#45a6d5] border-[#E6F7FF]'"
+           <!-- 垂直列表菜单 (替代扇形) -->
+            <div 
+              v-if="showMobileMenu"
+              class="fixed z-40 pointer-events-none"
+              :style="{ 
+                top: btnPos.y + 28 + 'px', 
+                left: btnPos.x + 28 + 'px'
+              }"
+            >
+              <TransitionGroup 
+                name="staggered-list" 
+                tag="div" 
+                class="flex flex-col gap-3 transition-transform duration-500 cubic-bezier(0.34, 1.56, 0.64, 1)"
                 :style="{
-                   transform: `rotate(${getMenuAngle(index, tabs.length, isRightSide)}deg) translate(110px) rotate(${-getMenuAngle(index, tabs.length, isRightSide)}deg)`,
-                   opacity: showMobileMenu ? 1 : 0,
-                   transitionDelay: `${index * 30}ms`
-                 }"
-               >
-                 {{ tab.name }}
-               </button>
-             </div>
-           </div>
+                  transform: isRightSide 
+                    ? 'translate(-100%, -50%) translate(-35px, 0)' 
+                    : 'translate(0, -50%) translate(35px, 0)'
+                }"
+                appear
+              >
+                <button 
+                  v-for="(tab, index) in tabs" :key="tab.id"
+                  @click="activeTab = tab.id; showMobileMenu = false"
+                  class="pointer-events-auto relative flex items-center justify-center px-4 py-2 rounded-xl border-2 shadow-sm font-black text-xs transition-all duration-300 active:scale-95 whitespace-nowrap min-w-[5rem]"
+                  :class="activeTab === tab.id ? 'bg-[#45a6d5] text-white border-white scale-110 shadow-md' : 'bg-white text-[#45a6d5] border-[#E6F7FF] hover:border-[#45a6d5]'"
+                  :style="{
+                    '--delay': `${index * 0.06}s`,
+                    '--start-x': isRightSide ? '30px' : '-30px'
+                  }"
+                >
+                  {{ tab.name }}
+                </button>
+              </TransitionGroup>
+            </div>
         </div>
 
         <!-- 桌面端横向排列 Tab -->
@@ -529,7 +538,7 @@ const btnPos = reactive({ x: 0, y: 0 })
 const isDragging = ref(false)
 const dragStart = { x: 0, y: 0 }
 const initialBtnPos = { x: 0, y: 0 }
-const isRightSide = computed(() => btnPos.x > windowWidth.value / 2)
+const isRightSide = computed(() => (btnPos.x + 30) > windowWidth.value / 2)
 
 const startDrag = (e) => {
   isDragging.value = true
@@ -571,24 +580,6 @@ const toggleMenu = () => {
   // 防止拖拽结束时误触发点击
   if (Math.abs(btnPos.x - initialBtnPos.x) < 5 && Math.abs(btnPos.y - initialBtnPos.y) < 5) {
     showMobileMenu.value = !showMobileMenu.value
-  }
-}
-
-const getMenuAngle = (index, total, isRight) => {
-  // 计算每个菜单项的角度
-  // 基础角度：右侧时向左展开 (180度中心)，左侧时向右展开 (0度中心)
-  // 扇形范围：120度
-  const span = 120
-  const step = span / (total - 1 || 1)
-  
-  if (isRight) {
-    // 右侧模式：按钮在右，菜单向左展开
-    // 从左上(240度) 到 左下(120度) -> Top-to-Bottom
-    return 240 - (index * step)
-  } else {
-    // 左侧模式：按钮在左，菜单向右展开
-    // 从右上(-60度) 到 右下(60度) -> Top-to-Bottom
-    return -60 + (index * step)
   }
 }
 
@@ -637,6 +628,7 @@ const fetchTabs = async () => {
   
   if (error) {
     console.error('Error fetching tabs:', error)
+    alert('获取tabs配置失败',JSON.stringify(error),JSON.stringify(data))
     tabs.value = defaultTabs
     return
   }
@@ -1163,5 +1155,17 @@ watch(clouds, (arr) => {
 .writing-vertical {
   writing-mode: vertical-rl;
   text-orientation: upright;
+}
+
+/* 移动端列表交错动画 */
+.staggered-list-enter-active,
+.staggered-list-leave-active {
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-delay: var(--delay);
+}
+.staggered-list-enter-from,
+.staggered-list-leave-to {
+  opacity: 0;
+  transform: translateX(var(--start-x)) scale(0.8);
 }
 </style>
