@@ -456,7 +456,7 @@ onMounted(() => {
           <div class="relative p-8 pb-4 flex justify-between items-start z-10">
             <div>
               <h3 class="font-black text-2xl text-slate-800 tracking-tight">招募新战友</h3>
-              <p class="text-slate-500 font-medium mt-1">搜索角色名，一键加入军团</p>
+              <p class="text-slate-500 font-medium mt-1">搜索角色名，一键加入军团（搜索功能暂时只支持当前服务器简卡卡）</p>
             </div>
             <button 
               @click="showAddModal = false" 
