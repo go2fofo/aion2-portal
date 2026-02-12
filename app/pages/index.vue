@@ -153,7 +153,7 @@
         </div>
       </div>
 
-      <div class="w-[90%] md:w-[80%] px-4 md:px-6 pb-20 relative">
+      <div class="w-[95%] md:w-[90%] px-4 md:px-6 pb-20 relative">
         <!-- 移动端侧边悬浮 Tab 菜单 (优化版) -->
         <div class="md:hidden">
            <!-- 悬浮触发按钮 (小鸟造型) -->
