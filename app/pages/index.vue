@@ -153,8 +153,72 @@
         </div>
       </div>
 
-      <div class="w-full max-w-5xl px-4 md:px-6 pb-20">
-        <div class="flex justify-center gap-4 mb-8 flex-wrap">
+      <div class="w-[90%] md:w-[80%] px-4 md:px-6 pb-20 relative">
+        <!-- 移动端侧边悬浮 Tab 菜单 (优化版) -->
+        <div class="md:hidden">
+           <!-- 悬浮触发按钮 (小鸟造型) -->
+           <div
+             ref="floatingBtnRef"
+             @touchstart="startDrag"
+             @touchmove="onDrag"
+             @touchend="endDrag"
+             @click="toggleMenu"
+             class="fixed z-50 transition-transform active:scale-90 touch-none"
+             :style="{ 
+               top: btnPos.y + 'px', 
+               left: btnPos.x + 'px', 
+               transition: isDragging ? 'none' : 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)' 
+             }"
+           >
+             <div class="relative w-14 h-14 bg-[#f9b11d] rounded-full shadow-[0_4px_12px_rgba(249,177,29,0.4)] border-2 border-white flex items-center justify-center overflow-hidden group">
+               <!-- 闭眼/睁眼动画 -->
+               <img src="/xiaoniao.png" class="w-10 h-10 object-contain animate-bounce-short z-10" />
+               <!-- 菜单展开指示器 -->
+               <div class="absolute inset-0 bg-white/20 scale-0 rounded-full transition-transform duration-300" :class="{ 'scale-100': showMobileMenu }"></div>
+             </div>
+             <!-- 呼吸光晕 -->
+             <div class="absolute inset-0 rounded-full border-2 border-[#f9b11d] opacity-50 animate-ping pointer-events-none" v-if="!showMobileMenu && !isDragging"></div>
+           </div>
+
+           <!-- 侧边弹出菜单遮罩 -->
+           <transition name="fade">
+             <div 
+               v-if="showMobileMenu" 
+               class="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 touch-none"
+               @click="showMobileMenu = false"
+               @touchmove.prevent
+             ></div>
+           </transition>
+
+           <!-- 扇形/弧形展开菜单 -->
+           <div 
+             v-if="showMobileMenu"
+             class="fixed z-40 pointer-events-none"
+             :style="{ 
+               top: btnPos.y + 28 + 'px', 
+               left: btnPos.x + 28 + 'px'
+             }"
+           >
+             <div class="relative">
+               <button 
+                 v-for="(tab, index) in tabs" :key="tab.id"
+                 @click="activeTab = tab.id; showMobileMenu = false"
+                class="absolute flex items-center justify-center px-4 h-10 rounded-full border-2 shadow-lg font-black text-xs pointer-events-auto transition-all duration-300 hover:scale-110 active:scale-95 whitespace-nowrap min-w-[4rem]"
+                :class="activeTab === tab.id ? 'bg-[#45a6d5] text-white border-white' : 'bg-white text-[#45a6d5] border-[#E6F7FF]'"
+                :style="{
+                   transform: `rotate(${getMenuAngle(index, tabs.length, isRightSide)}deg) translate(110px) rotate(${-getMenuAngle(index, tabs.length, isRightSide)}deg)`,
+                   opacity: showMobileMenu ? 1 : 0,
+                   transitionDelay: `${index * 30}ms`
+                 }"
+               >
+                 {{ tab.name }}
+               </button>
+             </div>
+           </div>
+        </div>
+
+        <!-- 桌面端横向排列 Tab -->
+        <div class="hidden md:flex justify-center gap-4 mb-8 flex-wrap">
           <button 
             v-for="tab in tabs" :key="tab.id"
             @click="activeTab = tab.id"
@@ -182,7 +246,7 @@
           </button>
         </div>
 
-        <div class="panel-cartoon min-h-[360px] p-8 relative overflow-hidden">
+        <div class="panel-cartoon min-h-[360px] p-4 md:p-8 relative overflow-hidden">
           <div class="absolute -bottom-6 -right-6 text-[8rem] opacity-5 pointer-events-none italic font-black">B.B.B.S</div>
           
           <transition name="fade" mode="out-in">
@@ -262,6 +326,133 @@
                 </div>
               </div>
 
+              <!-- Tab 5: 军团成员 (Members) -->
+              <div v-else-if="activeTab === 'members'" class="h-full flex flex-col">
+                <!-- 顶部搜索和筛选栏 -->
+                <div class="flex flex-col sm:flex-row gap-4 mb-4 items-center justify-between bg-white/50 backdrop-blur-sm p-4 rounded-2xl border-2 border-white">
+                  <!-- 搜索框 -->
+                  <div class="relative w-full sm:w-64">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                    <input 
+                      v-model="memberSearchQuery" 
+                      type="text" 
+                      placeholder="搜索成员..." 
+                      class="w-full pl-9 pr-4 py-2 rounded-xl border-2 border-[#E6F7FF] focus:border-[#45a6d5] outline-none text-slate-700 font-bold bg-white transition-colors"
+                    />
+                  </div>
+                  
+                  <!-- 职业筛选 (水平滚动) -->
+                  <div class="flex-1 w-full overflow-x-auto custom-scroll pb-1 sm:pb-0">
+                    <div class="flex gap-2">
+                      <button 
+                        @click="selectedClass = ''"
+                        class="px-3 py-1.5 rounded-lg text-xs font-black whitespace-nowrap transition-all border-2"
+                        :class="selectedClass === '' ? 'bg-[#45a6d5] text-white border-[#45a6d5]' : 'bg-white text-slate-500 border-white hover:border-[#E6F7FF]'"
+                      >
+                        全部
+                      </button>
+                      <button 
+                        v-for="cls in uniqueClasses" 
+                        :key="cls"
+                        @click="selectedClass = cls"
+                        class="px-3 py-1.5 rounded-lg text-xs font-black whitespace-nowrap transition-all border-2"
+                        :class="selectedClass === cls ? 'bg-[#45a6d5] text-white border-[#45a6d5]' : 'bg-white text-slate-500 border-white hover:border-[#E6F7FF]'"
+                      >
+                        {{ cls }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 成员列表区域 -->
+                <div v-if="loadingMembers" class="flex-1 flex items-center justify-center text-slate-400 font-bold">
+                  <div class="flex flex-col items-center gap-2">
+                    <span class="text-3xl animate-bounce">⏳</span>
+                    <span>加载中...</span>
+                  </div>
+                </div>
+                
+                <div v-else-if="filteredMembers.length === 0" class="flex-1 flex flex-col items-center justify-center text-slate-400 min-h-[300px]">
+                  <span class="text-4xl mb-2">👻</span>
+                  <span class="font-bold">未找到相关成员</span>
+                </div>
+
+                <div v-else class="flex-1 overflow-y-auto custom-scroll p-2 -mx-2">
+                  <!-- 军团长区域 (仅当未筛选或筛选结果包含军团长时显示) -->
+                  <div v-if="leaders.length > 0 && !memberSearchQuery && !selectedClass" class="mb-8">
+                     <div class="flex items-center gap-2 mb-4">
+                        <span class="text-2xl">👑</span>
+                        <h3 class="font-black text-slate-800 text-lg">军团指挥部</h3>
+                        <div class="h-[2px] flex-1 bg-gradient-to-r from-yellow-200 to-transparent"></div>
+                     </div>
+                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div v-for="member in leaders" :key="member.id" class="relative bg-gradient-to-br from-yellow-50 to-white p-4 rounded-2xl border-2 border-yellow-200 shadow-sm flex items-center gap-4 hover:scale-[1.02] transition-transform">
+                           <div class="relative">
+                              <img :src="member.profile_url || '/bbbswz.png'" class="w-16 h-16 rounded-full border-2 border-yellow-400 shadow-md object-cover bg-white" />
+                              <div class="absolute -top-2 -right-1 text-xl drop-shadow-md">👑</div>
+                           </div>
+                           <div class="flex-1 min-w-0">
+                              <h4 class="font-black text-slate-800 text-lg truncate flex items-center gap-1">
+                                {{ member.name }}
+                                <span v-if="member.gender === 'female'" class="text-pink-400 text-xs">♀</span>
+                                <span v-else-if="member.gender === 'male'" class="text-blue-400 text-xs">♂</span>
+                              </h4>
+                              <div class="flex items-center gap-2 mt-1 flex-wrap">
+                                <span class="bg-yellow-400 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">军团长</span>
+                                <span class="text-xs text-slate-500 font-bold">Lv.{{ member.level }}</span>
+                                <span v-if="member.item_level" class="text-xs font-bold text-yellow-600 bg-yellow-50 px-1.5 rounded flex items-center gap-0.5" title="装备分数">
+                                  ⚔️ {{ member.item_level }}
+                                </span>
+                              </div>
+                              <div class="text-xs text-slate-400 mt-1 truncate">{{ member.title_name || member.note || '暂无签名' }}</div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+
+                  <!-- 普通成员列表 -->
+                  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+                    <div 
+                      v-for="member in otherMembers" 
+                      :key="member.id" 
+                      class="group relative bg-white/60 backdrop-blur-sm rounded-2xl border-2 border-white hover:border-[#AEE2F9] p-3 flex flex-col items-center transition-all hover:-translate-y-1 hover:shadow-lg will-change-transform"
+                    >
+                      <!-- 职位徽章 (百夫长) -->
+                      <div v-if="member.role === 'officer'" class="absolute -top-2 -right-2 z-10">
+                        <span class="bg-purple-400 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">百夫长</span>
+                      </div>
+                      
+                      <div class="relative w-14 h-14 sm:w-16 sm:h-16 mb-2">
+                        <img 
+                          loading="lazy" 
+                          :src="member.profile_url || '/bbbswz.png'" 
+                          class="w-full h-full rounded-full object-cover border-2 border-white shadow-sm bg-slate-100 group-hover:scale-105 transition-transform duration-300" 
+                        />
+                        <div class="absolute bottom-0 right-0 bg-[#45a6d5] text-white text-[10px] font-bold px-1.5 rounded-full border border-white min-w-[20px] text-center">
+                          {{ member.level }}
+                        </div>
+                        <!-- 性别标识 (可选，如果想显示在头像旁) -->
+                        <div v-if="member.gender" class="absolute -bottom-1 -left-1 w-4 h-4 rounded-full flex items-center justify-center border border-white text-[10px]" 
+                          :class="member.gender === 'female' ? 'bg-pink-100 text-pink-500' : 'bg-blue-100 text-blue-500'">
+                          {{ member.gender === 'female' ? '♀' : '♂' }}
+                        </div>
+                      </div>
+                      
+                      <h4 class="font-bold text-slate-800 text-xs sm:text-sm truncate w-full text-center px-1" :title="member.name">{{ member.name }}</h4>
+                      <span class="text-[10px] sm:text-xs text-slate-500 font-medium mb-1 truncate w-full text-center">{{ member.class_name || '未知' }}</span>
+                      
+                      <div class="flex items-center gap-1 justify-center w-full">
+                        <span class="text-[10px] text-slate-400 bg-slate-100/80 px-2 py-0.5 rounded-full">{{ member.race_id === 1 ? '天族' : '魔族' }}</span>
+                        <!-- 装备分数 -->
+                        <span v-if="member.item_level" class="text-[10px] text-yellow-600 bg-yellow-50/80 px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5" title="装备分数">
+                          ⚔️{{ member.item_level }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div v-else-if="activeTab === 'join'" class="h-full flex flex-col items-center justify-center text-center">
                 <div class="text-6xl mb-4">🚌</div>
                 <h4 class="text-2xl font-black text-sky-900 mb-2">准备好上车了吗？</h4>
@@ -323,33 +514,191 @@ const defaultTabs = [
   { id: 'fresh', name: '军团鲜哒' },
   { id: 'analysis', name: '战力解析' },
   { id: 'rank', name: '战力排行' },
+  { id: 'members', name: '军团成员' },
   { id: 'join', name: '入团手续' }
 ]
 
 const activeTab = ref('news')
+const showMobileMenu = ref(false)
+
+// 悬浮按钮拖拽逻辑
+const floatingBtnRef = ref(null)
+const windowWidth = ref(0)
+const windowHeight = ref(0)
+const btnPos = reactive({ x: 0, y: 0 })
+const isDragging = ref(false)
+const dragStart = { x: 0, y: 0 }
+const initialBtnPos = { x: 0, y: 0 }
+const isRightSide = computed(() => btnPos.x > windowWidth.value / 2)
+
+const startDrag = (e) => {
+  isDragging.value = true
+  const touch = e.touches[0]
+  dragStart.x = touch.clientX
+  dragStart.y = touch.clientY
+  initialBtnPos.x = btnPos.x
+  initialBtnPos.y = btnPos.y
+}
+
+const onDrag = (e) => {
+  if (!isDragging.value) return
+  const touch = e.touches[0]
+  const dx = touch.clientX - dragStart.x
+  const dy = touch.clientY - dragStart.y
+  
+  // 限制边界
+  let newX = initialBtnPos.x + dx
+  let newY = initialBtnPos.y + dy
+  
+  newX = Math.max(0, Math.min(newX, windowWidth.value - 60))
+  newY = Math.max(0, Math.min(newY, windowHeight.value - 60))
+  
+  btnPos.x = newX
+  btnPos.y = newY
+}
+
+const endDrag = () => {
+  isDragging.value = false
+  // 磁吸效果：自动吸附到最近的左右边缘
+  if (btnPos.x + 30 > windowWidth.value / 2) {
+    btnPos.x = windowWidth.value - 60 // 吸附到右边 (留出按钮宽度)
+  } else {
+    btnPos.x = 10 // 吸附到左边
+  }
+}
+
+const toggleMenu = () => {
+  // 防止拖拽结束时误触发点击
+  if (Math.abs(btnPos.x - initialBtnPos.x) < 5 && Math.abs(btnPos.y - initialBtnPos.y) < 5) {
+    showMobileMenu.value = !showMobileMenu.value
+  }
+}
+
+const getMenuAngle = (index, total, isRight) => {
+  // 计算每个菜单项的角度
+  // 基础角度：右侧时向左展开 (180度中心)，左侧时向右展开 (0度中心)
+  // 扇形范围：120度
+  const span = 120
+  const step = span / (total - 1 || 1)
+  
+  if (isRight) {
+    // 右侧模式：按钮在右，菜单向左展开
+    // 从左上(240度) 到 左下(120度) -> Top-to-Bottom
+    return 240 - (index * step)
+  } else {
+    // 左侧模式：按钮在左，菜单向右展开
+    // 从右上(-60度) 到 右下(60度) -> Top-to-Bottom
+    return -60 + (index * step)
+  }
+}
 
 // 动态内容列表
 const posts = ref([])
 const loadingPosts = ref(false)
 
+// 成员列表
+const members = ref([])
+const loadingMembers = ref(false)
+const memberSearchQuery = ref('')
+const selectedClass = ref('')
+
+const filteredMembers = computed(() => {
+  return members.value.filter(m => {
+    const matchName = m.name.toLowerCase().includes(memberSearchQuery.value.toLowerCase())
+    const matchClass = selectedClass.value ? m.class_name === selectedClass.value : true
+    return matchName && matchClass
+  })
+})
+
+const uniqueClasses = computed(() => {
+  const classes = new Set(members.value.map(m => m.class_name).filter(Boolean))
+  return Array.from(classes).sort()
+})
+
+const leaders = computed(() => {
+  return filteredMembers.value.filter(m => m.role === 'leader')
+})
+
+const otherMembers = computed(() => {
+  // 如果有搜索或筛选，为了不打乱，全部显示在 grid 中（除了军团长单独显示时）
+  if (memberSearchQuery.value || selectedClass.value) {
+    return filteredMembers.value
+  }
+  return filteredMembers.value.filter(m => m.role !== 'leader')
+})
+
 // 1. 获取 Tab 配置
 const fetchTabs = async () => {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('site_config')
     .select('value')
     .eq('key', 'home_tabs')
     .single()
   
+  if (error) {
+    console.error('Error fetching tabs:', error)
+    tabs.value = defaultTabs
+    return
+  }
+
   if (data?.value) {
-    tabs.value = data.value
-    // 如果当前选中的 tab 不在新的列表中，默认选第一个
-    if (tabs.value.length > 0 && !tabs.value.find(t => t.id === activeTab.value)) {
-      activeTab.value = tabs.value[0].id
+    let tabsData = data.value
+    
+    // 尝试解析字符串 (防止数据库存储为 JSON 字符串)
+    if (typeof tabsData === 'string') {
+      try {
+        tabsData = JSON.parse(tabsData)
+      } catch (e) {
+        console.error('JSON parse error:', e)
+      }
+    }
+    
+    // 深度解析：处理嵌套结构
+    if (tabsData && typeof tabsData === 'object') {
+        // Case 1: Wrapped in "value" key { value: [...] }
+        if (!Array.isArray(tabsData) && Array.isArray(tabsData.value)) {
+            tabsData = tabsData.value
+        } 
+        // Case 2: Single object { id: '...', name: '...' }
+        else if (!Array.isArray(tabsData) && tabsData.id && tabsData.name) {
+            tabsData = [tabsData]
+        }
+        // Case 3: Dictionary/Map { "0": {...}, "1": {...} }
+        else if (!Array.isArray(tabsData)) {
+            const values = Object.values(tabsData)
+            const validItems = values.filter(v => v && typeof v === 'object' && v.id && v.name)
+            if (validItems.length > 0) {
+                tabsData = validItems
+            }
+        }
+    }
+
+    if (Array.isArray(tabsData) && tabsData.length > 0) {
+      tabs.value = tabsData
+      // 确保当前选中项有效
+      if (!tabs.value.find(t => t.id === activeTab.value)) {
+        activeTab.value = tabs.value[0].id
+      }
+    } else {
+      tabs.value = defaultTabs
     }
   } else {
     tabs.value = defaultTabs
   }
 }
+
+// 监听 Mobile Menu 状态，锁定/解锁 Body 滚动
+watch(showMobileMenu, (val) => {
+  if (process.client) {
+    document.body.style.overflow = val ? 'hidden' : ''
+  }
+})
+
+onUnmounted(() => {
+  if (process.client) {
+    document.body.style.overflow = ''
+  }
+})
 
 // 2. 根据当前 Tab 获取内容
 const fetchPosts = async () => {
@@ -368,9 +717,37 @@ const fetchPosts = async () => {
   loadingPosts.value = false
 }
 
+// 3. 获取成员列表
+const fetchMembers = async () => {
+  loadingMembers.value = true
+  const { data, error } = await supabase
+    .from('legion_members')
+    .select('*')
+    // 简单的排序策略：军团长 -> 百夫长 -> 普通成员，然后再按等级降序
+    // Supabase 排序语法限制，这里先按等级降序，前端再微调职位顺序
+    .order('level', { ascending: false })
+  
+  if (data) {
+    // 前端进行职位的二次排序
+    const roleWeight = { 'leader': 3, 'officer': 2, 'member': 1 }
+    members.value = data.sort((a, b) => {
+      const weightDiff = roleWeight[b.role] - roleWeight[a.role]
+      if (weightDiff !== 0) return weightDiff
+      return b.level - a.level
+    })
+  } else {
+    members.value = []
+  }
+  loadingMembers.value = false
+}
+
 // 监听 Tab 切换，自动拉取对应内容
-watch(activeTab, () => {
-  fetchPosts()
+watch(activeTab, (val) => {
+  if (val === 'members') {
+    fetchMembers()
+  } else {
+    fetchPosts()
+  }
 })
 
 const logout = async () => {
@@ -652,10 +1029,23 @@ onMounted(() => {
   viewport.w = window.innerWidth
   viewport.h = window.innerHeight
   if (process.client) {
+    windowWidth.value = window.innerWidth
+    windowHeight.value = window.innerHeight
+    // 初始位置：右侧，距顶部约 60% (中下位置)
+    btnPos.x = windowWidth.value - 60
+    btnPos.y = windowHeight.value * 0.6
+    
     for (let i = 0; i < Math.min(2, cloudConfig.maxClouds); i++) spawnCloud()
     resetSpawner()
     startDrift()
-    window.addEventListener('resize', () => { viewport.w = window.innerWidth; viewport.h = window.innerHeight })
+    window.addEventListener('resize', () => { 
+      viewport.w = window.innerWidth; 
+      viewport.h = window.innerHeight
+      windowWidth.value = window.innerWidth
+      windowHeight.value = window.innerHeight
+      // 窗口变化时修正按钮位置，防止出界
+      btnPos.x = Math.min(btnPos.x, windowWidth.value - 60)
+    })
     nextTick(() => {
       // 强制触发播放（兼容移动端省电策略）
       if (introVideoRef.value) {
@@ -769,5 +1159,9 @@ watch(clouds, (arr) => {
 @keyframes speech-bubble {
   0%, 40%, 60%, 100% { opacity: 0; transform: scale(0.8); }
   45%, 55% { opacity: 1; transform: scale(1); }
+}
+.writing-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
 }
 </style>

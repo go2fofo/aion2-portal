@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
+const { $alert, $confirm, $loading } = useNuxtApp()
 
 const form = ref({ title: '', content: '', type: 'news' })
 const posts = ref([])
@@ -32,43 +33,53 @@ const fetchPosts = async () => {
 // 发布文章
 const publishPost = async () => {
   if (!form.value.title || !form.value.content) {
-    alert('标题和内容不能为空')
+    $alert('校验失败', '标题和内容不能为空')
     return
   }
 
   submitting.value = true
-  const { error } = await supabase
-    .from('posts')
-    .insert({
-      title: form.value.title,
-      content: form.value.content,
-      type: form.value.type,
-      user_id: user.value.id
-    })
+  $loading.show('正在发布动态...')
+  
+  try {
+    const { error } = await supabase
+      .from('posts')
+      .insert({
+        title: form.value.title,
+        content: form.value.content,
+        type: form.value.type,
+        user_id: user.value.id
+      })
 
-  if (error) {
-    alert('发布失败: ' + error.message)
-  } else {
-    alert('发布成功！')
-    form.value = { title: '', content: '', type: 'news' }
-    fetchPosts()
+    if (error) {
+      $alert('发布失败', error.message)
+    } else {
+      $alert('发布成功', '新动态已推送到首页')
+      form.value = { title: '', content: '', type: 'news' }
+      fetchPosts()
+    }
+  } finally {
+    submitting.value = false
+    $loading.hide()
   }
-  submitting.value = false
 }
 
 // 删除文章
 const deletePost = async (id) => {
-  if (!confirm('确定删除这条动态吗？')) return
+  const confirmed = await $confirm('删除动态', '确定删除这条动态吗？')
+  if (!confirmed) return
 
+  $loading.show('正在删除...')
   const { error } = await supabase
     .from('posts')
     .delete()
     .eq('id', id)
+  
+  $loading.hide()
 
   if (error) {
-    alert('删除失败: ' + error.message)
+    $alert('删除失败', error.message)
   } else {
-    alert('已删除')
+    $alert('已删除', '动态已被移除')
     fetchPosts()
   }
 }

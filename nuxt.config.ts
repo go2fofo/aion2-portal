@@ -41,6 +41,7 @@ export default defineNuxtConfig({
     // 例如：首页静态化，后台页面只在客户端渲染
     // '/': { prerender: true },
     // '/admin/**': { ssr: false },
+    '/api/**': { cors: true }, // 允许 API 跨域
   },
   // Supabase 配置
   supabase: {

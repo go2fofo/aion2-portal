@@ -12,6 +12,7 @@
   "dependencies": {
     "@nuxtjs/supabase": "^1.1.6",
     "echarts": "^5.5.0",
+    "https-proxy-agent": "^7.0.6",
     "nuxt": "^3.12.4",
     "nuxt-echarts": "^1.0.1",
     "scrollreveal": "^4.0.9",
@@ -20,9 +21,9 @@
   },
   "devDependencies": {
     "@nuxt/ui": "^2.14.0",
-    "tailwindcss": "3.4.17",
+    "autoprefixer": "^10.4.16",
     "postcss": "^8.4.31",
-    "autoprefixer": "^10.4.16"
+    "tailwindcss": "3.4.17"
   },
   "packageManager": "pnpm@10.29.2"
 }

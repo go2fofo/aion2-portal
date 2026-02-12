@@ -88,15 +88,18 @@
 </template>
 
 <script setup>
-const supabase = useSupabaseClient()
+import { ref, watchEffect } from 'vue'
 const user = useSupabaseUser()
+const supabase = useSupabaseClient()
 const router = useRouter()
+const { $alert, $loading } = useNuxtApp()
 
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
 const errorMsg = ref('')
 const successMsg = ref('')
+
 const isSignUp = ref(false)
 const isMagicLink = ref(false)
 
@@ -108,7 +111,7 @@ watchEffect(() => {
 })
 
 const handleLogin = async () => {
-  loading.value = true
+  $loading.show(isSignUp.value ? '正在注册...' : '正在登录...')
   errorMsg.value = ''
   successMsg.value = ''
   
@@ -124,14 +127,14 @@ const handleLogin = async () => {
         password: password.value,
       })
       if (error) throw error
-      successMsg.value = '注册确认邮件已发送，请查收！'
+      $alert('注册成功', '注册确认邮件已发送，请查收！')
     } else {
       // 登录
       if (isMagicLink.value) {
         // 魔法链接登录
         const { error } = await supabase.auth.signInWithOtp({ email: email.value })
         if (error) throw error
-        successMsg.value = '登录链接已发送到您的邮箱！'
+        $alert('发送成功', '登录链接已发送到您的邮箱！')
       } else {
         // 密码登录
         const { error } = await supabase.auth.signInWithPassword({
@@ -143,9 +146,9 @@ const handleLogin = async () => {
       }
     }
   } catch (error) {
-    errorMsg.value = error.message || '操作失败，请重试'
+    $alert('操作失败', error.message || '请重试')
   } finally {
-    loading.value = false
+    $loading.hide()
   }
 }
 </script>

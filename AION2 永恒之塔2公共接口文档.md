@@ -1,6 +1,4 @@
-
 ---
-
 # AION2 永恒之塔2 公共接口文档
 
 ## 1. 角色查询列表 (Search)
@@ -33,9 +31,7 @@
     ]
 }
 ```
-
 ---
-
 ## 2. 查询角色基本信息 (Profile & Stats)
 
 获取角色的职业、性别、详细属性值、各玩法排名以及称号数据。
@@ -752,6 +748,100 @@
 2. **Equipment**: 包含所有部位装备的名称、强化等级 (`enchantLevel`)、品质 (`grade`) 及对应图标。
 3. **PetWing**: 当前使用的宠物 (`pet`) 信息、翅膀 (`wing`) 及其外形皮肤 (`wingSkin`)。
 4. **SkinList**: 角色当前应用的所有时装外形。
+
+字段详情
+
+```
+{
+  "daevanion": {
+    "_comment": "代行者/守护者系统进度",
+    "boardList": [
+      {
+        "id": "板块ID",
+        "name": "板块名称(对应主神名)",
+        "totalNodeCount": "总节点数",
+        "openNodeCount": "已开启节点数",
+        "icon": "板块图标URL",
+        "open": "开启状态(1为已开启)",
+        "openPercent": "当前板块完成百分比"
+      }
+    ]
+  },
+  "stat": {
+    "_comment": "角色各项能力值与属性",
+    "statList": [
+      {
+        "type": "属性缩写(STR/DEX等)",
+        "name": "属性中文名",
+        "value": "基础属性数值",
+        "statSecondList": "该属性转换后的二级效果(如: 攻击力、命中、回避百分比加成)"
+      },
+      {
+        "type": "ItemLevel",
+        "name": "综合道具等级/装等",
+        "value": "具体数值",
+        "statSecondList": null
+      }
+    ]
+  },
+  "title": {
+    "_comment": "称号收集与佩戴信息",
+    "totalCount": "全游戏称号总数",
+    "ownedCount": "已获得称号总数",
+    "titleList": [
+      {
+        "id": "称号ID",
+        "equipCategory": "装备位置分类(Attack/Defense/Etc)",
+        "name": "称号名称",
+        "grade": "等级(Legend传说/Unique唯一)",
+        "totalCount": "该类别总数",
+        "ownedCount": "该类别已获得数",
+        "ownedPercent": "该类别收集百分比",
+        "statList": "持有属性(获得即永久生效)",
+        "equipStatList": "佩戴属性(只有装备该称号才生效)"
+      }
+    ]
+  },
+  "profile": {
+    "_comment": "角色基础档案信息",
+    "characterId": "角色唯一加密ID(通常用作数据库主键)",
+    "characterName": "角色昵称",
+    "serverId": "服务器ID",
+    "serverName": "服务器名称",
+    "regionName": "大区/地区名称",
+    "pcId": "职业代号ID",
+    "className": "职业名称",
+    "raceId": "种族ID",
+    "raceName": "种族名称",
+    "gender": "性别代码",
+    "genderName": "性别名称",
+    "characterLevel": "角色等级",
+    "titleId": "当前佩戴的称号ID",
+    "titleName": "当前佩戴的称号名称",
+    "titleGrade": "当前称号品质",
+    "profileImage": "角色头像/形象图URL"
+  },
+  "ranking": {
+    "_comment": "各项玩法排名信息",
+    "rankingList": [
+      {
+        "rankingContentsType": "排名玩法类型(1:深渊/3:竞技场等)",
+        "rankingContentsName": "玩法名称",
+        "rank": "当前排名",
+        "characterName": "角色名",
+        "guildName": "所属公会名称",
+        "point": "当前排名积分",
+        "prevRank": "前一次统计排名",
+        "rankChange": "排名变动(0为持平, 负数通常代表上升)",
+        "gradeName": "当前军衔/段位名称",
+        "gradeIcon": "段位图标URL"
+      }
+    ]
+  }
+}
+```
+
+
 
 返回数据示例
 

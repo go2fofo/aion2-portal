@@ -49,6 +49,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 const supabase = useSupabaseClient()
+const { $alert, $confirm, $loading } = useNuxtApp()
 
 const tabs = ref([])
 const loading = ref(false)
@@ -79,7 +80,7 @@ const fetchTabs = async () => {
 
 // 保存 Tab 配置
 const saveTabs = async () => {
-  loading.value = true
+  $loading.show('正在保存配置...')
   // 检查是否已存在配置
   const { data: existing } = await supabase
     .from('site_config')
@@ -100,21 +101,23 @@ const saveTabs = async () => {
       .insert({ key: 'home_tabs', value: tabs.value })
     error = insertError
   }
+  
+  $loading.hide()
 
   if (error) {
-    alert('保存失败: ' + error.message)
+    $alert('保存失败', error.message)
   } else {
-    alert('保存成功！')
+    $alert('保存成功', '首页菜单已更新')
   }
-  loading.value = false
 }
 
 const addTab = () => {
   tabs.value.push({ id: '', name: '' })
 }
 
-const removeTab = (index) => {
-  if (confirm('确定要删除这个 Tab 吗？')) {
+const removeTab = async (index) => {
+  const confirmed = await $confirm('删除确认', '确定要删除这个 Tab 吗？')
+  if (confirmed) {
     tabs.value.splice(index, 1)
   }
 }
