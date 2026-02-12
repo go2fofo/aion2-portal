@@ -7,15 +7,15 @@
  * @FilePath: /aion2-portal/app/pages/admin.vue
 -->
 <template>
-  <div class="min-h-screen bg-slate-50 flex">
+  <div class="h-screen bg-slate-50 flex overflow-hidden">
     <!-- 侧边栏 -->
-    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col">
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 z-20">
       <div class="p-6 border-b border-slate-100 flex items-center gap-3">
         <div class="w-8 h-8 bg-[#45a6d5] rounded-lg flex items-center justify-center text-white font-black">A</div>
         <span class="font-black text-slate-800 text-lg">军团控制台</span>
       </div>
       
-      <nav class="flex-1 p-4 space-y-1">
+      <nav class="flex-1 p-4 space-y-1 overflow-y-auto custom-scroll">
         <NuxtLink to="/admin" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors" exact-active-class="bg-[#E6F7FF] text-[#45a6d5]">
           <span>📊</span>
           概览
@@ -42,8 +42,9 @@
     </aside>
 
     <!-- 主内容区 -->
-    <main class="flex-1 overflow-y-auto p-8">
-      <header class="flex justify-between items-center mb-8">
+    <main class="flex-1 flex flex-col min-w-0 h-full">
+      <!-- 顶部 Header (固定) -->
+      <header class="h-16 px-8 border-b border-slate-200 bg-white/80 backdrop-blur-sm flex justify-between items-center shrink-0 z-10 sticky top-0">
         <h1 class="text-2xl font-black text-slate-800">{{ pageTitle }}</h1>
         <div class="flex items-center gap-4">
           <NuxtLink to="/" class="text-sm font-bold text-slate-500 hover:text-[#45a6d5]">返回前台 ↗</NuxtLink>
@@ -53,7 +54,10 @@
         </div>
       </header>
 
-      <NuxtPage />
+      <!-- 页面内容 (独立滚动) -->
+      <div class="flex-1 overflow-y-auto p-8 custom-scroll">
+        <NuxtPage />
+      </div>
     </main>
   </div>
 </template>

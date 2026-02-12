@@ -353,6 +353,21 @@
                   <!-- 职业筛选 (水平滚动) -->
                   <div class="flex-1 w-full overflow-x-auto custom-scroll pb-1 sm:pb-0">
                     <div class="flex gap-2">
+                      <!-- 排序下拉框 (新增) -->
+                      <div class="relative inline-block text-left mr-2">
+                         <select 
+                           v-model="sortOrder" 
+                           class="appearance-none bg-white border-2 border-yellow-300 text-yellow-600 px-3 py-1.5 pr-8 rounded-lg text-xs font-black focus:outline-none focus:border-yellow-500 cursor-pointer"
+                         >
+                           <option value="role">按职位</option>
+                           <option value="item_level">按战力</option>
+                           <option value="level">按等级</option>
+                         </select>
+                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-yellow-600">
+                           <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                         </div>
+                      </div>
+
                       <button 
                         @click="selectedClass = ''"
                         class="px-3 py-1.5 rounded-lg text-xs font-black whitespace-nowrap transition-all border-2"
@@ -620,12 +635,33 @@ const members = ref([])
 const loadingMembers = ref(false)
 const memberSearchQuery = ref('')
 const selectedClass = ref('')
+const sortOrder = ref('role') // 默认按职位排序
 
 const filteredMembers = computed(() => {
-  return members.value.filter(m => {
+  let list = members.value.filter(m => {
     const matchName = m.name.toLowerCase().includes(memberSearchQuery.value.toLowerCase())
     const matchClass = selectedClass.value ? m.class_name === selectedClass.value : true
     return matchName && matchClass
+  })
+  
+  // 排序逻辑
+  return list.sort((a, b) => {
+    // 1. 如果选择了按职位排序，则优先比较职位权重
+    if (sortOrder.value === 'role') {
+      const roleWeight = { 'leader': 3, 'officer': 2, 'member': 1 }
+      const weightDiff = roleWeight[b.role] - roleWeight[a.role]
+      if (weightDiff !== 0) return weightDiff
+    }
+    
+    // 2. 根据选择排序
+    if (sortOrder.value === 'item_level') {
+        // 战力降序 (如果战力一样，按等级降序)
+        const itemLevelDiff = (b.item_level || 0) - (a.item_level || 0)
+        if (itemLevelDiff !== 0) return itemLevelDiff
+    }
+    
+    // 3. 默认/兜底：等级降序
+    return b.level - a.level
   })
 })
 
@@ -748,13 +784,8 @@ const fetchMembers = async () => {
     .order('level', { ascending: false })
   
   if (data) {
-    // 前端进行职位的二次排序
-    const roleWeight = { 'leader': 3, 'officer': 2, 'member': 1 }
-    members.value = data.sort((a, b) => {
-      const weightDiff = roleWeight[b.role] - roleWeight[a.role]
-      if (weightDiff !== 0) return weightDiff
-      return b.level - a.level
-    })
+    // 原始数据赋值，具体排序交给 computed 处理
+    members.value = data
   } else {
     members.value = []
   }
