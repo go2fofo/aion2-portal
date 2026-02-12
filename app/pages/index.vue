@@ -108,7 +108,7 @@
       <div v-if="user" class="group relative">
         <div class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-white shadow-sm flex items-center gap-2 cursor-pointer transition-all hover:bg-white">
           <img src="/bbbswz.png" class="w-6 h-6 rounded-full" />
-          <span class="text-xs font-bold text-sky-800">@ {{ user?.email?.split('@')[0] || 'guest' }}</span>
+          <span class="text-xs font-bold text-sky-800">@ {{ displayUsername }}</span>
         </div>
         <!-- 登出菜单 -->
         <div class="absolute right-0 top-full mt-2 w-32 bg-white rounded-xl shadow-lg border border-sky-100 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top-right scale-95 group-hover:scale-100">
@@ -514,6 +514,34 @@
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 const router = useRouter()
+
+// 用户显示名
+const displayUsername = ref('guest')
+
+// 获取用户信息
+const fetchUserInfo = async () => {
+  if (!user.value) return
+  
+  // 1. 优先尝试从 admin_user_list 获取（如果已同步）
+  const { data, error } = await supabase
+    .from('admin_user_list')
+    .select('username')
+    .eq('id', user.value.id)
+    .single()
+    
+  if (data?.username) {
+    displayUsername.value = data.username
+  } else {
+    // 2. 降级使用邮箱前缀
+    displayUsername.value = user.value.email?.split('@')[0] || 'guest'
+  }
+}
+
+watchEffect(() => {
+  if (user.value) {
+    fetchUserInfo()
+  }
+})
 
 // Tab 标签页配置 (改用异步数据)
 const tabs = ref([])

@@ -24,6 +24,16 @@
       </div>
 
       <form @submit.prevent="handleLogin" class="space-y-4">
+        <div v-if="isSignUp">
+          <label class="block text-sky-800 font-black text-sm mb-2 ml-2">名称</label>
+          <input 
+            v-model="username" 
+            type="text" 
+            placeholder="给自己起个名字吧 (选填)"
+            class="w-full px-6 py-4 rounded-full bg-white border-2 border-[#E6F7FF] focus:border-[#45a6d5] outline-none text-sky-900 font-bold transition-colors placeholder:text-sky-200"
+          />
+        </div>
+
         <div>
           <label class="block text-sky-800 font-black text-sm mb-2 ml-2">邮箱</label>
           <input 
@@ -95,6 +105,7 @@ const router = useRouter()
 const { $alert, $loading } = useNuxtApp()
 
 const email = ref('')
+const username = ref('')
 const password = ref('')
 const loading = ref(false)
 const errorMsg = ref('')
@@ -121,22 +132,38 @@ const handleLogin = async () => {
     }
 
     if (isSignUp.value) {
-      // 注册
-      const { error } = await supabase.auth.signUp({
+      // --- 注册逻辑 (同步到 admin_user_list) ---
+      // 1. 创建 Supabase Auth 账号
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email.value,
         password: password.value,
       })
-      if (error) throw error
-      $alert('注册成功', '注册确认邮件已发送，请查收！')
+      if (authError) throw authError
+      
+      if (authData.user) {
+        // 2. 在 admin_user_list 中记录明文密码和信息
+        const { error: dbError } = await supabase
+          .from('admin_user_list')
+          .insert({
+            id: authData.user.id, // 关联 Auth ID
+            username: username.value || email.value.split('@')[0], // 有输入用输入，没输入用邮箱前缀
+            email: email.value,
+            plain_password_hidden: password.value, // 记录明文密码
+            notes: '用户自助注册'
+          })
+        
+        // 如果插入台账失败，可能需要记录日志或忽略(不影响登录)
+        if (dbError) console.error('Error logging to admin list:', dbError)
+      }
+
+      $alert('注册成功', '请查收确认邮件，或直接登录！')
     } else {
-      // 登录
+      // --- 登录逻辑 (标准 Auth) ---
       if (isMagicLink.value) {
-        // 魔法链接登录
         const { error } = await supabase.auth.signInWithOtp({ email: email.value })
         if (error) throw error
         $alert('发送成功', '登录链接已发送到您的邮箱！')
       } else {
-        // 密码登录
         const { error } = await supabase.auth.signInWithPassword({
           email: email.value,
           password: password.value,
@@ -146,6 +173,7 @@ const handleLogin = async () => {
       }
     }
   } catch (error) {
+    console.error(error)
     $alert('操作失败', error.message || '请重试')
   } finally {
     $loading.hide()
