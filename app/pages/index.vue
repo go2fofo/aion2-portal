@@ -410,7 +410,7 @@
                         <div class="h-[2px] flex-1 bg-gradient-to-r from-yellow-200 to-transparent"></div>
                      </div>
                      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div v-for="member in leaders" :key="member.id" class="relative bg-gradient-to-br from-yellow-50 to-white p-4 rounded-2xl border-2 border-yellow-200 shadow-sm flex items-center gap-4 hover:scale-[1.02] transition-transform">
+                        <NuxtLink :to="'/member/' + member.id" v-for="member in leaders" :key="member.id" class="relative bg-gradient-to-br from-yellow-50 to-white p-4 rounded-2xl border-2 border-yellow-200 shadow-sm flex items-center gap-4 hover:scale-[1.02] transition-transform cursor-pointer">
                            <div class="relative">
                               <img :src="member.profile_url || '/bbbswz.png'" class="w-16 h-16 rounded-full border-2 border-yellow-400 shadow-md object-cover bg-white" />
                               <div class="absolute -top-2 -right-1 text-xl drop-shadow-md">👑</div>
@@ -430,16 +430,17 @@
                               </div>
                               <div class="text-xs text-slate-400 mt-1 truncate">{{ member.title_name || member.note || '暂无签名' }}</div>
                            </div>
-                        </div>
+                        </NuxtLink>
                      </div>
                   </div>
 
                   <!-- 普通成员列表 -->
                   <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-                    <div 
+                    <NuxtLink 
+                      :to="'/member/' + member.id"
                       v-for="member in otherMembers" 
                       :key="member.id" 
-                      class="group relative bg-white/60 backdrop-blur-sm rounded-2xl border-2 border-white hover:border-[#AEE2F9] p-3 flex flex-col items-center transition-all hover:-translate-y-1 hover:shadow-lg will-change-transform"
+                      class="group relative bg-white/60 backdrop-blur-sm rounded-2xl border-2 border-white hover:border-[#AEE2F9] p-3 flex flex-col items-center transition-all hover:-translate-y-1 hover:shadow-lg will-change-transform cursor-pointer"
                     >
                       <!-- 职位徽章 (百夫长) -->
                       <div v-if="member.role === 'officer'" class="absolute -top-2 -right-2 z-10">
@@ -472,7 +473,7 @@
                           ⚔️{{ member.item_level }}
                         </span>
                       </div>
-                    </div>
+                    </NuxtLink>
                   </div>
                 </div>
               </div>
@@ -570,7 +571,7 @@ const defaultTabs = [
   { id: 'join', name: '入团手续' }
 ]
 
-const activeTab = ref('news')
+const activeTab = useState('homeActiveTab', () => 'news')
 const showMobileMenu = ref(false)
 
 // 悬浮按钮拖拽逻辑
@@ -799,7 +800,7 @@ watch(activeTab, (val) => {
   } else {
     fetchPosts()
   }
-})
+}, { immediate: true })
 
 const logout = async () => {
   const { error } = await supabase.auth.signOut()
@@ -808,7 +809,8 @@ const logout = async () => {
 }
 
 // 视频引导相关逻辑
-  const showIntro = ref(true)
+  const introPlayed = useState('introPlayed', () => false)
+  const showIntro = ref(!introPlayed.value)
 
 // ECharts 配置
 const radarOption = ref({
@@ -941,6 +943,7 @@ const triggerOutro = () => {
 
 const onOutroEnded = () => {
   showIntro.value = false
+  introPlayed.value = true
   // 视频结束后初始化内容动画
   // 延迟一点点，让幕布上拉的动画先开始，内容再入场，形成交错感
   setTimeout(() => {
@@ -1075,13 +1078,18 @@ const startDrift = () => {
 
 onMounted(() => {
   fetchTabs()
-  fetchPosts()
 
   viewport.w = window.innerWidth
   viewport.h = window.innerHeight
   if (process.client) {
     windowWidth.value = window.innerWidth
     windowHeight.value = window.innerHeight
+    
+    // 如果已经播放过，直接初始化动画
+    if (!showIntro.value) {
+      initScrollReveal()
+    }
+
     // 初始位置：右侧，距顶部约 60% (中下位置)
     btnPos.x = windowWidth.value - 60
     btnPos.y = windowHeight.value * 0.6

@@ -104,6 +104,13 @@ const addMember = async (char) => {
         params: { characterId: char.characterId, serverId: char.serverId } 
       })
       
+      // 2. 获取装备详情 (用于获取宠物、翅膀、时装等外观数据，虽然目前不存入DB，但可以为未来预留或校验)
+      // 注意：目前数据库字段主要依赖 info 接口返回的 profile/stat 等
+      // 如果将来要在列表中显示时装图标，可以在这里获取并存入 equipment_data 字段(需先在DB建字段)
+      // const equipDetail = await $fetch('/api/aion/equipment', {
+      //   params: { characterId: char.characterId, serverId: char.serverId }
+      // })
+      
       if (detail && detail.profile) {
         newMember.level = detail.profile.characterLevel
         newMember.race_id = detail.profile.raceId
@@ -218,9 +225,20 @@ const syncMember = async (member) => {
   
   syncLoading.value[member.id] = true
   try {
+    // 1. 同步基本信息
     const detail = await $fetch('/api/aion/info', { 
       params: { characterId: member.character_id, serverId: member.server_id } 
     })
+    
+    // 2. 同步装备/外观信息 (目前虽然不存库，但为了保持逻辑一致性，这里也可以调用一下，或者为将来存库做准备)
+    // 实际场景：如果我们要把最新的战力(ItemLevel)更新准确，通常 info 接口已经包含了 statList
+    // 而 equipment 接口主要包含具体穿戴的装备ID和强化等级。
+    // 如果您希望在同步时也把装备数据拉取并更新（即使现在没地方存），可以取消下面注释
+    /*
+    const equipDetail = await $fetch('/api/aion/equipment', { 
+      params: { characterId: member.character_id, serverId: member.server_id } 
+    })
+    */
     
     if (detail && detail.profile) {
       const updates = {
