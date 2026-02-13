@@ -1,7 +1,7 @@
 <!--
  * @Author: whq
  * @Date: 2026-02-08 09:11:19
- * @LastEditTime: 2026-02-13 21:30:31
+ * @LastEditTime: 2026-02-13 22:01:56
  * @LastEditors: whq
  * @Description: 
  * @FilePath: /aion2-portal/app/app.vue
@@ -25,7 +25,10 @@
 useHead({
   title: 'AION2 宝宝巴士军团',
   meta: [
-    { name: 'description', content: '' }
+    { name: 'description', content: 'AION2 宝宝巴士军团门户网站' }
+  ],
+  link: [
+    { rel: 'icon', type: 'image/png', href: '/bbbswz.png' }
   ],
   // 如果你想给整个身体加一个基础背景色，防止切页闪白
   bodyAttrs: {
