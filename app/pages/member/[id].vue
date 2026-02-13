@@ -199,80 +199,438 @@
            <h3 class="font-black text-sky-900 text-xl mb-6 flex items-center gap-3">
              <span class="bg-yellow-100 p-2 rounded-2xl">🎒</span> 装备概览
            </h3>
-           <div v-if="loadingEquipment" class="text-center py-8 text-slate-400 font-bold">读取装备信息中...</div>
-           <div v-else-if="equipmentList.length === 0" class="text-center py-8 text-slate-400 font-bold">暂无装备数据</div>
-           <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-             <div 
-               v-for="item in equipmentList" 
-               :key="item.id" 
-               class="flex items-center gap-4 p-4 rounded-3xl border-2 transition-all hover:scale-[1.02] bg-white group shadow-sm relative overflow-hidden"
-               :class="[
-                 item.grade === 'Unique' ? 'border-orange-100 hover:border-orange-300 bg-gradient-to-br from-white to-orange-50/30' : 
-                 item.grade === 'Epic' ? 'border-purple-100 hover:border-purple-300 bg-gradient-to-br from-white to-purple-50/30' : 
-                 'border-slate-100 hover:border-sky-200'
-               ]"
-             >
-               <!-- 稀有度背景光晕 -->
-               <div v-if="item.grade === 'Unique'" class="absolute -right-4 -bottom-4 w-24 h-24 bg-orange-200/20 blur-2xl rounded-full"></div>
-               <div v-if="item.grade === 'Epic'" class="absolute -right-4 -bottom-4 w-24 h-24 bg-purple-200/20 blur-2xl rounded-full"></div>
-
-               <!-- 装备图标 -->
-               <div class="relative w-16 h-16 shrink-0 rounded-2xl overflow-hidden border-2 border-white shadow-inner bg-slate-50 z-10">
-                 <img :src="formatIconUrl(item.icon)" class="w-full h-full object-cover p-1 group-hover:scale-110 transition-transform" />
-                 <!-- 强化等级 -->
-                 <div v-if="item.enchantLevel > 0" class="absolute top-0 right-0 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-bl-xl font-black shadow-lg">
-                   +{{ item.enchantLevel }}
-                 </div>
+           <div v-if="loadingEquipment" class="text-center py-12">
+             <div class="inline-flex flex-col items-center gap-3">
+               <svg class="w-12 h-12 animate-spin text-sky-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                 <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"></circle>
+                 <path d="M12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.0434 16.4522" stroke="currentColor" stroke-width="4" stroke-linecap="round" class="opacity-75"></path>
+               </svg>
+               <span class="text-slate-400 font-black">正在解析深度装备数据...</span>
+             </div>
+           </div>
+           <div v-else-if="equipmentList.length === 0" class="text-center py-12 text-slate-400 font-black">暂无装备档案</div>
+           <div v-else class="space-y-16">
+             <!-- 分组展示普通装备 -->
+             <div v-for="group in groupedEquipment" :key="group.label" class="space-y-8">
+               <div class="flex items-center gap-3">
+                 <span class="p-2 rounded-2xl text-xl" :class="group.theme">{{ group.icon }}</span>
+                 <h4 class="font-black text-sky-900 text-xl tracking-widest">{{ group.label }}</h4>
+                 <div class="flex-1 h-px bg-slate-100 ml-4"></div>
                </div>
                
-               <!-- 装备文字 -->
-               <div class="flex-1 min-w-0 z-10">
-                 <div class="flex items-center justify-between mb-0.5">
-                   <div class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{{ slotMap[item.slotPosName] || item.slotPosName }}</div>
-                   <div class="text-[8px] font-mono text-slate-300">#{{ item.id }}</div>
-                 </div>
-                 <div class="text-sm font-black text-slate-800 truncate leading-tight mb-1" :title="item.name">{{ item.name }}</div>
-                 
-                 <div class="flex flex-wrap items-center gap-1.5">
-                   <!-- 品质标签 -->
-                   <span 
-                     class="text-[9px] px-1.5 py-0.5 rounded-lg font-black tracking-wider uppercase"
-                     :class="[
-                       item.grade === 'Unique' ? 'bg-orange-500 text-white' : 
-                       item.grade === 'Epic' ? 'bg-purple-500 text-white' : 
-                       'bg-slate-500 text-white'
-                     ]"
-                   >
-                     {{ item.grade }}
-                   </span>
-                   
-                   <!-- 突破等级 -->
-                   <span v-if="item.exceedLevel > 0" class="text-[9px] text-sky-700 font-black bg-sky-100/80 px-1.5 py-0.5 rounded-lg border border-sky-200">
-                     突破 {{ item.exceedLevel }}
-                   </span>
-
-                   <!-- 强化等级文本 -->
-                   <span v-if="item.enchantLevel > 0" class="text-[9px] text-red-700 font-black bg-red-50 px-1.5 py-0.5 rounded-lg border border-red-100">
-                     强化 {{ item.enchantLevel }}
-                   </span>
-                 </div>
-
-                 <!-- 魔石槽位展示 -->
-                 <div v-if="item.fullDetail?.magicStoneStat" class="flex gap-1 mt-2">
+               <div v-for="(row, rIdx) in group.rows" :key="rIdx" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                 <template v-for="item in row" :key="item.isPlaceholder ? item.slotPosName : item.id">
+                   <!-- 实际装备卡片 -->
                    <div 
-                     v-for="(stone, index) in item.fullDetail.magicStoneStat" 
-                     :key="index"
-                     class="w-4 h-4 rounded-md border border-slate-100 shadow-sm overflow-hidden bg-white/50"
-                     :title="`${stone.name}: ${stone.value}`"
+                     v-if="!item.isPlaceholder"
+                     class="flex flex-col bg-white rounded-[2.5rem] border-4 transition-all hover:shadow-2xl hover:-translate-y-1 group relative overflow-hidden"
+                     :class="getGradeInfo(item.grade).border"
                    >
-                     <img :src="formatIconUrl(stone.icon)" class="w-full h-full object-cover" />
+                     <!-- 卡片背景装饰 -->
+                     <div 
+                       class="absolute top-0 right-0 w-32 h-32 blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2"
+                       :class="getGradeInfo(item.grade).light"
+                     ></div>
+
+                     <!-- 头部：部位与品质 -->
+                     <div class="px-6 pt-6 flex items-center justify-between mb-4">
+                       <div class="flex items-center gap-2">
+                         <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-slate-100 text-slate-500 border border-slate-200 shadow-sm">
+                           {{ slotMap[item.slotPosName] || item.slotPosName }}
+                         </span>
+                         <span v-if="item.exceedLevel > 0" class="px-3 py-1 rounded-full text-[10px] font-black bg-sky-50 text-sky-600 border border-sky-100 shadow-sm">
+                           突破 {{ item.exceedLevel }}
+                         </span>
+                       </div>
+                       <div class="flex flex-col items-end gap-1">
+                         <div 
+                           class="px-3 py-1 rounded-full text-[10px] font-black text-white shadow-md uppercase tracking-widest bg-gradient-to-r"
+                           :class="getGradeInfo(item.grade).gradient"
+                         >
+                           {{ getGradeInfo(item.grade).name }}
+                         </div>
+                         <div class="text-[8px] font-bold text-slate-400 opacity-60">{{ getGradeInfo(item.grade).desc }}</div>
+                       </div>
+                     </div>
+
+                     <!-- 主体：图标与名称 -->
+                     <div class="px-6 flex items-start gap-5 mb-6">
+                       <div class="relative shrink-0 group-hover:scale-105 transition-transform">
+                         <div class="w-20 h-20 rounded-3xl border-4 border-white shadow-lg overflow-hidden bg-slate-50 relative z-10">
+                           <img :src="formatIconUrl(item.icon)" class="w-full h-full object-cover p-2" />
+                         </div>
+                         <!-- 强化浮标 -->
+                         <div v-if="item.enchantLevel > 0" class="absolute -top-2 -right-2 z-20 bg-red-500 text-white text-xs font-black w-8 h-8 flex items-center justify-center rounded-full border-4 border-white shadow-lg">
+                           +{{ item.enchantLevel }}
+                         </div>
+                         <!-- 稀度光环 -->
+                         <div 
+                           class="absolute inset-0 blur-xl opacity-30 rounded-full"
+                           :class="getGradeInfo(item.grade).light"
+                         ></div>
+                       </div>
+
+                       <div class="flex-1 min-w-0 pt-1">
+                         <h4 class="text-lg font-black text-slate-800 leading-tight mb-2 line-clamp-2" :title="item.name">{{ item.name }}</h4>
+                         <div class="flex flex-wrap items-center gap-2">
+                           <span class="text-[10px] font-mono text-slate-300">#{{ item.id }}</span>
+                           <span v-if="item.fullDetail?.categoryName" class="text-[10px] font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100">
+                             {{ item.fullDetail.categoryName }}
+                           </span>
+                           <span v-if="item.fullDetail?.equipLevel" class="text-[10px] font-black text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                             需求等级 {{ item.fullDetail.equipLevel }}
+                           </span>
+                         </div>
+                       </div>
+                     </div>
+
+                     <!-- 数据详情区 -->
+                     <div class="px-6 pb-6 mt-auto space-y-4">
+                       <!-- 主属性区 (带强化加成) -->
+                       <div v-if="item.fullDetail?.mainStats?.length" class="space-y-2">
+                         <div class="flex items-center gap-2 mb-1">
+                           <span class="w-1 h-3 bg-sky-400 rounded-full"></span>
+                           <span class="text-[10px] font-black text-slate-400 uppercase">基础属性</span>
+                         </div>
+                         <div class="grid grid-cols-1 gap-1.5">
+                           <div v-for="(stat, sIdx) in item.fullDetail.mainStats" :key="sIdx" class="flex items-center justify-between bg-white border border-slate-50 p-2 rounded-xl shadow-sm">
+                             <span class="text-xs text-slate-500 font-bold">{{ stat.name }}</span>
+                             <div class="flex items-center gap-1.5">
+                               <span class="text-xs text-slate-800 font-black">{{ stat.value }}</span>
+                               <span v-if="stat.extra && stat.extra !== '0' && stat.extra !== '0%'" class="text-[10px] text-red-500 font-black">
+                                 (+{{ stat.extra }})
+                               </span>
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+
+                       <!-- 附加属性列表 (SubStats) -->
+                       <div v-if="item.fullDetail?.subStats?.length" class="bg-slate-50/80 rounded-2xl p-4 border border-slate-100 shadow-inner">
+                         <div class="flex items-center gap-2 mb-3">
+                           <span class="w-1 h-3 bg-purple-400 rounded-full"></span>
+                           <span class="text-[10px] font-black text-slate-400 uppercase">随机属性</span>
+                         </div>
+                         <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                           <div v-for="(stat, sIdx) in item.fullDetail.subStats" :key="sIdx" class="flex items-center justify-between">
+                             <span class="text-[11px] text-slate-400 font-bold truncate">{{ stat.name }}</span>
+                             <span class="text-[11px] text-slate-600 font-black">+{{ stat.value }}</span>
+                           </div>
+                         </div>
+                       </div>
+
+                       <!-- 神石详情 (GodStone) -->
+                       <div v-if="item.fullDetail?.godStoneStat?.length" class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 border-2 border-amber-100 shadow-sm">
+                         <div v-for="(god, gIdx) in item.fullDetail.godStoneStat" :key="gIdx" class="flex gap-3">
+                           <div class="w-10 h-10 shrink-0 rounded-xl overflow-hidden border-2 border-white shadow-sm bg-white">
+                             <img :src="formatIconUrl(god.icon)" class="w-full h-full object-contain p-1" />
+                           </div>
+                           <div class="min-w-0">
+                             <div class="text-xs font-black text-amber-700 mb-1">{{ god.name }}</div>
+                             <div class="text-[9px] text-amber-600/80 font-bold leading-tight line-clamp-2" :title="god.desc">{{ god.desc }}</div>
+                           </div>
+                         </div>
+                       </div>
+
+                       <!-- 魔石/灵石详情 (详细展示) -->
+                       <div v-if="item.fullDetail?.magicStoneStat?.length || item.fullDetail?.magicStoneSlotCount" class="bg-white rounded-2xl p-4 border border-slate-50 shadow-sm space-y-3">
+                         <div class="flex items-center justify-between mb-1">
+                           <div class="flex items-center gap-2">
+                             <span class="w-1 h-3 bg-emerald-400 rounded-full"></span>
+                             <span class="text-[10px] font-black text-slate-400 uppercase">镶嵌魔石</span>
+                           </div>
+                           <span class="text-[9px] font-bold text-slate-300">槽位: {{ item.fullDetail.magicStoneStat?.length || 0 }}/{{ item.fullDetail.magicStoneSlotCount || 0 }}</span>
+                         </div>
+                         
+                         <div class="grid grid-cols-2 gap-2">
+                           <!-- 已镶嵌魔石 -->
+                           <div 
+                             v-for="(stone, stIdx) in item.fullDetail.magicStoneStat" 
+                             :key="stIdx"
+                             class="flex items-center gap-2 p-2 rounded-xl border transition-all hover:shadow-md group/stone"
+                             :class="[
+                               stone.grade === 'Legend' ? 'bg-orange-50 border-orange-100' : 
+                               stone.grade === 'Unique' ? 'bg-purple-50 border-purple-100' : 
+                               stone.grade === 'Rare' ? 'bg-blue-50 border-blue-100' : 
+                               'bg-slate-50 border-slate-100'
+                             ]"
+                           >
+                             <div class="w-6 h-6 shrink-0 relative">
+                               <img :src="formatIconUrl(stone.icon)" class="w-full h-full object-contain" />
+                               <!-- 品质小点 -->
+                               <div 
+                                 class="absolute -top-1 -right-1 w-2 h-2 rounded-full border border-white"
+                                 :class="[
+                                   stone.grade === 'Legend' ? 'bg-orange-500' : 
+                                   stone.grade === 'Unique' ? 'bg-purple-500' : 
+                                   stone.grade === 'Rare' ? 'bg-blue-500' : 
+                                   'bg-slate-400'
+                                 ]"
+                               ></div>
+                             </div>
+                             <div class="min-w-0">
+                               <div class="text-[10px] font-black text-slate-700 truncate leading-none mb-1">{{ stone.name }}</div>
+                               <div 
+                                 class="text-[10px] font-black"
+                                 :class="[
+                                   stone.grade === 'Legend' ? 'text-orange-600' : 
+                                   stone.grade === 'Unique' ? 'text-purple-600' : 
+                                   stone.grade === 'Rare' ? 'text-blue-600' : 
+                                   'text-slate-500'
+                                 ]"
+                               >
+                                 {{ stone.value }}
+                               </div>
+                             </div>
+                           </div>
+                           
+                           <!-- 空槽位 -->
+                           <div 
+                             v-for="i in Math.max(0, (item.fullDetail.magicStoneSlotCount || 0) - (item.fullDetail.magicStoneStat?.length || 0))" 
+                             :key="'empty-'+i"
+                             class="flex items-center gap-2 p-2 rounded-xl border-2 border-dashed border-slate-100 bg-slate-50/30 text-slate-200"
+                           >
+                             <div class="w-6 h-6 flex items-center justify-center text-lg">+</div>
+                             <div class="text-[10px] font-bold">待镶嵌</div>
+                           </div>
+                         </div>
+                       </div>
+                     </div>
                    </div>
-                   <!-- 空槽位补全 -->
+
+                   <!-- 占位卡片 -->
+                   <div v-else class="flex flex-col bg-slate-50/50 rounded-[2.5rem] border-4 border-dashed border-slate-100 opacity-60">
+                     <div class="px-6 pt-6 flex items-center justify-between mb-4">
+                       <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-white text-slate-300 border border-slate-100 shadow-sm">
+                         {{ slotMap[item.slotPosName] || item.slotPosName }}
+                       </span>
+                     </div>
+                     <div class="px-6 flex flex-col items-center justify-center py-12 gap-4">
+                       <div class="w-16 h-16 rounded-3xl border-4 border-white shadow-inner bg-white flex items-center justify-center text-slate-100">
+                         <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                           <path d="M12 4V20M4 12H20" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                         </svg>
+                       </div>
+                       <span class="text-xs font-black text-slate-200 tracking-widest uppercase">待装备</span>
+                     </div>
+                   </div>
+                 </template>
+               </div>
+             </div>
+
+             <!-- 符文专区：独立一行 -->
+             <div class="space-y-8">
+               <div class="flex items-center gap-3">
+                 <span class="w-2 h-6 bg-amber-400 rounded-full"></span>
+                 <h4 class="font-black text-amber-900 text-lg tracking-widest">古代符文</h4>
+               </div>
+               <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                 <template v-for="item in runeRow" :key="item.isPlaceholder ? item.slotPosName : item.id">
+                   <!-- 实际符文卡片 -->
                    <div 
-                     v-for="i in Math.max(0, (item.fullDetail.magicStoneSlotCount || 0) - (item.fullDetail.magicStoneStat?.length || 0))" 
-                     :key="'empty-'+i"
-                     class="w-4 h-4 rounded-md border-2 border-dashed border-slate-200 bg-slate-50/50"
-                   ></div>
+                     v-if="!item.isPlaceholder"
+                     class="flex flex-col bg-white rounded-[2.5rem] border-4 transition-all hover:shadow-2xl hover:-translate-y-1 group relative overflow-hidden"
+                     :class="getGradeInfo(item.grade).border"
+                   >
+                     <!-- 卡片背景装饰 -->
+                     <div class="absolute top-0 right-0 w-32 h-32 blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2" :class="getGradeInfo(item.grade).light"></div>
+
+                     <!-- 头部 -->
+                     <div class="px-6 pt-6 flex items-center justify-between mb-4">
+                       <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-amber-50 text-amber-500 border border-amber-100 shadow-sm">
+                         {{ slotMap[item.slotPosName] || item.slotPosName }}
+                       </span>
+                       <div class="px-3 py-1 rounded-full text-[10px] font-black text-white shadow-md uppercase tracking-widest bg-gradient-to-r" :class="getGradeInfo(item.grade).gradient">
+                         {{ getGradeInfo(item.grade).name }}
+                       </div>
+                     </div>
+
+                     <!-- 主体 -->
+                     <div class="px-6 flex items-start gap-5 mb-6">
+                       <div class="relative shrink-0 group-hover:scale-105 transition-transform">
+                         <div class="w-20 h-20 rounded-3xl border-4 border-white shadow-lg overflow-hidden bg-slate-50 relative z-10">
+                           <img :src="formatIconUrl(item.icon)" class="w-full h-full object-cover p-2" />
+                         </div>
+                         <div class="absolute inset-0 blur-xl opacity-30 rounded-full" :class="getGradeInfo(item.grade).light"></div>
+                       </div>
+                       <div class="flex-1 min-w-0 pt-1">
+                         <h4 class="text-lg font-black text-slate-800 leading-tight mb-2 line-clamp-2">{{ item.name }}</h4>
+                         <span class="text-[10px] font-mono text-slate-300">#{{ item.id }}</span>
+                       </div>
+                     </div>
+
+                     <!-- 属性数据 -->
+                     <div v-if="item.fullDetail" class="px-6 pb-6 mt-auto space-y-3">
+                       <div v-if="item.fullDetail.mainStats?.length" class="grid grid-cols-1 gap-1.5">
+                         <div v-for="(stat, sIdx) in item.fullDetail.mainStats" :key="sIdx" class="flex items-center justify-between bg-amber-50/30 border border-amber-50 p-2 rounded-xl">
+                           <span class="text-xs text-amber-600 font-bold">{{ stat.name }}</span>
+                           <span class="text-xs text-amber-900 font-black">{{ stat.value }}</span>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+
+                   <!-- 符文占位 -->
+                   <div v-else class="flex flex-col bg-amber-50/20 rounded-[2.5rem] border-4 border-dashed border-amber-100 opacity-40">
+                     <div class="px-6 pt-6 flex items-center justify-between mb-4">
+                       <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-white text-amber-200 border border-amber-50 shadow-sm">
+                         {{ slotMap[item.slotPosName] || item.slotPosName }}
+                       </span>
+                     </div>
+                     <div class="px-6 flex flex-col items-center justify-center py-12 gap-4">
+                       <div class="w-16 h-16 rounded-3xl border-4 border-white shadow-inner bg-white flex items-center justify-center text-amber-50">
+                         <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                           <path d="M12 4V20M4 12H20" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                         </svg>
+                       </div>
+                       <span class="text-xs font-black text-amber-100 tracking-widest uppercase">未开启</span>
+                     </div>
+                   </div>
+                 </template>
+               </div>
+             </div>
+
+             <!-- 阿卡纳专区：独立一行 -->
+             <div v-if="arcanaList.length > 0" class="pt-8">
+               <div class="flex items-center gap-3 mb-8">
+                 <span class="bg-indigo-100 p-2 rounded-2xl text-xl">✨</span>
+                 <h3 class="font-black text-indigo-900 text-xl">阿卡纳组合</h3>
+                 <span class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-xl font-black shadow-sm">{{ arcanaList.length }} / 5</span>
+               </div>
+               
+               <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
+                 <div 
+                   v-for="item in arcanaList" 
+                   :key="item.id" 
+                   class="flex flex-col bg-white rounded-[2.5rem] border-4 transition-all hover:shadow-2xl hover:-translate-y-1 group relative overflow-hidden"
+                   :class="getGradeInfo(item.grade).border"
+                 >
+                   <!-- 头部：部位 -->
+                   <div class="px-6 pt-6 flex items-center justify-between mb-4">
+                     <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-indigo-50 text-indigo-500 border border-indigo-100 shadow-sm">
+                       {{ slotMap[item.slotPosName] || item.slotPosName }}
+                     </span>
+                     <div 
+                       class="px-3 py-1 rounded-full text-[10px] font-black text-white shadow-md uppercase tracking-widest bg-gradient-to-r"
+                       :class="getGradeInfo(item.grade).gradient"
+                     >
+                       {{ getGradeInfo(item.grade).name }}
+                     </div>
+                   </div>
+
+                   <!-- 主体：图标与名称 -->
+                   <div class="px-6 flex flex-col items-center text-center gap-4 mb-6">
+                     <div class="relative shrink-0 group-hover:scale-110 transition-transform duration-500">
+                       <div class="w-24 h-24 rounded-[2rem] border-4 border-white shadow-xl overflow-hidden bg-slate-50 relative z-10 p-2">
+                         <img :src="formatIconUrl(item.icon)" class="w-full h-full object-contain" />
+                       </div>
+                       <!-- 强化浮标 -->
+                       <div v-if="item.enchantLevel > 0" class="absolute -top-2 -right-2 z-20 bg-indigo-600 text-white text-xs font-black w-8 h-8 flex items-center justify-center rounded-full border-4 border-white shadow-lg">
+                         +{{ item.enchantLevel }}
+                       </div>
+                       <!-- 稀有度光环 -->
+                       <div 
+                         class="absolute inset-0 blur-2xl opacity-40 rounded-full"
+                         :class="getGradeInfo(item.grade).light"
+                       ></div>
+                     </div>
+
+                     <div class="min-w-0">
+                       <h4 class="text-base font-black text-slate-800 leading-tight mb-1">{{ item.name }}</h4>
+                       <span class="text-[10px] font-mono text-slate-300">#{{ item.id }}</span>
+                     </div>
+                   </div>
+
+                   <!-- 阿卡纳详情数据区 -->
+                   <div v-if="item.fullDetail" class="px-6 pb-6 mt-auto space-y-4">
+                     <!-- 1. 套装信息 (Set Info) -->
+                     <div v-if="item.fullDetail.set" class="bg-indigo-900/5 rounded-2xl p-4 border border-indigo-100/50">
+                       <div class="flex items-center justify-between mb-3">
+                         <div class="flex items-center gap-2">
+                           <span class="w-1.5 h-3 bg-indigo-500 rounded-full"></span>
+                           <span class="text-[11px] font-black text-indigo-900">套装: {{ item.fullDetail.set.name }}</span>
+                         </div>
+                         <span class="text-[10px] font-black text-indigo-500 bg-white px-2 py-0.5 rounded-lg shadow-sm">
+                           {{ item.fullDetail.set.equippedCount }} / {{ item.fullDetail.set.items?.length }}
+                         </span>
+                       </div>
+                       
+                       <!-- 已激活套装属性 -->
+                       <div v-if="item.fullDetail.set.bonuses?.length" class="space-y-1.5">
+                         <div 
+                           v-for="(bonus, bIdx) in item.fullDetail.set.bonuses" 
+                           :key="bIdx"
+                           class="flex items-start gap-2"
+                           :class="item.fullDetail.set.equippedCount >= bonus.degree ? 'opacity-100' : 'opacity-40 grayscale'"
+                         >
+                           <span class="shrink-0 w-4 h-4 rounded-md bg-indigo-100 text-[10px] flex items-center justify-center font-black text-indigo-600">
+                             {{ bonus.degree }}
+                           </span>
+                           <div class="flex-1">
+                             <div v-for="(desc, dIdx) in bonus.descriptions" :key="dIdx" class="text-[10px] font-bold text-indigo-800 leading-tight">
+                               {{ desc }}
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+                     </div>
+
+                     <!-- 2. 主属性区 -->
+                     <div v-if="item.fullDetail.mainStats?.length" class="space-y-2">
+                       <div class="flex items-center gap-2 mb-1">
+                         <span class="w-1 h-3 bg-indigo-400 rounded-full"></span>
+                         <span class="text-[10px] font-black text-slate-400 uppercase">基础加成</span>
+                       </div>
+                       <div class="grid grid-cols-1 gap-1.5">
+                         <div v-for="(stat, sIdx) in item.fullDetail.mainStats" :key="sIdx" class="flex items-center justify-between bg-white border border-slate-50 p-2 rounded-xl shadow-sm">
+                           <span class="text-xs text-slate-500 font-bold">{{ stat.name }}</span>
+                           <div class="flex items-center gap-1.5">
+                             <span class="text-xs text-indigo-900 font-black">{{ stat.value }}</span>
+                             <span v-if="stat.extra && stat.extra !== '0'" class="text-[10px] text-red-500 font-black">
+                               (+{{ stat.extra }})
+                             </span>
+                           </div>
+                         </div>
+                       </div>
+                     </div>
+                     
+                     <!-- 3. 副技能区 (SubSkills) -->
+                     <div v-if="item.fullDetail.subSkills?.length" class="bg-white rounded-2xl p-4 border border-slate-50 shadow-sm space-y-3">
+                       <div class="flex items-center gap-2 mb-1">
+                         <span class="w-1 h-3 bg-purple-400 rounded-full"></span>
+                         <span class="text-[10px] font-black text-slate-400 uppercase">附加技能</span>
+                       </div>
+                       <div class="grid grid-cols-1 gap-2">
+                         <div 
+                           v-for="(skill, skIdx) in item.fullDetail.subSkills" 
+                           :key="skIdx"
+                           class="flex items-center gap-3 p-2 rounded-xl bg-slate-50/50 border border-slate-100 hover:border-purple-200 transition-colors group/skill"
+                         >
+                           <div class="w-8 h-8 shrink-0 rounded-lg overflow-hidden border border-white shadow-sm bg-white p-0.5">
+                             <img :src="formatIconUrl(skill.icon)" class="w-full h-full object-contain" />
+                           </div>
+                           <div class="flex-1 min-w-0">
+                             <div class="text-[11px] font-black text-slate-700 truncate mb-0.5">{{ skill.name }}</div>
+                             <div class="text-[9px] font-bold text-purple-500">等级 {{ skill.level }}</div>
+                           </div>
+                         </div>
+                       </div>
+                     </div>
+
+                     <!-- 4. 随机属性 (如果存在) -->
+                     <div v-if="item.fullDetail.subStats?.length" class="bg-indigo-50/30 rounded-2xl p-4 border border-indigo-50 shadow-inner">
+                       <div class="flex items-center gap-2 mb-3">
+                         <span class="w-1 h-3 bg-indigo-300 rounded-full"></span>
+                         <span class="text-[10px] font-black text-slate-400 uppercase">附加能力</span>
+                       </div>
+                       <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                         <div v-for="(stat, sIdx) in item.fullDetail.subStats" :key="sIdx" class="flex items-center justify-between">
+                           <span class="text-[11px] text-slate-400 font-bold truncate">{{ stat.name }}</span>
+                           <span class="text-[11px] text-indigo-600 font-black">+{{ stat.value }}</span>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
                  </div>
                </div>
              </div>
@@ -486,6 +844,57 @@ const loadingEquipment = ref(false)
 const skillList = ref([])
 const equipmentList = ref([])
 
+// 区分普通装备与阿卡纳
+ const normalEquipment = computed(() => equipmentList.value.filter(item => !item.slotPosName?.startsWith('Arcana') && !item.slotPosName?.startsWith('Rune')))
+ const arcanaList = computed(() => equipmentList.value.filter(item => item.slotPosName?.startsWith('Arcana')))
+ 
+ // 装备布局分组配置
+  const layoutGroups = [
+    { 
+      label: '神兵利器', 
+      icon: '⚔️', 
+      theme: 'bg-rose-100 text-rose-600', 
+      dot: 'bg-rose-400',
+      pairs: [['MainHand', 'SubHand']] 
+    },
+    { 
+      label: '战阵护甲', 
+      icon: '🛡️', 
+      theme: 'bg-blue-100 text-blue-600', 
+      dot: 'bg-blue-400',
+      pairs: [['Torso', 'Pants'], ['Shoulder', 'Gloves'], ['Helmet', 'Boots']] 
+    },
+    { 
+      label: '奇珍饰品', 
+      icon: '💍', 
+      theme: 'bg-amber-100 text-amber-600', 
+      dot: 'bg-amber-400',
+      pairs: [['Necklace', 'Amulet'], ['Earring1', 'Earring2'], ['Ring1', 'Ring2'], ['Belt', 'Cape'], ['Bracelet1', 'Bracelet2']] 
+    }
+  ]
+
+ const groupedEquipment = computed(() => {
+   return layoutGroups.map(group => {
+     return {
+       label: group.label,
+       rows: group.pairs.map(pair => {
+         return pair.map(slot => {
+           const item = equipmentList.value.find(e => e.slotPosName === slot)
+           return item || { slotPosName: slot, isPlaceholder: true }
+         })
+       })
+     }
+   })
+ })
+
+ const runeRow = computed(() => {
+   const pair = ['Rune1', 'Rune2']
+   return pair.map(slot => {
+     const item = equipmentList.value.find(e => e.slotPosName === slot)
+     return item || { slotPosName: slot, isPlaceholder: true }
+   })
+ })
+
 // 技能分类
 const activeSkills = computed(() => skillList.value.filter(s => s.category === 'Active'))
 const passiveSkills = computed(() => skillList.value.filter(s => s.category === 'Passive'))
@@ -494,6 +903,20 @@ const stigmaSkills = computed(() => skillList.value.filter(s => s.category === '
 const pet = ref(null)
 const wing = ref(null)
 const skinList = ref([])
+
+// 装备品级配置映射
+const gradeConfig = {
+  Common: { name: '普通', color: 'slate', desc: '基础材料装', bg: 'bg-slate-500', border: 'border-slate-100', light: 'bg-slate-400', gradient: 'from-slate-400 to-slate-600' },
+  Superior: { name: '优秀', color: 'emerald', desc: '入门级', bg: 'bg-emerald-500', border: 'border-emerald-100', light: 'bg-emerald-400', gradient: 'from-emerald-400 to-emerald-600' },
+  Heroic: { name: '英雄', color: 'blue', desc: '进阶级', bg: 'bg-blue-500', border: 'border-blue-100', light: 'bg-blue-400', gradient: 'from-blue-400 to-blue-600' },
+  Fabled: { name: '传承', color: 'amber', desc: '中端主流', bg: 'bg-amber-500', border: 'border-amber-100', light: 'bg-amber-400', gradient: 'from-amber-400 to-amber-600' },
+  Unique: { name: '唯一', color: 'orange', desc: '中端主流', bg: 'bg-orange-500', border: 'border-orange-100', light: 'bg-orange-400', gradient: 'from-orange-400 to-orange-600' },
+  Eternal: { name: '永恒', color: 'indigo', desc: '高端核心', bg: 'bg-indigo-500', border: 'border-indigo-100', light: 'bg-indigo-400', gradient: 'from-indigo-400 to-indigo-600' },
+  Mythic: { name: '神话', color: 'purple', desc: '高端核心', bg: 'bg-purple-500', border: 'border-purple-100', light: 'bg-purple-400', gradient: 'from-purple-400 to-purple-600' },
+  Epic: { name: '史诗', color: 'red', desc: '顶级毕业装备', bg: 'bg-red-500', border: 'border-red-100', light: 'bg-red-400', gradient: 'from-red-400 to-red-600' }
+}
+
+const getGradeInfo = (grade) => gradeConfig[grade] || gradeConfig.Common
 
 // 处理图片 URL (去掉首尾反引号)
 const formatIconUrl = (url) => {
@@ -870,5 +1293,11 @@ onMounted(() => {
 }
 .animate-fade-in-up {
   animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.vertical-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  letter-spacing: 2px;
 }
 </style>
