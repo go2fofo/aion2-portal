@@ -18,8 +18,11 @@
     </nav>
 
     <div v-if="loading" class="flex flex-col items-center justify-center h-[80vh]">
-      <div class="text-6xl animate-bounce mb-4">🐣</div>
-      <div class="text-sky-600 font-bold text-xl animate-pulse">正在读取档案...</div>
+      <div class="relative w-32 h-32 mb-6">
+        <img src="/xiaoji1.png" class="w-full h-full object-contain animate-bounce-slow" />
+        <div class="absolute -bottom-2 inset-x-0 h-2 bg-slate-200/30 blur-md rounded-full scale-x-75 animate-pulse"></div>
+      </div>
+      <div class="text-sky-600 font-black text-xl tracking-widest animate-pulse">正在读取档案...</div>
     </div>
 
     <div v-else-if="!member" class="flex flex-col items-center justify-center h-[80vh]">
@@ -1763,6 +1766,14 @@ onMounted(() => {
 }
 .animate-fade-in-up {
   animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+.animate-bounce-slow {
+  animation: bounce-slow 2s ease-in-out infinite;
 }
 
 @keyframes grass-wave {

@@ -39,7 +39,9 @@
               <div class="relative w-16 h-16 md:w-24 md:h-24 mb-4">
                 <div class="absolute inset-0 rounded-full border-4 border-sky-100 border-t-sky-500 animate-spin"></div>
                 <div class="absolute inset-3 md:inset-4 rounded-full border-4 border-blue-50 border-t-blue-400 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
-                <div class="absolute inset-0 flex items-center justify-center text-2xl md:text-3xl">🧠</div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <img src="/sikao.png" class="w-6 h-6 md:w-10 md:h-10 object-contain animate-pulse" />
+                </div>
               </div>
               <div class="text-sky-600 font-black text-xs md:text-sm animate-pulse">AI 正在深度扫描角色数据...</div>
             </div>
@@ -185,14 +187,34 @@ const initStoredAnalysis = () => {
   }
 }
 
+// 自动触发逻辑：如果该角色从未分析过，且数据已准备好，则自动执行
+const checkAndAutoAnalyze = () => {
+  // 条件：没有分析内容 + 有成员数据 + 有装备数据 (非空) + 不在分析中
+  const hasEquipment = props.equipmentData && Object.keys(props.equipmentData).length > 0
+  
+  if (!aiContent.value && props.member && hasEquipment && !isAnalyzing.value) {
+    runAIAnalysis()
+  }
+}
+
 onMounted(() => {
   initStoredAnalysis()
+  // 延迟一小会儿执行，确保其他组件初始化完成
+  setTimeout(checkAndAutoAnalyze, 500)
 })
 
 // 当成员切换时重新加载分析
 watch(() => props.member?.id, () => {
   initStoredAnalysis()
+  checkAndAutoAnalyze()
 })
+
+// 监听装备数据加载（因为父组件是异步同步数据的）
+watch(() => props.equipmentData, (newVal) => {
+  if (newVal && Object.keys(newVal).length > 0) {
+    checkAndAutoAnalyze()
+  }
+}, { deep: true })
 
 const emit = defineEmits(['update:analysis'])
 

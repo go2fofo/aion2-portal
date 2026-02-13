@@ -1,7 +1,7 @@
 /*
  * @Author: whq
  * @Date: 2026-02-13 12:10:10
- * @LastEditTime: 2026-02-13 16:46:25
+ * @LastEditTime: 2026-02-13 17:34:34
  * @LastEditors: whq
  * @Description: 
  * @FilePath: /aion2-portal/app/server/api/aion/ai-analysis.post.ts
@@ -30,6 +30,7 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Missing member data',
     })
   }
+  
 
   // 获取配置
   const config = useRuntimeConfig(event)
