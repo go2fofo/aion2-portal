@@ -31,10 +31,19 @@ const gradeConfig = {
   Unique: { name: '唯一', color: 'orange', desc: '中端主流', bg: 'bg-orange-500', border: 'border-orange-100', light: 'bg-orange-400', gradient: 'from-orange-400 to-orange-600' },
   Eternal: { name: '永恒', color: 'indigo', desc: '高端核心', bg: 'bg-indigo-500', border: 'border-indigo-100', light: 'bg-indigo-400', gradient: 'from-indigo-400 to-indigo-600' },
   Mythic: { name: '神话', color: 'purple', desc: '高端核心', bg: 'bg-purple-500', border: 'border-purple-100', light: 'bg-purple-400', gradient: 'from-purple-400 to-purple-600' },
+  Legend: { name: '传说', color: 'rose', desc: '顶级核心', bg: 'bg-rose-500', border: 'border-rose-100', light: 'bg-rose-400', gradient: 'from-rose-400 to-rose-600' },
   Epic: { name: '史诗', color: 'red', desc: '顶级毕业装备', bg: 'bg-red-500', border: 'border-red-100', light: 'bg-red-400', gradient: 'from-red-400 to-red-600' }
 }
 
 const getGradeInfo = (grade) => gradeConfig[grade] || gradeConfig.Common
+
+// 获取品级对应的文字颜色类
+const getGradeTextColor = (grade) => {
+  const config = gradeConfig[grade] || gradeConfig.Common
+  // 史诗品级特殊处理，使用更深的红色
+  if (grade === 'Epic') return 'text-red-600'
+  return `text-${config.color}-500`
+}
 
 const formatIconUrl = (url) => {
   if (!url) return ''
@@ -194,6 +203,55 @@ const slotMap = {
                     </div>
                   </div>
 
+                  <!-- 随机技能展示 -->
+                  <div v-if="item.fullDetail?.subSkills?.length" class="bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100/50 shadow-inner mt-3">
+                    <div class="flex items-center gap-2 mb-3">
+                      <span class="w-1 h-3 bg-indigo-400 rounded-full"></span>
+                      <span class="text-[10px] font-black text-indigo-400 uppercase">随机技能</span>
+                    </div>
+                    <div class="space-y-3">
+                      <div v-for="(skill, sIdx) in item.fullDetail.subSkills" :key="sIdx" class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                          <span class="text-[11px] text-indigo-700 font-black">{{ skill.name }}</span>
+                          <span v-if="skill.level" class="text-[9px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded font-black">Lv.{{ skill.level }}</span>
+                        </div>
+                        <p v-if="skill.desc" class="text-[10px] text-slate-500 font-medium leading-relaxed bg-white/50 p-2 rounded-lg border border-indigo-50/50">
+                          {{ skill.desc }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 魔石展示 -->
+                  <div v-if="item.fullDetail?.magicStoneStat?.length" class="bg-emerald-50/50 rounded-2xl p-4 border border-emerald-100/50 shadow-inner mt-3">
+                    <div class="flex items-center gap-2 mb-3">
+                      <span class="w-1 h-3 bg-emerald-400 rounded-full"></span>
+                      <span class="text-[10px] font-black text-emerald-400 uppercase">魔石插槽</span>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2">
+                      <div v-for="(stone, sIdx) in item.fullDetail.magicStoneStat" :key="sIdx" class="flex items-center justify-between bg-white/60 p-2 rounded-xl border border-emerald-50/50">
+                        <div class="flex items-center gap-2">
+                          <img :src="stone.icon" class="w-5 h-5 object-contain" />
+                          <span class="text-[11px] font-bold" :class="getGradeTextColor(stone.grade)">{{ stone.name }}</span>
+                        </div>
+                        <span class="text-[11px] font-black" :class="getGradeTextColor(stone.grade)">{{ stone.value }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 来源展示 -->
+                  <div v-if="item.fullDetail?.sources?.length" class="mt-6 pt-4 border-t border-slate-50">
+                    <div class="flex items-center gap-2 mb-2">
+                      <span class="text-[9px] font-black text-slate-300 uppercase tracking-widest">获取来源</span>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                      <div v-for="(source, sIdx) in item.fullDetail.sources" :key="sIdx" class="flex items-center gap-1.5 px-3 py-1 bg-slate-50 hover:bg-white text-slate-500 hover:text-indigo-600 rounded-full border border-slate-100 hover:border-indigo-100 shadow-sm transition-all cursor-default group/src">
+                        <span class="w-1 h-1 rounded-full bg-slate-300 group-hover/src:bg-indigo-400 transition-colors"></span>
+                        <span class="text-[10px] font-black uppercase tracking-wider">{{ source }}</span>
+                      </div>
+                    </div>
+                  </div>
+
                   <!-- 更多详情按需显示 (技能, 来源, 神石, 魔石) -->
                 </div>
               </div>
@@ -281,6 +339,39 @@ const slotMap = {
                       <span class="text-xs text-amber-900 font-black">{{ stat.value }}</span>
                     </div>
                   </div>
+
+                  <!-- 符文随机技能 -->
+                  <div v-if="item.fullDetail.subSkills?.length" class="space-y-2 pt-2 border-t border-amber-100/50">
+                    <div v-for="(skill, sIdx) in item.fullDetail.subSkills" :key="sIdx" class="bg-indigo-50/50 p-2.5 rounded-xl border border-indigo-100/30">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[11px] text-indigo-700 font-black">{{ skill.name }}</span>
+                        <span v-if="skill.level" class="text-[9px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded font-black">Lv.{{ skill.level }}</span>
+                      </div>
+                      <p v-if="skill.desc" class="text-[10px] text-slate-500 leading-tight">{{ skill.desc }}</p>
+                    </div>
+                  </div>
+
+                  <!-- 符文魔石 -->
+                  <div v-if="item.fullDetail?.magicStoneStat?.length" class="space-y-1.5">
+                    <div v-for="(stone, sIdx) in item.fullDetail.magicStoneStat" :key="sIdx" class="flex items-center justify-between bg-emerald-50/20 p-1.5 rounded-lg border border-emerald-100/30">
+                      <div class="flex items-center gap-1.5">
+                        <img :src="stone.icon" class="w-4 h-4 object-contain" />
+                        <span class="text-[10px] font-bold" :class="getGradeTextColor(stone.grade)">{{ stone.name }}</span>
+                      </div>
+                      <span class="text-[10px] font-black" :class="getGradeTextColor(stone.grade)">{{ stone.value }}</span>
+                    </div>
+                  </div>
+
+                  <!-- 符文来源 -->
+                  <div v-if="item.fullDetail?.sources?.length" class="flex flex-wrap gap-1.5 pt-2 border-t border-amber-50">
+                    <span 
+                      v-for="(source, sIdx) in item.fullDetail.sources" 
+                      :key="sIdx" 
+                      class="text-[9px] font-black text-amber-600/60 bg-amber-50/50 px-2 py-0.5 rounded-lg border border-amber-100/50 hover:bg-amber-100/50 hover:text-amber-700 transition-all cursor-default"
+                    >
+                      # {{ source }}
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -351,12 +442,40 @@ const slotMap = {
                     </div>
                   </div>
                   <h4 class="text-base font-black text-slate-800 leading-tight mb-1">{{ item.name }}</h4>
-                  <div class="flex flex-wrap items-center justify-center gap-2">
+                  <div class="flex flex-wrap items-center justify-center gap-2 mb-3">
                     <span class="text-[10px] font-mono text-slate-300">#{{ item.id }}</span>
                     <span v-if="item.fullDetail?.level" class="text-[10px] font-black text-sky-600 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100 flex items-center gap-1">
                       <span>道具等级 {{ item.fullDetail.level }}</span>
                       <span v-if="item.fullDetail?.levelValue" class="text-emerald-600 bg-emerald-100/50 px-1 rounded-sm">+{{ item.fullDetail.levelValue }}</span>
                     </span>
+                  </div>
+
+                  <!-- 装备随机技能 -->
+                  <div v-if="item.fullDetail?.subSkills?.length" class="space-y-2 px-2">
+                    <div v-for="(skill, sIdx) in item.fullDetail.subSkills" :key="sIdx" class="bg-slate-50 p-2 rounded-xl border border-slate-100 text-left">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[10px] text-indigo-600 font-black">{{ skill.name }}</span>
+                        <span v-if="skill.level" class="text-[8px] bg-indigo-50 text-indigo-500 px-1 rounded font-black">Lv.{{ skill.level }}</span>
+                      </div>
+                      <p v-if="skill.desc" class="text-[9px] text-slate-400 leading-tight">{{ skill.desc }}</p>
+                    </div>
+                  </div>
+
+                  <!-- 装备来源 -->
+                  <div v-if="item.fullDetail?.sources?.length" class="mt-4 pt-3 border-t border-slate-50 flex flex-col items-center gap-2">
+                    <div class="flex items-center gap-1">
+                      <span class="text-[8px] font-black text-slate-300 uppercase tracking-[0.2em]">Source</span>
+                    </div>
+                    <div class="flex flex-wrap justify-center gap-1.5">
+                      <span 
+                        v-for="(source, sIdx) in item.fullDetail.sources" 
+                        :key="sIdx" 
+                        class="px-2.5 py-0.5 bg-slate-50/80 text-[9px] font-black text-slate-500 rounded-full border border-slate-100 shadow-sm hover:bg-white hover:border-indigo-200 hover:text-indigo-600 transition-all cursor-default flex items-center gap-1"
+                      >
+                        <span class="w-1 h-1 rounded-full bg-indigo-400"></span>
+                        {{ source }}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
