@@ -108,6 +108,7 @@ export default defineEventHandler(async (event) => {
         class_name: profile.className || undefined,
         profile_url: profile.profileImage || undefined,
         title_name: profile.titleName || undefined,
+        title_list: infoData.title?.titleList || undefined,
         gender: profile.gender === 2 ? 'female' : 'male'
       })
       .eq('id', memberId)

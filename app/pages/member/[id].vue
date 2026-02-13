@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-watercolor font-sans custom-scroll pb-20">
+  <div class="min-h-screen bg-watercolor font-sans custom-scroll">
     <!-- 顶部导航栏 -->
     <nav class="sticky top-0 z-50 px-6 py-4 flex items-center justify-between bg-white/80 backdrop-blur-md shadow-sm">
       <button 
@@ -28,101 +28,105 @@
       <button @click="router.back()" class="mt-8 bg-[#45a6d5] text-white px-6 py-2 rounded-full font-bold shadow-md hover:scale-105 transition-transform">返回列表</button>
     </div>
 
-    <main v-else class="max-w-[95%] md:max-w-[90%] mx-auto px-4 pt-8 animate-fade-in-up space-y-8">
+    <main v-else class="max-w-[95%] md:max-w-[90%] mx-auto px-4 pt-8 animate-fade-in-up space-y-6">
       <!-- 头部卡片：个人形象与核心信息 -->
       <div class="relative bg-white/70 backdrop-blur-sm rounded-[3rem] p-6 md:p-10 shadow-xl border-4 border-white overflow-hidden">
         <!-- 背景装饰 -->
         <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-yellow-200/20 to-sky-200/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
         
-        <div class="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8">
+        <div class="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-10">
           <!-- 头像区 -->
-          <div class="relative group">
-            <div class="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-[0_8px_20px_rgba(69,166,213,0.2)] overflow-hidden bg-sky-50">
-              <img :src="member.profile_url || '/bbbswz.png'" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+          <div class="relative group shrink-0">
+            <div class="w-40 h-40 md:w-56 md:h-56 rounded-[3.5rem] border-4 border-white shadow-[0_12px_30px_rgba(69,166,213,0.15)] overflow-hidden bg-sky-50 transition-all group-hover:shadow-[0_12px_40px_rgba(69,166,213,0.25)]">
+              <img :src="member.profile_url || '/bbbswz.png'" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
             </div>
             <!-- 等级徽章 -->
-            <div class="absolute -bottom-2 -right-2 bg-[#f9b11d] text-white font-black text-lg px-3 py-1 rounded-full border-4 border-white shadow-md">
+            <div class="absolute -bottom-3 -right-3 bg-gradient-to-br from-yellow-400 to-orange-500 text-white font-black text-2xl px-5 py-2 rounded-2xl border-4 border-white shadow-lg z-20">
               Lv.{{ member.level }}
             </div>
           </div>
 
-          <!-- 信息区 -->
-          <div class="flex-1 text-center md:text-left">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-2">
-              <div class="flex flex-col md:flex-row items-center gap-3">
-                <h1 class="text-3xl md:text-4xl font-black text-slate-800 tracking-tight">{{ member.name }}</h1>
+          <!-- 信息与核心数值区 -->
+          <div class="flex-1 w-full space-y-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div class="flex flex-col md:flex-row items-center gap-4">
+                <h1 class="text-4xl md:text-5xl font-black text-slate-800 tracking-tight drop-shadow-sm">{{ member.name }}</h1>
                 <div class="flex items-center gap-2">
-                  <span v-if="member.role === 'leader'" class="bg-yellow-400 text-white text-xs px-2 py-1 rounded-lg font-bold shadow-sm animate-pulse">👑 军团长</span>
-                  <span v-else-if="member.role === 'officer'" class="bg-purple-400 text-white text-xs px-2 py-1 rounded-lg font-bold shadow-sm">🛡️ 百夫长</span>
-                  <span v-else class="bg-sky-400 text-white text-xs px-2 py-1 rounded-lg font-bold shadow-sm">⚔️ 成员</span>
+                  <span v-if="member.role === 'leader'" class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-[10px] px-3 py-1 rounded-full font-black shadow-md animate-bounce">👑 军团长</span>
+                  <span v-else-if="member.role === 'officer'" class="bg-gradient-to-r from-purple-400 to-indigo-500 text-white text-[10px] px-3 py-1 rounded-full font-black shadow-md">🛡️ 百夫长</span>
+                  <span v-else class="bg-gradient-to-r from-sky-400 to-blue-500 text-white text-[10px] px-3 py-1 rounded-full font-black shadow-md">⚔️ 成员</span>
                 </div>
               </div>
 
-              <!-- 刷新按钮：设计为药丸形状，带呼吸灯效果 -->
+              <!-- 刷新按钮 -->
               <button 
                 @click="syncMemberData" 
                 :disabled="syncing"
-                class="group relative flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border-2 border-sky-100 text-sky-600 font-black text-sm shadow-sm hover:border-sky-300 hover:text-sky-700 hover:shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none overflow-hidden"
+                class="group relative flex items-center gap-2 px-6 py-3 rounded-2xl bg-white border-2 border-sky-100 text-sky-600 font-black text-sm shadow-sm hover:border-sky-300 hover:text-sky-700 hover:shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none overflow-hidden"
               >
-                <!-- 内部发光背景 -->
                 <div class="absolute inset-0 bg-gradient-to-r from-sky-50 to-white opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                
                 <span class="relative flex items-center justify-center">
-                  <!-- 旋转加载图标 (SVG) -->
                   <svg v-if="syncing" class="w-5 h-5 animate-spin text-sky-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"></circle>
                     <path d="M12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.0434 16.4522" stroke="currentColor" stroke-width="4" stroke-linecap="round" class="opacity-75"></path>
                   </svg>
-                  <!-- 刷新箭头图标 (SVG) -->
                   <svg v-else class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500 text-sky-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M4 12C4 7.58172 7.58172 4 12 4C14.5 4 16.7341 5.14722 18.2002 6.94444M18.2002 6.94444V3M18.2002 6.94444H14.5M20 12C20 16.4183 16.4183 20 12 20C9.5 20 7.26595 18.8528 5.7998 17.0556M5.7998 17.0556V21M5.7998 17.0556H9.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
                 </span>
-                <span class="relative">{{ syncing ? '同步中...' : '刷新角色信息' }}</span>
-                
-                <!-- 呼吸小圆点 -->
-                <span class="relative flex h-2 w-2">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
-                </span>
+                <span class="relative">{{ syncing ? '同步中...' : '刷新数据' }}</span>
               </button>
             </div>
-            
-            <p class="text-slate-500 font-bold mb-6 italic">
-              "{{ member.title_name || member.note || '这只宝宝很懒，什么都没留下~' }}"
-            </p>
 
-            <!-- 核心标签 -->
-            <div class="flex flex-wrap justify-center md:justify-start gap-3">
-              <div class="bg-white/80 px-4 py-2 rounded-xl border border-sky-100 flex items-center gap-2 shadow-sm">
-                <span class="text-lg">🛡️</span>
+            <div class="bg-sky-50/50 p-4 rounded-3xl border border-sky-100/50 inline-block md:block">
+              <p class="text-slate-600 font-black italic text-lg leading-relaxed">
+                "{{ member.title_name || member.note || '这只宝宝很懒，什么都没留下~' }}"
+              </p>
+            </div>
+
+            <!-- 核心档案数值网格 -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+              <!-- 基础信息 -->
+              <div class="bg-white/80 p-3 rounded-2xl border-2 border-sky-100 shadow-sm flex items-center gap-3">
+                <span class="text-xl bg-sky-50 p-2 rounded-xl">🛡️</span>
                 <div>
-                  <div class="text-[10px] text-slate-400 font-bold uppercase">Class</div>
-                  <div class="text-sky-800 font-black leading-none">{{ member.class_name }}</div>
+                  <div class="text-[10px] text-slate-400 font-black uppercase leading-none mb-1">职业</div>
+                  <div class="text-sky-800 font-black text-xs">{{ member.class_name }}</div>
                 </div>
               </div>
-              
-              <div class="bg-white/80 px-4 py-2 rounded-xl border border-sky-100 flex items-center gap-2 shadow-sm">
-                <span class="text-lg">⚔️</span>
+              <div class="bg-white/80 p-3 rounded-2xl border-2 border-yellow-100 shadow-sm flex items-center gap-3">
+                <span class="text-xl bg-yellow-50 p-2 rounded-xl">⚔️</span>
                 <div>
-                  <div class="text-[10px] text-slate-400 font-bold uppercase">Item Level</div>
-                  <div class="text-yellow-600 font-black leading-none">{{ member.item_level || 'N/A' }}</div>
+                  <div class="text-[10px] text-slate-400 font-black uppercase leading-none mb-1">装等</div>
+                  <div class="text-yellow-600 font-black text-xs">{{ member.item_level || 'N/A' }}</div>
+                </div>
+              </div>
+              <div class="bg-white/80 p-3 rounded-2xl border-2 border-pink-100 shadow-sm flex items-center gap-3">
+                <span class="text-xl bg-pink-50 p-2 rounded-xl">{{ member.gender === 'female' ? '♀' : '♂' }}</span>
+                <div>
+                  <div class="text-[10px] text-slate-400 font-black uppercase leading-none mb-1">性别</div>
+                  <div class="text-pink-600 font-black text-xs">{{ member.gender === 'female' ? '女' : '男' }}</div>
+                </div>
+              </div>
+              <div class="bg-white/80 p-3 rounded-2xl border-2 border-indigo-100 shadow-sm flex items-center gap-3">
+                <span class="text-xl bg-indigo-50 p-2 rounded-xl">🏳️</span>
+                <div>
+                  <div class="text-[10px] text-slate-400 font-black uppercase leading-none mb-1">种族</div>
+                  <div class="text-indigo-800 font-black text-xs">{{ member.race_id === 1 ? '天族' : '魔族' }}</div>
                 </div>
               </div>
 
-              <div class="bg-white/80 px-4 py-2 rounded-xl border border-sky-100 flex items-center gap-2 shadow-sm">
-                <span class="text-lg">{{ member.gender === 'female' ? '♀' : '♂' }}</span>
+              <!-- 核心战斗数值 -->
+              <div 
+                v-for="stat in coreCombatStats" 
+                :key="stat.type"
+                class="bg-white/80 p-3 rounded-2xl border-2 shadow-sm flex items-center gap-3 border-slate-50"
+                :class="stat.bg"
+              >
+                <span class="text-xl p-2 rounded-xl bg-white/50">{{ stat.icon }}</span>
                 <div>
-                  <div class="text-[10px] text-slate-400 font-bold uppercase">Gender</div>
-                  <div class="text-sky-800 font-black leading-none">{{ member.gender === 'female' ? '女' : '男' }}</div>
-                </div>
-              </div>
-
-              <div class="bg-white/80 px-4 py-2 rounded-xl border border-sky-100 flex items-center gap-2 shadow-sm">
-                <span class="text-lg">🏳️</span>
-                <div>
-                  <div class="text-[10px] text-slate-400 font-bold uppercase">Race</div>
-                  <div class="text-sky-800 font-black leading-none">{{ member.race_id === 1 ? '天族' : '魔族' }}</div>
+                  <div class="text-[10px] text-slate-400 font-black uppercase leading-none mb-1">{{ stat.label }}</div>
+                  <div class="font-black text-xs" :class="stat.color">{{ stat.value }}</div>
                 </div>
               </div>
             </div>
@@ -130,67 +134,76 @@
         </div>
       </div>
 
-      <!-- 战斗素质与多维度分析 (改为顶部全宽) -->
-      <div class="bg-white rounded-[3rem] p-8 shadow-xl border-4 border-white overflow-hidden relative">
-        <div class="absolute -top-10 -left-10 w-40 h-40 bg-sky-50 rounded-full blur-3xl opacity-50"></div>
-        <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-yellow-50 rounded-full blur-3xl opacity-50"></div>
-        
-        <div class="relative z-10">
-          <h3 class="font-black text-sky-900 text-xl mb-8 flex items-center gap-3">
-            <span class="bg-sky-100 p-2 rounded-2xl">📊</span> 战斗素质与多维度分析
-          </h3>
-          
-          <div class="flex flex-col lg:flex-row gap-12 items-center">
-            <!-- 雷达图部分 -->
-            <div class="w-full lg:w-1/2 h-[350px] md:h-[450px]">
-              <VChart class="w-full h-full" :option="radarOption" autoresize />
-            </div>
-            
-            <!-- 多维度分析文案与评价 -->
-            <div class="w-full lg:w-1/2 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- 战力评级 -->
-              <div class="bg-[#F0F9FF] p-6 rounded-3xl border-2 border-white shadow-sm flex flex-col items-center justify-center text-center">
-                <div class="text-slate-400 font-black text-xs uppercase tracking-widest mb-2">综合战力评级</div>
-                <div class="text-5xl font-black italic" :class="getRatingColor(member.item_level)">{{ getRating(member.item_level) }}</div>
-                <div class="mt-4 flex gap-1">
-                  <span v-for="i in 5" :key="i" class="text-lg">{{ i <= getStarCount(member.item_level) ? '⭐' : '☆' }}</span>
-                </div>
+      <!-- 佩戴称号卡片组 -->
+      <div v-if="equippedTitles.length > 0" class="space-y-4">
+        <h3 class="font-black text-sky-900 text-lg flex items-center gap-2 px-2">
+          <span class="bg-white p-1.5 rounded-xl shadow-sm">🎖️</span> 已佩戴称号
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div 
+            v-for="title in equippedTitles" 
+            :key="title.id"
+            class="bg-white/80 backdrop-blur-sm rounded-[2.5rem] border-4 p-6 shadow-lg transition-all hover:shadow-xl hover:-translate-y-1 group relative overflow-hidden"
+            :class="title.equipCategory === 'Attack' ? 'border-rose-100' : title.equipCategory === 'Defense' ? 'border-sky-100' : 'border-amber-100'"
+          >
+            <!-- 装饰背景 -->
+            <div 
+              class="absolute top-0 right-0 w-24 h-24 blur-2xl opacity-10 -translate-y-1/2 translate-x-1/2"
+              :class="title.equipCategory === 'Attack' ? 'bg-rose-400' : title.equipCategory === 'Defense' ? 'bg-sky-400' : 'bg-amber-400'"
+            ></div>
+
+            <div class="relative z-10 flex flex-col h-full">
+              <div class="flex items-center justify-between mb-4">
+                <span 
+                  class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest"
+                  :class="[
+                    title.equipCategory === 'Attack' ? 'bg-rose-50 text-rose-500 border border-rose-100' : 
+                    title.equipCategory === 'Defense' ? 'bg-sky-50 text-sky-500 border border-sky-100' : 
+                    'bg-amber-50 text-amber-500 border border-amber-100'
+                  ]"
+                >
+                  {{ getEquipCategoryLabel(title.equipCategory) }}
+                </span>
+                <span class="text-lg">✨</span>
               </div>
 
-              <!-- 战斗特性 -->
-              <div class="bg-[#FFF9EB] p-6 rounded-3xl border-2 border-white shadow-sm flex flex-col items-center justify-center text-center">
-                <div class="text-slate-400 font-black text-xs uppercase tracking-widest mb-2">战斗风格特性</div>
-                <div class="flex flex-wrap gap-2 justify-center">
-                  <span v-for="tag in combatTags" :key="tag" class="bg-white/80 px-3 py-1 rounded-full text-xs font-bold text-yellow-700 border border-yellow-200 shadow-sm">
-                    # {{ tag }}
-                  </span>
-                </div>
-              </div>
+              <h4 class="text-xl font-black text-slate-800 mb-4 group-hover:text-sky-700 transition-colors">
+                {{ title.name }}
+              </h4>
 
-              <!-- 核心指标摘要 -->
-              <div class="md:col-span-2 bg-white/50 backdrop-blur-sm p-6 rounded-3xl border-2 border-white shadow-sm">
-                <div class="text-slate-400 font-black text-xs uppercase tracking-widest mb-4">核心素质分析报告</div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div v-for="stat in analysisStats" :key="stat.label" class="flex flex-col">
-                    <span class="text-[10px] text-slate-400 font-bold">{{ stat.label }}</span>
-                    <div class="flex items-end gap-1">
-                      <span class="text-xl font-black text-slate-800">{{ stat.value }}</span>
-                      <span class="text-[10px] text-sky-500 font-bold mb-1">{{ stat.trend }}</span>
-                    </div>
-                    <div class="w-full h-1.5 bg-slate-100 rounded-full mt-1 overflow-hidden">
-                      <div class="h-full bg-sky-400 rounded-full" :style="{ width: stat.percent + '%' }"></div>
-                    </div>
+              <div class="space-y-3 mt-auto">
+                <!-- 属性列表展示 -->
+                <div v-if="title.statList?.length" class="space-y-1">
+                  <div class="text-[9px] font-black text-slate-300 uppercase tracking-tighter">基础属性</div>
+                  <div class="flex flex-wrap gap-1.5">
+                    <span 
+                      v-for="(s, idx) in title.statList" :key="idx"
+                      class="text-[11px] font-bold text-slate-600 bg-slate-50/50 px-2 py-1 rounded-lg border border-slate-100/50"
+                    >
+                      {{ s.desc }}
+                    </span>
                   </div>
                 </div>
-                <p class="mt-6 text-sm text-slate-500 font-medium leading-relaxed border-t border-slate-100 pt-4">
-                   <span class="text-sky-600 font-black mr-2">分析结论:</span>
-                   {{ analysisConclusion }}
-                </p>
+
+                <div v-if="title.equipStatList?.length" class="space-y-1">
+                  <div class="text-[9px] font-black text-sky-300 uppercase tracking-tighter">佩戴加成</div>
+                  <div class="flex flex-wrap gap-1.5">
+                    <span 
+                      v-for="(s, idx) in title.equipStatList" :key="idx"
+                      class="text-[11px] font-black text-sky-600 bg-sky-50/50 px-2 py-1 rounded-lg border border-sky-100/50"
+                    >
+                      {{ s.desc }}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- 战斗素质与多维度分析 (抽离为独立组件) -->
+      <MemberAIAnalysis :member="member" :equipment-data="member.equipment_data" />
 
       <!-- 装备与技能 (垂直排列) -->
       <div class="space-y-8">
@@ -815,6 +828,64 @@
            </div>
         </div>
 
+        <!-- 称号成就 -->
+        <div class="bg-white rounded-[3rem] p-8 shadow-xl border-4 border-white">
+          <h3 class="font-black text-sky-900 text-xl mb-8 flex items-center gap-3">
+            <span class="bg-amber-100 p-2 rounded-2xl">🏆</span> 称号成就馆
+          </h3>
+          <div v-if="!member.title_list?.length" class="text-center py-12 text-slate-400 font-black">暂无称号档案</div>
+          <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div 
+              v-for="title in member.title_list" 
+              :key="title.id"
+              class="flex flex-col bg-white rounded-[2.5rem] border-4 transition-all hover:shadow-lg group relative overflow-hidden"
+              :class="[
+                title.equipCategory ? 'border-sky-200 shadow-md scale-[1.02]' : 'border-slate-50 opacity-80 hover:opacity-100'
+              ]"
+            >
+              <!-- 佩戴角标 -->
+              <div v-if="title.equipCategory" class="absolute top-0 right-0 bg-sky-500 text-white text-[10px] font-black px-4 py-1 rounded-bl-2xl shadow-sm z-20">
+                已佩戴 ({{ getEquipCategoryLabel(title.equipCategory) }})
+              </div>
+
+              <!-- 称号标题 -->
+              <div class="px-6 pt-6 pb-4">
+                <div class="flex items-center gap-2 mb-2">
+                  <span 
+                    class="px-2 py-0.5 rounded-md text-[9px] font-black text-white uppercase tracking-widest"
+                    :class="getGradeInfo(title.grade).bg"
+                  >
+                    {{ getGradeInfo(title.grade).name }}
+                  </span>
+                  <span v-if="title.ownedPercent" class="text-[9px] font-bold text-slate-300">持有率 {{ title.ownedPercent }}%</span>
+                </div>
+                <h4 class="text-lg font-black text-slate-800 leading-tight">{{ title.name }}</h4>
+              </div>
+
+              <!-- 属性列表 -->
+              <div class="px-6 pb-6 space-y-3">
+                <!-- 基础属性 -->
+                <div v-if="title.statList?.length" class="space-y-1">
+                  <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-1">基础加成</div>
+                  <div v-for="(stat, sIdx) in title.statList" :key="sIdx" class="text-xs font-bold text-slate-600 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+                    {{ stat.desc }}
+                  </div>
+                </div>
+
+                <!-- 佩戴属性 -->
+                <div v-if="title.equipStatList?.length" class="space-y-1">
+                  <div class="text-[9px] font-black text-sky-400 uppercase tracking-tighter mb-1">佩戴额外加成</div>
+                  <div class="grid grid-cols-1 gap-1">
+                    <div v-for="(stat, sIdx) in title.equipStatList" :key="sIdx" class="text-xs font-black text-sky-700 bg-sky-50/50 px-3 py-1.5 rounded-xl border border-sky-100">
+                      {{ stat.desc }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- 档案备注 -->
         <div class="bg-white rounded-[3rem] p-8 shadow-xl border-4 border-white">
           <h3 class="font-black text-sky-900 text-xl mb-6 flex items-center gap-3">
@@ -826,6 +897,19 @@
         </div>
       </div>
     </main>
+
+    <!-- 底部动态草地层 -->
+    <div class="relative w-full h-32 md:h-48 pointer-events-none overflow-hidden z-0 opacity-80 mt-10">
+      <!-- 远景草坡 -->
+      <svg class="absolute bottom-0 w-[120%] -left-[10%] h-full text-[#A3D95B]" viewBox="0 0 1200 120" preserveAspectRatio="none">
+        <path d="M0,40 C200,80 400,0 600,40 C800,80 1000,20 1200,60 L1200,120 L0,120 Z" fill="currentColor"/>
+      </svg>
+      
+      <!-- 近景草坡 (带波浪动画) -->
+      <svg class="absolute -bottom-4 w-[150%] -left-[25%] h-[80%] text-[#B2E455] animate-grass-wave" viewBox="0 0 1200 120" preserveAspectRatio="none">
+        <path d="M0,60 C300,20 600,100 900,40 C1050,10 1200,80 1200,80 L1200,150 L0,150 Z" fill="currentColor"/>
+      </svg>
+    </div>
   </div>
 </template>
 
@@ -903,6 +987,80 @@ const stigmaSkills = computed(() => skillList.value.filter(s => s.category === '
 const pet = ref(null)
 const wing = ref(null)
 const skinList = ref([])
+
+// 获取佩戴中的称号对象
+const equippedTitles = computed(() => {
+  if (!member.value?.title_list || !Array.isArray(member.value.title_list)) return []
+  return member.value.title_list.filter(t => t.equipCategory)
+})
+
+// 获取所有佩戴称号的详细数值卡片
+const equippedTitleStats = computed(() => {
+  if (!member.value?.title_list || !Array.isArray(member.value.title_list)) return []
+  
+  const allStats = []
+  member.value.title_list.forEach(title => {
+    if (title.equipCategory) {
+      // 收集基础属性
+      if (title.statList) {
+        title.statList.forEach(s => {
+          if (s.desc) allStats.push({ 
+            id: `${title.id}-base`, 
+            name: title.name, 
+            value: s.desc, 
+            category: title.equipCategory,
+            type: 'base'
+          })
+        })
+      }
+      // 收集佩戴属性
+      if (title.equipStatList) {
+        title.equipStatList.forEach(s => {
+          if (s.desc) allStats.push({ 
+            id: `${title.id}-equip`, 
+            name: title.name, 
+            value: s.desc, 
+            category: title.equipCategory,
+            type: 'extra'
+          })
+        })
+      }
+    }
+  })
+  return allStats
+})
+
+// 新增：获取角色核心战斗属性 (HP, MP, 攻击等)
+const coreCombatStats = computed(() => {
+  if (!member.value?.equipment_data?.raw_info?.stat?.statList) return []
+  
+  const stats = member.value.equipment_data.raw_info.stat.statList
+  const interestingTypes = {
+    'HP': { label: '生命值', icon: '❤️', color: 'text-red-500', bg: 'bg-red-50' },
+    'MP': { label: '精神力', icon: '💙', color: 'text-blue-500', bg: 'bg-blue-50' },
+    'PhysicalAttack': { label: '物理攻击', icon: '⚔️', color: 'text-rose-500', bg: 'bg-rose-50' },
+    'MagicalAttack': { label: '魔法攻击', icon: '✨', color: 'text-purple-500', bg: 'bg-purple-50' },
+    'PhysicalDefense': { label: '物理防御', icon: '🛡️', color: 'text-sky-500', bg: 'bg-sky-50' },
+    'MagicalDefense': { label: '魔法防御', icon: '🔮', color: 'text-indigo-500', bg: 'bg-indigo-50' }
+  }
+
+  return stats
+    .filter(s => interestingTypes[s.type])
+    .map(s => ({
+      ...s,
+      ...interestingTypes[s.type]
+    }))
+})
+
+// 翻译佩戴分类
+const getEquipCategoryLabel = (cat) => {
+  const map = {
+    Attack: '攻击',
+    Defense: '防御',
+    Etc: '其他'
+  }
+  return map[cat] || cat
+}
 
 // 装备品级配置映射
 const gradeConfig = {
@@ -1010,6 +1168,13 @@ const backgroundSync = async () => {
     if (res.success && res.data) {
       applyCachedData(res.data)
       member.value.equipment_data = res.data
+      // 同步更新称号列表
+      if (res.data.raw_info?.title?.titleList) {
+        member.value.title_list = res.data.raw_info.title.titleList
+      }
+      if (res.data.raw_info?.profile?.titleName) {
+        member.value.title_name = res.data.raw_info.profile.titleName
+      }
     }
   } catch (e) {
     console.error('Background Sync Error:', e)
@@ -1039,6 +1204,13 @@ const syncMemberData = async () => {
     if (res.success && res.data) {
       applyCachedData(res.data)
       member.value.equipment_data = res.data
+      // 同步更新称号列表
+      if (res.data.raw_info?.title?.titleList) {
+        member.value.title_list = res.data.raw_info.title.titleList
+      }
+      if (res.data.raw_info?.profile?.titleName) {
+        member.value.title_name = res.data.raw_info.profile.titleName
+      }
       $alert('同步成功', '成员档案及装备详情已更新至最新状态')
     } else {
       $alert('同步失败', res.error || '无法获取官方数据')
@@ -1052,69 +1224,7 @@ const syncMemberData = async () => {
   }
 }
 
-// --- 多维度分析辅助逻辑 ---
-
-const getRating = (itemLevel) => {
-  if (!itemLevel) return 'N/A'
-  if (itemLevel > 3500) return 'SSS'
-  if (itemLevel > 3200) return 'SS'
-  if (itemLevel > 2900) return 'S'
-  if (itemLevel > 2500) return 'A'
-  return 'B'
-}
-
-const getRatingColor = (itemLevel) => {
-  if (!itemLevel) return 'text-slate-300'
-  if (itemLevel > 3500) return 'text-red-500 animate-pulse'
-  if (itemLevel > 3200) return 'text-orange-500'
-  if (itemLevel > 2900) return 'text-yellow-500'
-  if (itemLevel > 2500) return 'text-purple-500'
-  return 'text-sky-500'
-}
-
-const getStarCount = (itemLevel) => {
-  if (!itemLevel) return 0
-  return Math.min(5, Math.floor(itemLevel / 700))
-}
-
-const combatTags = computed(() => {
-  const tags = []
-  if (!member.value) return tags
-  
-  // 基于职业的特性
-  const className = member.value.class_name
-  if (['剑星', '守护星'].includes(className)) tags.push('近战王者', '坚如磐石')
-  if (['弓星', '杀星'].includes(className)) tags.push('爆发输出', '身手矫健')
-  if (['魔道星', '精灵星'].includes(className)) tags.push('元素主宰', '群体控制')
-  if (['治愈星', '护法星'].includes(className)) tags.push('团队核心', '圣光洗礼')
-
-  // 基于战力的特性
-  if (member.value.item_level > 3000) tags.push('神装加持', '巅峰战力')
-  else if (member.value.item_level > 2500) tags.push('资深精英')
-  
-  return tags.length > 0 ? tags : ['潜力新人']
-})
-
-const analysisStats = computed(() => {
-  if (!member.value) return []
-  const base = member.value.item_level || 2000
-  return [
-    { label: '进攻潜能', value: Math.floor(base * 0.8), trend: '+5.2%', percent: Math.min(100, (base/4000)*100 + 10) },
-    { label: '生存韧性', value: Math.floor(base * 0.75), trend: '+2.1%', percent: Math.min(100, (base/4000)*100 - 5) },
-    { label: '团队贡献', value: '极高', trend: 'TOP 5%', percent: 92 },
-    { label: '成长速度', value: '稳定', trend: 'NEW', percent: 75 }
-  ]
-})
-
-const analysisConclusion = computed(() => {
-  if (!member.value) return ''
-  const name = member.value.name
-  const rating = getRating(member.value.item_level)
-  if (rating.includes('S')) {
-    return `${name} 是军团中不可或缺的顶尖战力，其战斗素质在多维度评估中均表现卓越。建议作为核心攻坚成员，参与高难度副本与军团战役。`
-  }
-  return `${name} 拥有良好的成长潜力和扎实的基础素质。目前处于快速提升期，活跃度极高，是军团未来的中坚力量。`
-})
+// --- 辅助逻辑与映射 ---
 
 // 获取装备/技能详情
 const fetchEquipmentDetail = async (characterId, serverId) => {
@@ -1184,91 +1294,6 @@ const slotMap = {
   'Arcana5': '阿卡纳5'
 }
 
-// 综合素质雷达图配置
-const radarOption = computed(() => {
-  const baseValue = member.value?.item_level ? Math.min(95, (member.value.item_level / 4000) * 100) : 60
-  
-  // 根据职业微调雷达图重心
-  const className = member.value?.class_name || ''
-  const offset = (idx) => {
-    if (className.includes('守护') || className.includes('剑星')) return [0, 15, 0, 10, -5, -5, 5, 0][idx] || 0
-    if (className.includes('杀星') || className.includes('弓星')) return [15, -10, 5, -10, 15, 10, 0, -5][idx] || 0
-    if (className.includes('治愈') || className.includes('护法')) return [-10, 5, 15, 10, -10, 0, 5, 15][idx] || 0
-    return 0
-  }
-
-  const dataValues = [0, 1, 2, 3, 4, 5, 6, 7].map(i => Math.max(30, Math.min(100, baseValue + offset(i) + (Math.random() * 10 - 5))))
-
-  return {
-    radar: {
-      indicator: [
-        { name: '攻击力量', max: 100 },
-        { name: '防御韧性', max: 100 },
-        { name: '战术配合', max: 100 },
-        { name: '生存意志', max: 100 },
-        { name: '爆发潜能', max: 100 },
-        { name: '机动灵活', max: 100 },
-        { name: '装备底蕴', max: 100 },
-        { name: '团队贡献', max: 100 }
-      ],
-      radius: '65%',
-      center: ['50%', '50%'],
-      shape: 'polygon',
-      splitNumber: 5,
-      axisName: {
-        color: '#64748b',
-        fontWeight: '900',
-        fontSize: 12,
-        formatter: (value) => `{a|${value}}`,
-        rich: {
-          a: {
-            backgroundColor: '#f8fafc',
-            borderColor: '#e2e8f0',
-            borderWidth: 1,
-            borderRadius: 4,
-            padding: [4, 8],
-            color: '#475569'
-          }
-        }
-      },
-      splitArea: {
-        areaStyle: {
-          color: ['rgba(230, 247, 255, 0.2)', 'rgba(230, 247, 255, 0.4)', 'rgba(230, 247, 255, 0.6)', 'rgba(230, 247, 255, 0.8)', 'rgba(230, 247, 255, 1)']
-        }
-      },
-      axisLine: { lineStyle: { color: 'rgba(69, 166, 213, 0.3)' } },
-      splitLine: { lineStyle: { color: 'rgba(69, 166, 213, 0.3)' } }
-    },
-    series: [
-      {
-        type: 'radar',
-        data: [
-          {
-            value: dataValues,
-            name: '战斗素质',
-            areaStyle: {
-              color: {
-                type: 'radial',
-                x: 0.5,
-                y: 0.5,
-                r: 1,
-                colorStops: [
-                  { offset: 0, color: 'rgba(249, 177, 29, 0.1)' },
-                  { offset: 1, color: 'rgba(249, 177, 29, 0.6)' }
-                ]
-              }
-            },
-            lineStyle: { color: '#f9b11d', width: 3 },
-            itemStyle: { color: '#f9b11d', borderWidth: 2, borderColor: '#fff' },
-            symbol: 'circle',
-            symbolSize: 6
-          }
-        ]
-      }
-    ]
-  }
-})
-
 onMounted(() => {
   fetchMemberDetail()
 })
@@ -1294,6 +1319,34 @@ onMounted(() => {
 .animate-fade-in-up {
   animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+@keyframes grass-wave {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-20px); }
+}
+
+@keyframes sway {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+@keyframes walk-across {
+  0% { transform: translateX(0) rotate(0deg); }
+  10% { transform: translateX(10vw) rotate(-5deg); }
+  20% { transform: translateX(20vw) rotate(5deg); }
+  30% { transform: translateX(30vw) rotate(-5deg); }
+  40% { transform: translateX(40vw) rotate(5deg); }
+  50% { transform: translateX(50vw) rotate(-5deg); }
+  60% { transform: translateX(60vw) rotate(5deg); }
+  70% { transform: translateX(70vw) rotate(-5deg); }
+  80% { transform: translateX(80vw) rotate(5deg); }
+  90% { transform: translateX(90vw) rotate(-5deg); }
+  100% { transform: translateX(110vw) rotate(0deg); }
+}
+
+.animate-grass-wave { animation: grass-wave 8s ease-in-out infinite alternate; }
+.animate-sway { animation: sway 3s ease-in-out infinite; }
+.animate-walk-across { animation: walk-across linear infinite; }
 
 .vertical-text {
   writing-mode: vertical-rl;
