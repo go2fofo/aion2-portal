@@ -47,6 +47,11 @@ export default defineNuxtConfig({
   supabase: {
     redirect: false, // 门户首页通常允许匿名访问
   },
+  runtimeConfig: {
+    deepseekApiKey: process.env.DEEPSEEK_API_KEY,
+    openaiApiKey: process.env.OPENAI_API_KEY,
+    geminiApiKey: process.env.GEMINI_API_KEY,
+  },
   tailwindcss: {
     // 强制开启查看器，运行后访问 /_tailwind 检查样式
     viewer: true,

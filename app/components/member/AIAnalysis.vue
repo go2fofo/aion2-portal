@@ -9,22 +9,64 @@
         <div class="flex items-center gap-3">
           <span class="bg-sky-100 p-2 rounded-2xl text-xl">📊</span> 战斗素质与 AI 深度分析
         </div>
-        <!-- AI 分析状态标识 -->
-        <div class="flex items-center gap-2 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
-          <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">AI Engine Ready</span>
+        
+        <!-- 模型切换与分析按钮 -->
+        <div class="flex items-center gap-3">
+          <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200 shadow-inner">
+            <button 
+              v-for="m in ['deepseek', 'siliconflow', 'gpt-4o', 'gemini']" 
+              :key="m"
+              @click="selectedModel = m"
+              class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+              :class="selectedModel === m ? 'bg-white text-sky-600 shadow-sm ring-1 ring-slate-200' : 'text-slate-400 hover:text-slate-600'"
+            >
+              {{ m === 'siliconflow' ? 'DeepSeek(SF)' : m }}
+            </button>
+          </div>
+          
+          <button 
+            @click="runAIAnalysis" 
+            :disabled="isAnalyzing"
+            class="group relative flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white font-black text-xs shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:pointer-events-none"
+          >
+            <span v-if="isAnalyzing" class="animate-spin text-lg">🌀</span>
+            <span v-else class="group-hover:rotate-12 transition-transform">🤖</span>
+            <span>{{ isAnalyzing ? '分析中...' : '开始分析' }}</span>
+          </button>
         </div>
       </h3>
       
       <div class="flex flex-col lg:flex-row gap-12 items-center">
         <!-- 雷达图部分 -->
-        <div class="w-full lg:w-1/2 h-[350px] md:h-[450px]">
-          <VChart v-if="radarOption" class="w-full h-full" :option="radarOption" autoresize />
-          <div v-else class="w-full h-full flex items-center justify-center bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-100">
-            <span class="text-slate-300 font-bold">正在构建素质模型...</span>
+        <div class="w-full lg:w-1/2 flex flex-col items-center">
+          <div class="w-full h-[350px] md:h-[400px] relative">
+            <VChart v-if="radarOption" class="w-full h-full" :option="radarOption" autoresize />
+            <div v-else class="w-full h-full flex items-center justify-center bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-100">
+              <span class="text-slate-300 font-bold">正在构建素质模型...</span>
+            </div>
+            
+            <!-- 分析中遮罩 -->
+            <div v-if="isAnalyzing" class="absolute inset-0 bg-white/40 backdrop-blur-[2px] rounded-[3rem] flex flex-col items-center justify-center z-20">
+              <div class="scanner-line"></div>
+              <div class="relative w-24 h-24 mb-4">
+                <div class="absolute inset-0 rounded-full border-4 border-sky-100 border-t-sky-500 animate-spin"></div>
+                <div class="absolute inset-4 rounded-full border-4 border-blue-50 border-t-blue-400 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+                <div class="absolute inset-0 flex items-center justify-center text-3xl">🧠</div>
+              </div>
+              <div class="text-sky-600 font-black text-sm animate-pulse">AI 正在深度扫描角色数据...</div>
+            </div>
+          </div>
+
+          <!-- 维度分值明细 -->
+          <div class="grid grid-cols-4 gap-2 w-full mt-4 px-4">
+            <div 
+              v-for="item in radarIndicators" 
+              :key="item.name"
+              class="bg-slate-50/50 border border-slate-100 p-2 rounded-xl flex flex-col items-center group hover:bg-white hover:shadow-sm transition-all"
+            >
+              <div class="text-[9px] text-slate-400 font-black truncate w-full text-center">{{ item.name }}</div>
+              <div class="text-sm font-black text-sky-700 group-hover:scale-110 transition-transform">{{ item.value }}</div>
+            </div>
           </div>
         </div>
         
@@ -55,7 +97,10 @@
           <div class="md:col-span-2 bg-white/50 backdrop-blur-sm p-6 rounded-3xl border-2 border-white shadow-sm">
             <div class="flex items-center justify-between mb-4">
               <div class="text-slate-400 font-black text-xs uppercase tracking-widest">核心素质 AI 审计报告</div>
-              <span class="text-[10px] font-bold text-sky-500 bg-sky-50 px-2 py-0.5 rounded border border-sky-100">实时计算中</span>
+              <div class="flex items-center gap-2">
+                <span v-if="aiContent" class="text-[10px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">AI 报告已生成</span>
+                <span v-else class="text-[10px] font-bold text-sky-500 bg-sky-50 px-2 py-0.5 rounded border border-sky-100">实时计算中</span>
+              </div>
             </div>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div v-for="stat in analysisStats" :key="stat.label" class="flex flex-col group">
@@ -71,19 +116,22 @@
             </div>
             
             <!-- AI 深度结论区 -->
-            <div class="mt-6 p-4 bg-gradient-to-br from-sky-50/50 to-white rounded-2xl border border-sky-100/50 relative overflow-hidden">
-              <div class="absolute top-0 right-0 p-2 opacity-10">
-                <svg class="w-12 h-12 text-sky-500" viewBox="0 0 24 24" fill="currentColor">
+            <div class="mt-6 p-5 bg-gradient-to-br from-sky-50/50 to-white rounded-2xl border border-sky-100/50 relative overflow-hidden group/conclusion">
+              <div class="absolute top-0 right-0 p-2 opacity-10 group-hover/conclusion:scale-110 group-hover/conclusion:rotate-12 transition-transform">
+                <svg class="w-16 h-16 text-sky-500" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5Z" />
                 </svg>
               </div>
               <div class="relative z-10">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="text-[10px] font-black text-sky-600 bg-sky-100 px-2 py-0.5 rounded uppercase">AI Conclusion</span>
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-black text-sky-600 bg-sky-100 px-2 py-0.5 rounded uppercase tracking-widest">AI Conclusion</span>
+                    <span v-if="usedModelName" class="text-[9px] font-bold text-slate-400">Model: {{ usedModelName }}</span>
+                  </div>
                 </div>
-                <p class="text-sm text-slate-600 font-bold leading-relaxed">
-                  {{ analysisConclusion }}
-                </p>
+                <div class="text-sm text-slate-600 font-medium leading-relaxed whitespace-pre-line min-h-[100px] prose prose-slate max-w-none">
+                  {{ aiContent || analysisConclusion }}
+                </div>
               </div>
             </div>
           </div>
@@ -94,6 +142,7 @@
 </template>
 
 <script setup>
+import { ref, computed } from 'vue'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { RadarChart } from 'echarts/charts'
@@ -125,6 +174,40 @@ const props = defineProps({
     default: () => ({})
   }
 })
+
+// --- AI 分析状态 ---
+const selectedModel = ref('deepseek')
+const isAnalyzing = ref(false)
+const aiContent = ref('')
+const usedModelName = ref('')
+
+const runAIAnalysis = async () => {
+  if (isAnalyzing.value) return
+  
+  isAnalyzing.value = true
+  try {
+    const response = await $fetch('/api/aion/ai-analysis', {
+      method: 'POST',
+      body: {
+        member: props.member,
+        equipmentData: props.equipmentData,
+        model: selectedModel.value
+      }
+    })
+    
+    if (response.success) {
+      aiContent.value = response.content
+      usedModelName.value = response.model
+    } else {
+      alert(response.message || '分析失败，请稍后重试')
+    }
+  } catch (error) {
+    console.error('AI Analysis Error:', error)
+    alert('请求出错，请检查 API 接口')
+  } finally {
+    isAnalyzing.value = false
+  }
+}
 
 // --- 多维度分析辅助逻辑 ---
 
@@ -190,9 +273,9 @@ const analysisConclusion = computed(() => {
   return `${name} 拥有良好的成长潜力和扎实的基础素质。目前处于快速提升期，AI 监测到其活跃度极高，是军团未来的中坚力量。`
 })
 
-// 综合素质雷达图配置
-const radarOption = computed(() => {
-  if (!props.member) return null
+// 核心雷达维度分值计算
+const radarIndicators = computed(() => {
+  if (!props.member) return []
   const baseValue = props.member.item_level ? Math.min(95, (props.member.item_level / 4000) * 100) : 60
   
   // 根据职业微调雷达图重心
@@ -204,20 +287,21 @@ const radarOption = computed(() => {
     return 0
   }
 
-  const dataValues = [0, 1, 2, 3, 4, 5, 6, 7].map(i => Math.max(30, Math.min(100, baseValue + offset(i) + (Math.random() * 10 - 5))))
+  const names = ['攻击力量', '防御韧性', '战术配合', '生存意志', '爆发潜能', '机动灵活', '装备底蕴', '团队贡献']
+  return names.map((name, i) => ({
+    name,
+    max: 100,
+    value: Math.max(30, Math.min(100, Math.floor(baseValue + offset(i) + (Math.random() * 10 - 5))))
+  }))
+})
 
+// 综合素质雷达图配置
+const radarOption = computed(() => {
+  if (radarIndicators.value.length === 0) return null
+  
   return {
     radar: {
-      indicator: [
-        { name: '攻击力量', max: 100 },
-        { name: '防御韧性', max: 100 },
-        { name: '战术配合', max: 100 },
-        { name: '生存意志', max: 100 },
-        { name: '爆发潜能', max: 100 },
-        { name: '机动灵活', max: 100 },
-        { name: '装备底蕴', max: 100 },
-        { name: '团队贡献', max: 100 }
-      ],
+      indicator: radarIndicators.value.map(i => ({ name: i.name, max: i.max })),
       radius: '65%',
       center: ['50%', '50%'],
       shape: 'polygon',
@@ -225,16 +309,26 @@ const radarOption = computed(() => {
       axisName: {
         color: '#64748b',
         fontWeight: '900',
-        fontSize: 12,
-        formatter: (value) => `{a|${value}}`,
+        fontSize: 11,
+        formatter: (name) => {
+          const item = radarIndicators.value.find(i => i.name === name)
+          return `{a|${name}}\n{b|${item ? item.value : 0}}`
+        },
         rich: {
           a: {
-            backgroundColor: '#f8fafc',
-            borderColor: '#e2e8f0',
+            color: '#64748b',
+            lineHeight: 20
+          },
+          b: {
+            backgroundColor: '#f0f9ff',
+            borderColor: '#bae6fd',
             borderWidth: 1,
-            borderRadius: 4,
-            padding: [4, 8],
-            color: '#475569'
+            borderRadius: 6,
+            padding: [2, 6],
+            color: '#0369a1',
+            fontWeight: '900',
+            fontSize: 12,
+            align: 'center'
           }
         }
       },
@@ -251,7 +345,7 @@ const radarOption = computed(() => {
         type: 'radar',
         data: [
           {
-            value: dataValues,
+            value: radarIndicators.value.map(i => i.value),
             name: '战斗素质',
             areaStyle: {
               color: 'rgba(69, 166, 213, 0.4)'
@@ -272,3 +366,23 @@ const radarOption = computed(() => {
   }
 })
 </script>
+
+<style scoped>
+@keyframes scanner {
+  0% { top: 0; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.scanner-line {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+  box-shadow: 0 0 15px #3b82f6;
+  z-index: 30;
+  animation: scanner 2s linear infinite;
+}
+</style>

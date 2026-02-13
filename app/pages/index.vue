@@ -747,7 +747,7 @@ const fetchTabs = async () => {
   
   if (error) {
     console.error('Error fetching tabs:', error)
-    alert('获取tabs配置失败',JSON.stringify(error),JSON.stringify(data))
+    $alert('获取tabs配置失败',JSON.stringify(error),JSON.stringify(data))
     tabs.value = defaultTabs
     return
   }

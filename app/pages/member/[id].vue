@@ -205,7 +205,162 @@
       <!-- 战斗素质与多维度分析 (抽离为独立组件) -->
       <MemberAIAnalysis :member="member" :equipment-data="member.equipment_data" />
 
-      <!-- 装备与技能 (垂直排列) -->
+      <!-- 详细能力值看板 -->
+      <div class="bg-white/80 backdrop-blur-md rounded-[3rem] p-8 md:p-12 shadow-2xl border-4 border-white relative overflow-hidden group/board">
+        <!-- 装饰背景 -->
+        <div class="absolute -top-24 -right-24 w-64 h-64 bg-rose-100/30 rounded-full blur-3xl transition-transform group-hover/board:scale-110 duration-1000"></div>
+        <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-sky-100/30 rounded-full blur-3xl transition-transform group-hover/board:scale-110 duration-1000"></div>
+
+        <div class="relative z-10">
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
+            <div>
+              <h3 class="font-black text-slate-800 text-3xl mb-2 flex items-center gap-3">
+                <span class="bg-gradient-to-br from-sky-400 to-blue-600 text-white p-3 rounded-[1.5rem] shadow-lg shadow-sky-200/50">📊</span> 
+                全维能力数据中心
+              </h3>
+              <p class="text-slate-400 font-bold text-sm ml-16 tracking-wide">FULL ATTRIBUTE DATA DASHBOARD</p>
+            </div>
+            <div class="bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100 flex items-center gap-2">
+              <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Live Data Synchronized</span>
+            </div>
+          </div>
+
+          <div v-if="loadingEquipment" class="flex flex-col items-center justify-center py-24 gap-4">
+            <div class="relative w-16 h-16">
+              <div class="absolute inset-0 rounded-full border-4 border-sky-100 border-t-sky-500 animate-spin"></div>
+              <div class="absolute inset-0 flex items-center justify-center text-2xl">⚡</div>
+            </div>
+            <span class="text-slate-400 font-black animate-pulse">正在解析全量属性...</span>
+          </div>
+          
+          <div v-else-if="groupedStats.length === 0" class="text-center py-24 bg-slate-50/50 rounded-[3rem] border-2 border-dashed border-slate-100">
+            <div class="text-4xl mb-4">🏜️</div>
+            <div class="text-slate-400 font-black italic">未检测到详细属性记录</div>
+          </div>
+
+          <div v-else class="space-y-12">
+            <!-- 1. 顶部核心双属性布局 (角色基础 & 主神属性) -->
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+              <template v-for="group in groupedStats.filter(g => ['角色基础属性', '主神属性'].includes(g.name))" :key="group.name">
+                <div class="flex flex-col gap-8 bg-slate-50/40 p-8 rounded-[3.5rem] border border-slate-100/50 shadow-inner relative overflow-hidden group/topcard">
+                  <!-- 分组标题 -->
+                  <div class="flex items-center justify-between px-2 relative z-10">
+                    <div class="flex items-center gap-4">
+                      <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md border-4 border-white" :class="group.bg">
+                        <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" v-html="group.iconSvg" :class="group.color"></svg>
+                      </div>
+                      <div>
+                        <h4 class="font-black text-slate-800 text-2xl tracking-tight uppercase">{{ group.name }}</h4>
+                        <div class="flex items-center gap-2 mt-1">
+                          <div class="h-1.5 w-12 rounded-full" :class="group.bg.replace('bg-', 'bg-').split(' ')[0]"></div>
+                          <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Dimension Analysis</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="flex flex-col gap-10 items-center relative z-10">
+                    <!-- 雷达图展示 (放在上方) -->
+                    <div class="w-full md:w-2/3 h-[320px] relative bg-white/50 backdrop-blur-sm rounded-[3rem] border-4 border-white shadow-lg flex items-center justify-center overflow-hidden">
+                      <VChart 
+                        v-if="group.name === '角色基础属性' ? baseStatRadarOption : lordStatRadarOption" 
+                        class="w-full h-full" 
+                        :option="group.name === '角色基础属性' ? baseStatRadarOption : lordStatRadarOption" 
+                        autoresize 
+                      />
+                      <div v-else class="text-slate-200 text-xs font-black">数据不足以生成图表</div>
+                    </div>
+
+                    <!-- 属性列表 (紧凑型，改为 3 列以适应上下布局) -->
+                    <div class="w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      <div 
+                        v-for="stat in group.list" 
+                        :key="stat.type"
+                        class="relative p-4 rounded-[2rem] bg-white border-2 border-slate-50 shadow-sm hover:shadow-lg transition-all"
+                      >
+                        <div class="flex items-center justify-between">
+                          <div class="flex items-center gap-3">
+                            <!-- <div class="w-10 h-10 rounded-xl bg-slate-50 shrink-0 border border-slate-100 flex items-center justify-center overflow-hidden shadow-inner">
+                              <div v-if="stat.iconSvg" v-html="stat.iconSvg" class="w-6 h-6 flex items-center justify-center"></div>
+                              <div v-else class="w-2 h-2 rounded-full bg-slate-200"></div>
+                            </div> -->
+                            <div class="flex flex-col">
+                              <span class="text-[8px] font-black text-slate-300 uppercase leading-none mb-1">{{ stat.type }}</span>
+                              <span class="text-xs font-black text-slate-600 truncate max-w-[80px]">{{ stat.name }}</span>
+                            </div>
+                          </div>
+                          <span class="text-base font-black tracking-tighter tabular-nums" :class="group.color">{{ stat.value }}</span>
+                        </div>
+                        <!-- 二级加成摘要 -->
+                        <div v-if="stat.statSecondList?.length" class="mt-2 pt-2 border-t border-slate-50 flex flex-wrap gap-1">
+                          <span 
+                            v-for="(bonus, bIdx) in stat.statSecondList" :key="bIdx"
+                            class="text-[8px] font-bold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded-md"
+                          >
+                            {{ bonus }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
+
+            <!-- 2. 下方常规属性列表 (攻击、防御、生存) -->
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+              <div 
+                v-for="group in groupedStats.filter(g => !['角色基础属性', '主神属性'].includes(g.name))" 
+                :key="group.name"
+                class="flex flex-col gap-6 bg-slate-50/30 p-8 rounded-[3rem] border border-slate-100/50"
+              >
+                <!-- 分组标题 -->
+                <div class="flex items-center gap-4 px-2">
+                  <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md border-4 border-white" :class="group.bg">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" v-html="group.iconSvg" :class="group.color"></svg>
+                  </div>
+                  <div>
+                    <h4 class="font-black text-slate-800 text-xl tracking-tight uppercase">{{ group.name }}</h4>
+                    <div class="h-1 w-12 rounded-full mt-1" :class="group.bg.replace('bg-', 'bg-').split(' ')[0]"></div>
+                  </div>
+                </div>
+
+                <!-- 属性列表 (垂直列表模式) -->
+                <div class="space-y-3">
+                  <div 
+                    v-for="stat in group.list" 
+                    :key="stat.type"
+                    class="p-4 rounded-[2rem] bg-white border-2 border-slate-50 shadow-sm transition-all hover:shadow-md hover:border-sky-100"
+                  >
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-3">
+                        <!-- <div class="w-9 h-9 rounded-xl bg-slate-50 shrink-0 border border-slate-100 flex items-center justify-center overflow-hidden shadow-inner">
+                          <div v-if="stat.iconSvg" v-html="stat.iconSvg" class="w-5 h-5 flex items-center justify-center"></div>
+                          <div v-else class="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+                        </div> -->
+                        <div class="flex flex-col">
+                          <span class="text-[8px] font-black text-slate-300 uppercase mb-0.5">{{ stat.type }}</span>
+                          <span class="text-sm font-black text-slate-600">{{ stat.name }}</span>
+                        </div>
+                      </div>
+                      <div class="flex flex-col items-end">
+                        <span class="text-lg font-black tracking-tighter" :class="group.color">{{ stat.value }}</span>
+                        <span v-if="stat.extra" class="text-[9px] font-black text-emerald-500">+{{ stat.extra }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 装备概览 -->
       <div class="space-y-8">
         <!-- 装备概览 -->
         <div class="bg-white rounded-[3rem] p-8 shadow-xl border-4 border-white">
@@ -914,6 +1069,26 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted } from 'vue'
+import { use } from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import { RadarChart } from 'echarts/charts'
+import {
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent
+} from 'echarts/components'
+import VChart from 'vue-echarts'
+
+// 注册 ECharts 组件
+use([
+  CanvasRenderer,
+  RadarChart,
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent
+])
+
 const route = useRoute()
 const router = useRouter()
 const supabase = useSupabaseClient()
@@ -1052,6 +1227,270 @@ const coreCombatStats = computed(() => {
     }))
 })
 
+// 获取属性图标
+/**
+ * Aion 2 属性图标获取函数
+ * 包含：基础属性 (Main), 神性属性 (Lords), 战斗属性 (Combat)
+ */
+/**
+ * Aion 2 属性图标获取函数 - 纯 SVG 驱动版
+ */
+const getStatIcon = (type) => {
+  if (!type) return { svg: null }
+  
+  const upperType = type.toUpperCase()
+
+  // 颜色定义 (符合 Aion 2 视觉规范)
+  const COLORS = {
+    EPIC: '#FF3E3E',      // 红色 (Epic/攻击)
+    LORD: '#FFD700',      // 金色 (主神属性)
+    MAGIC: '#4DA6FF',     // 蓝色 (魔法/智力)
+    PHYSICAL: '#FFA24D',  // 橙色 (物理/力量)
+    SURVIVAL: '#4DFF88',  // 绿色 (生命/生存)
+    UTILITY: '#A78BFA',   // 紫色 (特殊/速度)
+    DEFAULT: '#94A3B8'    // 灰色 (基础)
+  }
+
+  // 扩展 SVG 路径库 (24x24 视口)
+  const paths = {
+    // 基础 7 维
+    STR: '<path d="M12 2l3.5 3.5L12 9l-3.5-3.5L12 2zM5 11l3.5 3.5L5 18l-3.5-3.5L5 11zM19 11l3.5 3.5L19 18l-3.5-3.5L19 11zM12 13l3.5 3.5L12 20l-3.5-3.5L12 13z" fill="currentColor"/>',
+    DEX: '<path d="M13 3l-2 3h10l-9 14 2-3H4l9-14z" fill="currentColor"/>',
+    INT: '<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+    WIS: '<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="2"/>',
+    VIT: '<path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" fill="currentColor"/>',
+    CON: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2"/>',
+    AGI: '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/>',
+    
+    // 主神/神性图标
+    LordBase: '<path d="M12 2l2.4 7.6H22l-6.2 4.5L18.2 22l-6.2-4.8L5.8 22l2.4-7.9L2 9.6h7.6L12 2z" fill="currentColor"/>',
+    Justice: '<path d="M12 3L4 9v11l8 3 8-3V9l-8-6zm0 14a3 3 0 110-6 3 3 0 010 6z" fill="currentColor"/>',
+    Freedom: '<path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+    Destruction: '<path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z" fill="currentColor"/>',
+    
+    // 战斗核心
+    Attack: '<path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 19l8.5-8.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+    Defense: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2"/>',
+    Accuracy: '<path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm0-14v4l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+    Critical: '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor" stroke="white" stroke-width="1"/>',
+    Resist: '<path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" fill="currentColor"/>',
+    Evasion: '<path d="M17.6 19.7c-1.5 1.5-3.5 2.3-5.6 2.3-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8c0 2.1-.8 4.1-2.3 5.6M12 10v4l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+    
+    // 资源
+    HP: '<path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" fill="currentColor"/>',
+    MP: '<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+    Regen: '<path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+    
+    // 速度/特殊
+    Speed: '<path d="M13 10V3L4 14h7v7l9-11h-7z" fill="currentColor"/>',
+    CombatSpeed: '<path d="M21 5l-8 8-4-4L2 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 5h6v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+    MoveSpeed: '<path d="M13 10V3L4 14h7v7l9-11h-7z" fill="currentColor"/>',
+    Amplify: '<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
+  }
+
+  // 构造 SVG 包装器
+  const wrapSvg = (path, color, isLord = false) => {
+    const glow = isLord ? `filter: drop-shadow(0 0 4px ${color}cc);` : ''
+    return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: ${color}; ${glow}">${path}</svg>`
+  }
+
+  // 1. 处理基础属性
+  const mainStatsMap = {
+    STR: { color: COLORS.PHYSICAL, path: paths.STR },
+    DEX: { color: COLORS.PHYSICAL, path: paths.DEX },
+    AGI: { color: COLORS.UTILITY, path: paths.AGI },
+    INT: { color: COLORS.MAGIC, path: paths.INT },
+    WIS: { color: COLORS.MAGIC, path: paths.WIS },
+    VIT: { color: COLORS.SURVIVAL, path: paths.VIT },
+    CON: { color: COLORS.SURVIVAL, path: paths.CON }
+  }
+  
+  if (mainStatsMap[upperType]) {
+    const config = mainStatsMap[upperType]
+    return { svg: wrapSvg(config.path, config.color) }
+  }
+
+  // 2. 处理主神属性 (Lords)
+  const lordStats = ['JUSTICE', 'FREEDOM', 'ILLUSION', 'LIFE', 'TIME', 'DESTRUCTION', 'DEATH', 'WISDOM', 'DESTINY', 'SPACE']
+  if (lordStats.includes(upperType)) {
+    let path = paths.LordBase
+    if (upperType === 'JUSTICE') path = paths.Justice
+    if (upperType === 'FREEDOM') path = paths.Freedom
+    if (upperType === 'DESTRUCTION') path = paths.Destruction
+    
+    return { svg: wrapSvg(path, COLORS.LORD, true) }
+  }
+
+  // 3. 战斗与详细属性映射
+  const combatMap = {
+    // 攻击类
+    PHYSICALATTACK: { color: COLORS.EPIC, path: paths.Attack },
+    MAGICALATTACK: { color: COLORS.MAGIC, path: paths.Attack },
+    WEAPONACCURACY: { color: COLORS.EPIC, path: paths.Accuracy },
+    MAGICALACCURACY: { color: COLORS.MAGIC, path: paths.Accuracy },
+    CRITICAL: { color: COLORS.EPIC, path: paths.Critical },
+    MAGICALCRITICAL: { color: COLORS.MAGIC, path: paths.Critical },
+    PVEAMPLIFYDAMAGE: { color: COLORS.EPIC, path: paths.Amplify },
+    PVPAMPLIFYDAMAGE: { color: COLORS.EPIC, path: paths.Amplify },
+    // 防御类
+    PHYSICALDEFENSE: { color: COLORS.DEFAULT, path: paths.Defense },
+    MAGICALDEFENSE: { color: COLORS.DEFAULT, path: paths.Defense },
+    EVASION: { color: COLORS.DEFAULT, path: paths.Evasion },
+    MAGICALRESIST: { color: COLORS.MAGIC, path: paths.Resist },
+    BLOCK: { color: COLORS.DEFAULT, path: paths.Defense },
+    PARRY: { color: COLORS.DEFAULT, path: paths.Attack },
+    CRITICALRESIST: { color: COLORS.DEFAULT, path: paths.Resist },
+    // 生存类
+    HP: { color: COLORS.SURVIVAL, path: paths.HP },
+    MP: { color: COLORS.MAGIC, path: paths.MP },
+    HPREGEN: { color: COLORS.SURVIVAL, path: paths.Regen },
+    MPREGEN: { color: COLORS.MAGIC, path: paths.Regen },
+    COMBATSPEED: { color: COLORS.UTILITY, path: paths.CombatSpeed },
+    MOVESPEED: { color: COLORS.UTILITY, path: paths.MoveSpeed }
+  }
+
+  const config = combatMap[upperType] || { color: COLORS.DEFAULT, path: paths.STR }
+  return { svg: wrapSvg(config.path, config.color) }
+}
+// 新增：获取角色全量详细属性列表并分组
+const groupedStats = computed(() => {
+  const rawData = member.value?.equipment_data?.raw_info?.stat
+  if (!rawData) return []
+  
+  // 整合所有属性来源
+  const allStats = [
+    ...(rawData.statList || []),
+    ...(rawData.mainStatList || [])
+  ]
+  
+  // 排除 ItemLevel
+  const filteredStats = allStats.filter(s => s.type !== 'ItemLevel')
+  
+  // 定义分组逻辑
+  const groups = [
+    {
+      name: '主神属性',
+      iconSvg: '<path d="M12 2l2.4 7.6H22l-6.2 4.5L18.2 22l-6.2-4.8L5.8 22l2.4-7.9L2 9.6h7.6L12 2z" fill="currentColor"/>',
+      color: 'text-amber-600',
+      bg: 'bg-amber-50',
+      border: 'border-amber-100',
+      types: ['Justice', 'Freedom', 'Illusion', 'Life', 'Time', 'Destruction', 'Death', 'Wisdom', 'Destiny', 'Space']
+    },
+    {
+      name: '角色基础属性',
+      iconSvg: '<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+      color: 'text-purple-600',
+      bg: 'bg-purple-50',
+      border: 'border-purple-100',
+      types: ['STR', 'INT', 'DEX', 'WIS', 'VIT', 'CON', 'AGI']
+    },
+    {
+      name: '攻击属性',
+      iconSvg: '<path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 19l8.5-8.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+      color: 'text-rose-500',
+      bg: 'bg-rose-50',
+      border: 'border-rose-100',
+      types: ['PhysicalAttack', 'MagicalAttack', 'WeaponAccuracy', 'MagicalAccuracy', 'Critical', 'MagicalCritical', 'AttackSpeed', 'CastingSpeed', 'PvEAmplifyDamage', 'PvPAmplifyDamage', 'AdditionalHitRate', 'AmplifyWeaponDamage']
+    },
+    {
+      name: '防御属性',
+      iconSvg: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2"/>',
+      color: 'text-sky-500',
+      bg: 'bg-sky-50',
+      border: 'border-sky-100',
+      types: ['PhysicalDefense', 'MagicalDefense', 'Evasion', 'MagicalResist', 'Block', 'Parry', 'PvEReduceDamage', 'PvPReduceDamage', 'CriticalResist', 'DamageResist']
+    },
+    {
+      name: '生存与资源',
+      iconSvg: '<path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" fill="currentColor"/>',
+      color: 'text-emerald-500',
+      bg: 'bg-emerald-50',
+      border: 'border-emerald-100',
+      types: ['HP', 'MP', 'HpRegen', 'MpRegen', 'HpRegenCombat', 'MpRegenCombat', 'HealAmplify', 'CombatSpeed', 'MoveSpeed', 'Concentration']
+    }
+  ]
+
+  return groups.map(group => {
+    // 使用 Map 去重，防止同一个属性在多个来源中重复
+    const uniqueStats = new Map()
+    
+    filteredStats
+      .filter(s => {
+        // 增强匹配：支持不区分大小写的类型匹配
+        const upperType = s.type?.toUpperCase()
+        return group.types.some(t => t.toUpperCase() === upperType)
+      })
+      .forEach(s => {
+        const upperType = s.type?.toUpperCase()
+        if (!uniqueStats.has(upperType)) {
+          const iconInfo = getStatIcon(s.type)
+          uniqueStats.set(upperType, {
+            ...s,
+            iconSvg: iconInfo.svg,
+            extra: s.extra || null,
+            statSecondList: s.statSecondList || null
+          })
+        }
+      })
+      
+    return { ...group, list: Array.from(uniqueStats.values()) }
+  }).filter(g => g.list.length > 0)
+})
+
+// 生成雷达图配置的通用函数
+const createRadarOption = (title, stats, color, areaColor) => {
+  if (!stats || stats.length === 0) return null
+  
+  // 过滤出有数值的属性
+  const validStats = stats.filter(s => s.value !== undefined && s.value !== null)
+  if (validStats.length < 3) return null // 雷达图至少需要3个点
+
+  return {
+    radar: {
+      indicator: validStats.map(s => ({ name: s.name, max: Math.max(s.value * 1.5, 100) })),
+      radius: '60%',
+      center: ['50%', '50%'],
+      axisName: {
+        color: '#64748b',
+        fontWeight: 'bold',
+        fontSize: 10,
+        formatter: (name) => {
+          const item = validStats.find(s => s.name === name)
+          return `${name}\n${item ? item.value : 0}`
+        }
+      },
+      splitArea: {
+        areaStyle: {
+          color: ['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.2)']
+        }
+      },
+      axisLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.05)' } },
+      splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.05)' } }
+    },
+    series: [{
+      type: 'radar',
+      data: [{
+        value: validStats.map(s => s.value),
+        name: title,
+        areaStyle: { color: areaColor },
+        lineStyle: { color: color, width: 2 },
+        itemStyle: { color: color },
+        symbol: 'none'
+      }]
+    }]
+  }
+}
+
+const baseStatRadarOption = computed(() => {
+  const group = groupedStats.value.find(g => g.name === '角色基础属性')
+  return createRadarOption('基础能力', group?.list, '#9333ea', 'rgba(147, 51, 234, 0.2)')
+})
+
+const lordStatRadarOption = computed(() => {
+  const group = groupedStats.value.find(g => g.name === '主神属性')
+  return createRadarOption('主神之力', group?.list, '#d97706', 'rgba(217, 119, 6, 0.2)')
+})
+
 // 翻译佩戴分类
 const getEquipCategoryLabel = (cat) => {
   const map = {
@@ -1097,6 +1536,7 @@ const fetchMemberDetail = async () => {
     
     // 1. 优先从缓存读取数据并展示 (秒开)
     if (data.equipment_data) {
+      member.value.equipment_data = data.equipment_data
       applyCachedData(data.equipment_data)
       // 如果已有缓存，基础档案加载完就可以隐藏全局 loading 了
       $loading.hide()
