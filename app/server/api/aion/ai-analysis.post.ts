@@ -1,7 +1,7 @@
 /*
  * @Author: whq
  * @Date: 2026-02-13 12:10:10
- * @LastEditTime: 2026-02-13 16:41:35
+ * @LastEditTime: 2026-02-13 16:46:25
  * @LastEditors: whq
  * @Description: 
  * @FilePath: /aion2-portal/app/server/api/aion/ai-analysis.post.ts
@@ -32,29 +32,29 @@ export default defineEventHandler(async (event) => {
   }
 
   // 获取配置
-  const config = useRuntimeConfig()
+  const config = useRuntimeConfig(event)
   
   // 默认模型配置
   const models: Record<string, { url: string, name: string, key: string }> = {
     'deepseek': {
       url: 'https://api.deepseek.com/chat/completions',
       name: 'deepseek-chat',
-      key: (dbKeys.deepseek || config.deepseekApiKey || process.env.NUXT_DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY || '').trim()
+      key: (dbKeys.deepseek || config.deepseekApiKey || '').trim()
     },
     'siliconflow': {
       url: 'https://api.siliconflow.cn/v1/chat/completions',
       name: 'deepseek-ai/DeepSeek-V3',
-      key: (dbKeys.siliconflow || config.deepseekApiKey || process.env.NUXT_DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY || '').trim()
+      key: (dbKeys.siliconflow || config.deepseekApiKey || '').trim()
     },
     'gpt-4o': {
       url: 'https://api.openai.com/v1/chat/completions',
       name: 'gpt-4o',
-      key: (dbKeys['gpt-4o'] || config.openaiApiKey || process.env.NUXT_OPENAI_API_KEY || process.env.OPENAI_API_KEY || '').trim()
+      key: (dbKeys['gpt-4o'] || config.openaiApiKey || '').trim()
     },
     'gemini': {
       url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
       name: 'gemini-2.0-flash',
-      key: (dbKeys.gemini || config.geminiApiKey || process.env.NUXT_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '').trim()
+      key: (dbKeys.gemini || config.geminiApiKey || '').trim()
     }
   }
 

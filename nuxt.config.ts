@@ -48,10 +48,10 @@ export default defineNuxtConfig({
     redirect: false, // 门户首页通常允许匿名访问
   },
   runtimeConfig: {
-    // 默认值为空，生产环境建议通过 NUXT_DEEPSEEK_API_KEY 等环境变量或管理后台配置
-    deepseekApiKey: '',
-    openaiApiKey: '',
-    geminiApiKey: '',
+    // 生产环境 Vercel 建议显式映射 process.env
+    deepseekApiKey: process.env.NUXT_DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY || '',
+    openaiApiKey: process.env.NUXT_OPENAI_API_KEY || process.env.OPENAI_API_KEY || '',
+    geminiApiKey: process.env.NUXT_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '',
   },
   tailwindcss: {
     // 强制开启查看器，运行后访问 /_tailwind 检查样式

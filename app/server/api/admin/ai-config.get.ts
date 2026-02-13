@@ -11,13 +11,13 @@ export default defineEventHandler(async (event) => {
     .maybeSingle()
 
   // 2. 获取运行时配置 (环境变量)
-  const config = useRuntimeConfig()
+  const config = useRuntimeConfig(event)
   
   const envKeys = {
-    deepseek: (config.deepseekApiKey || process.env.NUXT_DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY || '').trim(),
-    siliconflow: (config.deepseekApiKey || process.env.NUXT_DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY || '').trim(), 
-    'gpt-4o': (config.openaiApiKey || process.env.NUXT_OPENAI_API_KEY || process.env.OPENAI_API_KEY || '').trim(),
-    gemini: (config.geminiApiKey || process.env.NUXT_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '').trim()
+    deepseek: (config.deepseekApiKey || '').trim(),
+    siliconflow: (config.deepseekApiKey || '').trim(), 
+    'gpt-4o': (config.openaiApiKey || '').trim(),
+    gemini: (config.geminiApiKey || '').trim()
   }
 
   const dbKeys = dbConfig?.value?.keys || {}
