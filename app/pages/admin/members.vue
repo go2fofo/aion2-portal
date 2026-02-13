@@ -190,6 +190,29 @@ const addMember = async (char) => {
         $alert('添加失败', error.message)
       }
     } else {
+      // 成功添加基础信息后，立即触发全量聚合同步 (equipment_data)
+      try {
+        // 先获取刚才插入的数据（为了拿到 ID）
+        const { data: created } = await supabase
+          .from('legion_members')
+          .select('id')
+          .eq('character_id', newMember.character_id)
+          .maybeSingle()
+        
+        if (created) {
+          await $fetch('/api/aion/sync', {
+            query: {
+              memberId: created.id,
+              characterId: newMember.character_id,
+              serverId: newMember.server_id
+            }
+          })
+        }
+      } catch (syncErr) {
+        console.error('初始同步失败:', syncErr)
+        // 同步失败不影响成员添加成功，只是数据不全
+      }
+
       $alert('添加成功', `欢迎 ${newMember.name} 加入军团！`)
       showAddModal.value = false
       searchQuery.value = ''
@@ -220,102 +243,33 @@ const syncLoading = ref({}) // 记录正在同步的成员ID
 // 4. 更新成员信息 (同步官方最新数据)
 const syncMember = async (member) => {
   if (syncLoading.value[member.id]) return
-  const confirmed = await $confirm('同步确认', `确定要同步更新 ${member.name} 的最新数据吗？`)
+  const confirmed = await $confirm('同步确认', `确定要同步更新 ${member.name} 的最新全量数据吗？`)
   if (!confirmed) return
   
   syncLoading.value[member.id] = true
+  $loading.show(`正在同步 ${member.name} 的全量数据...`)
   try {
-    // 1. 同步基本信息
-    const detail = await $fetch('/api/aion/info', { 
-      params: { characterId: member.character_id, serverId: member.server_id } 
+    // 使用聚合接口同步所有数据 (info + equipment + details)
+    const res = await $fetch('/api/aion/sync', {
+      query: {
+        memberId: member.id,
+        characterId: member.character_id,
+        serverId: member.server_id
+      }
     })
     
-    // 2. 同步装备/外观信息 (目前虽然不存库，但为了保持逻辑一致性，这里也可以调用一下，或者为将来存库做准备)
-    // 实际场景：如果我们要把最新的战力(ItemLevel)更新准确，通常 info 接口已经包含了 statList
-    // 而 equipment 接口主要包含具体穿戴的装备ID和强化等级。
-    // 如果您希望在同步时也把装备数据拉取并更新（即使现在没地方存），可以取消下面注释
-    /*
-    const equipDetail = await $fetch('/api/aion/equipment', { 
-      params: { characterId: member.character_id, serverId: member.server_id } 
-    })
-    */
-    
-    if (detail && detail.profile) {
-      const updates = {
-        level: detail.profile.characterLevel,
-        class_name: detail.profile.className, // 注意：如果这里同步可能会覆盖中文职业，建议根据情况调整
-        profile_url: detail.profile.profileImage,
-        gender: detail.profile.gender === 1 ? 'male' : 'female',
-        title_name: detail.profile.titleName,
-        
-        // 新增：完整的档案信息更新
-        server_name: detail.profile.serverName,
-        region_name: detail.profile.regionName,
-        pc_id: detail.profile.pcId,
-        gender_name: detail.profile.genderName,
-        title_id: detail.profile.titleId,
-        title_grade: detail.profile.titleGrade,
-        race_name: detail.profile.raceName,
-        
-        updated_at: new Date().toISOString()
-      }
-
-      // 更新复杂数据结构
-      if (detail.stat && detail.stat.statList) {
-         updates.stat_list = detail.stat.statList
-      }
-      if (detail.daevanion && detail.daevanion.boardList) {
-         updates.board_list = detail.daevanion.boardList
-      }
-      if (detail.ranking && detail.ranking.rankingList) {
-         updates.ranking_list = detail.ranking.rankingList
-      }
-      if (detail.title && detail.title.titleList) {
-         updates.title_list = detail.title.titleList
-      }
-
-      // 提取装备分数
-      if (detail.stat && detail.stat.statList) {
-         const itemLevelStat = detail.stat.statList.find(s => s.type === 'ItemLevel')
-         if (itemLevelStat) {
-           const rawValue = String(itemLevelStat.value).replace(/,/g, '')
-           updates.item_level = parseInt(rawValue, 10) || 0
-         }
-      }
-
-      // 提取军衔
-      if (detail.ranking && detail.ranking.rankingList) {
-         const mainRank = detail.ranking.rankingList.find(r => r.rankingContentsType === 1) || detail.ranking.rankingList[0]
-         if (mainRank) {
-            updates.abyss_rank = mainRank.gradeName
-         }
-      }
-      
-      // 更新职业：优先用映射，没有映射用原值
-      if (detail.profile.className) {
-         updates.class_name = classMap[detail.profile.className] || detail.profile.className
-      }
-      
-      // 更新性别
-      if (detail.profile.gender !== undefined) {
-         updates.gender = detail.profile.gender === 1 ? 'male' : 'female'
-      }
-
-      const { error } = await supabase
-        .from('legion_members')
-        .update(updates)
-        .eq('id', member.id)
-
-      if (error) throw error
-      $alert('同步成功', '成员数据已更新为最新状态')
+    if (res.success) {
+      $alert('同步成功', '成员数据及装备详情已更新为最新状态')
       fetchMembers()
     } else {
-      $alert('数据异常', '未查询到官方数据')
+      throw new Error(res.error || '同步失败')
     }
   } catch (e) {
+    console.error('Sync Error:', e)
     $alert('同步失败', e.message)
   } finally {
     syncLoading.value[member.id] = false
+    $loading.hide()
   }
 }
 
@@ -447,8 +401,13 @@ onMounted(() => {
                   :disabled="syncLoading[member.id]"
                   title="同步官方数据"
                 >
-                  <span v-if="syncLoading[member.id]" class="animate-spin inline-block">⏳</span>
-                  <span v-else>🔄</span>
+                  <svg v-if="syncLoading[member.id]" class="w-5 h-5 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"></circle>
+                    <path d="M12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.0434 16.4522" stroke="currentColor" stroke-width="4" stroke-linecap="round" class="opacity-75"></path>
+                  </svg>
+                  <svg v-else class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500 text-blue-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 12C4 7.58172 7.58172 4 12 4C14.5 4 16.7341 5.14722 18.2002 6.94444M18.2002 6.94444V3M18.2002 6.94444H14.5M20 12C20 16.4183 16.4183 20 12 20C9.5 20 7.26595 18.8528 5.7998 17.0556M5.7998 17.0556V21M5.7998 17.0556H9.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
                 </button>
                 <button @click="openEdit(member)" class="text-slate-500 hover:bg-slate-100 p-2 rounded-lg" title="编辑">✏️</button>
                 <button @click="deleteMember(member.id)" class="text-red-500 hover:bg-red-50 p-2 rounded-lg" title="删除">🗑️</button>
@@ -504,14 +463,27 @@ onMounted(() => {
                 :disabled="searching"
                 class="px-8 py-4 bg-[#45a6d5] text-white rounded-2xl font-black shadow-lg shadow-blue-200 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:shadow-md disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center gap-2"
               >
-                <span v-if="searching" class="animate-spin">⏳</span>
+                <svg v-if="searching" class="w-5 h-5 animate-spin text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"></circle>
+                  <path d="M12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.0434 16.4522" stroke="currentColor" stroke-width="4" stroke-linecap="round" class="opacity-75"></path>
+                </svg>
                 <span>{{ searching ? '搜索中' : '搜索' }}</span>
               </button>
             </div>
 
             <!-- 搜索结果列表 -->
             <div class="flex-1 overflow-y-auto custom-scroll -mx-2 px-2 space-y-3">
-              <div v-if="searchResults.length === 0 && !searching && searchQuery" class="flex flex-col items-center justify-center py-12 text-slate-400">
+              <div v-if="searching" class="flex flex-col items-center justify-center py-12 text-slate-400 font-bold">
+                  <div class="flex flex-col items-center gap-2">
+                    <svg class="w-12 h-12 animate-spin text-[#45a6d5]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"></circle>
+                      <path d="M12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.0434 16.4522" stroke="currentColor" stroke-width="4" stroke-linecap="round" class="opacity-75"></path>
+                    </svg>
+                    <span>搜索中...</span>
+                  </div>
+                </div>
+
+              <div v-else-if="searchResults.length === 0 && !searching && searchQuery" class="flex flex-col items-center justify-center py-12 text-slate-400">
                 <span class="text-4xl mb-3 opacity-50">👻</span>
                 <span class="font-bold">未找到相关角色</span>
                 <span class="text-xs mt-1 opacity-70">请确认角色名拼写正确</span>

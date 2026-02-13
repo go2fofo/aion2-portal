@@ -87,7 +87,7 @@
       ></div>
 
       <transition-group name="cloud-fade" appear>
-        <img v-for="c in clouds" :key="c.id" src="/yunduo.png"
+        <img v-for="c in clouds" :key="c.id" :src="c.image"
              class="absolute cloud-item"
              :style="{ top: c.top + '%', left: c.left + '%', width: c.size + 'px', opacity: c.opacity, '--bob-amp': `-${c.bob}px`, '--wiggle-amp': `${c.wiggle}px`, '--breath-scale': c.breath, '--rot-amp': `${c.rot}deg`, '--offset-x': `${c.ox}px`, '--offset-y': `${c.oy}px` }" />
       </transition-group>
@@ -211,7 +211,7 @@
                 appear
               >
                 <button 
-                  v-for="(tab, index) in tabs" :key="tab.id"
+                  v-for="(tab, index) in visibleTabs" :key="tab.id"
                   @click="activeTab = tab.id; showMobileMenu = false"
                   class="pointer-events-auto relative flex items-center justify-center px-4 py-2 rounded-xl border-2 shadow-sm font-black text-xs transition-all duration-300 active:scale-95 whitespace-nowrap min-w-[5rem]"
                   :class="activeTab === tab.id ? 'bg-[#45a6d5] text-white border-white scale-110 shadow-md' : 'bg-white text-[#45a6d5] border-[#E6F7FF] hover:border-[#45a6d5]'"
@@ -229,7 +229,7 @@
         <!-- 桌面端横向排列 Tab -->
         <div class="hidden md:flex justify-center gap-4 mb-8 flex-wrap">
           <button 
-            v-for="tab in tabs" :key="tab.id"
+            v-for="tab in visibleTabs" :key="tab.id"
             @click="activeTab = tab.id"
             class="relative group"
           >
@@ -504,23 +504,75 @@
         <path d="M0,60 C300,20 600,100 900,40 C1050,10 1200,80 1200,80 L1200,150 L0,150 Z" fill="currentColor"/>
       </svg>
 
-      <!-- 随机花朵 -->
-      <div class="absolute bottom-6 left-[15%] text-2xl animate-sway origin-bottom" style="animation-delay: 0.2s">🌼</div>
-      <div class="absolute bottom-8 left-[45%] text-xl animate-sway origin-bottom" style="animation-delay: 1.5s">🌷</div>
-      <div class="absolute bottom-5 left-[85%] text-3xl animate-sway origin-bottom" style="animation-delay: 0.8s">🌻</div>
-      <div class="absolute bottom-10 left-[65%] text-xl animate-sway origin-bottom" style="animation-delay: 2.1s">�</div>
+      <!-- 随机花朵 (SVG 设计) -->
+      <div class="absolute bottom-6 left-[15%] w-8 h-8 animate-sway origin-bottom" style="animation-delay: 0.2s">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="3" fill="#F9B11D"/>
+          <path d="M12 5C12 5 14 2 16 4C18 6 15 8 15 8M12 19C12 19 10 22 8 20C6 18 9 16 9 16M5 12C5 12 2 10 4 8C6 6 8 9 8 9M19 12C19 12 22 14 20 16C18 18 16 15 16 15M7 17C7 17 4 19 5 21C6 23 9 20 9 20M17 7C17 7 20 5 19 3C18 1 15 4 15 4M17 17C17 17 19 20 21 19C23 18 20 15 20 15M7 7C7 7 5 4 3 5C1 6 4 9 4 9" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="absolute bottom-8 left-[45%] w-6 h-6 animate-sway origin-bottom" style="animation-delay: 1.5s">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 21V15M12 15C12 15 16 13 16 9C16 5 12 3 12 3C12 3 8 5 8 9C8 13 12 15 12 15Z" stroke="#FF8787" stroke-width="2" fill="#FFE3E3"/>
+          <path d="M10 11C10 11 9 10 9 8.5C9 7 10 6 10 6" stroke="#FF8787" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="absolute bottom-5 left-[85%] w-10 h-10 animate-sway origin-bottom" style="animation-delay: 0.8s">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="4" fill="#6B4226"/>
+          <circle cx="12" cy="12" r="9" stroke="#F9B11D" stroke-width="4" stroke-dasharray="2 2"/>
+          <path d="M12 3V5M12 19V21M3 12H5M19 12H21" stroke="#F9B11D" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="absolute bottom-10 left-[65%] w-7 h-7 animate-sway origin-bottom" style="animation-delay: 2.1s">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 21V11M12 11C14 11 16 9 16 7C16 5 14 3 12 3C10 3 8 5 8 7C8 9 10 11 12 11Z" fill="#D8F5A2" stroke="#B2E455" stroke-width="2"/>
+          <path d="M12 15C12 15 15 14 16 16M12 18C12 18 9 17 8 19" stroke="#B2E455" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
 
-      <!-- 奔跑的小羊 (CSS 动画位移) -->
-      <div class="absolute bottom-4 -left-16 animate-walk-across text-4xl" style="animation-duration: 20s;">
-        🐑
-        <div class="absolute -top-4 -right-2 text-xs font-bold text-sky-600 bg-white/80 px-2 py-0.5 rounded-full whitespace-nowrap opacity-0 animate-speech-bubble">
-          咩~
+      <!-- 奔跑的小羊 (SVG 设计) -->
+      <div class="absolute bottom-4 -left-16 animate-walk-across" style="animation-duration: 20s;">
+        <div class="relative w-12 h-10 flex items-center justify-center">
+          <svg viewBox="0 0 40 30" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full drop-shadow-sm">
+            <!-- 羊毛身体 -->
+            <path d="M10 15C10 10 14 7 18 7C22 7 26 10 26 15C26 20 22 23 18 23C14 23 10 20 10 15Z" fill="white"/>
+            <circle cx="14" cy="12" r="5" fill="white"/>
+            <circle cx="22" cy="12" r="5" fill="white"/>
+            <circle cx="22" cy="18" r="5" fill="white"/>
+            <circle cx="14" cy="18" r="5" fill="white"/>
+            <circle cx="18" cy="15" r="6" fill="white"/>
+            <!-- 脸部 -->
+            <rect x="24" y="11" width="8" height="8" rx="4" fill="#F8D7DA"/>
+            <circle cx="27" cy="14" r="0.8" fill="#582F0E"/>
+            <circle cx="31" cy="14" r="0.8" fill="#582F0E"/>
+            <!-- 腿 -->
+            <line x1="15" y1="23" x2="15" y2="27" stroke="#582F0E" stroke-width="2" stroke-linecap="round"/>
+            <line x1="21" y1="23" x2="21" y2="27" stroke="#582F0E" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <div class="absolute -top-6 -right-4 text-[10px] font-black text-sky-500 bg-white/90 px-2 py-1 rounded-full shadow-sm whitespace-nowrap opacity-0 animate-speech-bubble border border-sky-100">
+            咩~
+          </div>
         </div>
       </div>
       
-      <!-- 追逐的小鸡 -->
-      <div class="absolute bottom-5 -left-16 animate-walk-across text-2xl" style="animation-duration: 20s; animation-delay: 2s;">
-        🐥
+      <!-- 追逐的小鸡 (SVG 设计) -->
+      <div class="absolute bottom-5 -left-16 animate-walk-across" style="animation-duration: 20s; animation-delay: 2s;">
+        <div class="w-8 h-8 flex items-center justify-center">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full drop-shadow-sm">
+            <!-- 身体 -->
+            <circle cx="12" cy="14" r="7" fill="#FFD93D"/>
+            <!-- 眼睛 -->
+            <circle cx="15" cy="12" r="1" fill="#2D3436"/>
+            <!-- 嘴巴 -->
+            <path d="M19 13L21 14L19 15Z" fill="#FF9494" stroke="#FF9494" stroke-width="1" stroke-linejoin="round"/>
+            <!-- 翅膀 -->
+            <path d="M10 14C10 14 7 13 6 15" stroke="#F9B11D" stroke-width="2" stroke-linecap="round"/>
+            <!-- 腿 -->
+            <line x1="11" y1="21" x2="11" y2="23" stroke="#F9B11D" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="14" y1="21" x2="14" y2="23" stroke="#F9B11D" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
       </div>
     </div>
   </div>
@@ -543,7 +595,7 @@ const fetchUserInfo = async () => {
     .from('admin_user_list')
     .select('username')
     .eq('id', user.value.id)
-    .single()
+    .maybeSingle()
     
   if (data?.username) {
     displayUsername.value = data.username
@@ -563,16 +615,18 @@ watchEffect(() => {
 const tabs = ref([])
 // 默认占位 Tab
 const defaultTabs = [
-  { id: 'news', name: '军团伴说' },
-  { id: 'fresh', name: '军团鲜哒' },
-  { id: 'analysis', name: '战力解析' },
-  { id: 'rank', name: '战力排行' },
-  { id: 'members', name: '军团成员' },
-  { id: 'join', name: '入团手续' }
+  { id: 'news', name: '军团伴说', hidden: false },
+  { id: 'fresh', name: '军团鲜哒', hidden: false },
+  { id: 'analysis', name: '战力解析', hidden: false },
+  { id: 'rank', name: '战力排行', hidden: false },
+  { id: 'members', name: '军团成员', hidden: false },
+  { id: 'join', name: '入团手续', hidden: false }
 ]
 
 const activeTab = useState('homeActiveTab', () => 'news')
 const showMobileMenu = ref(false)
+
+const visibleTabs = computed(() => tabs.value.filter(t => !t.hidden))
 
 // 悬浮按钮拖拽逻辑
 const floatingBtnRef = ref(null)
@@ -732,9 +786,13 @@ const fetchTabs = async () => {
 
     if (Array.isArray(tabsData) && tabsData.length > 0) {
       tabs.value = tabsData
-      // 确保当前选中项有效
-      if (!tabs.value.find(t => t.id === activeTab.value)) {
-        activeTab.value = tabs.value[0].id
+      // 确保当前选中项有效且可见
+      const currentTabVisible = tabs.value.find(t => t.id === activeTab.value && !t.hidden)
+      if (!currentTabVisible) {
+        const firstVisible = tabs.value.find(t => !t.hidden)
+        if (firstVisible) {
+          activeTab.value = firstVisible.id
+        }
       }
     } else {
       tabs.value = defaultTabs
@@ -897,6 +955,12 @@ const introVideoRef = ref(null)
 const outroVideoRef = ref(null)
 const outroBgRef = ref(null)
 
+// 监听过渡视频引用，自动加快播放速度
+watch([outroVideoRef, outroBgRef], ([video, bg]) => {
+  if (video) video.playbackRate = 1.5
+  if (bg) bg.playbackRate = 1.5
+})
+
 const handleIntroClick = () => {
   // 点击时如果未播放则尝试播放，如果正在播放则触发离场
   if (introVideoRef.value && introVideoRef.value.paused) {
@@ -1039,6 +1103,7 @@ const spawnCloud = () => {
       ampY: randi(4, 10),
       ox: 0,
       oy: 0,
+      image: Math.random() > 0.5 ? '/yunduo.png' : '/mianyangyunduo.png'
     }
     if (inAvoid(candidate)) continue
     if (!clouds.value.some(c => overlaps(candidate, c))) {

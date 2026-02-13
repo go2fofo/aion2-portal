@@ -6,10 +6,14 @@
         @click="router.back()" 
         class="flex items-center gap-2 text-sky-600 font-black hover:text-sky-800 transition-colors group"
       >
-        <span class="bg-white p-2 rounded-full shadow-sm group-hover:scale-110 transition-transform">👈</span>
-        <span>返回军团</span>
+        <span class="bg-white p-2 rounded-full shadow-sm group-hover:scale-110 group-active:scale-90 transition-all flex items-center justify-center">
+          <svg class="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 19L8 12L15 5" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="tracking-wider">返回首页</span>
       </button>
-      <div class="text-xl font-black text-[#45a6d5] tracking-widest">成员档案</div>
+      <div class="text-xl font-black text-[#45a6d5] tracking-widest">角色档案</div>
       <div class="w-10"></div> <!-- 占位保持居中 -->
     </nav>
 
@@ -44,11 +48,44 @@
 
           <!-- 信息区 -->
           <div class="flex-1 text-center md:text-left">
-            <div class="flex flex-col md:flex-row items-center gap-3 mb-2">
-              <h1 class="text-3xl md:text-4xl font-black text-slate-800 tracking-tight">{{ member.name }}</h1>
-              <span v-if="member.role === 'leader'" class="bg-yellow-400 text-white text-xs px-2 py-1 rounded-lg font-bold shadow-sm animate-pulse">👑 军团长</span>
-              <span v-else-if="member.role === 'officer'" class="bg-purple-400 text-white text-xs px-2 py-1 rounded-lg font-bold shadow-sm">🛡️ 百夫长</span>
-              <span v-else class="bg-sky-400 text-white text-xs px-2 py-1 rounded-lg font-bold shadow-sm">⚔️ 成员</span>
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-2">
+              <div class="flex flex-col md:flex-row items-center gap-3">
+                <h1 class="text-3xl md:text-4xl font-black text-slate-800 tracking-tight">{{ member.name }}</h1>
+                <div class="flex items-center gap-2">
+                  <span v-if="member.role === 'leader'" class="bg-yellow-400 text-white text-xs px-2 py-1 rounded-lg font-bold shadow-sm animate-pulse">👑 军团长</span>
+                  <span v-else-if="member.role === 'officer'" class="bg-purple-400 text-white text-xs px-2 py-1 rounded-lg font-bold shadow-sm">🛡️ 百夫长</span>
+                  <span v-else class="bg-sky-400 text-white text-xs px-2 py-1 rounded-lg font-bold shadow-sm">⚔️ 成员</span>
+                </div>
+              </div>
+
+              <!-- 刷新按钮：设计为药丸形状，带呼吸灯效果 -->
+              <button 
+                @click="syncMemberData" 
+                :disabled="syncing"
+                class="group relative flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border-2 border-sky-100 text-sky-600 font-black text-sm shadow-sm hover:border-sky-300 hover:text-sky-700 hover:shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none overflow-hidden"
+              >
+                <!-- 内部发光背景 -->
+                <div class="absolute inset-0 bg-gradient-to-r from-sky-50 to-white opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                
+                <span class="relative flex items-center justify-center">
+                  <!-- 旋转加载图标 (SVG) -->
+                  <svg v-if="syncing" class="w-5 h-5 animate-spin text-sky-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"></circle>
+                    <path d="M12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.0434 16.4522" stroke="currentColor" stroke-width="4" stroke-linecap="round" class="opacity-75"></path>
+                  </svg>
+                  <!-- 刷新箭头图标 (SVG) -->
+                  <svg v-else class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500 text-sky-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 12C4 7.58172 7.58172 4 12 4C14.5 4 16.7341 5.14722 18.2002 6.94444M18.2002 6.94444V3M18.2002 6.94444H14.5M20 12C20 16.4183 16.4183 20 12 20C9.5 20 7.26595 18.8528 5.7998 17.0556M5.7998 17.0556V21M5.7998 17.0556H9.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+                <span class="relative">{{ syncing ? '同步中...' : '刷新角色信息' }}</span>
+                
+                <!-- 呼吸小圆点 -->
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
+                </span>
+              </button>
             </div>
             
             <p class="text-slate-500 font-bold mb-6 italic">
@@ -218,6 +255,24 @@
                    <span v-if="item.enchantLevel > 0" class="text-[9px] text-red-700 font-black bg-red-50 px-1.5 py-0.5 rounded-lg border border-red-100">
                      强化 {{ item.enchantLevel }}
                    </span>
+                 </div>
+
+                 <!-- 魔石槽位展示 -->
+                 <div v-if="item.fullDetail?.magicStoneStat" class="flex gap-1 mt-2">
+                   <div 
+                     v-for="(stone, index) in item.fullDetail.magicStoneStat" 
+                     :key="index"
+                     class="w-4 h-4 rounded-md border border-slate-100 shadow-sm overflow-hidden bg-white/50"
+                     :title="`${stone.name}: ${stone.value}`"
+                   >
+                     <img :src="formatIconUrl(stone.icon)" class="w-full h-full object-cover" />
+                   </div>
+                   <!-- 空槽位补全 -->
+                   <div 
+                     v-for="i in Math.max(0, (item.fullDetail.magicStoneSlotCount || 0) - (item.fullDetail.magicStoneStat?.length || 0))" 
+                     :key="'empty-'+i"
+                     class="w-4 h-4 rounded-md border-2 border-dashed border-slate-200 bg-slate-50/50"
+                   ></div>
                  </div>
                </div>
              </div>
@@ -420,8 +475,10 @@
 const route = useRoute()
 const router = useRouter()
 const supabase = useSupabaseClient()
+const { $alert, $loading } = useNuxtApp()
 
 const loading = ref(true)
+const syncing = ref(false)
 const member = ref(null)
 
 // 新增：装备技能相关状态
@@ -446,20 +503,130 @@ const formatIconUrl = (url) => {
 
 const fetchMemberDetail = async () => {
   loading.value = true
+  $loading.show('正在调取档案中...')
+  
   const { data, error } = await supabase
     .from('legion_members')
     .select('*')
     .eq('id', route.params.id)
-    .single()
+    .maybeSingle()
   
   if (data) {
     member.value = data
-    // 获取到成员信息后，再去拉取装备详情
-    fetchEquipmentDetail(data.character_id, data.server_id)
+    
+    // 1. 优先从缓存读取数据并展示 (秒开)
+    if (data.equipment_data) {
+      applyCachedData(data.equipment_data)
+      // 如果已有缓存，基础档案加载完就可以隐藏全局 loading 了
+      $loading.hide()
+      loading.value = false
+    }
+
+    // 2. 执行自动同步 (如果是无缓存进入，loading 会在 backgroundSync 结束后隐藏)
+    backgroundSync()
   } else {
     console.error('Member not found', error)
+    $loading.hide()
+    loading.value = false
   }
-  loading.value = false
+}
+
+// 应用缓存数据
+const applyCachedData = (cached) => {
+  if (!cached) return
+  
+  // 1. 技能
+  if (cached.skill?.skillList) {
+    skillList.value = cached.skill.skillList
+  }
+  
+  // 2. 装备 (注意：聚合后的数据在 equipment.equipmentList 中)
+  if (cached.equipment?.equipmentList) {
+    equipmentList.value = cached.equipment.equipmentList
+  } else if (Array.isArray(cached.equipment)) {
+    // 兼容旧格式
+    equipmentList.value = cached.equipment
+  }
+  
+  // 3. 伙伴外观
+  if (cached.petwing) {
+    pet.value = cached.petwing.pet || null
+    wing.value = cached.petwing.wing || null
+  } else {
+    // 兼容旧格式
+    pet.value = cached.pet || null
+    wing.value = cached.wing || null
+  }
+  
+  if (cached.equipment?.skinList) {
+    skinList.value = cached.equipment.skinList
+  } else if (cached.skinList) {
+    // 兼容旧格式
+    skinList.value = cached.skinList
+  }
+}
+
+// 静默后台同步
+const backgroundSync = async () => {
+  if (!member.value) return
+  
+  // 如果没有缓存数据，则显示局部加载状态，并保持全局 loading
+  if (!member.value.equipment_data) {
+    loadingEquipment.value = true
+  }
+
+  try {
+    const res = await $fetch('/api/aion/sync', {
+      query: {
+        memberId: member.value.id,
+        characterId: member.value.character_id,
+        serverId: member.value.server_id
+      }
+    })
+    
+    if (res.success && res.data) {
+      applyCachedData(res.data)
+      member.value.equipment_data = res.data
+    }
+  } catch (e) {
+    console.error('Background Sync Error:', e)
+  } finally {
+    loadingEquipment.value = false
+    loading.value = false
+    $loading.hide() // 无论成功失败，最后都隐藏全局 loading
+  }
+}
+
+// 手动同步数据
+const syncMemberData = async () => {
+  if (!member.value || syncing.value) return
+  
+  syncing.value = true
+  $loading.show('正在同步最新全量数据...')
+  
+  try {
+    const res = await $fetch('/api/aion/sync', {
+      query: {
+        memberId: member.value.id,
+        characterId: member.value.character_id,
+        serverId: member.value.server_id
+      }
+    })
+    
+    if (res.success && res.data) {
+      applyCachedData(res.data)
+      member.value.equipment_data = res.data
+      $alert('同步成功', '成员档案及装备详情已更新至最新状态')
+    } else {
+      $alert('同步失败', res.error || '无法获取官方数据')
+    }
+  } catch (e) {
+    console.error('Sync Error:', e)
+    $alert('同步出错', '网络请求失败，请稍后再试')
+  } finally {
+    syncing.value = false
+    $loading.hide()
+  }
 }
 
 // --- 多维度分析辅助逻辑 ---
