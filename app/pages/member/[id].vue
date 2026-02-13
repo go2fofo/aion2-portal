@@ -385,16 +385,13 @@
                      ></div>
 
                      <!-- 头部：部位与品质 -->
-                     <div class="px-6 pt-6 flex items-center justify-between mb-4">
-                       <div class="flex items-center gap-2">
-                         <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-slate-100 text-slate-500 border border-slate-200 shadow-sm">
-                           {{ slotMap[item.slotPosName] || item.slotPosName }}
-                         </span>
-                         <span v-if="item.exceedLevel > 0" class="px-3 py-1 rounded-full text-[10px] font-black bg-sky-50 text-sky-600 border border-sky-100 shadow-sm">
-                           突破 {{ item.exceedLevel }}
-                         </span>
-                       </div>
-                       <div class="flex flex-col items-end gap-1">
+                    <div class="px-6 pt-6 flex items-center justify-between mb-4">
+                      <div class="flex items-center gap-2">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-slate-100 text-slate-500 border border-slate-200 shadow-sm">
+                          {{ slotMap[item.slotPosName] || item.slotPosName }}
+                        </span>
+                      </div>
+                      <div class="flex flex-col items-end gap-1">
                          <div 
                            class="px-3 py-1 rounded-full text-[10px] font-black text-white shadow-md uppercase tracking-widest bg-gradient-to-r"
                            :class="getGradeInfo(item.grade).gradient"
@@ -406,24 +403,36 @@
                      </div>
 
                      <!-- 主体：图标与名称 -->
-                     <div class="px-6 flex items-start gap-5 mb-6">
-                       <div class="relative shrink-0 group-hover:scale-105 transition-transform">
-                         <div class="w-20 h-20 rounded-3xl border-4 border-white shadow-lg overflow-hidden bg-slate-50 relative z-10">
-                           <img :src="formatIconUrl(item.icon)" class="w-full h-full object-cover p-2" />
-                         </div>
-                         <!-- 强化浮标 -->
-                         <div v-if="item.enchantLevel > 0" class="absolute -top-2 -right-2 z-20 bg-red-500 text-white text-xs font-black w-8 h-8 flex items-center justify-center rounded-full border-4 border-white shadow-lg">
-                           +{{ item.enchantLevel }}
-                         </div>
-                         <!-- 稀度光环 -->
-                         <div 
-                           class="absolute inset-0 blur-xl opacity-30 rounded-full"
-                           :class="getGradeInfo(item.grade).light"
-                         ></div>
-                       </div>
+                    <div class="px-6 flex items-start gap-5 mb-6">
+                      <div class="relative shrink-0 group-hover:scale-105 transition-transform">
+                        <div class="w-20 h-20 rounded-3xl border-4 border-white shadow-lg overflow-hidden bg-slate-50 relative z-10">
+                          <img :src="formatIconUrl(item.icon)" class="w-full h-full object-cover p-2" />
+                        </div>
+                        <!-- 道具等级浮标 -->
+                        <div v-if="item.fullDetail?.level" class="absolute -top-2 -left-2 z-20 bg-sky-600 text-white text-[10px] font-black px-2 py-0.5 rounded-lg border-2 border-white shadow-md flex items-center gap-0.5">
+                          <span>Lv.{{ item.fullDetail.level }}</span>
+                          <span v-if="item.fullDetail?.levelValue" class="text-emerald-300">+{{ item.fullDetail.levelValue }}</span>
+                        </div>
+                        <!-- 稀度光环 -->
+                        <div 
+                          class="absolute inset-0 blur-xl opacity-30 rounded-full"
+                          :class="getGradeInfo(item.grade).light"
+                        ></div>
+                      </div>
 
-                       <div class="flex-1 min-w-0 pt-1">
-                         <h4 class="text-lg font-black text-slate-800 leading-tight mb-2 line-clamp-2" :title="item.name">{{ item.name }}</h4>
+                      <div class="min-w-0 pt-1">
+                        <!-- 突破与强化状态行 -->
+                        <div v-if="item.exceedLevel > 0 || item.enchantLevel > 0" class="flex items-center gap-2 mb-2">
+                          <div v-if="item.exceedLevel > 0" class="flex items-center bg-sky-50 rounded-lg overflow-hidden border border-sky-100 shadow-sm">
+                            <span class="bg-sky-600 text-white text-[9px] font-black px-1.5 py-0.5 uppercase tracking-tighter">突破</span>
+                            <span class="px-1.5 text-sky-700 font-black text-xs">{{ item.exceedLevel }}</span>
+                          </div>
+                          <div v-if="item.enchantLevel > 0" class="flex items-center bg-rose-50 rounded-lg overflow-hidden border border-rose-100 shadow-sm">
+                            <span class="bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 uppercase tracking-tighter">强化</span>
+                            <span class="px-1.5 text-rose-700 font-black text-xs">+{{ item.enchantLevel }}</span>
+                          </div>
+                        </div>
+                        <h4 class="text-lg font-black text-slate-800 leading-tight mb-2 line-clamp-2" :title="item.name">{{ item.name }}</h4>
                          <div class="flex flex-wrap items-center gap-2">
                            <span class="text-[10px] font-mono text-slate-300">#{{ item.id }}</span>
                            <span v-if="item.fullDetail?.categoryName" class="text-[10px] font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100">
@@ -432,12 +441,16 @@
                            <span v-if="item.fullDetail?.equipLevel" class="text-[10px] font-black text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
                              需求等级 {{ item.fullDetail.equipLevel }}
                            </span>
+                           <span v-if="item.fullDetail?.level" class="text-[10px] font-black text-sky-600 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100 flex items-center gap-1">
+                             <span>道具等级 {{ item.fullDetail.level }}</span>
+                             <span v-if="item.fullDetail?.levelValue" class="text-emerald-600 bg-emerald-100/50 px-1 rounded-sm">+{{ item.fullDetail.levelValue }}</span>
+                           </span>
                          </div>
                        </div>
                      </div>
 
                      <!-- 数据详情区 -->
-                     <div class="px-6 pb-6 mt-auto space-y-4">
+                    <div class="px-6 pb-6 space-y-4">
                        <!-- 主属性区 (带强化加成) -->
                        <div v-if="item.fullDetail?.mainStats?.length" class="space-y-2">
                          <div class="flex items-center gap-2 mb-1">
@@ -634,21 +647,43 @@
                      </div>
 
                      <!-- 主体 -->
-                     <div class="px-6 flex items-start gap-5 mb-6">
-                       <div class="relative shrink-0 group-hover:scale-105 transition-transform">
-                         <div class="w-20 h-20 rounded-3xl border-4 border-white shadow-lg overflow-hidden bg-slate-50 relative z-10">
-                           <img :src="formatIconUrl(item.icon)" class="w-full h-full object-cover p-2" />
+                    <div class="px-6 flex items-start gap-5 mb-6">
+                      <div class="relative shrink-0 group-hover:scale-105 transition-transform">
+                        <div class="w-20 h-20 rounded-3xl border-4 border-white shadow-lg overflow-hidden bg-slate-50 relative z-10">
+                          <img :src="formatIconUrl(item.icon)" class="w-full h-full object-cover p-2" />
+                        </div>
+                        <!-- 道具等级浮标 -->
+                        <div v-if="item.fullDetail?.level" class="absolute -top-2 -left-2 z-20 bg-sky-600 text-white text-[10px] font-black px-2 py-0.5 rounded-lg border-2 border-white shadow-md flex items-center gap-0.5">
+                          <span>Lv.{{ item.fullDetail.level }}</span>
+                          <span v-if="item.fullDetail?.levelValue" class="text-emerald-300">+{{ item.fullDetail.levelValue }}</span>
+                        </div>
+                        <div class="absolute inset-0 blur-xl opacity-30 rounded-full" :class="getGradeInfo(item.grade).light"></div>
+                      </div>
+                      <div class="min-w-0 pt-1">
+                        <!-- 突破与强化状态行 -->
+                        <div v-if="item.exceedLevel > 0 || item.enchantLevel > 0" class="flex items-center gap-2 mb-2">
+                          <div v-if="item.exceedLevel > 0" class="flex items-center bg-sky-50 rounded-lg overflow-hidden border border-sky-100 shadow-sm">
+                            <span class="bg-sky-600 text-white text-[9px] font-black px-1.5 py-0.5 uppercase tracking-tighter">突破</span>
+                            <span class="px-1.5 text-sky-700 font-black text-xs">{{ item.exceedLevel }}</span>
+                          </div>
+                          <div v-if="item.enchantLevel > 0" class="flex items-center bg-amber-50 rounded-lg overflow-hidden border border-amber-100 shadow-sm">
+                            <span class="bg-amber-600 text-white text-[9px] font-black px-1.5 py-0.5 uppercase tracking-tighter">强化</span>
+                            <span class="px-1.5 text-amber-700 font-black text-xs">+{{ item.enchantLevel }}</span>
+                          </div>
+                        </div>
+                        <h4 class="text-lg font-black text-slate-800 leading-tight mb-2 line-clamp-2">{{ item.name }}</h4>
+                         <div class="flex flex-wrap items-center gap-2">
+                           <span class="text-[10px] font-mono text-slate-300">#{{ item.id }}</span>
+                           <span v-if="item.fullDetail?.level" class="text-[10px] font-black text-sky-600 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100 flex items-center gap-1">
+                              <span>道具等级 {{ item.fullDetail.level }}</span>
+                              <span v-if="item.fullDetail?.levelValue" class="text-emerald-600 bg-emerald-100/50 px-1 rounded-sm">+{{ item.fullDetail.levelValue }}</span>
+                            </span>
                          </div>
-                         <div class="absolute inset-0 blur-xl opacity-30 rounded-full" :class="getGradeInfo(item.grade).light"></div>
-                       </div>
-                       <div class="flex-1 min-w-0 pt-1">
-                         <h4 class="text-lg font-black text-slate-800 leading-tight mb-2 line-clamp-2">{{ item.name }}</h4>
-                         <span class="text-[10px] font-mono text-slate-300">#{{ item.id }}</span>
                        </div>
                      </div>
 
                      <!-- 属性数据 -->
-                     <div v-if="item.fullDetail" class="px-6 pb-6 mt-auto space-y-3">
+                    <div v-if="item.fullDetail" class="px-6 pb-6 space-y-3">
                        <div v-if="item.fullDetail.mainStats?.length" class="grid grid-cols-1 gap-1.5">
                          <div v-for="(stat, sIdx) in item.fullDetail.mainStats" :key="sIdx" class="flex items-center justify-between bg-amber-50/30 border border-amber-50 p-2 rounded-xl">
                            <span class="text-xs text-amber-600 font-bold">{{ stat.name }}</span>
@@ -707,30 +742,48 @@
                    </div>
 
                    <!-- 主体：图标与名称 -->
-                   <div class="px-6 flex flex-col items-center text-center gap-4 mb-6">
-                     <div class="relative shrink-0 group-hover:scale-110 transition-transform duration-500">
-                       <div class="w-24 h-24 rounded-[2rem] border-4 border-white shadow-xl overflow-hidden bg-slate-50 relative z-10 p-2">
-                         <img :src="formatIconUrl(item.icon)" class="w-full h-full object-contain" />
-                       </div>
-                       <!-- 强化浮标 -->
-                       <div v-if="item.enchantLevel > 0" class="absolute -top-2 -right-2 z-20 bg-indigo-600 text-white text-xs font-black w-8 h-8 flex items-center justify-center rounded-full border-4 border-white shadow-lg">
-                         +{{ item.enchantLevel }}
-                       </div>
-                       <!-- 稀有度光环 -->
-                       <div 
-                         class="absolute inset-0 blur-2xl opacity-40 rounded-full"
-                         :class="getGradeInfo(item.grade).light"
-                       ></div>
-                     </div>
+                  <div class="px-6 flex flex-col items-center text-center gap-4 mb-6">
+                    <div class="relative shrink-0 group-hover:scale-110 transition-transform duration-500">
+                      <div class="w-24 h-24 rounded-[2rem] border-4 border-white shadow-xl overflow-hidden bg-slate-50 relative z-10 p-2">
+                        <img :src="formatIconUrl(item.icon)" class="w-full h-full object-contain" />
+                      </div>
+                      <!-- 道具等级浮标 -->
+                      <div v-if="item.fullDetail?.level" class="absolute -top-2 -left-2 z-20 bg-sky-600 text-white text-[10px] font-black px-2 py-0.5 rounded-lg border-2 border-white shadow-md flex items-center gap-0.5">
+                        <span>Lv.{{ item.fullDetail.level }}</span>
+                        <span v-if="item.fullDetail?.levelValue" class="text-emerald-300">+{{ item.fullDetail.levelValue }}</span>
+                      </div>
+                      <!-- 稀有度光环 -->
+                      <div 
+                        class="absolute inset-0 blur-2xl opacity-40 rounded-full"
+                        :class="getGradeInfo(item.grade).light"
+                      ></div>
+                    </div>
 
-                     <div class="min-w-0">
-                       <h4 class="text-base font-black text-slate-800 leading-tight mb-1">{{ item.name }}</h4>
-                       <span class="text-[10px] font-mono text-slate-300">#{{ item.id }}</span>
+                    <div class="min-w-0">
+                      <!-- 突破与强化状态行 -->
+                      <div v-if="item.exceedLevel > 0 || item.enchantLevel > 0" class="flex items-center justify-center gap-2 mb-2">
+                        <div v-if="item.exceedLevel > 0" class="flex items-center bg-sky-50 rounded-lg overflow-hidden border border-sky-100 shadow-sm">
+                          <span class="bg-sky-600 text-white text-[9px] font-black px-1.5 py-0.5 uppercase tracking-tighter">突破</span>
+                          <span class="px-1.5 text-sky-700 font-black text-xs">{{ item.exceedLevel }}</span>
+                        </div>
+                        <div v-if="item.enchantLevel > 0" class="flex items-center bg-indigo-50 rounded-lg overflow-hidden border border-indigo-100 shadow-sm">
+                          <span class="bg-indigo-600 text-white text-[9px] font-black px-1.5 py-0.5 uppercase tracking-tighter">强化</span>
+                          <span class="px-1.5 text-indigo-700 font-black text-xs">+{{ item.enchantLevel }}</span>
+                        </div>
+                      </div>
+                      <h4 class="text-base font-black text-slate-800 leading-tight mb-1">{{ item.name }}</h4>
+                       <div class="flex flex-wrap items-center justify-center gap-2">
+                         <span class="text-[10px] font-mono text-slate-300">#{{ item.id }}</span>
+                         <span v-if="item.fullDetail?.level" class="text-[10px] font-black text-sky-600 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100 flex items-center gap-1">
+                            <span>道具等级 {{ item.fullDetail.level }}</span>
+                            <span v-if="item.fullDetail?.levelValue" class="text-emerald-600 bg-emerald-100/50 px-1 rounded-sm">+{{ item.fullDetail.levelValue }}</span>
+                          </span>
+                       </div>
                      </div>
                    </div>
 
                    <!-- 阿卡纳详情数据区 -->
-                   <div v-if="item.fullDetail" class="px-6 pb-6 mt-auto space-y-4">
+                  <div v-if="item.fullDetail" class="px-6 pb-6 space-y-4">
                      <!-- 1. 套装信息 (Set Info) -->
                      <div v-if="item.fullDetail.set" class="bg-indigo-900/5 rounded-2xl p-4 border border-indigo-100/50">
                        <div class="flex items-center justify-between mb-3">
@@ -955,7 +1008,7 @@
         <!-- 伙伴与外观 -->
         <div class="bg-white rounded-[3rem] p-8 shadow-xl border-4 border-white">
            <h3 class="font-black text-sky-900 text-xl mb-8 flex items-center gap-3">
-             <span class="bg-pink-100 p-2 rounded-2xl">🦋</span> 伙伴与外观
+             <span class="bg-pink-100 p-2 rounded-2xl">🦋</span> 宠物与外观
            </h3>
            <div v-if="loadingEquipment" class="text-center py-8 text-slate-400 font-bold">读取外观信息中...</div>
            <div v-else-if="!pet && !wing && skinList.length === 0" class="text-center py-8 text-slate-400 font-bold">暂无相关数据</div>
