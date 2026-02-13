@@ -94,12 +94,15 @@
     </div>
 
     <nav class="relative z-50 p-6 flex items-center">
-      <div class="flex items-center gap-2">
-        <div class="w-12 h-12 bg-white rounded-full p-1 shadow-md border-2 border-[#AEE2F9]">
-          <img src="/bbbswz.png" class="w-full h-full object-contain" />
+      <NuxtLink to="/" class="flex items-center gap-2 group transition-all active:scale-95">
+        <div class="w-12 h-12 bg-white rounded-full p-1 shadow-md border-2 border-[#AEE2F9] group-hover:border-[#45a6d5] group-hover:rotate-12 transition-all duration-500 overflow-hidden">
+          <img src="/bbbswz.png" class="w-full h-full object-contain group-hover:scale-110 transition-transform rounded-full" />
         </div>
-        <span class="text-[#45a6d5] font-black text-xl tracking-tighter">BBBS</span>
-      </div>
+        <div class="flex flex-col leading-none">
+          <span class="text-[#45a6d5] font-black text-xl tracking-tighter group-hover:text-sky-600 transition-colors">BBBS</span>
+          <span class="text-[10px] font-bold text-sky-300 uppercase tracking-widest scale-75 origin-left">Portal</span>
+        </div>
+      </NuxtLink>
       <div class="flex-1 text-center">
         <span class="text-2xl md:text-3xl font-black text-[#45a6d5] tracking-widest">AION2</span>
       </div>
