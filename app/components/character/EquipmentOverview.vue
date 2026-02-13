@@ -22,6 +22,7 @@ const props = defineProps({
   }
 })
 
+
 // 装备品级配置映射
 const gradeConfig = {
   Common: { name: '普通', color: 'slate', desc: '基础材料装', bg: 'bg-slate-500', border: 'border-slate-100', light: 'bg-slate-400', gradient: 'from-slate-400 to-slate-600' },
@@ -418,19 +419,31 @@ const slotMap = {
                 </div>
               </div>
 
-              <div class="px-6 flex flex-col items-center text-center gap-4 mb-6">
-                <div class="relative shrink-0 group-hover:scale-110 transition-transform duration-500">
+              <div class="px-6 flex flex-col items-center text-center gap-4 mb-6 relative z-10">
+                <!-- 立绘展示 -->
+                <div v-if="item.fullDetail?.illust" class="relative w-full aspect-[3/4] rounded-[1.5rem] overflow-hidden mb-2 shadow-inner bg-slate-100 group-hover:shadow-2xl transition-all duration-500">
+                  <img :src="formatIconUrl(item.fullDetail.illust)" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <!-- 小图标浮层 -->
+                  <div class="absolute bottom-2 right-2 w-10 h-10 rounded-xl border-2 border-white/50 backdrop-blur-sm shadow-lg overflow-hidden z-20">
+                    <img :src="formatIconUrl(item.icon)" class="w-full h-full object-contain p-1" />
+                  </div>
+                </div>
+
+                <!-- 原有的图标展示 (作为备选) -->
+                <div v-else class="relative shrink-0 group-hover:scale-110 transition-transform duration-500">
                   <div class="w-24 h-24 rounded-[2rem] border-4 border-white shadow-xl overflow-hidden bg-slate-50 relative z-10 p-2">
                     <img :src="formatIconUrl(item.icon)" class="w-full h-full object-contain" />
-                  </div>
-                  <div v-if="item.fullDetail?.level" class="absolute -top-2 -left-2 z-20 bg-sky-600 text-white text-[10px] font-black px-2 py-0.5 rounded-lg border-2 border-white shadow-md flex items-center gap-0.5">
-                    <span>Lv.{{ item.fullDetail.level }}</span>
-                    <span v-if="item.fullDetail?.levelValue" class="text-emerald-300">+{{ item.fullDetail.levelValue }}</span>
                   </div>
                   <div class="absolute inset-0 blur-2xl opacity-40 rounded-full" :class="getGradeInfo(item.grade).light"></div>
                 </div>
 
-                <div class="min-w-0">
+                <div v-if="item.fullDetail?.level" class="absolute -top-2 -left-2 z-20 bg-sky-600 text-white text-[10px] font-black px-2 py-0.5 rounded-lg border-2 border-white shadow-md flex items-center gap-0.5">
+                  <span>Lv.{{ item.fullDetail.level }}</span>
+                  <span v-if="item.fullDetail?.levelValue" class="text-emerald-300">+{{ item.fullDetail.levelValue }}</span>
+                </div>
+
+                <div class="min-w-0 w-full">
                   <div v-if="item.exceedLevel > 0 || item.enchantLevel > 0" class="flex items-center justify-center gap-2 mb-2">
                     <div v-if="item.exceedLevel > 0" class="flex items-center bg-sky-50 rounded-lg overflow-hidden border border-sky-100 shadow-sm">
                       <span class="bg-sky-600 text-white text-[9px] font-black px-1.5 py-0.5 uppercase tracking-tighter">突破</span>
@@ -450,14 +463,45 @@ const slotMap = {
                     </span>
                   </div>
 
+                  <!-- 基础属性 -->
+                  <div v-if="item.fullDetail?.mainStats?.length" class="mb-4 space-y-1">
+                    <div v-for="(stat, sIdx) in item.fullDetail.mainStats" :key="sIdx" class="flex items-center justify-between px-3 py-1.5 bg-indigo-50/30 rounded-lg border border-indigo-100/30">
+                      <span class="text-[10px] font-bold text-indigo-700">{{ stat.name }}</span>
+                      <div class="flex items-center gap-1">
+                        <span class="text-[10px] font-black text-indigo-900">{{ stat.value }}</span>
+                        <span v-if="stat.extra" class="text-[9px] font-black text-emerald-500">(+{{ stat.extra }})</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 套装信息 -->
+                  <div v-if="item.fullDetail?.set" class="mb-4 bg-amber-50/50 rounded-xl p-3 border border-amber-100/50 text-left">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-[10px] font-black text-amber-700 uppercase tracking-wider">Set: {{ item.fullDetail.set.name }}</span>
+                      <span class="text-[9px] bg-amber-200/50 text-amber-800 px-1.5 py-0.5 rounded font-black">{{ item.fullDetail.set.equippedCount }} 件已装备</span>
+                    </div>
+                    <div v-if="item.fullDetail.set.bonuses?.length" class="space-y-1">
+                      <div v-for="(bonus, bIdx) in item.fullDetail.set.bonuses" :key="bIdx" 
+                        class="text-[9px] leading-tight transition-colors"
+                        :class="item.fullDetail.set.equippedCount >= bonus.degree ? 'text-amber-900 font-bold' : 'text-slate-400 opacity-60'"
+                      >
+                        <div v-for="(desc, dIdx) in bonus.descriptions" :key="dIdx" class="flex items-start gap-1">
+                          <span>•</span>
+                          <span>{{ desc }} ({{ bonus.degree }}件)</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <!-- 装备随机技能 -->
                   <div v-if="item.fullDetail?.subSkills?.length" class="space-y-2 px-2">
-                    <div v-for="(skill, sIdx) in item.fullDetail.subSkills" :key="sIdx" class="bg-slate-50 p-2 rounded-xl border border-slate-100 text-left">
+                    <div v-for="(skill, sIdx) in item.fullDetail.subSkills" :key="sIdx" class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-left hover:bg-white transition-colors group/skill">
                       <div class="flex items-center gap-2 mb-1">
+                        <img v-if="skill.icon" :src="formatIconUrl(skill.icon)" class="w-5 h-5 rounded-md border border-slate-200 shadow-sm" />
                         <span class="text-[10px] text-indigo-600 font-black">{{ skill.name }}</span>
                         <span v-if="skill.level" class="text-[8px] bg-indigo-50 text-indigo-500 px-1 rounded font-black">Lv.{{ skill.level }}</span>
                       </div>
-                      <p v-if="skill.desc" class="text-[9px] text-slate-400 leading-tight">{{ skill.desc }}</p>
+                      <p v-if="skill.desc" class="text-[9px] text-slate-400 leading-tight group-hover/skill:text-slate-500">{{ skill.desc }}</p>
                     </div>
                   </div>
 

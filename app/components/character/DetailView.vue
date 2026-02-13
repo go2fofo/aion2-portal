@@ -73,6 +73,9 @@ const coreCombatStats = computed(() => {
       ...interestingTypes[s.type]
     }))
 })
+const arcanaList = computed(() => {
+  return props.equipmentList.filter(e => e.slotPosName && e.slotPosName.startsWith('Arcana'))
+})
 
 // 排名列表
 const rankingList = computed(() => {
