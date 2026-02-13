@@ -203,7 +203,12 @@
       </div>
 
       <!-- 战斗素质与多维度分析 (抽离为独立组件) -->
-      <MemberAIAnalysis :member="member" :equipment-data="member.equipment_data" />
+      <MemberAIAnalysis 
+        v-if="member" 
+        :member="member" 
+        :equipment-data="member.equipment_data" 
+        @update:analysis="(data) => member.ai_analysis_data = data"
+      />
 
       <!-- 详细能力值看板 -->
       <div class="bg-white/80 backdrop-blur-md rounded-[3rem] p-8 md:p-12 shadow-2xl border-4 border-white relative overflow-hidden group/board">

@@ -1,16 +1,28 @@
 /*
  * @Author: whq
  * @Date: 2026-02-13 12:10:10
- * @LastEditTime: 2026-02-13 12:31:26
+ * @LastEditTime: 2026-02-13 15:45:45
  * @LastEditors: whq
  * @Description: 
  * @FilePath: /aion2-portal/app/server/api/aion/ai-analysis.post.ts
  */
 import { defineEventHandler, readBody, createError } from 'h3'
+import { serverSupabaseClient } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { member, equipmentData, model } = body
+  const { member, equipmentData } = body
+
+  // 从数据库获取管理员配置的 AI 模型
+  const client = await serverSupabaseClient(event)
+  const { data: configData } = await client
+    .from('site_config')
+    .select('value')
+    .eq('key', 'ai_model_config')
+    .maybeSingle()
+
+  const modelId = configData?.value?.modelId || 'deepseek'
+  const dbKeys = configData?.value?.keys || {}
 
   if (!member) {
     throw createError({
@@ -27,31 +39,31 @@ export default defineEventHandler(async (event) => {
     'deepseek': {
       url: 'https://api.deepseek.com/chat/completions',
       name: 'deepseek-chat',
-      key: (config.deepseekApiKey || process.env.DEEPSEEK_API_KEY || '').trim()
+      key: (dbKeys.deepseek || config.deepseekApiKey || process.env.DEEPSEEK_API_KEY || '').trim()
     },
     'siliconflow': {
       url: 'https://api.siliconflow.cn/v1/chat/completions',
       name: 'deepseek-ai/DeepSeek-V3',
-      key: (config.deepseekApiKey || process.env.DEEPSEEK_API_KEY || '').trim()
+      key: (dbKeys.siliconflow || config.deepseekApiKey || process.env.DEEPSEEK_API_KEY || '').trim()
     },
     'gpt-4o': {
       url: 'https://api.openai.com/v1/chat/completions',
       name: 'gpt-4o',
-      key: (config.openaiApiKey || process.env.OPENAI_API_KEY || '').trim()
+      key: (dbKeys['gpt-4o'] || config.openaiApiKey || process.env.OPENAI_API_KEY || '').trim()
     },
     'gemini': {
       url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
       name: 'gemini-2.0-flash',
-      key: (config.geminiApiKey || process.env.GEMINI_API_KEY || '').trim()
+      key: (dbKeys.gemini || config.geminiApiKey || process.env.GEMINI_API_KEY || '').trim()
     }
   }
 
-  const selectedModel = models[model] || models['deepseek']
+  const selectedModel = models[modelId] || models['deepseek']
 
   if (!selectedModel.key) {
     return {
       success: false,
-      message: `未配置 ${model} 的 API Key，请在 .env 中设置。`
+      message: `未配置 ${modelId} 的 API Key，请在 .env 中设置。`
     }
   }
 
@@ -109,9 +121,23 @@ ${equipmentSummary || '暂无详细装备数据'}
       }
     })
 
+    const analysisContent = response.choices[0].message.content
+
+    // 将分析结果持久化到 Supabase
+    await client
+      .from('legion_members')
+      .update({
+        ai_analysis_data: {
+          content: analysisContent,
+          model: selectedModel.name,
+          updated_at: new Date().toISOString()
+        }
+      })
+      .eq('id', member.id)
+
     return {
       success: true,
-      content: response.choices[0].message.content,
+      content: analysisContent,
       model: selectedModel.name
     }
   } catch (error: any) {
