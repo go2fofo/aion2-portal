@@ -338,6 +338,11 @@
                 </div>
               </div>
 
+              <!-- Tab: 角色查询 (Search) -->
+              <div v-else-if="activeTab === 'search'" class="h-full">
+                <CharacterSearchModule />
+              </div>
+
               <!-- Tab 5: 军团成员 (Members) -->
               <div v-else-if="activeTab === 'members'" class="h-full flex flex-col">
                 <!-- 顶部搜索和筛选栏 -->
@@ -622,6 +627,7 @@ const defaultTabs = [
   { id: 'fresh', name: '军团鲜哒', hidden: false },
   { id: 'analysis', name: '战力解析', hidden: false },
   { id: 'rank', name: '战力排行', hidden: false },
+  { id: 'search', name: '即时查询', hidden: false },
   { id: 'members', name: '军团成员', hidden: false },
   { id: 'join', name: '入团手续', hidden: false }
 ]

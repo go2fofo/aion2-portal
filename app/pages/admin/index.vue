@@ -37,6 +37,9 @@
         <NuxtLink to="/admin/tabs" class="px-6 py-3 bg-white border-2 border-slate-100 text-slate-600 rounded-xl font-bold hover:border-[#45a6d5] hover:text-[#45a6d5] transition-colors">
           调整菜单顺序
         </NuxtLink>
+        <NuxtLink to="/admin/search" class="px-6 py-3 bg-amber-500 text-white rounded-xl font-bold shadow-md hover:bg-amber-600 transition-colors flex items-center gap-2">
+          <span>🔍</span> 角色快速查询
+        </NuxtLink>
       </div>
     </div>
   </div>
