@@ -57,6 +57,22 @@
           />
         </div>
 
+        <div v-if="!isMagicLink" class="flex items-center justify-between px-2 mt-2">
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <div class="relative flex items-center">
+              <input 
+                v-model="rememberMe" 
+                type="checkbox" 
+                class="peer appearance-none w-5 h-5 rounded-md border-2 border-[#E6F7FF] checked:border-[#45a6d5] checked:bg-[#45a6d5] transition-all cursor-pointer"
+              />
+              <svg xmlns="http://www.w3.org/2000/svg" class="absolute w-3.5 h-3.5 text-white left-0.5 pointer-events-none hidden peer-checked:block" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <span class="text-xs font-bold text-sky-800/60 group-hover:text-sky-400 transition-colors">记住我</span>
+          </label>
+        </div>
+
         <div class="pt-4">
           <button 
             type="submit" 
@@ -98,7 +114,7 @@
 </template>
 
 <script setup>
-import { ref, watchEffect } from 'vue'
+import { ref, watchEffect, onMounted } from 'vue'
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 const router = useRouter()
@@ -107,12 +123,30 @@ const { $alert, $loading } = useNuxtApp()
 const email = ref('')
 const username = ref('')
 const password = ref('')
+const rememberMe = ref(false)
 const loading = ref(false)
 const errorMsg = ref('')
 const successMsg = ref('')
 
 const isSignUp = ref(false)
 const isMagicLink = ref(false)
+
+// 加载保存的账号密码
+onMounted(() => {
+  if (process.client) {
+    const saved = localStorage.getItem('remembered_user')
+    if (saved) {
+      try {
+        const { email: savedEmail, password: savedPassword } = JSON.parse(saved)
+        email.value = savedEmail || ''
+        password.value = savedPassword || ''
+        rememberMe.value = true
+      } catch (e) {
+        console.error('Failed to parse remembered user', e)
+      }
+    }
+  }
+})
 
 // 如果已登录，跳转首页
 watchEffect(() => {
@@ -169,6 +203,18 @@ const handleLogin = async () => {
           password: password.value,
         })
         if (error) throw error
+        
+        // 登录成功后处理记住我
+        if (process.client) {
+          if (rememberMe.value) {
+            localStorage.setItem('remembered_user', JSON.stringify({
+              email: email.value,
+              password: password.value
+            }))
+          } else {
+            localStorage.removeItem('remembered_user')
+          }
+        }
         // 成功会自动跳转
       }
     }

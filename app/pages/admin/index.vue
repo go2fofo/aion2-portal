@@ -6,23 +6,48 @@
  * @Description: 
  * @FilePath: /aion2-portal/app/pages/admin/index.vue
 -->
+<script setup>
+import { ref, onMounted } from 'vue'
+const supabase = useSupabaseClient()
+
+const memberCount = ref(0)
+const loading = ref(true)
+
+const fetchStats = async () => {
+  const { count, error } = await supabase
+    .from('legion_members')
+    .select('*', { count: 'exact', head: true })
+  
+  if (count !== null) {
+    memberCount.value = count
+  }
+  loading.value = false
+}
+
+onMounted(() => {
+  fetchStats()
+})
+</script>
+
 <template>
   <div class="space-y-6">
     <!-- 数据概览卡片 -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
         <div class="text-slate-400 font-bold text-sm mb-2">总访问量</div>
-        <div class="text-3xl font-black text-slate-800">12,345</div>
+        <div class="text-3xl font-black text-slate-800">1,280</div>
         <div class="text-green-500 text-xs font-bold mt-2">↑ 12% 较上周</div>
       </div>
       <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
         <div class="text-slate-400 font-bold text-sm mb-2">注册军团成员</div>
-        <div class="text-3xl font-black text-slate-800">888</div>
-        <div class="text-green-500 text-xs font-bold mt-2">↑ 5% 较上周</div>
+        <div class="text-3xl font-black text-slate-800">
+          {{ loading ? '...' : memberCount }}
+        </div>
+        <div class="text-green-500 text-xs font-bold mt-2">实时同步</div>
       </div>
       <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
         <div class="text-slate-400 font-bold text-sm mb-2">当前在线</div>
-        <div class="text-3xl font-black text-slate-800">42</div>
+        <div class="text-3xl font-black text-slate-800">16</div>
         <div class="text-slate-400 text-xs font-bold mt-2">实时数据</div>
       </div>
     </div>

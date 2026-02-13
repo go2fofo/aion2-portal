@@ -381,7 +381,7 @@
                         class="px-3 py-1.5 rounded-lg text-xs font-black whitespace-nowrap transition-all border-2"
                         :class="selectedClass === '' ? 'bg-[#45a6d5] text-white border-[#45a6d5]' : 'bg-white text-slate-500 border-white hover:border-[#E6F7FF]'"
                       >
-                        全部
+                        全部 ({{ members.length }})
                       </button>
                       <button 
                         v-for="cls in uniqueClasses" 
@@ -390,7 +390,7 @@
                         class="px-3 py-1.5 rounded-lg text-xs font-black whitespace-nowrap transition-all border-2"
                         :class="selectedClass === cls ? 'bg-[#45a6d5] text-white border-[#45a6d5]' : 'bg-white text-slate-500 border-white hover:border-[#E6F7FF]'"
                       >
-                        {{ cls }}
+                        {{ cls }} ({{ members.filter(m => m.class_name === cls).length }})
                       </button>
                     </div>
                   </div>
@@ -410,6 +410,44 @@
                 </div>
 
                 <div v-else class="flex-1 overflow-y-auto custom-scroll p-2 -mx-2">
+                  <!-- 军团统计看板 -->
+                  <div class="mb-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div class="bg-white/70 backdrop-blur-sm p-4 rounded-[2rem] border-2 border-white shadow-sm flex flex-col items-center justify-center group hover:shadow-md transition-all">
+                      <span class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">军团总人数</span>
+                      <div class="flex items-end gap-1">
+                        <span class="text-3xl font-black text-sky-600 leading-none">{{ members.length }}</span>
+                        <span class="text-xs font-bold text-sky-400 mb-1">人</span>
+                      </div>
+                    </div>
+                    <div class="bg-white/70 backdrop-blur-sm p-4 rounded-[2rem] border-2 border-white shadow-sm flex flex-col items-center justify-center group hover:shadow-md transition-all">
+                      <span class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">平均等级</span>
+                      <div class="flex items-end gap-1">
+                        <span class="text-3xl font-black text-emerald-500 leading-none">
+                          {{ members.length ? Math.round(members.reduce((acc, m) => acc + (m.level || 0), 0) / members.length) : 0 }}
+                        </span>
+                        <span class="text-xs font-bold text-emerald-400 mb-1">级</span>
+                      </div>
+                    </div>
+                    <div class="bg-white/70 backdrop-blur-sm p-4 rounded-[2rem] border-2 border-white shadow-sm flex flex-col items-center justify-center group hover:shadow-md transition-all">
+                      <span class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">物理职业</span>
+                      <div class="flex items-end gap-1">
+                        <span class="text-3xl font-black text-rose-500 leading-none">
+                          {{ members.filter(m => ['劍星', '守護星', '殺星', '弓星', '機甲星'].includes(m.class_name)).length }}
+                        </span>
+                        <span class="text-xs font-bold text-rose-400 mb-1">人</span>
+                      </div>
+                    </div>
+                    <div class="bg-white/70 backdrop-blur-sm p-4 rounded-[2rem] border-2 border-white shadow-sm flex flex-col items-center justify-center group hover:shadow-md transition-all">
+                      <span class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">魔法/支援</span>
+                      <div class="flex items-end gap-1">
+                        <span class="text-3xl font-black text-indigo-500 leading-none">
+                          {{ members.filter(m => ['魔道星', '精靈星', '治癒星', '護法星', '藝人'].includes(m.class_name)).length }}
+                        </span>
+                        <span class="text-xs font-bold text-indigo-400 mb-1">人</span>
+                      </div>
+                    </div>
+                  </div>
+
                   <!-- 军团长区域 (仅当未筛选或筛选结果包含军团长时显示) -->
                   <div v-if="leaders.length > 0 && !memberSearchQuery && !selectedClass" class="mb-8">
                      <div class="flex items-center gap-2 mb-4">
@@ -450,9 +488,9 @@
                       :key="member.id" 
                       class="group relative bg-white/60 backdrop-blur-sm rounded-2xl border-2 border-white hover:border-[#AEE2F9] p-3 flex flex-col items-center transition-all hover:-translate-y-1 hover:shadow-lg will-change-transform cursor-pointer"
                     >
-                      <!-- 职位徽章 (百夫长) -->
+                      <!-- 职位徽章 (精英军官) -->
                       <div v-if="member.role === 'officer'" class="absolute -top-2 -right-2 z-10">
-                        <span class="bg-purple-400 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">百夫长</span>
+                        <span class="bg-purple-400 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">精英军官</span>
                       </div>
                       
                       <div class="relative w-14 h-14 sm:w-16 sm:h-16 mb-2">
@@ -464,10 +502,9 @@
                         <div class="absolute bottom-0 right-0 bg-[#45a6d5] text-white text-[10px] font-bold px-1.5 rounded-full border border-white min-w-[20px] text-center">
                           {{ member.level }}
                         </div>
-                        <!-- 性别标识 (可选，如果想显示在头像旁) -->
-                        <div v-if="member.gender" class="absolute -bottom-1 -left-1 w-4 h-4 rounded-full flex items-center justify-center border border-white text-[10px]" 
-                          :class="member.gender === 'female' ? 'bg-pink-100 text-pink-500' : 'bg-blue-100 text-blue-500'">
-                          {{ member.gender === 'female' ? '♀' : '♂' }}
+                        <!-- 职位徽章 (军团兵) -->
+                        <div v-if="member.role === 'member'" class="absolute -bottom-1 -left-1">
+                          <span class="bg-slate-400 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-sm border border-white scale-90 origin-left">军团兵</span>
                         </div>
                       </div>
                       
@@ -475,7 +512,7 @@
                       <span class="text-[10px] sm:text-xs text-slate-500 font-medium mb-1 truncate w-full text-center">{{ member.class_name || '未知' }}</span>
                       
                       <div class="flex items-center gap-1 justify-center w-full">
-                        <span class="text-[10px] text-slate-400 bg-slate-100/80 px-2 py-0.5 rounded-full">{{ member.race_id === 1 ? '天族' : '魔族' }}</span>
+                        <span class="text-[10px] text-slate-400 bg-slate-100/80 px-2 py-0.5 rounded-full">{{ member.class_name || '未知' }}</span>
                         <!-- 装备分数 -->
                         <span v-if="member.item_level" class="text-[10px] text-yellow-600 bg-yellow-50/80 px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5" title="装备分数">
                           ⚔️{{ member.item_level }}

@@ -10,8 +10,127 @@ const searchQuery = ref('')
 const searchResults = ref([])
 const members = ref([])
 const showAddModal = ref(false)
+const showBulkModal = ref(false)
 const showEditModal = ref(false)
 const selectedMember = ref(null)
+
+// 批量导入状态
+const bulkJson = ref('')
+const isBulkProcessing = ref(false)
+const bulkStats = ref({
+  total: 0,
+  current: 0,
+  success: 0,
+  skipped: 0,
+  error: 0,
+  failedItems: [] // 存储失败的数据项
+})
+
+// 批量同步逻辑
+const handleBulkImport = async () => {
+  if (!bulkJson.value.trim()) return
+  
+  let data = []
+  try {
+    const parsed = JSON.parse(bulkJson.value)
+    // 处理可能的嵌套数组结构 [[{...}]]
+    data = Array.isArray(parsed[0]) ? parsed[0] : parsed
+  } catch (e) {
+    $alert('解析失败', 'JSON 格式不正确，请检查输入')
+    return
+  }
+
+  if (!Array.isArray(data)) {
+    $alert('格式错误', '数据必须是一个对象数组')
+    return
+  }
+
+  const confirmed = await $confirm('批量同步确认', `检测到 ${data.length} 条数据，准备开始批量入库。系统会自动跳过已存在的成员。是否继续？`)
+  if (!confirmed) return
+
+  isBulkProcessing.value = true
+  bulkStats.value = { total: data.length, current: 0, success: 0, skipped: 0, error: 0, failedItems: [] }
+
+  for (const item of data) {
+    bulkStats.value.current++
+    const charId = item.characterId
+    const serverId = item.serverId || 2015 // 默认 2015
+
+    if (!charId) {
+      bulkStats.value.error++
+      bulkStats.value.failedItems.push({ ...item, errorReason: '缺少 characterId' })
+      continue
+    }
+
+    try {
+      // 1. 检查是否存在
+      const { data: existing } = await supabase
+        .from('legion_members')
+        .select('id, role')
+        .eq('character_id', charId)
+        .maybeSingle()
+
+      const targetRole = item.role === '軍團長' ? 'leader' : 
+                        (item.role === '精英軍官' ? 'officer' : 
+                        (item.role === '軍團兵' ? 'member' : 
+                        (item.role?.includes('軍團長') ? 'leader' : 
+                        (item.role?.includes('精英軍官') ? 'officer' : 'member'))))
+
+      if (existing) {
+        // 如果角色不同，则更新职位
+        if (existing.role !== targetRole) {
+          await supabase
+            .from('legion_members')
+            .update({ role: targetRole })
+            .eq('id', existing.id)
+          bulkStats.value.success++
+        } else {
+          bulkStats.value.skipped++
+        }
+        continue
+      }
+
+      // 2. 准备基础数据插入 (为了获取 memberId)
+      const newMember = {
+        character_id: charId,
+        name: item.name || '未知',
+        server_id: serverId,
+        role: targetRole,
+        join_date: new Date().toISOString()
+      }
+
+      const { data: created, error: insError } = await supabase
+        .from('legion_members')
+        .insert(newMember)
+        .select('id')
+        .single()
+
+      if (insError) throw insError
+
+      // 3. 调用同步接口获取全量数据
+      await $fetch('/api/aion/sync', {
+        query: {
+          memberId: created.id,
+          characterId: charId,
+          serverId: serverId
+        }
+      })
+      bulkStats.value.success++
+    } catch (err) {
+      console.error(`同步失败 [${charId}]:`, err)
+      bulkStats.value.error++
+      bulkStats.value.failedItems.push({ ...item, errorReason: err.message || '同步请求失败' })
+    }
+  }
+
+  isBulkProcessing.value = false
+  if (bulkStats.value.error === 0) {
+    $alert('批量处理完成', `成功: ${bulkStats.value.success}\n跳过: ${bulkStats.value.skipped}`)
+    showBulkModal.value = false
+    bulkJson.value = ''
+  }
+  fetchMembers()
+}
 
 // 职业映射
 const classMap = {
@@ -326,15 +445,28 @@ onMounted(() => {
     <!-- 顶部操作栏 -->
     <div class="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
       <div>
-        <h3 class="font-black text-slate-800 text-lg">军团成员列表</h3>
+        <div class="flex items-center gap-3">
+          <h3 class="font-black text-slate-800 text-lg">军团成员列表</h3>
+          <span class="bg-sky-50 text-sky-600 px-3 py-1 rounded-full text-xs font-black border border-sky-100 shadow-sm">
+            共 {{ members.length }} 位成员
+          </span>
+        </div>
         <p class="text-sm text-slate-400 mt-1">管理军团成员，同步官方数据</p>
       </div>
-      <button 
-        @click="showAddModal = true" 
-        class="bg-[#45a6d5] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#3b95c0] transition-colors shadow-md flex items-center gap-2"
-      >
-        <span>+</span> 添加成员
-      </button>
+      <div class="flex gap-3">
+        <button 
+          @click="showBulkModal = true" 
+          class="bg-slate-100 text-slate-600 px-6 py-3 rounded-xl font-bold hover:bg-slate-200 transition-colors flex items-center gap-2"
+        >
+          <span>📦</span> 批量同步
+        </button>
+        <button 
+          @click="showAddModal = true" 
+          class="bg-[#45a6d5] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#3b95c0] transition-colors shadow-md flex items-center gap-2"
+        >
+          <span>+</span> 添加成员
+        </button>
+      </div>
     </div>
 
     <!-- 成员列表 -->
@@ -388,7 +520,7 @@ onMounted(() => {
                     'bg-slate-100 text-slate-600': member.role === 'member'
                   }"
                 >
-                  {{ member.role === 'leader' ? '军团长' : (member.role === 'officer' ? '百夫长' : '军团兵') }}
+                  {{ member.role === 'leader' ? '军团长' : (member.role === 'officer' ? '精英军官' : '军团兵') }}
                 </span>
               </td>
               <td class="px-6 py-4 text-sm text-slate-500">
@@ -534,6 +666,114 @@ onMounted(() => {
       </div>
     </Transition>
 
+    <!-- 批量导入弹窗 -->
+    <Transition name="modal">
+      <div v-if="showBulkModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="!isBulkProcessing && (showBulkModal = false)"></div>
+        
+        <div class="relative bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-8 z-10 overflow-hidden">
+          <h3 class="font-black text-2xl text-slate-800 mb-2">批量同步成员</h3>
+          <p class="text-sm text-slate-400 mb-6">粘贴包含 characterId 的 JSON 数据，系统将自动查重并同步全量档案。</p>
+          
+          <div class="space-y-4">
+            <div v-if="isBulkProcessing" class="bg-sky-50 p-6 rounded-2xl border-2 border-sky-100">
+              <div class="flex items-center justify-between mb-4">
+                <span class="font-black text-sky-700">正在执行批量同步...</span>
+                <span class="text-sm font-bold text-sky-600">{{ bulkStats.current }} / {{ bulkStats.total }}</span>
+              </div>
+              <!-- 进度条 -->
+              <div class="w-full h-3 bg-sky-100 rounded-full overflow-hidden mb-6">
+                <div 
+                  class="h-full bg-sky-500 transition-all duration-300" 
+                  :style="{ width: `${(bulkStats.current / bulkStats.total) * 100}%` }"
+                ></div>
+              </div>
+              <!-- 统计 -->
+              <div class="grid grid-cols-3 gap-4">
+                <div class="text-center p-3 bg-white rounded-xl shadow-sm border border-sky-50">
+                  <div class="text-xs text-slate-400 font-bold uppercase mb-1">成功</div>
+                  <div class="text-xl font-black text-emerald-500">{{ bulkStats.success }}</div>
+                </div>
+                <div class="text-center p-3 bg-white rounded-xl shadow-sm border border-sky-50">
+                  <div class="text-xs text-slate-400 font-bold uppercase mb-1">跳过</div>
+                  <div class="text-xl font-black text-amber-500">{{ bulkStats.skipped }}</div>
+                </div>
+                <div class="text-center p-3 bg-white rounded-xl shadow-sm border border-sky-50">
+                  <div class="text-xs text-slate-400 font-bold uppercase mb-1">失败</div>
+                  <div class="text-xl font-black text-rose-500">{{ bulkStats.error }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 失败列表展示 -->
+            <div v-if="!isBulkProcessing && bulkStats.error > 0" class="mt-6 space-y-4">
+              <div class="flex items-center justify-between">
+                <h4 class="font-black text-rose-600 flex items-center gap-2">
+                  <span>⚠️</span> 同步失败列表 ({{ bulkStats.error }})
+                </h4>
+                <button 
+                  @click="bulkJson = JSON.stringify(bulkStats.failedItems, null, 2); bulkStats.error = 0"
+                  class="text-xs font-bold text-sky-600 hover:underline"
+                >
+                  重试失败项
+                </button>
+              </div>
+              <div class="max-h-60 overflow-y-auto custom-scroll border-2 border-rose-50 rounded-2xl bg-rose-50/30">
+                <table class="w-full text-xs">
+                  <thead class="bg-rose-100/50 sticky top-0">
+                    <tr>
+                      <th class="px-4 py-2 text-left text-rose-700">角色名</th>
+                      <th class="px-4 py-2 text-left text-rose-700">失败原因</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-rose-100/50">
+                    <tr v-for="(item, idx) in bulkStats.failedItems" :key="idx" class="hover:bg-rose-100/20">
+                      <td class="px-4 py-2 font-bold text-slate-700">{{ item.name || '未知' }}</td>
+                      <td class="px-4 py-2 text-rose-500 italic">{{ item.errorReason }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <textarea 
+              v-if="!isBulkProcessing && bulkStats.error === 0"
+              v-model="bulkJson"
+              rows="12"
+              class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-[#45a6d5] focus:bg-white font-mono text-xs text-slate-600 transition-all resize-none"
+              placeholder='[ { "characterId": "...", "name": "...", "serverId": 2015 }, ... ]'
+            ></textarea>
+
+            <div class="flex justify-end gap-3 mt-8">
+              <button 
+                v-if="!isBulkProcessing"
+                @click="showBulkModal = false" 
+                class="px-6 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-colors"
+              >
+                取消
+              </button>
+              <button 
+                @click="handleBulkImport" 
+                v-if="bulkStats.error === 0 || isBulkProcessing"
+                :disabled="isBulkProcessing || !bulkJson.trim()"
+                class="px-8 py-3 bg-[#45a6d5] text-white rounded-xl font-black shadow-lg shadow-blue-200 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 transition-all flex items-center gap-2"
+              >
+                <span v-if="isBulkProcessing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                {{ isBulkProcessing ? '正在入库...' : '开始批量同步' }}
+              </button>
+              <button 
+                v-else
+                @click="showBulkModal = false; bulkStats.error = 0; bulkJson = ''" 
+                class="px-8 py-3 bg-slate-800 text-white rounded-xl font-black shadow-lg hover:bg-slate-900 transition-all"
+              >
+                完成并关闭
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <!-- 编辑弹窗 -->
     <Transition name="modal">
       <div v-if="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -562,10 +802,10 @@ onMounted(() => {
               <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">军团职位 Rank</label>
               <div class="relative">
                 <select v-model="selectedMember.role" class="w-full px-5 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-[#45a6d5] focus:bg-white font-bold text-slate-700 appearance-none transition-all">
-                  <option value="member">🛡️ 军团兵 (Member)</option>
-                  <option value="officer">⚔️ 百夫长 (Officer)</option>
-                  <option value="leader">👑 军团长 (Leader)</option>
-                </select>
+                <option value="member">🛡️ 军团兵 (Member)</option>
+                <option value="officer">⚔️ 精英军官 (Officer)</option>
+                <option value="leader">👑 军团长 (Leader)</option>
+              </select>
                 <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />

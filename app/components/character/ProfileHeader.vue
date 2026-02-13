@@ -45,8 +45,8 @@ const onSync = () => {
             <h1 class="text-4xl md:text-5xl font-black text-slate-800 tracking-tight drop-shadow-sm">{{ member.name }}</h1>
             <div class="flex items-center gap-2">
               <span v-if="member.role === 'leader'" class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-[10px] px-3 py-1 rounded-full font-black shadow-md animate-bounce">👑 军团长</span>
-              <span v-else-if="member.role === 'officer'" class="bg-gradient-to-r from-purple-400 to-indigo-500 text-white text-[10px] px-3 py-1 rounded-full font-black shadow-md">🛡️ 百夫长</span>
-              <span v-else class="bg-gradient-to-r from-sky-400 to-blue-500 text-white text-[10px] px-3 py-1 rounded-full font-black shadow-md">⚔️ 成员</span>
+              <span v-else-if="member.role === 'officer'" class="bg-gradient-to-r from-purple-400 to-indigo-500 text-white text-[10px] px-3 py-1 rounded-full font-black shadow-md">⚔️ 精英军官</span>
+              <span v-else-if="member.role === 'member'" class="bg-gradient-to-r from-slate-400 to-slate-500 text-white text-[10px] px-3 py-1 rounded-full font-black shadow-md">🛡️ 军团兵</span>
             </div>
           </div>
 
