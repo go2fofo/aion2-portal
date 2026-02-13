@@ -143,6 +143,8 @@ import {
 } from 'echarts/components'
 import VChart from 'vue-echarts'
 
+
+const { $alert, $loading } = useNuxtApp()
 // 注册 ECharts 组件
 use([
   CanvasRenderer,
@@ -231,11 +233,11 @@ const runAIAnalysis = async () => {
         updated_at: new Date().toISOString()
       })
     } else {
-      alert(response.message || '分析失败，请稍后重试')
+      $alert(response.message || '分析失败，请稍后重试')
     }
   } catch (error) {
     console.error('AI Analysis Error:', error)
-    alert('请求出错，请检查 API 接口')
+    $alert('请求出错，请检查 API 接口')
   } finally {
     isAnalyzing.value = false
   }
