@@ -14,10 +14,10 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   
   const envKeys = {
-    deepseek: (config.deepseekApiKey || process.env.DEEPSEEK_API_KEY || '').trim(),
-    siliconflow: (config.deepseekApiKey || process.env.DEEPSEEK_API_KEY || '').trim(), // SiliconFlow 通常复用 DeepSeek Key 或有独立环境变量
-    'gpt-4o': (config.openaiApiKey || process.env.OPENAI_API_KEY || '').trim(),
-    gemini: (config.geminiApiKey || process.env.GEMINI_API_KEY || '').trim()
+    deepseek: (config.deepseekApiKey || process.env.NUXT_DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY || '').trim(),
+    siliconflow: (config.deepseekApiKey || process.env.NUXT_DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY || '').trim(), 
+    'gpt-4o': (config.openaiApiKey || process.env.NUXT_OPENAI_API_KEY || process.env.OPENAI_API_KEY || '').trim(),
+    gemini: (config.geminiApiKey || process.env.NUXT_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '').trim()
   }
 
   const dbKeys = dbConfig?.value?.keys || {}

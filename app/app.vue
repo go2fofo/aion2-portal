@@ -1,3 +1,11 @@
+<!--
+ * @Author: whq
+ * @Date: 2026-02-08 09:11:19
+ * @LastEditTime: 2026-02-13 16:39:53
+ * @LastEditors: whq
+ * @Description: 
+ * @FilePath: /aion2-portal/app/app.vue
+-->
 <template>
   <NuxtLayout>
     <NuxtPage />
@@ -15,9 +23,9 @@
 
 // 例如：设置全局的 SEO 标题
 useHead({
-  title: 'AION2 Portal - 你的卡通冒险门户',
+  title: 'AION2 宝宝巴士军团',
   meta: [
-    { name: 'description', content: '基于 Nuxt 4 和 Supabase 构建的 AION2 玩家社区门户' }
+    { name: 'description', content: '' }
   ],
   // 如果你想给整个身体加一个基础背景色，防止切页闪白
   bodyAttrs: {
