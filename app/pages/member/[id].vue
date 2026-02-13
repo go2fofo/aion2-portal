@@ -427,6 +427,42 @@
                          </div>
                        </div>
 
+                       <!-- 附加技能 (SubSkills) -->
+                       <div v-if="item.fullDetail?.subSkills?.length" class="bg-purple-50/50 rounded-2xl p-4 border border-purple-100 shadow-sm space-y-3">
+                         <div class="flex items-center gap-2 mb-1">
+                           <span class="w-1 h-3 bg-purple-500 rounded-full"></span>
+                           <span class="text-[10px] font-black text-purple-400 uppercase">随机技能</span>
+                         </div>
+                         <div class="grid grid-cols-1 gap-2">
+                           <div v-for="(skill, skIdx) in item.fullDetail.subSkills" :key="skIdx" class="flex items-center gap-3 p-2 rounded-xl bg-white border border-purple-50">
+                             <div class="w-8 h-8 shrink-0 rounded-lg overflow-hidden border border-white shadow-sm bg-white p-0.5">
+                               <img :src="formatIconUrl(skill.icon)" class="w-full h-full object-contain" />
+                             </div>
+                             <div class="flex-1 min-w-0">
+                               <div class="text-[10px] font-black text-slate-700 truncate mb-0.5">{{ skill.name }}</div>
+                               <div class="text-[9px] font-bold text-purple-500">等级 {{ skill.level }}</div>
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+
+                       <!-- 来源 (Sources) -->
+                       <div v-if="item.fullDetail?.sources?.length" class="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 shadow-inner">
+                         <div class="flex items-center gap-2 mb-2">
+                           <span class="w-1 h-3 bg-slate-400 rounded-full"></span>
+                           <span class="text-[10px] font-black text-slate-400 uppercase">获得来源</span>
+                         </div>
+                         <div class="flex flex-wrap gap-2">
+                           <span 
+                             v-for="(source, sIdx) in item.fullDetail.sources" 
+                             :key="sIdx"
+                             class="text-[10px] font-bold text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm"
+                           >
+                             {{ source }}
+                           </span>
+                         </div>
+                       </div>
+
                        <!-- 神石详情 (GodStone) -->
                        <div v-if="item.fullDetail?.godStoneStat?.length" class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 border-2 border-amber-100 shadow-sm">
                          <div v-for="(god, gIdx) in item.fullDetail.godStoneStat" :key="gIdx" class="flex gap-3">
@@ -736,6 +772,23 @@
                            <span class="text-[11px] text-slate-400 font-bold truncate">{{ stat.name }}</span>
                            <span class="text-[11px] text-indigo-600 font-black">+{{ stat.value }}</span>
                          </div>
+                       </div>
+                     </div>
+
+                     <!-- 5. 来源 (Sources) -->
+                     <div v-if="item.fullDetail?.sources?.length" class="bg-indigo-50/30 rounded-2xl p-4 border border-indigo-50 shadow-inner">
+                       <div class="flex items-center gap-2 mb-2">
+                         <span class="w-1 h-3 bg-indigo-300 rounded-full"></span>
+                         <span class="text-[10px] font-black text-slate-400 uppercase">获得来源</span>
+                       </div>
+                       <div class="flex flex-wrap gap-2">
+                         <span 
+                           v-for="(source, sIdx) in item.fullDetail.sources" 
+                           :key="sIdx"
+                           class="text-[10px] font-bold text-indigo-600 bg-white px-2 py-0.5 rounded-lg border border-indigo-100 shadow-sm"
+                         >
+                           {{ source }}
+                         </span>
                        </div>
                      </div>
                    </div>
