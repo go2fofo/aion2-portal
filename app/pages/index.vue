@@ -73,7 +73,19 @@
       </div>
     </div>
 
-    <!-- 云朵层：引导结束后才显示，作为背景层 -->
+    <!-- 全局背景装饰层 (极致层级与位置优化) -->
+    <div v-show="!showIntro" class="fixed inset-0 w-full h-full z-[15] pointer-events-none transition-opacity duration-1000">
+      <!-- 左侧巴士 (面向右) -->
+      <div class="absolute top-[2%] -left-32 w-[30rem] md:w-[55rem] h-auto opacity-80 rotate-3">
+        <img src="/bbbscmt.png" class="w-full h-full object-contain -scale-x-100" />
+      </div>
+      <!-- 右侧巴士 (面向左) -->
+      <div class="absolute top-[2%] -right-32 w-[30rem] md:w-[55rem] h-auto opacity-80 -rotate-3">
+        <img src="/bbbscmt.png" class="w-full h-full object-contain" />
+      </div>
+    </div>
+
+    <!-- 云朵层：引导结束后才显示 -->
     <div v-show="!showIntro" class="absolute inset-0 z-0 pointer-events-none transition-opacity duration-1000" :class="showIntro ? 'opacity-0' : 'opacity-100'">
       <div v-for="n in 5" :key="'blur-'+n" 
         class="absolute bg-white/55 blur-xl rounded-full animate-cloud-soft"
@@ -127,21 +139,13 @@
       </div>
     </nav>
 
-    <main class="relative z-20 flex flex-col items-center pt-4 h-full">
-      
-      <div class="relative mb-6 flex flex-col items-center max-w-full px-4 w-full">
-        <!-- 装饰元素：移除 hidden sm:block 限制，确保所有尺寸显示 -->
+    <main class="relative z-20 flex flex-col items-center pt-8 h-full">
+      <div class="relative mb-8 flex flex-col items-center max-w-full px-4 w-full">
+        <!-- 装饰元素 -->
         <div class="absolute -top-6 -right-4 md:-right-12 text-3xl md:text-5xl animate-bounce">☀️</div>
         <img src="/xiaoniao.png" class="absolute top-4 -left-2 md:top-10 md:-left-20 w-10 h-10 md:w-16 md:h-16 -rotate-12 object-contain drop-shadow-md animate-bounce" style="animation-duration: 3s;" />
         
-        <div class="hero-figure transform scale-90 md:scale-100 transition-transform">
-          <img 
-            src="/bbbswbj.png" 
-            class="hero-img h-40 sm:h-48 md:h-64 object-contain" 
-          />
-        </div>
-        
-        <h2 class="mt-4 relative text-3xl sm:text-5xl md:text-7xl font-black tracking-widest drop-shadow-[0_2px_0_#fff] md:drop-shadow-[0_4px_0_#fff] flex flex-col md:block items-center gap-2">
+        <h2 class="relative text-3xl sm:text-5xl md:text-7xl font-black tracking-widest drop-shadow-[0_2px_0_#fff] md:drop-shadow-[0_4px_0_#fff] flex flex-col md:block items-center gap-2">
           <span class="inline-block transform hover:scale-110 transition-transform duration-300 cursor-default text-[#0ea5e9]" style="text-shadow: 2px 2px 0px #0284c7, 4px 4px 0px #bae6fd;">宝宝巴士</span>
           <span class="inline-block ml-0 md:ml-4 transform -rotate-3 md:-rotate-6 bg-[#f9b11d] text-white px-3 py-1 md:px-4 md:py-1 rounded-2xl text-2xl sm:text-4xl md:text-6xl shadow-[3px_3px_0_0_#d98a00] md:shadow-[4px_4px_0_0_#d98a00] hover:rotate-0 hover:scale-110 transition-all duration-300 cursor-pointer border-2 border-white">
             军团
@@ -523,8 +527,13 @@
                 </div>
               </div>
 
-              <div v-else-if="activeTab === 'join'" class="h-full flex flex-col items-center justify-center text-center">
-                <div class="text-6xl mb-4">🚌</div>
+              <div v-else-if="activeTab === 'join'" class="h-full flex flex-col items-center justify-center text-center px-4">
+                <div class="relative w-48 md:w-64 mb-6 group">
+                  <img src="/bbbscmt.png" class="w-full h-auto drop-shadow-xl group-hover:scale-110 transition-transform duration-500 -scale-x-100" />
+                  <div class="absolute -top-4 -right-4 bg-[#f9b11d] text-white text-xs font-black px-3 py-1 rounded-full shadow-md animate-bounce">
+                    宝宝巴士 🚌
+                  </div>
+                </div>
                 <h4 class="text-2xl font-black text-sky-900 mb-2">准备好上车了吗？</h4>
                 <p class="text-sky-700/60 mb-6 font-medium">我们需要最勇敢的宝宝加入艾昂大陆的冒险！</p>
                 <button class="bg-[#f9b11d] hover:bg-[#fbc02d] text-white px-12 py-4 rounded-3xl font-black text-xl shadow-[0_8px_0_0_#d98a00] active:translate-y-1 active:shadow-none transition-all">
@@ -597,6 +606,16 @@
           </svg>
           <div class="absolute -top-6 -right-4 text-[10px] font-black text-sky-500 bg-white/90 px-2 py-1 rounded-full shadow-sm whitespace-nowrap opacity-0 animate-speech-bubble border border-sky-100">
             咩~
+          </div>
+        </div>
+      </div>
+
+      <!-- 宝宝巴士 (bbbscmt.png) - 正在巡逻的巴士 -->
+      <div class="absolute bottom-2 -left-32 animate-walk-across z-20 pointer-events-none" style="animation-duration: 25s; animation-delay: 5s;">
+        <div class="relative w-24 md:w-32 h-auto flex flex-col items-center">
+          <img src="/bbbscmt.png" class="w-full h-full object-contain drop-shadow-md -scale-x-100" />
+          <div class="absolute -top-8 bg-white/90 px-3 py-1 rounded-2xl shadow-sm border border-sky-100 text-[10px] font-black text-sky-600 whitespace-nowrap opacity-0 animate-speech-bubble" style="animation-delay: 6s;">
+            嘀嘀~ 宝宝巴士出发啦!
           </div>
         </div>
       </div>
