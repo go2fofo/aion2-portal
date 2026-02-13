@@ -585,25 +585,10 @@
         </svg>
       </div>
 
-      <!-- 奔跑的小羊 (SVG 设计) -->
+      <!-- 奔跑的小羊 (xiaoyang.png) -->
       <div class="absolute bottom-4 -left-16 animate-walk-across" style="animation-duration: 20s;">
         <div class="relative w-12 h-10 flex items-center justify-center">
-          <svg viewBox="0 0 40 30" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full drop-shadow-sm">
-            <!-- 羊毛身体 -->
-            <path d="M10 15C10 10 14 7 18 7C22 7 26 10 26 15C26 20 22 23 18 23C14 23 10 20 10 15Z" fill="white"/>
-            <circle cx="14" cy="12" r="5" fill="white"/>
-            <circle cx="22" cy="12" r="5" fill="white"/>
-            <circle cx="22" cy="18" r="5" fill="white"/>
-            <circle cx="14" cy="18" r="5" fill="white"/>
-            <circle cx="18" cy="15" r="6" fill="white"/>
-            <!-- 脸部 -->
-            <rect x="24" y="11" width="8" height="8" rx="4" fill="#F8D7DA"/>
-            <circle cx="27" cy="14" r="0.8" fill="#582F0E"/>
-            <circle cx="31" cy="14" r="0.8" fill="#582F0E"/>
-            <!-- 腿 -->
-            <line x1="15" y1="23" x2="15" y2="27" stroke="#582F0E" stroke-width="2" stroke-linecap="round"/>
-            <line x1="21" y1="23" x2="21" y2="27" stroke="#582F0E" stroke-width="2" stroke-linecap="round"/>
-          </svg>
+          <img src="/xiaoyang.png" class="w-full h-full object-contain drop-shadow-sm" />
           <div class="absolute -top-6 -right-4 text-[10px] font-black text-sky-500 bg-white/90 px-2 py-1 rounded-full shadow-sm whitespace-nowrap opacity-0 animate-speech-bubble border border-sky-100">
             咩~
           </div>
