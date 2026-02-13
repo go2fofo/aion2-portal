@@ -1,7 +1,7 @@
 /*
  * @Author: whq
  * @Date: 2026-02-13 12:10:10
- * @LastEditTime: 2026-02-13 15:45:45
+ * @LastEditTime: 2026-02-13 16:37:59
  * @LastEditors: whq
  * @Description: 
  * @FilePath: /aion2-portal/app/server/api/aion/ai-analysis.post.ts
@@ -63,7 +63,7 @@ export default defineEventHandler(async (event) => {
   if (!selectedModel.key) {
     return {
       success: false,
-      message: `未配置 ${modelId} 的 API Key，请在 .env 中设置。`
+      message: `未配置 ${modelId} 的 API Key。请在管理后台 [AI 模型配置] 页面设置密钥，或在服务器环境变量中配置 NUXT_${modelId.toUpperCase().replace(/-/g, '_')}_API_KEY。`
     }
   }
 
