@@ -117,8 +117,9 @@ const cleanName = (name) => {
               {{ cleanName(item.name) }}
             </h3>
             <div class="flex items-center justify-center gap-2">
-              <span class="text-[10px] font-black text-slate-400 uppercase">{{ getClassName(item.pcId) }}</span>
               <span class="w-1 h-1 bg-slate-200 rounded-full"></span>
+              <!-- <span class="text-[10px] font-black text-slate-400 uppercase">{{ getClassName(item.pcId) }}</span> -->
+              <span class="text-[10px] font-black text-slate-400 uppercase">等级</span> 
               <span class="text-[10px] font-black text-sky-500">Lv.{{ item.level }}</span>
             </div>
           </div>
