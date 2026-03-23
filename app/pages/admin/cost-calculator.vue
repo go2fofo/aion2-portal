@@ -43,11 +43,17 @@
               <div class="w-6 h-6 bg-slate-100 text-slate-400 rounded-md flex items-center justify-center text-xs font-mono">
                 {{ index + 1 }}
               </div>
-              <input 
-                v-model="m.name" 
-                placeholder="材料名称" 
-                class="flex-1 bg-transparent border-none focus:ring-0 font-bold text-slate-700 text-sm"
-              />
+              <div class="flex-1">
+                <input 
+                  v-model="m.name" 
+                  placeholder="材料名称" 
+                  class="w-full bg-transparent border-none focus:ring-0 font-bold text-slate-700 text-sm"
+                />
+                <div v-if="recentPrices[m.id]" class="px-3 py-1 text-[10px] text-sky-500 font-bold flex items-center gap-1">
+                  <span>⏱️ 近期价格:</span>
+                  <span class="font-mono">{{ recentPrices[m.id].price_w }}w</span>
+                </div>
+              </div>
               <button @click="removeMaterial(index)" class="text-slate-300 hover:text-red-500 transition-colors">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M18 6L6 18M6 6l12 12" />
@@ -217,6 +223,9 @@ const config = ref({
   equipment: []
 })
 
+// 近期价格缓存
+const recentPrices = ref({})
+
 // 折叠状态管理
 const collapsedEquipment = ref({})
 
@@ -226,6 +235,7 @@ const toggleEquipmentCollapse = (id) => {
 
 // 加载配置
 const fetchConfig = async () => {
+  // 1. 获取装备配方配置
   const { data, error } = await supabase
     .from('site_config')
     .select('value')
@@ -240,12 +250,17 @@ const fetchConfig = async () => {
         collapsedEquipment.value[eq.id] = true
       })
     }
-  } else {
-    // 初始默认数据
-    config.value = {
-      materials: [],
-      equipment: []
-    }
+  }
+
+  // 2. 获取近期价格缓存
+  const { data: priceData } = await supabase
+    .from('site_config')
+    .select('value')
+    .eq('key', 'material_recent_prices')
+    .maybeSingle()
+  
+  if (priceData?.value) {
+    recentPrices.value = priceData.value
   }
 }
 
