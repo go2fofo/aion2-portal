@@ -6,9 +6,6 @@
         <p class="text-sm text-slate-400 mt-1">管理材料并记录每日价格，用于造价计算与走势分析</p>
       </div>
       <div class="flex gap-3">
-        <button @click="addMaterial" class="bg-[#45a6d5] text-white px-6 py-3 rounded-xl font-black shadow-md hover:bg-[#3b95c0] transition-all">
-          + 新增材料
-        </button>
         <button @click="saveMaterials" :disabled="saving" class="bg-[#f9b11d] text-white px-6 py-3 rounded-xl font-black shadow-md hover:bg-[#fbc02d] transition-all disabled:opacity-50 flex items-center gap-2">
           <span v-if="saving" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
           {{ saving ? '保存中...' : '保存材料库' }}
@@ -17,19 +14,54 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <div class="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col self-start lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)]">
         <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <h4 class="font-black text-slate-700 flex items-center gap-2">
             <span>💎</span> 材料列表
           </h4>
-          <button @click="reloadAll" class="p-2 rounded-lg text-slate-400 hover:text-sky-500 hover:bg-white transition-all" :class="{ 'animate-spin': loading }">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          </button>
+          <div class="flex items-center gap-2">
+            <button @click="showJsonImport = true" class="text-xs bg-slate-800 text-white px-3 py-2 rounded-lg font-black hover:bg-slate-900 transition-colors shadow-sm">
+              JSON 导入
+            </button>
+            <button @click="reloadAll" class="p-2 rounded-lg text-slate-400 hover:text-sky-500 hover:bg-white transition-all" :class="{ 'animate-spin': loading }">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          </div>
         </div>
 
-        <div class="p-4 border-b border-slate-100 bg-white">
+        <div class="p-4 border-b border-slate-100 bg-white space-y-3">
+          <div class="bg-slate-50 rounded-2xl border-2 border-slate-100 p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">快速添加</div>
+              <div class="text-[10px] font-bold text-slate-400">填写名称后点击添加</div>
+            </div>
+            <div class="space-y-3">
+              <input
+                v-model="newMaterialName"
+                type="text"
+                placeholder="材料名称（必填）"
+                class="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-100 focus:border-[#45a6d5] outline-none font-black text-slate-700"
+              />
+              <div class="flex items-center gap-3">
+                <input
+                  v-model="newMaterialId"
+                  type="text"
+                  placeholder="材料ID（可选）"
+                  class="flex-1 px-4 py-2.5 rounded-xl bg-white border-2 border-slate-100 focus:border-[#45a6d5] outline-none font-mono font-black text-slate-600"
+                />
+                <button
+                  @click="addMaterialFromTemplate"
+                  :disabled="!newMaterialName.trim()"
+                  class="px-5 py-2.5 rounded-xl bg-[#45a6d5] hover:bg-[#3b95c0] disabled:opacity-50 disabled:cursor-not-allowed text-white font-black shadow-sm transition-all shrink-0"
+                >
+                  添加
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div class="relative">
             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
             <input
@@ -54,7 +86,7 @@
           </div>
         </div>
 
-        <div class="p-4 max-h-[660px] overflow-y-auto custom-scroll space-y-3">
+        <div class="p-4 overflow-y-auto custom-scroll space-y-3 flex-1 min-h-0">
           <div v-if="config.materials.length === 0" class="text-center py-10 text-slate-400 text-sm">
             暂无材料，请先添加
           </div>
@@ -225,6 +257,48 @@
         </div>
       </div>
     </div>
+
+    <Transition name="modal">
+      <div v-if="showJsonImport" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="showJsonImport = false"></div>
+        <div class="relative z-10 w-full max-w-2xl bg-white rounded-[2rem] shadow-2xl border border-slate-100 overflow-hidden">
+          <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+            <div>
+              <h4 class="font-black text-slate-800 text-lg">JSON 便捷导入（材料库）</h4>
+              <p class="text-xs text-slate-400 font-bold mt-1">自动对比现有材料，重复跳过，新材料自动追加；material_id 为空或重复将自动生成</p>
+            </div>
+            <button @click="showJsonImport = false" class="w-10 h-10 rounded-full bg-white text-slate-300 hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="p-6 space-y-4">
+            <textarea
+              v-model="jsonImportText"
+              rows="10"
+              class="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-[#45a6d5] outline-none font-mono text-xs text-slate-700 bg-slate-50"
+              :placeholder="jsonImportPlaceholder"
+            ></textarea>
+
+            <div class="flex items-center justify-end gap-3">
+              <button @click="showJsonImport = false" class="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-black hover:bg-slate-200 transition-all">
+                取消
+              </button>
+              <button
+                @click="handleJsonImport"
+                :disabled="importingJson"
+                class="px-6 py-2.5 rounded-xl bg-[#f9b11d] text-white font-black hover:bg-[#fbc02d] transition-all disabled:opacity-50 flex items-center gap-2"
+              >
+                <span v-if="importingJson" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                确认导入
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -244,6 +318,11 @@ const { $alert, $confirm, $loading } = useNuxtApp()
 const loading = ref(false)
 const saving = ref(false)
 const searchQuery = ref('')
+const newMaterialName = ref('')
+const newMaterialId = ref('')
+const showJsonImport = ref(false)
+const jsonImportText = ref('')
+const importingJson = ref(false)
 
 const config = ref({
   materials: [],
@@ -344,10 +423,97 @@ const saveMaterials = async () => {
   }
 }
 
-const addMaterial = () => {
-  const id = 'm' + Date.now()
-  config.value.materials.push({ id, name: '' })
+const generateMaterialId = () => {
+  let id = 'm' + Date.now()
+  while (config.value.materials.some(m => m.id === id)) {
+    id = 'm' + (Date.now() + Math.floor(Math.random() * 1000))
+  }
+  return id
+}
+
+const jsonImportPlaceholder = computed(() => {
+  return `[\n  { \"material_id\": \"13\", \"name\": \"达人最上级提炼石\", \"quantity\": \"50\" },\n  { \"material_id\": \"15\", \"name\": \"愤怒思念\", \"quantity\": \"18\" },\n  { \"material_id\": \"\", \"name\": \"灿烂的奥德\", \"quantity\": \"70\" }\n]\n\n说明：材料库导入只使用 material_id 与 name，quantity 可忽略。`
+})
+
+const handleJsonImport = async () => {
+  if (!jsonImportText.value.trim()) {
+    showJsonImport.value = false
+    return
+  }
+
+  let parsed
+  try {
+    parsed = JSON.parse(jsonImportText.value)
+  } catch (e) {
+    $alert('解析失败', 'JSON 格式不正确，请检查输入')
+    return
+  }
+
+  const list = Array.isArray(parsed[0]) ? parsed[0] : parsed
+  if (!Array.isArray(list)) {
+    $alert('格式错误', '数据必须是一个数组')
+    return
+  }
+
+  importingJson.value = true
+  try {
+    let added = 0
+    let skipped = 0
+
+    for (const item of list) {
+      const name = (item?.name || '').trim()
+      if (!name) {
+        skipped++
+        continue
+      }
+
+      const incomingId = (item?.material_id || '').toString().trim()
+
+      const existByName = config.value.materials.find(m => (m.name || '').trim() === name)
+      if (existByName) {
+        skipped++
+        continue
+      }
+
+      if (incomingId) {
+        const existById = config.value.materials.find(m => m.id === incomingId)
+        if (existById) {
+          const newId = generateMaterialId()
+          config.value.materials.push({ id: newId, name })
+          added++
+        } else {
+          config.value.materials.push({ id: incomingId, name })
+          added++
+        }
+      } else {
+        const newId = generateMaterialId()
+        config.value.materials.push({ id: newId, name })
+        added++
+      }
+    }
+
+    $alert('导入完成', `新增 ${added} 条，跳过 ${skipped} 条`)
+    showJsonImport.value = false
+    jsonImportText.value = ''
+  } finally {
+    importingJson.value = false
+  }
+}
+
+const addMaterialFromTemplate = () => {
+  const name = newMaterialName.value.trim()
+  const id = (newMaterialId.value || '').trim() || generateMaterialId()
+
+  if (!name) return
+  if (config.value.materials.some(m => m.id === id)) {
+    $alert('添加失败', `材料ID ${id} 已存在，请更换`)
+    return
+  }
+
+  config.value.materials.push({ id, name })
   selectedMaterialId.value = id
+  newMaterialName.value = ''
+  newMaterialId.value = ''
 }
 
 const removeMaterial = async (index) => {

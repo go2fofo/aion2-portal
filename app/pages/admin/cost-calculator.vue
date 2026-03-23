@@ -26,9 +26,14 @@
             <h4 class="font-black text-slate-700 flex items-center gap-2">
               <span>💎</span> 材料库
             </h4>
-            <button @click="addMaterial" class="text-xs bg-[#45a6d5] text-white px-3 py-1.5 rounded-lg font-bold hover:bg-[#3b95c0] transition-colors">
-              + 新增材料
-            </button>
+            <div class="flex gap-2">
+              <button @click="showMaterialsJsonImport = true" class="text-xs bg-slate-800 text-white px-3 py-1.5 rounded-lg font-black hover:bg-slate-900 transition-colors shadow-sm">
+                JSON 导入
+              </button>
+              <button @click="addMaterial" class="text-xs bg-[#45a6d5] text-white px-3 py-1.5 rounded-lg font-bold hover:bg-[#3b95c0] transition-colors">
+                + 新增材料
+              </button>
+            </div>
           </div>
           
           <div class="p-4 max-h-[600px] overflow-y-auto custom-scroll space-y-3">
@@ -72,8 +77,11 @@
               <span>⚔️</span> 装备配方
             </h4>
             <div class="flex gap-3">
-              <button @click="importExample" class="text-xs bg-slate-800 text-white px-4 py-2 rounded-lg font-bold hover:bg-slate-900 transition-colors shadow-sm">
+              <!-- <button @click="importExample" class="text-xs bg-slate-800 text-white px-4 py-2 rounded-lg font-bold hover:bg-slate-900 transition-colors shadow-sm">
                 导入示例(夔龙王)
+              </button> -->
+              <button @click="showRecipeJsonImport = true" class="text-xs bg-slate-800 text-white px-4 py-2 rounded-lg font-black hover:bg-slate-900 transition-colors shadow-sm">
+                JSON 导入配方
               </button>
               <button @click="addEquipment" class="text-xs bg-[#45a6d5] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#3b95c0] transition-colors shadow-sm flex items-center gap-1">
                 <span>+</span> 新增装备
@@ -208,6 +216,104 @@
         </div>
       </div>
     </div>
+
+    <Transition name="modal">
+      <div v-if="showMaterialsJsonImport" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="showMaterialsJsonImport = false"></div>
+        <div class="relative z-10 w-full max-w-2xl bg-white rounded-[2rem] shadow-2xl border border-slate-100 overflow-hidden">
+          <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+            <div>
+              <h4 class="font-black text-slate-800 text-lg">JSON 便捷导入（材料库）</h4>
+              <p class="text-xs text-slate-400 font-bold mt-1">自动对比现有材料，重复跳过；material_id 为空或重复将自动生成</p>
+            </div>
+            <button @click="showMaterialsJsonImport = false" class="w-10 h-10 rounded-full bg-white text-slate-300 hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div class="p-6 space-y-4">
+            <textarea
+              v-model="materialsJsonText"
+              rows="10"
+              class="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-[#45a6d5] outline-none font-mono text-xs text-slate-700 bg-slate-50"
+              :placeholder="materialsJsonPlaceholder"
+            ></textarea>
+            <div class="flex items-center justify-end gap-3">
+              <button @click="showMaterialsJsonImport = false" class="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-black hover:bg-slate-200 transition-all">
+                取消
+              </button>
+              <button
+                @click="handleMaterialsJsonImport"
+                :disabled="importingMaterialsJson"
+                class="px-6 py-2.5 rounded-xl bg-[#f9b11d] text-white font-black hover:bg-[#fbc02d] transition-all disabled:opacity-50 flex items-center gap-2"
+              >
+                <span v-if="importingMaterialsJson" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                确认导入
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <Transition name="modal">
+      <div v-if="showRecipeJsonImport" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="showRecipeJsonImport = false"></div>
+        <div class="relative z-10 w-full max-w-3xl bg-white rounded-[2rem] shadow-2xl border border-slate-100 overflow-hidden">
+          <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+            <div>
+              <h4 class="font-black text-slate-800 text-lg">JSON 便捷导入（装备配方）</h4>
+              <p class="text-xs text-slate-400 font-bold mt-1">自动补齐材料库；同名装备会合并新增材料，重复跳过</p>
+            </div>
+            <button @click="showRecipeJsonImport = false" class="w-10 h-10 rounded-full bg-white text-slate-300 hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="p-6 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="md:col-span-2">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">装备名称</label>
+                <input v-model="recipeEquipName" class="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#45a6d5] outline-none font-black text-slate-700" placeholder="如：夔龙王长剑" />
+              </div>
+              <div>
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">分类</label>
+                <select v-model="recipeCategory" class="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#45a6d5] outline-none font-black text-slate-700 appearance-none">
+                  <option value="武器">⚔️ 武器</option>
+                  <option value="防具">🛡️ 防具</option>
+                  <option value="首饰">💍 首饰</option>
+                  <option value="其他">📦 其他</option>
+                </select>
+              </div>
+            </div>
+
+            <textarea
+              v-model="recipeJsonText"
+              rows="10"
+              class="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-[#45a6d5] outline-none font-mono text-xs text-slate-700 bg-slate-50"
+              :placeholder="recipeJsonPlaceholder"
+            ></textarea>
+
+            <div class="flex items-center justify-end gap-3">
+              <button @click="showRecipeJsonImport = false" class="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-black hover:bg-slate-200 transition-all">
+                取消
+              </button>
+              <button
+                @click="handleRecipeJsonImport"
+                :disabled="importingRecipeJson"
+                class="px-6 py-2.5 rounded-xl bg-[#f9b11d] text-white font-black hover:bg-[#fbc02d] transition-all disabled:opacity-50 flex items-center gap-2"
+              >
+                <span v-if="importingRecipeJson" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                确认导入
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -225,6 +331,16 @@ const config = ref({
 
 // 近期价格缓存
 const recentPrices = ref({})
+
+const showMaterialsJsonImport = ref(false)
+const materialsJsonText = ref('')
+const importingMaterialsJson = ref(false)
+
+const showRecipeJsonImport = ref(false)
+const recipeJsonText = ref('')
+const recipeEquipName = ref('')
+const recipeCategory = ref('武器')
+const importingRecipeJson = ref(false)
 
 // 折叠状态管理
 const collapsedEquipment = ref({})
@@ -264,6 +380,177 @@ const fetchConfig = async () => {
   }
 }
 
+const generateMaterialId = () => {
+  let id = 'm' + Date.now()
+  while (config.value.materials.some(m => m.id === id)) {
+    id = 'm' + (Date.now() + Math.floor(Math.random() * 1000))
+  }
+  return id
+}
+
+const normalizeMaterialName = (value) => {
+  const s = (value || '').toString().trim()
+  if (!s) return ''
+  const map = {
+    '奧': '奥',
+    '蠱': '蛊',
+    '級': '级',
+    '煉': '炼',
+    '強': '强',
+    '龍': '龙',
+    '閃': '闪'
+  }
+  return s
+    .replace(/[\u00A0\u3000\s]+/g, '')
+    .replace(/[奧蠱級煉強龍閃]/g, (c) => map[c] || c)
+    .toLowerCase()
+}
+
+const upsertMaterialByJsonItem = (item) => {
+  const rawName = (item?.name || '').toString().trim()
+  if (!rawName) return null
+  const nameKey = normalizeMaterialName(rawName)
+  if (!nameKey) return null
+
+  const incomingId = (item?.material_id || '').toString().trim()
+
+  const existByName = config.value.materials.find(m => normalizeMaterialName(m.name) === nameKey)
+  if (existByName) return existByName.id
+
+  if (incomingId) {
+    const existById = config.value.materials.find(m => m.id === incomingId)
+    if (existById) {
+      const newId = generateMaterialId()
+      config.value.materials.push({ id: newId, name: rawName })
+      return newId
+    }
+    config.value.materials.push({ id: incomingId, name: rawName })
+    return incomingId
+  }
+
+  const newId = generateMaterialId()
+  config.value.materials.push({ id: newId, name: rawName })
+  return newId
+}
+
+const materialsJsonPlaceholder = `[\n  { \"material_id\": \"13\", \"name\": \"达人最上级提炼石\", \"quantity\": \"50\" },\n  { \"material_id\": \"15\", \"name\": \"愤怒思念\", \"quantity\": \"18\" },\n  { \"material_id\": \"\", \"name\": \"灿烂的奥德\", \"quantity\": \"70\" }\n]\n\n说明：材料库导入只使用 material_id 与 name，quantity 可忽略。`
+
+const recipeJsonPlaceholder = `[\n  { \"material_id\": \"13\", \"name\": \"达人最上级提炼石\", \"quantity\": \"50\" },\n  { \"material_id\": \"15\", \"name\": \"愤怒思念\", \"quantity\": \"18\" },\n  { \"material_id\": \"17\", \"name\": \"灿烂的奥德\", \"quantity\": \"70\" }\n]\n\n说明：quantity 会写入配方数量；material_id 为空或重复会自动生成。`
+
+const parseJsonList = (text) => {
+  const parsed = JSON.parse(text)
+  const list = Array.isArray(parsed?.[0]) ? parsed[0] : parsed
+  if (!Array.isArray(list)) throw new Error('数据必须是一个数组')
+  return list
+}
+
+const handleMaterialsJsonImport = async () => {
+  if (!materialsJsonText.value.trim()) {
+    showMaterialsJsonImport.value = false
+    return
+  }
+
+  let list
+  try {
+    list = parseJsonList(materialsJsonText.value)
+  } catch (e) {
+    $alert('导入失败', e.message || 'JSON 格式不正确')
+    return
+  }
+
+  importingMaterialsJson.value = true
+  try {
+    let added = 0
+    let skipped = 0
+    for (const item of list) {
+      const name = (item?.name || '').toString().trim()
+      if (!name) {
+        skipped++
+        continue
+      }
+      const before = config.value.materials.length
+      const id = upsertMaterialByJsonItem(item)
+      if (!id) {
+        skipped++
+        continue
+      }
+      if (config.value.materials.length > before) added++
+      else skipped++
+    }
+    $alert('导入完成', `新增 ${added} 条，跳过 ${skipped} 条`)
+    showMaterialsJsonImport.value = false
+    materialsJsonText.value = ''
+  } finally {
+    importingMaterialsJson.value = false
+  }
+}
+
+const handleRecipeJsonImport = async () => {
+  const name = recipeEquipName.value.trim()
+  if (!name) {
+    $alert('缺少信息', '请填写装备名称')
+    return
+  }
+  if (!recipeJsonText.value.trim()) {
+    showRecipeJsonImport.value = false
+    return
+  }
+
+  let list
+  try {
+    list = parseJsonList(recipeJsonText.value)
+  } catch (e) {
+    $alert('导入失败', e.message || 'JSON 格式不正确')
+    return
+  }
+
+  importingRecipeJson.value = true
+  try {
+    const reqsMap = new Map()
+    for (const item of list) {
+      const materialId = upsertMaterialByJsonItem(item)
+      const quantity = Number((item?.quantity ?? 0).toString().trim() || 0)
+      if (!materialId || !quantity || quantity <= 0) continue
+      reqsMap.set(materialId, (reqsMap.get(materialId) || 0) + quantity)
+    }
+
+    const reqs = Array.from(reqsMap.entries()).map(([materialId, count]) => ({ materialId, count }))
+    if (reqs.length === 0) {
+      $alert('导入失败', '未解析到有效的材料数量，请检查 quantity 字段')
+      return
+    }
+
+    const existEq = config.value.equipment.find(e => (e.name || '').trim() === name)
+    if (existEq) {
+      let added = 0
+      reqs.forEach(r => {
+        if (!existEq.materials.some(x => x.materialId === r.materialId)) {
+          existEq.materials.push(r)
+          added++
+        }
+      })
+      $alert('导入完成', `已合并到装备「${name}」，新增 ${added} 条材料，重复已跳过`)
+    } else {
+      const newId = 'e' + Date.now()
+      config.value.equipment.push({
+        id: newId,
+        name,
+        category: recipeCategory.value,
+        materials: reqs
+      })
+      collapsedEquipment.value[newId] = false
+      $alert('导入完成', `已新增装备「${name}」，共 ${reqs.length} 种材料`)
+    }
+
+    showRecipeJsonImport.value = false
+    recipeJsonText.value = ''
+    recipeEquipName.value = ''
+    recipeCategory.value = '武器'
+  } finally {
+    importingRecipeJson.value = false
+  }
+}
+
 // 导入示例数据 (夔龙王长剑)
 const importExample = () => {
   const exampleMaterials = [
@@ -274,7 +561,7 @@ const importExample = () => {
     { id: "19", name: "愤怒意志" },
     { id: "21", name: "愤怒自我" },
     { id: "22", name: "提炼的強固龙族角" },
-    { id: "23", name: "发狂的愤怒巫蠱" },
+    { id: "23", name: "发狂的愤怒巫蛊" },
     { id: "26", name: "达人闪耀的奧里哈康长剑" }
   ];
 
@@ -357,7 +644,7 @@ const saveConfig = async () => {
 // 材料操作
 const addMaterial = () => {
   config.value.materials.push({
-    id: 'm' + Date.now(),
+    id: generateMaterialId(),
     name: ''
   })
 }

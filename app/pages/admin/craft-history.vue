@@ -59,12 +59,21 @@
                 </div>
               </td>
               <td class="px-6 py-4 text-right">
-                <button 
-                  @click="showDetail(item)"
-                  class="text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg font-bold hover:bg-sky-50 hover:text-sky-600 transition-all"
-                >
-                  详情
-                </button>
+                <div class="flex items-center justify-end gap-2">
+                  <button 
+                    @click="showDetail(item)"
+                    class="text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg font-bold hover:bg-sky-50 hover:text-sky-600 transition-all"
+                  >
+                    详情
+                  </button>
+                  <button
+                    @click="deleteRecord(item)"
+                    :disabled="deletingId === item.id"
+                    class="text-xs bg-red-50 text-red-500 px-3 py-1.5 rounded-lg font-black hover:bg-red-100 transition-all disabled:opacity-50"
+                  >
+                    {{ deletingId === item.id ? '删除中...' : '删除' }}
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -83,11 +92,20 @@
             <h4 class="text-2xl font-black text-slate-800">{{ selectedRecord.equipment_name }}</h4>
             <p class="text-xs text-slate-400 mt-1">计算时间: {{ formatDate(selectedRecord.created_at) }}</p>
           </div>
-          <button @click="selectedRecord = null" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all">
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
+          <div class="flex items-center gap-2">
+            <button
+              @click="deleteRecord(selectedRecord)"
+              :disabled="deletingId === selectedRecord.id"
+              class="px-4 py-2 rounded-xl bg-red-50 text-red-500 font-black hover:bg-red-100 transition-all disabled:opacity-50"
+            >
+              {{ deletingId === selectedRecord.id ? '删除中...' : '删除记录' }}
+            </button>
+            <button @click="selectedRecord = null" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <!-- 内容 -->
@@ -138,9 +156,11 @@
 import { ref, onMounted } from 'vue'
 
 const supabase = useSupabaseClient()
+const { $alert, $confirm, $loading } = useNuxtApp()
 const loading = ref(false)
 const history = ref([])
 const selectedRecord = ref(null)
+const deletingId = ref(null)
 
 const fetchHistory = async () => {
   loading.value = true
@@ -158,6 +178,44 @@ const fetchHistory = async () => {
 
 const showDetail = (item) => {
   selectedRecord.value = item
+}
+
+const deleteRecord = async (item) => {
+  if (!item?.id) return
+  if (deletingId.value) return
+
+  const confirmed = await $confirm('删除确认', `确定要删除「${item.equipment_name}」的这条造价记录吗？此操作不可撤销。`)
+  if (!confirmed) return
+
+  deletingId.value = item.id
+  $loading.show('正在删除记录...')
+
+  try {
+    const { error: priceError } = await supabase
+      .from('material_price_history')
+      .delete()
+      .eq('calculation_id', item.id)
+
+    if (priceError) throw priceError
+
+    const { error: historyError } = await supabase
+      .from('crafting_history')
+      .delete()
+      .eq('id', item.id)
+
+    if (historyError) throw historyError
+
+    history.value = history.value.filter(h => h.id !== item.id)
+    if (selectedRecord.value?.id === item.id) selectedRecord.value = null
+
+    $alert('删除成功', '该条造价历史记录已移除')
+  } catch (e) {
+    console.error(e)
+    $alert('删除失败', e.message || '请检查权限或数据库策略')
+  } finally {
+    deletingId.value = null
+    $loading.hide()
+  }
 }
 
 const formatDate = (dateStr) => {

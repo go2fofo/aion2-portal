@@ -1,0 +1,586 @@
+<template>
+  <div class="h-full flex flex-col gap-6 overflow-y-auto custom-scroll pb-6">
+    <!-- 上方：已保存列表 -->
+    <div class="shrink-0">
+      <div class="bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col overflow-hidden">
+        <div class="p-5 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+          <h4 class="font-black text-slate-800 flex items-center gap-2">
+            <span>📋</span> 已保存的计算
+          </h4>
+          <span class="text-[10px] font-black bg-slate-200 text-slate-600 px-2 py-1 rounded-lg">
+            {{ savedList.length }} 条
+          </span>
+        </div>
+
+        <div class="p-4 overflow-x-auto custom-scroll">
+          <div v-if="loadingSaved" class="flex flex-col items-center justify-center py-6 gap-3">
+            <div class="w-6 h-6 border-3 border-slate-100 border-t-sky-500 rounded-full animate-spin"></div>
+            <span class="text-[10px] font-black text-slate-400">加载中...</span>
+          </div>
+          <div v-else-if="savedList.length === 0" class="text-center py-6">
+            <div class="text-2xl mb-2 opacity-20">📭</div>
+            <p class="text-xs text-slate-400 font-bold">暂无保存记录</p>
+          </div>
+          <div v-else class="flex gap-4 pb-2">
+            <div 
+              v-for="item in savedList" 
+              :key="item.id"
+              class="shrink-0 w-64 group p-4 bg-slate-50 rounded-2xl border-2 border-transparent hover:border-sky-100 hover:bg-white transition-all relative flex flex-col"
+            >
+              <div class="flex justify-between items-start mb-2">
+                <h5 class="font-black text-slate-800 text-sm truncate pr-6">{{ item.equipment_name }}</h5>
+                <button 
+                  @click="deleteSaved(item.id)"
+                  class="absolute top-4 right-4 text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                >
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <p class="text-xs text-slate-500 font-medium line-clamp-2 mb-3 bg-white/50 p-2 rounded-lg flex-1" v-if="item.remark">
+                {{ item.remark }}
+              </p>
+              <div class="flex items-center justify-between mt-auto pt-2">
+                <span class="text-[10px] text-slate-400 font-bold">{{ formatDate(item.created_at) }}</span>
+                <button 
+                  @click="loadSaved(item)"
+                  class="text-[10px] font-black text-sky-500 hover:underline flex items-center gap-1"
+                >
+                  <span>📂 加载</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 下方：计算器主体 -->
+    <div class="flex-1 flex flex-col gap-6 min-h-0">
+      <!-- 装备选择区 -->
+      <div class="space-y-4 shrink-0">
+        <div class="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
+          <div class="relative flex-1">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+            <input 
+              v-model="searchQuery" 
+              type="text" 
+              placeholder="搜索装备名称..." 
+              class="w-full pl-12 pr-4 py-3 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+            />
+          </div>
+          <div class="flex gap-2 overflow-x-auto pb-1 md:pb-0 items-center">
+            <button 
+              v-for="cat in categories" 
+              :key="cat"
+              @click="selectedCategory = cat"
+              class="px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all border-2"
+              :class="selectedCategory === cat ? 'bg-[#45a6d5] text-white border-[#45a6d5]' : 'bg-white text-slate-500 border-slate-100 hover:border-[#E6F7FF]'"
+            >
+              {{ cat }}
+            </button>
+          </div>
+        </div>
+
+        <!-- 装备网格 -->
+        <div v-if="loading" class="flex items-center justify-center py-8">
+          <div class="flex flex-col items-center gap-3">
+            <div class="w-8 h-8 border-4 border-sky-100 border-t-sky-500 rounded-full animate-spin"></div>
+            <span class="text-sky-800 font-black text-xs">加载中...</span>
+          </div>
+        </div>
+        
+        <div v-else-if="filteredEquipment.length === 0" class="flex flex-col items-center justify-center py-8 text-slate-400">
+          <span class="text-2xl mb-2">📦</span>
+          <span class="font-bold text-sm">未找到相关装备</span>
+        </div>
+
+        <div v-else class="flex gap-4 overflow-x-auto custom-scroll pb-4 px-1">
+          <div 
+            v-for="eq in filteredEquipment" 
+            :key="eq.id"
+            @click="selectEquipment(eq)"
+            class="shrink-0 w-48 group p-4 bg-white rounded-3xl border-2 transition-all cursor-pointer hover:-translate-y-1 hover:shadow-lg"
+            :class="selectedEq?.id === eq.id ? 'border-[#f9b11d] bg-white shadow-md' : 'border-slate-50 hover:border-sky-200'"
+          >
+            <div class="flex items-start justify-between mb-2">
+              <div class="w-10 h-10 bg-sky-50 rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                {{ eq.category === '武器' ? '⚔️' : (eq.category === '防具' ? '🛡️' : '💍') }}
+              </div>
+              <span class="px-2 py-0.5 rounded-lg bg-slate-50 text-slate-400 text-[8px] font-black uppercase tracking-widest">
+                {{ eq.category }}
+              </span>
+            </div>
+            <h4 class="font-black text-slate-800 text-sm truncate mb-1">{{ eq.name }}</h4>
+            <div class="text-[10px] font-bold text-slate-400">{{ eq.materials.length }} 种材料</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 详情 & 计算区 -->
+      <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col relative shrink-0">
+        <!-- 面板头部与汇率 -->
+        <div class="p-6 md:p-8 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
+          <div v-if="selectedEq" class="relative z-10">
+            <div class="text-[10px] font-black text-sky-400 uppercase tracking-[0.2em] mb-1">Cost Analysis</div>
+            <h3 class="text-2xl md:text-3xl font-black text-slate-800 leading-tight">{{ selectedEq.name }}</h3>
+          </div>
+          <div v-else class="relative z-10">
+            <div class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-1">Select Item</div>
+            <h3 class="text-xl font-black text-slate-300">请选择上方一件装备查看详情</h3>
+          </div>
+
+          <div class="bg-white px-5 py-3 rounded-2xl border border-slate-100 flex items-center gap-4 z-10 shadow-sm">
+            <span class="text-xs font-black text-slate-500 whitespace-nowrap">当前基纳汇率</span>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-slate-400">1 元 = </span>
+              <div class="relative">
+                <input 
+                  type="number" 
+                  v-model.number="kinahRate"
+                  class="w-24 px-3 py-1.5 bg-slate-50 border-2 border-transparent rounded-lg text-right font-mono text-sm font-black text-sky-600 focus:border-[#45a6d5] focus:bg-white outline-none transition-all"
+                />
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none">万</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 内容区域 -->
+        <div v-if="selectedEq" class="flex flex-col">
+          <div class="p-6 md:p-8">
+            <div class="flex justify-between items-center px-2 mb-4">
+              <span class="text-xs font-black text-slate-400 uppercase tracking-widest">所需材料明细</span>
+              <span class="text-[10px] font-bold text-sky-500">手动输入持有量与单价</span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div 
+                v-for="req in selectedEq.materials" 
+                :key="req.materialId"
+                class="p-5 bg-white rounded-[2rem] border-2 border-slate-50 group hover:border-[#45a6d5]/40 hover:shadow-md transition-all duration-300"
+                :class="{ 'bg-emerald-50/20 border-emerald-100': (userOwned[req.materialId] || 0) >= req.count }"
+              >
+                <div class="flex justify-between items-start mb-4">
+                  <div class="font-black text-slate-800 text-lg leading-tight truncate pr-4 flex-1" :title="getMaterial(req.materialId)?.name">
+                    <span v-if="(userOwned[req.materialId] || 0) >= req.count" class="mr-1">✅</span>
+                    {{ getMaterial(req.materialId)?.name }}
+                  </div>
+                  <div class="flex flex-col items-end shrink-0">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">目标需求</span>
+                    <span class="text-base font-mono font-black text-slate-600 bg-slate-100 px-3 py-1 rounded-xl">
+                      {{ req.count }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                  <div class="space-y-1.5">
+                    <label class="block text-[10px] font-black text-emerald-500 uppercase tracking-wider ml-1">已持有数量</label>
+                    <div class="relative">
+                      <input 
+                        type="number" 
+                        v-model.number="userOwned[req.materialId]"
+                        min="0"
+                        class="w-full bg-emerald-50/30 border-2 border-transparent rounded-2xl px-4 py-2.5 text-center font-mono text-base font-black text-emerald-600 focus:border-emerald-400 focus:bg-white outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div class="space-y-1.5">
+                    <div class="flex justify-between items-center ml-1">
+                      <label class="block text-[10px] font-black text-sky-500 uppercase tracking-wider">单价(万基纳)</label>
+                    </div>
+                    <div class="relative">
+                      <input 
+                        type="number" 
+                        v-model.number="userPrices[req.materialId]"
+                        min="0"
+                        class="w-full bg-sky-50/30 border-2 border-transparent rounded-2xl px-4 py-2.5 text-right font-mono text-base font-black text-sky-600 focus:border-sky-400 focus:bg-white outline-none transition-all pr-8"
+                        :placeholder="recentPrices[req.materialId]?.price_w || '0'"
+                      />
+                      <span class="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-black text-sky-300 pointer-events-none">w</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="flex items-center justify-between pt-4 border-t border-slate-50">
+                  <div class="flex flex-col">
+                    <span class="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-0.5">尚需补足</span>
+                    <span class="text-lg font-mono font-black text-rose-500">
+                      {{ Math.max(0, req.count - (userOwned[req.materialId] || 0)) }}
+                    </span>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">缺口预估 (基纳)</span>
+                    <div class="text-xl font-mono font-black text-slate-800">
+                      {{ formatNumber(Math.max(0, req.count - (userOwned[req.materialId] || 0)) * (userPrices[req.materialId] || 0) * 10000) }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 底部汇总 -->
+          <div class="p-6 md:p-8 bg-slate-900 rounded-b-[2.5rem] text-white shadow-lg relative overflow-hidden group shrink-0 mt-4">
+            <div class="relative z-10 flex flex-col md:flex-row justify-around items-center gap-6">
+              <div class="text-center md:text-left opacity-60">
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">装备全额价值</div>
+                <div class="flex items-end gap-2 justify-center md:justify-start">
+                  <span class="text-xl md:text-2xl font-mono font-black text-slate-300">
+                    ¥ {{ fullRmbValue }}
+                  </span>
+                </div>
+                <div class="text-[9px] font-bold text-slate-500 mt-1">{{ formatNumber(fullMarketValue) }} 基纳</div>
+              </div>
+
+              <div class="h-12 w-[1px] bg-slate-800 hidden md:block"></div>
+
+              <div class="text-center md:text-left">
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">实际所需支出</div>
+                <div class="flex items-end gap-2 justify-center md:justify-start">
+                  <span class="text-3xl md:text-5xl font-mono font-black text-[#f9b11d] truncate">
+                    ¥ {{ totalRmbCost }}
+                  </span>
+                  <span class="text-sm font-bold text-slate-500 mb-2">元</span>
+                </div>
+                <div class="text-[10px] font-black text-emerald-400 mt-1">{{ formatNumber(totalKinahCost) }} 基纳</div>
+              </div>
+
+              <div class="flex flex-col gap-2 shrink-0 w-full md:w-auto">
+                <button 
+                  @click="showSaveModal = true"
+                  :disabled="saving || !selectedEq"
+                  class="w-full md:w-auto px-6 py-3 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-black text-sm shadow-lg transition-all flex items-center justify-center gap-2"
+                >
+                  <span>💾 保存计算结果</span>
+                </button>
+                <button 
+                  @click="recordCalculation"
+                  :disabled="recording || !hasPricesEntered"
+                  class="w-full md:w-auto px-6 py-3 bg-[#f9b11d] hover:bg-[#fbc02d] disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 rounded-xl font-black text-sm shadow-lg transition-all flex items-center justify-center gap-2"
+                >
+                  <span v-if="recording" class="w-4 h-4 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin"></span>
+                  <span>📈 记录本次计算 (纳入历史)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="flex-1 flex flex-col items-center justify-center p-12 text-center">
+          <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6 animate-bounce">
+            <span class="text-4xl">📊</span>
+          </div>
+          <p class="text-slate-400 font-black text-lg max-w-md">请选择上方装备开始计算。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 保存备注弹窗 -->
+    <Transition name="modal">
+      <div v-if="showSaveModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="showSaveModal = false"></div>
+        <div class="relative z-10 w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
+          <div class="p-6 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+            <h4 class="font-black text-slate-800 text-lg">保存本次计算</h4>
+            <button @click="showSaveModal = false" class="text-slate-400 hover:text-slate-600">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div class="p-6 space-y-4">
+            <div>
+              <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">计算结果备注</label>
+              <textarea 
+                v-model="saveRemark"
+                rows="3"
+                placeholder="例如：这是准备给小号做的装备，差奥德..."
+                class="w-full p-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 text-sm transition-all resize-none"
+              ></textarea>
+            </div>
+            <div class="flex gap-3">
+              <button 
+                @click="showSaveModal = false"
+                class="flex-1 py-3 rounded-xl font-black text-slate-500 hover:bg-slate-50 transition-all"
+              >
+                取消
+              </button>
+              <button 
+                @click="handleSave"
+                :disabled="saving"
+                class="flex-1 py-3 bg-[#45a6d5] text-white rounded-xl font-black shadow-lg hover:bg-[#3b95c0] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <span v-if="saving" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                <span>确认保存</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+
+const supabase = useSupabaseClient()
+const { $alert, $loading } = useNuxtApp()
+
+// 状态管理
+const loading = ref(true)
+const loadingSaved = ref(false)
+const recording = ref(false)
+const saving = ref(false)
+const showSaveModal = ref(false)
+const saveRemark = ref('')
+
+const config = ref({ materials: [], equipment: [] })
+const recentPrices = ref({})
+const searchQuery = ref('')
+const selectedCategory = ref('全部')
+const selectedEq = ref(null)
+
+const kinahRate = ref(0)
+const userPrices = ref({})
+const userOwned = ref({})
+const savedList = ref([])
+
+// 计算属性
+const categories = computed(() => {
+  const cats = new Set(config.value.equipment.map(e => e.category))
+  return ['全部', ...Array.from(cats).sort()]
+})
+
+const filteredEquipment = computed(() => {
+  return config.value.equipment.filter(eq => {
+    const matchSearch = eq.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+    const matchCat = selectedCategory.value === '全部' || eq.category === selectedCategory.value
+    return matchSearch && matchCat
+  })
+})
+
+const hasPricesEntered = computed(() => {
+  return Object.values(userPrices.value).some(p => p !== null && p > 0)
+})
+
+const totalKinahCost = computed(() => {
+  if (!selectedEq.value) return 0
+  return selectedEq.value.materials.reduce((total, req) => {
+    const owned = userOwned.value[req.materialId] || 0
+    const missingCount = Math.max(0, req.count - owned)
+    return total + (missingCount * (userPrices.value[req.materialId] || 0) * 10000)
+  }, 0)
+})
+
+const totalRmbCost = computed(() => {
+  if (!kinahRate.value || kinahRate.value <= 0) return 0
+  return (totalKinahCost.value / (kinahRate.value * 10000)).toFixed(2)
+})
+
+const fullMarketValue = computed(() => {
+  if (!selectedEq.value) return 0
+  return selectedEq.value.materials.reduce((total, req) => {
+    return total + (req.count * (userPrices.value[req.materialId] || 0) * 10000)
+  }, 0)
+})
+
+const fullRmbValue = computed(() => {
+  if (!kinahRate.value || kinahRate.value <= 0) return 0
+  return (fullMarketValue.value / (kinahRate.value * 10000)).toFixed(2)
+})
+
+// 数据加载
+const fetchConfig = async () => {
+  loading.value = true
+  const { data: configData } = await supabase.from('site_config').select('value').eq('key', 'equipment_cost_config').maybeSingle()
+  if (configData?.value) config.value = configData.value
+  const { data: priceData } = await supabase.from('site_config').select('value').eq('key', 'material_recent_prices').maybeSingle()
+  if (priceData?.value) recentPrices.value = priceData.value
+  loading.value = false
+}
+
+const fetchSaved = async () => {
+  loadingSaved.value = true
+  const { data, error } = await supabase
+    .from('saved_calculations')
+    .select('*')
+    .order('created_at', { ascending: false })
+  
+  if (error) console.error('Fetch saved failed:', error)
+  else savedList.value = data || []
+  loadingSaved.value = false
+}
+
+// 核心功能
+const selectEquipment = (eq) => {
+  selectedEq.value = eq
+  eq.materials.forEach(req => {
+    if (userPrices.value[req.materialId] === undefined) userPrices.value[req.materialId] = null
+    if (userOwned.value[req.materialId] === undefined) userOwned.value[req.materialId] = 0
+  })
+}
+
+const handleSave = async () => {
+  if (!selectedEq.value) return
+  saving.value = true
+  
+  try {
+    const { error } = await supabase
+      .from('saved_calculations')
+      .insert({
+        equipment_id: selectedEq.value.id,
+        equipment_name: selectedEq.value.name,
+        remark: saveRemark.value,
+        kinah_rate: kinahRate.value,
+        user_prices: userPrices.value,
+        user_owned: userOwned.value,
+        total_kinah: totalKinahCost.value,
+        total_rmb: parseFloat(totalRmbCost.value)
+      })
+
+    if (error) throw error
+    
+    $alert('保存成功', '当前计算结果已保存')
+    showSaveModal.value = false
+    saveRemark.value = ''
+    fetchSaved()
+  } catch (err) {
+    $alert('保存失败', err.message)
+  } finally {
+    saving.value = false
+  }
+}
+
+const loadSaved = (item) => {
+  const eq = config.value.equipment.find(e => e.id === item.equipment_id)
+  if (!eq) {
+    $alert('加载失败', '原装备配置已不存在')
+    return
+  }
+  
+  selectedEq.value = eq
+  kinahRate.value = item.kinah_rate
+  userPrices.value = { ...item.user_prices }
+  userOwned.value = { ...item.user_owned }
+  $alert('加载成功', `已恢复：${item.equipment_name}`)
+}
+
+const deleteSaved = async (id) => {
+  if (!confirm('确定删除该保存记录吗？')) return
+  
+  const { error } = await supabase.from('saved_calculations').delete().eq('id', id)
+  if (error) $alert('删除失败', error.message)
+  else fetchSaved()
+}
+
+const recordCalculation = async () => {
+  if (!selectedEq.value || !hasPricesEntered.value) {
+    $alert('提示', '请输入价格后再记录')
+    return
+  }
+
+  recording.value = true
+  $loading.show('正在保存计算历史...')
+
+  try {
+    const materialsData = selectedEq.value.materials.map(req => {
+      const material = getMaterial(req.materialId)
+      const price_w = userPrices.value[req.materialId] || 0
+      const owned = userOwned.value[req.materialId] || 0
+      const missing = Math.max(0, req.count - owned)
+      return {
+        id: req.materialId,
+        name: material.name,
+        price_w: price_w,
+        quantity: req.count,
+        owned: owned,
+        missing: missing,
+        subtotal: missing * price_w * 10000
+      }
+    })
+
+    const { data: historyData, error: historyError } = await supabase
+      .from('crafting_history')
+      .insert({
+        equipment_id: selectedEq.value.id,
+        equipment_name: selectedEq.value.name,
+        kinah_rate: kinahRate.value,
+        total_kinah: totalKinahCost.value,
+        total_rmb: parseFloat(totalRmbCost.value),
+        materials_data: materialsData
+      })
+      .select('id')
+      .single()
+
+    if (historyError) throw historyError
+
+    const priceHistoryData = materialsData
+      .filter(m => m.price_w > 0)
+      .map(m => ({
+        material_id: m.id,
+        material_name: m.name,
+        price_w: m.price_w,
+        calculation_id: historyData.id
+      }))
+
+    if (priceHistoryData.length > 0) {
+      await supabase.from('material_price_history').insert(priceHistoryData)
+    }
+
+    // 3. 更新“近期价格”缓存 (site_config)
+    const { data: configData } = await supabase.from('site_config').select('value').eq('key', 'material_recent_prices').maybeSingle()
+    const currentRecentPrices = configData?.value || {}
+    materialsData.forEach(m => {
+      if (m.price_w > 0) {
+        currentRecentPrices[m.id] = { price_w: m.price_w, updated_at: new Date().toISOString() }
+      }
+    })
+    await supabase.from('site_config').upsert({ key: 'material_recent_prices', value: currentRecentPrices, updated_at: new Date().toISOString() }, { onConflict: 'key' })
+    recentPrices.value = currentRecentPrices
+
+    $alert('记录成功', '计算历史已存入数据库，近期价格已更新')
+  } catch (err) {
+    $alert('记录失败', err.message)
+  } finally {
+    recording.value = false
+    $loading.hide()
+  }
+}
+
+// 辅助函数
+const getMaterial = (id) => config.value.materials.find(m => m.id === id) || { name: '未知材料' }
+const formatNumber = (num) => new Intl.NumberFormat().format(num)
+const formatDate = (dateStr) => {
+  const date = new Date(dateStr)
+  return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`
+}
+
+onMounted(() => {
+  fetchConfig()
+  fetchSaved()
+})
+</script>
+
+<style scoped>
+.custom-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.modal-enter-active, .modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+.modal-enter-from, .modal-leave-to {
+  opacity: 0;
+}
+</style>
