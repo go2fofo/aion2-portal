@@ -347,6 +347,11 @@
                 <CharacterSearchModule />
               </div>
 
+              <!-- Tab: 造价计算 (Cost) -->
+              <div v-else-if="activeTab === 'cost'" class="h-full">
+                <CostCalculator />
+              </div>
+
               <!-- Tab 5: 军团成员 (Members) -->
               <div v-else-if="activeTab === 'members'" class="h-full flex flex-col">
                 <!-- 顶部搜索和筛选栏 -->
@@ -667,6 +672,7 @@ const defaultTabs = [
   { id: 'news', name: '军团伴说', hidden: false },
   { id: 'fresh', name: '军团鲜哒', hidden: false },
   { id: 'analysis', name: '战力解析', hidden: false },
+  { id: 'cost', name: '造价计算', hidden: false },
   { id: 'rank', name: '战力排行', hidden: false },
   { id: 'search', name: '即时查询', hidden: false },
   { id: 'members', name: '军团成员', hidden: false },
@@ -905,6 +911,8 @@ const fetchMembers = async () => {
 watch(activeTab, (val) => {
   if (val === 'members') {
     fetchMembers()
+  } else if (val === 'cost' || val === 'search') {
+    // 自身组件内部处理加载
   } else {
     fetchPosts()
   }

@@ -170,8 +170,9 @@ const fetchTabs = async () => {
       { id: 'news', name: '军团伴说', hidden: false, _uid: 't1' },
       { id: 'fresh', name: '军团鲜哒', hidden: false, _uid: 't2' },
       { id: 'analysis', name: '战力解析', hidden: false, _uid: 't3' },
-      { id: 'rank', name: '战力排行', hidden: false, _uid: 't4' },
-      { id: 'join', name: '入团手续', hidden: false, _uid: 't5' }
+      { id: 'cost', name: '造价计算', hidden: false, _uid: 't4' },
+      { id: 'rank', name: '战力排行', hidden: false, _uid: 't5' },
+      { id: 'join', name: '入团手续', hidden: false, _uid: 't6' }
     ]
   }
   loading.value = false

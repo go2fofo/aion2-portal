@@ -17,6 +17,7 @@
 ### 核心配置项说明
 - **`ai_model_config`**: 存储当前选中的 AI 模型 ID 及各模型的 API Key。
 - **`home_tabs`**: 存储首页 Tab 菜单的显示名称、ID、隐藏状态及排序顺序。
+- **`equipment_cost_config`**: 存储装备造价计算器的材料单价和装备配方数据。
 
 ---
 

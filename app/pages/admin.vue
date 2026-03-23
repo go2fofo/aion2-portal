@@ -36,6 +36,10 @@
           <span>🤖</span>
           AI 模型配置
         </NuxtLink>
+        <NuxtLink to="/admin/cost-calculator" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors" exact-active-class="bg-[#E6F7FF] text-[#45a6d5]">
+          <span>💰</span>
+          造价计算配置
+        </NuxtLink>
       </nav>
 
       <div class="p-4 border-t border-slate-100">
@@ -79,6 +83,7 @@ const pageTitle = computed(() => {
   if (route.path.includes('/members')) return '军团成员管理'
   if (route.path.includes('/tabs')) return 'Tab 菜单配置'
   if (route.path.includes('/ai')) return 'AI 分析模型配置'
+  if (route.path.includes('/cost-calculator')) return '装备造价配置'
   return '管理后台'
 })
 
