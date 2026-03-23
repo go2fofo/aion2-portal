@@ -23,6 +23,7 @@ B.B.B.S (宝宝巴士) 是一个专为《永恒之塔2》(AION2) 玩家打造的
 - **图表库**: [Apache ECharts](https://echarts.apache.org/)
 - **AI 渲染**: [Marked](https://marked.js.org/) (Markdown 解析)
 - **部署平台**: [Vercel](https://vercel.com/) / [Zeabur](https://zeabur.com/)
+- **要求Nodejs版本**: [>=](https://marked.js.org/)20
 
 ## 🛠️ 快速开始
 
@@ -63,4 +64,5 @@ pnpm dev
 - 生产环境建议通过 Vercel 控制台设置环境变量，变量名需带 `NUXT_` 前缀。
 - API Key 在管理后台支持明文/密文切换，方便管理员直接维护。
 
----
+***
+
