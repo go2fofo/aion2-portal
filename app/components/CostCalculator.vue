@@ -183,7 +183,7 @@
                     ¥ {{ fullRmbValue }}
                   </span>
                 </div>
-                <div class="text-[9px] font-bold text-slate-500 mt-1">{{ formatNumber(fullMarketValue) }} Kinah</div>
+                <div class="text-[9px] font-bold text-slate-500 mt-1">{{ formatNumber(fullMarketValue) }} 基纳</div>
               </div>
 
               <div class="h-12 w-[1px] bg-slate-800 hidden md:block"></div>
@@ -196,7 +196,7 @@
                   </span>
                   <span class="text-sm font-bold text-slate-500 mb-2">元</span>
                 </div>
-                <div class="text-[10px] font-black text-emerald-400 mt-1">{{ formatNumber(totalKinahCost) }} Kinah</div>
+                <div class="text-[10px] font-black text-emerald-400 mt-1">{{ formatNumber(totalKinahCost) }} 基纳</div>
               </div>
 
               <!-- 记录按钮 -->
