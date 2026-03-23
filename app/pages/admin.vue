@@ -44,9 +44,9 @@
           <span>📜</span>
           造价历史记录
         </NuxtLink>
-        <NuxtLink to="/admin/material-trends" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors" exact-active-class="bg-[#E6F7FF] text-[#45a6d5]">
-          <span>📈</span>
-          材料价格走势
+        <NuxtLink to="/admin/materials" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors" exact-active-class="bg-[#E6F7FF] text-[#45a6d5]">
+          <span>💎</span>
+          材料库
         </NuxtLink>
       </nav>
 
@@ -93,7 +93,7 @@ const pageTitle = computed(() => {
   if (route.path.includes('/ai')) return 'AI 分析模型配置'
   if (route.path.includes('/cost-calculator')) return '装备造价配置'
   if (route.path.includes('/craft-history')) return '装备造价历史'
-  if (route.path.includes('/material-trends')) return '材料价格走势'
+  if (route.path.includes('/materials')) return '材料库'
   return '管理后台'
 })
 
