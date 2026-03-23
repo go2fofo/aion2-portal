@@ -80,6 +80,26 @@ const pet = ref(null)
 const wing = ref(null)
 const skinList = ref([])
 
+const refreshMemberRow = async () => {
+  if (!member.value) return
+
+  const prevAiAnalysis = member.value.ai_analysis_data
+
+  const { data, error } = await supabase
+    .from('legion_members')
+    .select('*')
+    .eq('id', member.value.id)
+    .maybeSingle()
+
+  if (data) {
+    member.value = { ...member.value, ...data }
+    if (prevAiAnalysis !== undefined) member.value.ai_analysis_data = prevAiAnalysis
+    if (data.equipment_data) applyCachedData(data.equipment_data)
+  } else if (error) {
+    console.error('Refresh member row failed:', error)
+  }
+}
+
 const fetchMemberDetail = async () => {
   loading.value = true
   $loading.show('正在调取档案中...')
@@ -148,6 +168,7 @@ const backgroundSync = async () => {
       member.value.equipment_data = res.data
       if (res.data.raw_info?.title?.titleList) member.value.title_list = res.data.raw_info.title.titleList
       if (res.data.raw_info?.profile?.titleName) member.value.title_name = res.data.raw_info.profile.titleName
+      await refreshMemberRow()
     }
   } catch (e) {
     console.error('Background Sync Error:', e)
@@ -179,6 +200,7 @@ const syncMemberData = async () => {
       member.value.equipment_data = res.data
       if (res.data.raw_info?.title?.titleList) member.value.title_list = res.data.raw_info.title.titleList
       if (res.data.raw_info?.profile?.titleName) member.value.title_name = res.data.raw_info.profile.titleName
+      await refreshMemberRow()
       $alert('同步成功', '成员档案及装备详情已更新至最新状态')
     } else {
       $alert('同步失败', res.error || '无法获取官方数据')

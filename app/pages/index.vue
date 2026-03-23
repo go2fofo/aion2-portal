@@ -636,6 +636,7 @@
 const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 const router = useRouter()
+const route = useRoute()
 
 // 用户显示名
 const displayUsername = ref('guest')
@@ -906,6 +907,12 @@ const fetchMembers = async () => {
   }
   loadingMembers.value = false
 }
+
+onActivated(() => {
+  if (route.path === '/' && activeTab.value === 'members') {
+    fetchMembers()
+  }
+})
 
 // 监听 Tab 切换，自动拉取对应内容
 watch(activeTab, (val) => {
