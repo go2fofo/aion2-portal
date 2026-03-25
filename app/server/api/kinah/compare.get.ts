@@ -436,11 +436,12 @@ export default defineEventHandler(async (event) => {
     }
   };
 
-  const [lulu, dd373, s7881] = await Promise.all([
+  const [lulu, dd373] = await Promise.all([
     fetchLulu(),
     fetchDd373(),
-    fetch7881(),
   ]);
+
+  const s7881: SourceResult<Offer7881, Offer7881> = { ok: false, url: "https://www.7881.com/", offers: [], best: null, error: "暂时隐藏" };
 
   const normalizeBest = (source: any): number | null => {
     if (!source?.ok) return null;
