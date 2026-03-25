@@ -211,7 +211,7 @@
             </div>
 
             <!-- 7881 卡片 -->
-            <div class="p-6 rounded-3xl border-2 bg-white shadow-sm transition-all"
+            <!-- <div class="p-6 rounded-3xl border-2 bg-white shadow-sm transition-all"
                  :class="winnerKey === '7881' ? 'border-emerald-200 ring-2 ring-emerald-100' : 'border-slate-100'">
               <div class="flex items-start justify-between gap-4">
                 <div>
@@ -275,7 +275,7 @@
                   </div>
                 </div>
               </div>
-            </div>
+            </div> -->
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
