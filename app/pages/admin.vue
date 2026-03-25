@@ -1,7 +1,7 @@
 <!--
  * @Author: whq
  * @Date: 2026-02-11 09:53:45
- * @LastEditTime: 2026-02-11 10:07:31
+ * @LastEditTime: 2026-03-25 11:12:53
  * @LastEditors: whq
  * @Description: 
  * @FilePath: /aion2-portal/app/pages/admin.vue
@@ -39,6 +39,10 @@
         <NuxtLink to="/admin/calculator" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors" exact-active-class="bg-[#E6F7FF] text-[#45a6d5]">
           <span>💰</span>
           造价计算器
+        </NuxtLink>
+        <NuxtLink to="/admin/kinah-compare" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors" exact-active-class="bg-[#E6F7FF] text-[#45a6d5]">
+          <span>🧮</span>
+          基纳比价
         </NuxtLink>
         <NuxtLink to="/admin/cost-calculator" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors" exact-active-class="bg-[#E6F7FF] text-[#45a6d5]">
           <span>⚙️</span>
@@ -97,6 +101,7 @@ const pageTitle = computed(() => {
   if (route.path.includes('/ai')) return 'AI 分析模型配置'
   if (route.path.includes('/cost-calculator')) return '装备造价配置'
   if (route.path.includes('/calculator')) return '装备造价计算'
+  if (route.path.includes('/kinah-compare')) return '基纳比价'
   if (route.path.includes('/craft-history')) return '装备造价历史'
   if (route.path.includes('/materials')) return '材料库'
   return '管理后台'

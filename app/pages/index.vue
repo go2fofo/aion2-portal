@@ -352,6 +352,11 @@
                 <CostCalculator />
               </div>
 
+              <!-- Tab: 基纳比价 (Kinah Compare) -->
+              <div v-else-if="activeTab === 'kinah'" class="h-full">
+                <KinahCompare />
+              </div>
+
               <!-- Tab 5: 军团成员 (Members) -->
               <div v-else-if="activeTab === 'members'" class="h-full flex flex-col">
                 <!-- 顶部搜索和筛选栏 -->
@@ -674,6 +679,7 @@ const defaultTabs = [
   { id: 'fresh', name: '军团鲜哒', hidden: false },
   { id: 'analysis', name: '战力解析', hidden: false },
   { id: 'cost', name: '造价计算', hidden: false },
+  { id: 'kinah', name: '基纳比价', hidden: false },
   { id: 'rank', name: '战力排行', hidden: false },
   { id: 'search', name: '即时查询', hidden: false },
   { id: 'members', name: '军团成员', hidden: false },
@@ -843,6 +849,9 @@ const fetchTabs = async () => {
 
     if (Array.isArray(tabsData) && tabsData.length > 0) {
       tabs.value = tabsData
+      if (!tabs.value.some(t => t.id === 'kinah')) {
+        tabs.value.push({ id: 'kinah', name: '基纳比价', hidden: false })
+      }
       // 确保当前选中项有效且可见
       const currentTabVisible = tabs.value.find(t => t.id === activeTab.value && !t.hidden)
       if (!currentTabVisible) {
