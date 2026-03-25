@@ -376,7 +376,14 @@ export default defineEventHandler(async (event) => {
             headers: {
               "content-type": "application/json",
               "user-agent":
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+              "accept": "application/json, text/javascript, */*; q=0.01",
+              "accept-language": "zh-CN,zh;q=0.9",
+              "origin": "https://search.7881.com",
+              "referer": "https://search.7881.com/",
+              "sec-fetch-dest": "empty",
+              "sec-fetch-mode": "cors",
+              "sec-fetch-site": "same-site",
               "lb-sign": sign,
               "lb-timestamp": ts,
             },
@@ -386,7 +393,14 @@ export default defineEventHandler(async (event) => {
         12000,
       );
 
-      const json: any = await res.json();
+      const rawText = await res.text();
+      let json: any;
+      try {
+        json = JSON.parse(rawText);
+      } catch (parseErr) {
+        throw new Error("Failed to parse 7881 JSON. Response starts with: " + rawText.substring(0, 100));
+      }
+
       if (json?.code && json.code !== 0) {
         throw new Error(
           `7881 api error: code=${String(json?.code)} message=${String(json?.message || json?.msg || "")}`,
