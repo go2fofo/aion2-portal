@@ -1,77 +1,79 @@
 <template>
-  <div class="min-h-screen w-full relative bg-watercolor font-sans custom-scroll overflow-x-hidden" :class="{ 'h-screen overflow-hidden': showIntro }">
+  <div class="min-h-screen w-full relative bg-watercolor font-sans custom-scroll overflow-x-hidden" :class="{ 'h-screen overflow-hidden': showIntro && isClient }">
     
-    <!-- 视频引导层 -->
-    <div 
-      class="fixed inset-0 z-[100] bg-sky-50 flex flex-col items-center justify-center h-[100dvh] w-screen overflow-hidden transition-all duration-1000 ease-in-out"
-      :class="{ 'opacity-0 pointer-events-none translate-y-[-100%]': !showIntro }"
-      @wheel.prevent="handleIntroScroll" 
-      @touchmove.prevent="handleIntroScroll"
-    >
-      
-      <!-- 背景氛围层 (极简白/浅蓝) -->
-      <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-40">
-        <video
-          v-show="!isPlayingOutro"
-          src="/bbbssp.mp4"
-          class="w-full h-full object-cover blur-[100px] scale-150 saturate-200 opacity-50"
-          autoplay
-          loop
-          muted
-          playsinline
-        ></video>
-        <video
-          v-show="isPlayingOutro"
-          ref="outroBgRef"
-          src="/bbbsout.mp4"
-          class="w-full h-full object-cover blur-[100px] scale-150 saturate-200 opacity-50"
-          muted
-          playsinline
-        ></video>
-      </div>
-
-      <!-- 前景视频层 -->
-      <div class="relative z-10 flex-1 w-full flex flex-col items-center justify-center p-8 animate-float-slow" @click="handleIntroClick">
-        <div class="relative w-full max-w-4xl aspect-square flex items-center justify-center">
-          <!-- 循环播放的引导视频 -->
+    <ClientOnly>
+      <!-- 视频引导层 -->
+      <div 
+        class="fixed inset-0 z-[100] bg-sky-50 flex flex-col items-center justify-center h-[100dvh] w-screen overflow-hidden transition-all duration-1000 ease-in-out"
+        :class="{ 'opacity-0 pointer-events-none translate-y-[-100%]': !showIntro }"
+        @wheel.prevent="handleIntroScroll" 
+        @touchmove.prevent="handleIntroScroll"
+      >
+        
+        <!-- 背景氛围层 (极简白/浅蓝) -->
+        <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-40">
           <video
             v-show="!isPlayingOutro"
-            ref="introVideoRef"
             src="/bbbssp.mp4"
-            class="max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-[3rem] video-glow bg-white cursor-pointer"
+            class="w-full h-full object-cover blur-[100px] scale-150 saturate-200 opacity-50"
             autoplay
             loop
             muted
             playsinline
-            x5-video-player-type="h5-page"
-            x5-playsinline="true"
-            webkit-playsinline="true"
           ></video>
-          
-          <!-- 过渡视频 -->
           <video
             v-show="isPlayingOutro"
-            ref="outroVideoRef"
+            ref="outroBgRef"
             src="/bbbsout.mp4"
-            class="max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-[3rem] video-glow bg-white"
+            class="w-full h-full object-cover blur-[100px] scale-150 saturate-200 opacity-50"
             muted
             playsinline
-            preload="auto"
-            @ended="onOutroEnded"
           ></video>
         </div>
-      </div>
 
-      <!-- 底部提示区域 -->
-      <div v-if="!isPlayingOutro" class="relative z-20 pb-12 w-full text-center flex flex-col items-center gap-2 animate-arrow">
-        <div class="text-[#45a6d5] font-black text-xl tracking-widest drop-shadow-sm">上滑开启冒险</div>
-        <div class="w-8 h-8 flex items-center justify-center text-[#45a6d5]">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
-          </svg>
+        <!-- 前景视频层 -->
+        <div class="relative z-10 flex-1 w-full flex flex-col items-center justify-center p-8 animate-float-slow" @click="handleIntroClick">
+          <div class="relative w-full max-w-4xl aspect-square flex items-center justify-center">
+            <!-- 循环播放的引导视频 -->
+            <video
+              v-show="!isPlayingOutro"
+              ref="introVideoRef"
+              src="/bbbssp.mp4"
+              class="max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-[3rem] video-glow bg-white cursor-pointer"
+              autoplay
+              loop
+              muted
+              playsinline
+              x5-video-player-type="h5-page"
+              x5-playsinline="true"
+              webkit-playsinline="true"
+            ></video>
+            
+            <!-- 过渡视频 -->
+            <video
+              v-show="isPlayingOutro"
+              ref="outroVideoRef"
+              src="/bbbsout.mp4"
+              class="max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-[3rem] video-glow bg-white"
+              muted
+              playsinline
+              preload="auto"
+              @ended="onOutroEnded"
+            ></video>
+          </div>
+        </div>
+
+        <!-- 底部提示区域 -->
+        <div v-if="!isPlayingOutro" class="relative z-20 pb-12 w-full text-center flex flex-col items-center gap-2 animate-arrow">
+          <div class="text-[#45a6d5] font-black text-xl tracking-widest drop-shadow-sm">上滑开启冒险</div>
+          <div class="w-8 h-8 flex items-center justify-center text-[#45a6d5]">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+            </svg>
+          </div>
         </div>
       </div>
-    </div>
+    </ClientOnly>
 
     <!-- 全局背景装饰层 (极致层级与位置优化) -->
     <div v-show="!showIntro" class="fixed inset-0 w-full h-full z-[15] pointer-events-none transition-opacity duration-1000">
@@ -642,6 +644,7 @@ const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 const router = useRouter()
 const route = useRoute()
+const isClient = process.client
 
 // 用户显示名
 const displayUsername = ref('guest')
@@ -941,8 +944,20 @@ const logout = async () => {
 }
 
 // 视频引导相关逻辑
-  const introPlayed = useState('introPlayed', () => false)
-  const showIntro = ref(!introPlayed.value)
+const introPlayed = useState('introPlayed', () => false)
+const showIntro = ref(true)
+const introStorageKey = 'aion2_intro_played_v1'
+if (process.client) {
+  try {
+    const seen = localStorage.getItem(introStorageKey) === '1'
+    introPlayed.value = seen
+    showIntro.value = !seen
+  } catch {
+    showIntro.value = !introPlayed.value
+  }
+} else {
+  showIntro.value = !introPlayed.value
+}
 
 // ECharts 配置
 const radarOption = ref({
@@ -1082,6 +1097,11 @@ const triggerOutro = () => {
 const onOutroEnded = () => {
   showIntro.value = false
   introPlayed.value = true
+  if (process.client) {
+    try {
+      localStorage.setItem(introStorageKey, '1')
+    } catch {}
+  }
   // 视频结束后初始化内容动画
   // 延迟一点点，让幕布上拉的动画先开始，内容再入场，形成交错感
   setTimeout(() => {
@@ -1246,7 +1266,7 @@ onMounted(() => {
     })
     nextTick(() => {
       // 强制触发播放（兼容移动端省电策略）
-      if (introVideoRef.value) {
+      if (showIntro.value && introVideoRef.value) {
         introVideoRef.value.play().catch(() => {
           // 如果自动播放被拦截，显示一个点击播放的遮罩（或者静默失败）
           console.log('Autoplay blocked')
