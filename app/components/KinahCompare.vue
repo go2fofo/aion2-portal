@@ -227,7 +227,7 @@
             <div class="flex items-start justify-between gap-4">
               <div>
                 <div class="flex items-center gap-2">
-                  <span class="text-xl">🦌</span>
+                  <span class="text-xl"></span>
                   <h4 class="text-lg font-black text-slate-800">lulu233</h4>
                   <span
                     v-if="winnerKey === 'lulu233'"
@@ -342,7 +342,7 @@
             <div class="flex items-start justify-between gap-4">
               <div>
                 <div class="flex items-center gap-2">
-                  <span class="text-xl">🐲</span>
+                  <span class="text-xl"></span>
                   <h4 class="text-lg font-black text-slate-800">DD373</h4>
                   <span
                     v-if="winnerKey === 'dd373'"

@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
       <div class="flex items-center gap-4 mb-8">
-        <div class="w-12 h-12 bg-sky-100 rounded-2xl flex items-center justify-center text-2xl">🤖</div>
+        <div class="w-12 h-12 bg-sky-100 rounded-2xl flex items-center justify-center text-2xl"></div>
         <div>
           <h3 class="text-xl font-black text-slate-800">AI 分析模型配置</h3>
           <p class="text-sm text-slate-400 font-bold mt-1">设置全站统一使用的 AI 分析引擎</p>
@@ -124,7 +124,7 @@ const showKeys = ref({
 const availableModels = [
   { id: 'deepseek', name: 'DeepSeek', icon: '🔍', desc: '深度思考模型，逻辑分析能力强，适合高阶解析' },
   { id: 'siliconflow', name: 'DeepSeek(SF)', icon: '⚡', desc: '基于 SiliconFlow 架构，极速响应，适合即时同步' },
-  { id: 'gpt-4o', name: 'GPT-4o', icon: '🤖', desc: 'OpenAI 旗舰模型，语言表达更自然，综合素质最高' },
+  { id: 'gpt-4o', name: 'GPT-4o', icon: '', desc: 'OpenAI 旗舰模型，语言表达更自然，综合素质最高' },
   { id: 'gemini', name: 'Gemini', icon: '♊', desc: 'Google 最新模型，多模态理解力强，视角独特' }
 ]
 
