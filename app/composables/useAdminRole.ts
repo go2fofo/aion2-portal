@@ -9,6 +9,7 @@
 export const useAdminRole = () => {
   const role = useState<string | any>("adminRole", () => null);
   const loaded = useState<boolean>("adminRoleLoaded", () => false);
+  const roleUserId = useState<string | null>("adminRoleUserId", () => null);
 
   const user = useSupabaseUser();
   const supabase = useSupabaseClient();
@@ -30,8 +31,22 @@ export const useAdminRole = () => {
 
     role.value = (data?.role as string) || "user";
     loaded.value = true;
+    roleUserId.value = user.value.id;
     return role.value;
   };
+
+  watchEffect(() => {
+    if (!process.client) return;
+    const id = user.value?.id || null;
+    if (roleUserId.value !== id) {
+      role.value = null;
+      loaded.value = false;
+      roleUserId.value = id;
+    }
+    if (id && !loaded.value) {
+      fetchRole();
+    }
+  });
 
   return { role, loaded, fetchRole };
 };
