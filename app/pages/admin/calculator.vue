@@ -269,25 +269,66 @@
           </div>
 
           <div
-            class="bg-white px-5 py-3 rounded-2xl border border-slate-100 flex items-center gap-4 z-10 shadow-sm"
+            class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto z-10"
           >
-            <span class="text-xs font-black text-slate-500 whitespace-nowrap"
-              >当前基纳汇率</span
+            <div
+              class="bg-white px-5 py-3 rounded-2xl border-2 flex flex-col gap-2 shadow-sm w-full md:w-auto"
+              :class="isKinahRateValid ? 'border-slate-100' : 'border-rose-200 bg-rose-50/40'"
             >
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-slate-400">1 元 = </span>
-              <div class="relative">
-                <input
-                  type="number"
-                  v-model.number="kinahRate"
-                  class="w-24 px-3 py-1.5 bg-slate-50 border-2 border-transparent rounded-lg text-right font-mono text-sm font-black text-sky-600 focus:border-[#45a6d5] focus:bg-white outline-none transition-all"
-                />
-                <span
-                  class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"
-                  >万</span
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-black text-slate-700 whitespace-nowrap"
+                    >当前基纳汇率</span
+                  >
+                  <span class="text-[10px] font-black text-rose-500" v-if="!isKinahRateValid">必填</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-slate-500">1 元 = </span>
+                  <div class="relative">
+                    <input
+                      type="number"
+                      v-model.number="kinahRate"
+                      min="0"
+                      step="0.0001"
+                      inputmode="decimal"
+                      placeholder="必填"
+                      class="w-28 px-3 py-2 bg-white border-2 rounded-xl text-right font-mono text-base font-black focus:bg-white outline-none transition-all"
+                      :class="isKinahRateValid ? 'border-sky-100 text-sky-700 focus:border-[#45a6d5]' : 'border-rose-300 text-rose-600 focus:border-rose-400'"
+                    />
+                    <span
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"
+                      >万</span
+                    >
+                  </div>
+                </div>
+              </div>
+              <div v-if="!isKinahRateValid" class="text-[10px] font-bold text-rose-600">
+                请输入“1元等于多少万基纳”，否则无法保存或记录
+              </div>
+              <div
+                v-if="bestCompareRate"
+                class="text-[10px] font-bold text-slate-500 flex items-center justify-between gap-3"
+              >
+                <span class="truncate">
+                  最划算：1元 = {{ bestCompareRate }}万（{{ bestComparePlatform }}）
+                </span>
+                <button
+                  v-if="Number(bestCompareRate) > 0 && Number(kinahRate) !== Number(bestCompareRate)"
+                  type="button"
+                  class="shrink-0 text-[10px] font-black text-sky-600 hover:underline"
+                  @click="applyBestCompareRate"
                 >
+                  使用
+                </button>
               </div>
             </div>
+            <button
+              v-if="selectedEq"
+              @click="clearCurrent(true)"
+              class="w-full sm:w-auto px-5 py-3 rounded-2xl border-2 border-rose-200 bg-white text-rose-600 font-black text-xs hover:bg-rose-50 transition-colors"
+            >
+              清空当前
+            </button>
           </div>
         </div>
 
@@ -509,15 +550,15 @@
 
               <div class="flex flex-col gap-2 shrink-0 w-full md:w-auto">
                 <button
-                  @click="showSaveModal = true"
-                  :disabled="saving || !selectedEq"
+                  @click="openSaveModal"
+                  :disabled="saving || !selectedEq || !isKinahRateValid"
                   class="w-full md:w-auto px-6 py-3 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-black text-sm shadow-lg transition-all flex items-center justify-center gap-2"
                 >
                   <span>保存计算结果</span>
                 </button>
                 <button
                   @click="recordCalculation"
-                  :disabled="recording || !hasPricesEntered"
+                  :disabled="recording || !hasPricesEntered || !isKinahRateValid"
                   class="w-full md:w-auto px-6 py-3 bg-[#f9b11d] hover:bg-[#fbc02d] disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 rounded-xl font-black text-sm shadow-lg transition-all flex items-center justify-center gap-2"
                 >
                   <span
@@ -526,6 +567,9 @@
                   ></span>
                   <span>记录本次计算 (纳入历史)</span>
                 </button>
+                <div class="text-[10px] font-bold text-slate-400 text-center md:text-left">
+                  使用汇率：1元 = {{ kinahRateDisplay }}万（只读）
+                </div>
               </div>
             </div>
           </div>
@@ -620,6 +664,12 @@
                 class="w-full p-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 text-sm transition-all resize-none"
               ></textarea>
             </div>
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+              <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">基纳汇率（只读）</div>
+              <div class="mt-1 text-sm font-mono font-black text-slate-700">
+                1元 = {{ kinahRateDisplay }}万
+              </div>
+            </div>
             <div class="flex gap-3">
               <button
                 @click="showSaveModal = false"
@@ -683,6 +733,8 @@ const kinahRate = ref(0);
 const userPrices = ref({});
 const userOwned = ref({});
 const savedList = ref([]);
+const bestCompareRate = ref(null);
+const bestComparePlatform = ref("");
 
 // 计算属性
 const categories = computed(() => {
@@ -734,6 +786,17 @@ const fullRmbValue = computed(() => {
   return (fullMarketValue.value / (kinahRate.value * 10000)).toFixed(2);
 });
 
+const isKinahRateValid = computed(() => {
+  const v = Number(kinahRate.value);
+  return Number.isFinite(v) && v > 0;
+});
+
+const kinahRateDisplay = computed(() => {
+  if (!isKinahRateValid.value) return "-";
+  const v = Number(kinahRate.value);
+  return v.toString();
+});
+
 // 数据加载
 const fetchConfig = async () => {
   loading.value = true;
@@ -778,7 +841,29 @@ const fetchSaved = async () => {
 };
 
 // 核心功能
+const clearCurrent = (withConfirm) => {
+  if (!selectedEq.value) return;
+  if (withConfirm) {
+    const ok = confirm("清空当前计算将丢失已输入的单价/持有量，确定继续吗？");
+    if (!ok) return;
+  }
+  selectedEq.value = null;
+  userPrices.value = {};
+  userOwned.value = {};
+  showSaveModal.value = false;
+  saveRemark.value = "";
+};
+
 const selectEquipment = (eq) => {
+  if (selectedEq.value?.id === eq.id) return;
+
+  if (selectedEq.value) {
+    const ok = confirm("切换装备会清空当前已输入的单价/持有量，确定切换吗？");
+    if (!ok) return;
+    userPrices.value = {};
+    userOwned.value = {};
+  }
+
   selectedEq.value = eq;
   eq.materials.forEach((req) => {
     if (userPrices.value[req.materialId] === undefined)
@@ -788,10 +873,39 @@ const selectEquipment = (eq) => {
   });
 };
 
+const fetchBestCompareRate = async () => {
+  try {
+    const res = await $fetch("/api/kinah/compare", {
+      query: { t: Date.now() },
+    });
+    const top = res?.combinedRanking?.[0];
+    const v = Number(top?.coinOneMoney);
+    if (Number.isFinite(v) && v > 0) {
+      bestCompareRate.value = Number(v.toFixed(4)).toString();
+      bestComparePlatform.value =
+        top?.platform === "lulu233" ? "lulu233" : top?.platform === "dd373" ? "DD373" : "7881";
+      if (!isKinahRateValid.value) {
+        kinahRate.value = Number(bestCompareRate.value);
+      }
+    }
+  } catch {}
+};
+
+const applyBestCompareRate = () => {
+  if (!bestCompareRate.value) return;
+  const v = Number(bestCompareRate.value);
+  if (!Number.isFinite(v) || v <= 0) return;
+  kinahRate.value = v;
+};
+
 const handleSave = async (isPublic) => {
   if (!selectedEq.value) return;
   if (!user.value?.id) {
     $alert("保存失败", "请先登录后再保存");
+    return;
+  }
+  if (!isKinahRateValid.value) {
+    $alert("提示", "请先填写当前基纳汇率");
     return;
   }
   saving.value = true;
@@ -851,6 +965,10 @@ const deleteSaved = async (id) => {
 const recordCalculation = async () => {
   if (!selectedEq.value || !hasPricesEntered.value) {
     $alert("提示", "请输入价格后再记录");
+    return;
+  }
+  if (!isKinahRateValid.value) {
+    $alert("提示", "请先填写当前基纳汇率");
     return;
   }
 
@@ -936,6 +1054,15 @@ const recordCalculation = async () => {
   }
 };
 
+const openSaveModal = () => {
+  if (!selectedEq.value) return;
+  if (!isKinahRateValid.value) {
+    $alert("提示", "请先填写当前基纳汇率");
+    return;
+  }
+  showSaveModal.value = true;
+};
+
 // 辅助函数
 const getMaterial = (id) =>
   config.value.materials.find((m) => m.id === id) || { name: "未知材料" };
@@ -948,6 +1075,7 @@ const formatDate = (dateStr) => {
 onMounted(() => {
   fetchConfig();
   fetchSaved();
+  fetchBestCompareRate();
 });
 
 watch(savedView, () => {
