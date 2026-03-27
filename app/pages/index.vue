@@ -351,7 +351,7 @@
 
               <!-- Tab: 造价计算 (Cost) -->
               <div v-else-if="activeTab === 'cost'" class="h-full">
-                <CostCalculator />
+                <CostCalculatorPlus />
               </div>
 
               <!-- Tab: 基纳比价 (Kinah Compare) -->
