@@ -190,7 +190,7 @@ const handleLogin = async () => {
         if (dbError) console.error('Error logging to admin list:', dbError)
       }
 
-      $alert('注册成功', '请查收确认邮件，或直接登录！')
+      $alert('注册成功', '可直接登录！')
     } else {
       // --- 登录逻辑 (标准 Auth) ---
       if (isMagicLink.value) {

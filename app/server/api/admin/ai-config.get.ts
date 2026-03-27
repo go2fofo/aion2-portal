@@ -1,3 +1,11 @@
+/*
+ * @Author: whq
+ * @Date: 2026-02-13 15:02:04
+ * @LastEditTime: 2026-03-27 16:16:00
+ * @LastEditors: whq
+ * @Description: 
+ * @FilePath: /aion2-portal/app/server/api/admin/ai-config.get.ts
+ */
 import { defineEventHandler } from 'h3'
 import { serverSupabaseClient } from '#supabase/server'
 

@@ -8,12 +8,28 @@
         <div
           class="p-5 border-b border-slate-50 flex items-center justify-between bg-slate-50/50"
         >
-          <h4 class="font-black text-slate-800 flex items-center gap-2">
-            <span>📋</span> 已保存的计算
-          </h4>
-          <span
-            class="text-[10px] font-black bg-slate-200 text-slate-600 px-2 py-1 rounded-lg"
-          >
+          <div class="flex items-center gap-3">
+            <h4 class="font-black text-slate-800 flex items-center gap-2">
+              <span>📋</span> 已保存的计算
+            </h4>
+            <div class="flex items-center gap-1 p-1 rounded-xl bg-white border border-slate-100">
+              <button
+                class="px-3 py-1.5 rounded-lg text-[10px] font-black transition-all"
+                :class="savedView === 'mine' ? 'bg-sky-500 text-white' : 'text-slate-500 hover:bg-slate-50'"
+                @click="savedView = 'mine'"
+              >
+                我的
+              </button>
+              <button
+                class="px-3 py-1.5 rounded-lg text-[10px] font-black transition-all"
+                :class="savedView === 'public' ? 'bg-sky-500 text-white' : 'text-slate-500 hover:bg-slate-50'"
+                @click="savedView = 'public'"
+              >
+                公开
+              </button>
+            </div>
+          </div>
+          <span class="text-[10px] font-black bg-slate-200 text-slate-600 px-2 py-1 rounded-lg">
             {{ savedList.length }} 条
           </span>
         </div>
@@ -42,20 +58,29 @@
                 <h5 class="font-black text-slate-800 text-sm truncate pr-6">
                   {{ item.equipment_name }}
                 </h5>
-                <button
-                  @click="deleteSaved(item.id)"
-                  class="absolute top-4 right-4 text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                >
-                  <svg
-                    class="w-4 h-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
+                <div class="absolute top-4 right-4 flex items-center gap-2">
+                  <span
+                    class="text-[10px] font-black px-2 py-1 rounded-lg"
+                    :class="item.is_public ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'"
                   >
-                    <path d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                    {{ item.is_public ? '公开' : '仅我' }}
+                  </span>
+                  <button
+                    v-if="item.user_id && user?.id && item.user_id === user.id"
+                    @click="deleteSaved(item.id)"
+                    class="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
               <p
                 class="text-xs text-slate-500 font-medium line-clamp-2 mb-3 bg-white/50 p-2 rounded-lg flex-1"
@@ -603,7 +628,18 @@
                 取消
               </button>
               <button
-                @click="handleSave"
+                @click="handleSave(false)"
+                :disabled="saving"
+                class="flex-1 py-3 bg-slate-900 text-white rounded-xl font-black shadow-lg hover:bg-slate-800 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <span
+                  v-if="saving"
+                  class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
+                ></span>
+                <span>保存到我的</span>
+              </button>
+              <button
+                @click="handleSave(true)"
                 :disabled="saving"
                 class="flex-1 py-3 bg-[#45a6d5] text-white rounded-xl font-black shadow-lg hover:bg-[#3b95c0] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
@@ -611,7 +647,7 @@
                   v-if="saving"
                   class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
                 ></span>
-                <span>确认保存</span>
+                <span>保存为公开</span>
               </button>
             </div>
           </div>
@@ -622,9 +658,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 
 const supabase = useSupabaseClient();
+const user = useSupabaseUser();
 const { $alert, $loading } = useNuxtApp();
 
 // 状态管理
@@ -634,6 +671,7 @@ const recording = ref(false);
 const saving = ref(false);
 const showSaveModal = ref(false);
 const saveRemark = ref("");
+const savedView = ref("mine");
 
 const config = ref({ materials: [], equipment: [] });
 const recentPrices = ref({});
@@ -716,10 +754,23 @@ const fetchConfig = async () => {
 
 const fetchSaved = async () => {
   loadingSaved.value = true;
-  const { data, error } = await supabase
+  let q = supabase
     .from("saved_calculations")
     .select("*")
     .order("created_at", { ascending: false });
+
+  if (savedView.value === "mine") {
+    if (!user.value?.id) {
+      savedList.value = [];
+      loadingSaved.value = false;
+      return;
+    }
+    q = q.eq("user_id", user.value.id);
+  } else {
+    q = q.eq("is_public", true);
+  }
+
+  const { data, error } = await q;
 
   if (error) console.error("Fetch saved failed:", error);
   else savedList.value = data || [];
@@ -737,8 +788,12 @@ const selectEquipment = (eq) => {
   });
 };
 
-const handleSave = async () => {
+const handleSave = async (isPublic) => {
   if (!selectedEq.value) return;
+  if (!user.value?.id) {
+    $alert("保存失败", "请先登录后再保存");
+    return;
+  }
   saving.value = true;
 
   try {
@@ -751,11 +806,13 @@ const handleSave = async () => {
       user_owned: userOwned.value,
       total_kinah: totalKinahCost.value,
       total_rmb: parseFloat(totalRmbCost.value),
+      is_public: isPublic,
+      user_id: user.value.id,
     });
 
     if (error) throw error;
 
-    $alert("保存成功", "当前计算结果已保存");
+    $alert("保存成功", isPublic ? "已保存为公开记录（所有用户可见）" : "已保存到我的记录（仅自己可见）");
     showSaveModal.value = false;
     saveRemark.value = "";
     fetchSaved();
@@ -892,6 +949,18 @@ onMounted(() => {
   fetchConfig();
   fetchSaved();
 });
+
+watch(savedView, () => {
+  fetchSaved();
+});
+
+watch(
+  user,
+  () => {
+    if (savedView.value === "mine") fetchSaved();
+  },
+  { immediate: true },
+);
 </script>
 
 <style scoped>
