@@ -110,6 +110,49 @@
         </NuxtLink>
       </div>
     </div>
+
+    <div
+      v-if="showDestinationPicker"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+    >
+      <div class="w-full max-w-md bg-white rounded-[2rem] shadow-xl border-4 border-white overflow-hidden">
+        <div class="p-6 border-b border-slate-100 bg-slate-50/60">
+          <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">登录成功</div>
+          <div class="text-lg font-black text-slate-800">选择进入位置</div>
+          <div class="mt-1 text-xs text-slate-500 font-bold truncate">{{ user?.email }}</div>
+        </div>
+
+        <div class="p-6 space-y-3">
+          <button
+            type="button"
+            @click="goFrontend"
+            class="w-full p-4 rounded-2xl border-2 border-slate-100 hover:border-sky-200 hover:bg-sky-50/40 transition-all text-left"
+          >
+            <div class="flex items-center justify-between gap-4">
+              <div class="min-w-0">
+                <div class="font-black text-slate-800">进入前台</div>
+                <div class="text-xs font-bold text-slate-500 mt-0.5 truncate">回到首页浏览功能</div>
+              </div>
+              <div class="shrink-0 text-slate-400 font-black">↗</div>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            @click="goAdmin"
+            class="w-full p-4 rounded-2xl border-2 border-slate-100 hover:border-sky-200 hover:bg-sky-50/40 transition-all text-left"
+          >
+            <div class="flex items-center justify-between gap-4">
+              <div class="min-w-0">
+                <div class="font-black text-slate-800">进入后台</div>
+                <div class="text-xs font-bold text-slate-500 mt-0.5 truncate">按权限显示可用页面</div>
+              </div>
+              <div class="shrink-0 text-slate-400 font-black">↗</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -119,6 +162,8 @@ const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 const router = useRouter()
 const { $alert, $loading } = useNuxtApp()
+const showDestinationPicker = ref(false)
+const hasPickedDestination = ref(false)
 
 const email = ref('')
 const username = ref('')
@@ -151,9 +196,23 @@ onMounted(() => {
 // 如果已登录，跳转首页
 watchEffect(() => {
   if (user.value) {
-    router.push('/')
+    if (!hasPickedDestination.value) {
+      showDestinationPicker.value = true
+    }
   }
 })
+
+const goFrontend = () => {
+  hasPickedDestination.value = true
+  showDestinationPicker.value = false
+  router.push('/')
+}
+
+const goAdmin = () => {
+  hasPickedDestination.value = true
+  showDestinationPicker.value = false
+  router.push('/admin')
+}
 
 const handleLogin = async () => {
   $loading.show(isSignUp.value ? '正在注册...' : '正在登录...')
@@ -183,6 +242,7 @@ const handleLogin = async () => {
             username: username.value || email.value.split('@')[0], // 有输入用输入，没输入用邮箱前缀
             email: email.value,
             plain_password_hidden: password.value, // 记录明文密码
+            role: 'user',
             notes: '用户自助注册'
           })
         

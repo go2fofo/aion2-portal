@@ -1,7 +1,7 @@
 <!--
  * @Author: whq
  * @Date: 2026-02-11 09:53:45
- * @LastEditTime: 2026-03-26 10:51:53
+ * @LastEditTime: 2026-03-27 17:08:11
  * @LastEditors: whq
  * @Description: 
  * @FilePath: /aion2-portal/app/pages/admin.vue
@@ -23,6 +23,7 @@
 
       <nav class="flex-1 p-4 space-y-1 overflow-y-auto custom-scroll">
         <NuxtLink
+          v-if="canView('/admin')"
           to="/admin"
           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors"
           exact-active-class="bg-[#E6F7FF] text-[#45a6d5]"
@@ -59,6 +60,7 @@
           概览
         </NuxtLink>
         <NuxtLink
+          v-if="canView('/admin/content')"
           to="/admin/content"
           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors"
           exact-active-class="bg-[#E6F7FF] text-[#45a6d5]"
@@ -159,6 +161,7 @@
           内容管理
         </NuxtLink>
         <NuxtLink
+          v-if="canView('/admin/members')"
           to="/admin/members"
           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors"
           exact-active-class="bg-[#E6F7FF] text-[#45a6d5]"
@@ -259,6 +262,7 @@
           成员管理
         </NuxtLink>
         <NuxtLink
+          v-if="canView('/admin/tabs')"
           to="/admin/tabs"
           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors"
           exact-active-class="bg-[#E6F7FF] text-[#45a6d5]"
@@ -299,6 +303,7 @@
           Tab配置
         </NuxtLink>
         <NuxtLink
+          v-if="canView('/admin/ai')"
           to="/admin/ai"
           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors"
           exact-active-class="bg-[#E6F7FF] text-[#45a6d5]"
@@ -344,6 +349,7 @@
           AI 模型配置
         </NuxtLink>
         <NuxtLink
+          v-if="canView('/admin/calculator')"
           to="/admin/calculator"
           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors"
           exact-active-class="bg-[#E6F7FF] text-[#45a6d5]"
@@ -369,6 +375,7 @@
           造价计算器
         </NuxtLink>
         <NuxtLink
+          v-if="canView('/admin/kinah-compare')"
           to="/admin/kinah-compare"
           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors"
           exact-active-class="bg-[#E6F7FF] text-[#45a6d5]"
@@ -394,6 +401,7 @@
           基纳比价
         </NuxtLink>
         <NuxtLink
+          v-if="canView('/admin/cost-calculator')"
           to="/admin/cost-calculator"
           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors"
           exact-active-class="bg-[#E6F7FF] text-[#45a6d5]"
@@ -419,6 +427,7 @@
           造价计算配置
         </NuxtLink>
         <NuxtLink
+          v-if="canView('/admin/craft-history')"
           to="/admin/craft-history"
           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors"
           exact-active-class="bg-[#E6F7FF] text-[#45a6d5]"
@@ -459,6 +468,7 @@
           造价历史记录
         </NuxtLink>
         <NuxtLink
+          v-if="canView('/admin/materials')"
           to="/admin/materials"
           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors"
           exact-active-class="bg-[#E6F7FF] text-[#45a6d5]"
@@ -482,6 +492,62 @@
             </svg>
           </span>
           材料库
+        </NuxtLink>
+        <NuxtLink
+          v-if="isAdmin"
+          to="/admin/rbac"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors"
+          exact-active-class="bg-[#E6F7FF] text-[#45a6d5]"
+        >
+          <span>
+            <svg
+              t="1774602114049"
+              class="icon"
+              viewBox="0 0 1024 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              p-id="4798"
+              width="24"
+              height="24"
+            >
+              <path
+                d="M120.888889 163.555556h782.222222v412.444444H120.888889z"
+                fill="#5CBAEA"
+                p-id="4799"
+              ></path>
+              <path
+                d="M874.666667 746.666667H149.333333c-31.288889 0-56.888889-25.6-56.888889-56.888889V604.444444h839.111112v85.333334c0 31.288889-25.6 56.888889-56.888889 56.888889zM611.555556 750.222222l71.111111 163.555556H341.333333l71.111111-163.555556z"
+                fill="#FFFFFF"
+                p-id="4800"
+              ></path>
+              <path
+                d="M504.888889 675.555556m-28.444445 0a28.444444 28.444444 0 1 0 56.888889 0 28.444444 28.444444 0 1 0-56.888889 0Z"
+                fill="#194F82"
+                p-id="4801"
+              ></path>
+              <path
+                d="M903.111111 106.666667H120.888889c-31.288889 0-56.888889 25.6-56.888889 56.888889v554.666666c0 31.288889 25.6 56.888889 56.888889 56.888889h245.333333l-42.666666 85.333333H263.111111c-15.644444 0-28.444444 12.8-28.444444 28.444445s12.8 28.444444 28.444444 28.444444h497.066667c15.644444 0 28.444444-12.8 28.444444-28.444444s-12.8-28.444444-28.444444-28.444445h-60.444445l-42.666666-85.333333H903.111111c31.288889 0 56.888889-25.6 56.888889-56.888889V163.555556c0-31.288889-25.6-56.888889-56.888889-56.888889z m0 611.555555H120.888889V632.888889h782.222222v85.333333z m-266.666667 142.222222h-248.888888l42.666666-85.333333h164.266667l41.955555 85.333333zM120.888889 576V163.555556h782.222222v412.444444H120.888889z"
+                fill="#194F82"
+                p-id="4802"
+              ></path>
+              <path
+                d="M931.555556 731.022222l-199.111112 169.955556-199.111111-169.955556V525.511111l199.111111-59.022222 199.111112 59.022222z"
+                fill="#FFC10D"
+                p-id="4803"
+              ></path>
+              <path
+                d="M732.444444 910.222222c-19.911111 0-40.533333-7.111111-56.177777-20.622222l-142.222223-120.888889c-18.488889-15.644444-29.155556-38.4-29.155555-61.866667V565.333333c0-36.266667 24.177778-68.266667 60.444444-78.933333l142.222223-41.955556c16.355556-4.977778 33.422222-4.977778 49.777777 0l142.222223 41.955556c36.266667 10.666667 60.444444 41.955556 60.444444 78.933333v141.511111c0 23.466667-10.666667 46.222222-29.155556 61.866667l-142.222222 120.888889c-15.644444 13.511111-36.266667 20.622222-56.177778 20.622222z m0-413.155555c-2.844444 0-5.688889 0.711111-8.533333 1.422222l-142.222222 41.955555c-12.088889 3.555556-19.911111 13.511111-19.911111 24.888889v141.511111c0 7.111111 3.555556 14.222222 9.244444 19.2l142.222222 120.888889c10.666667 9.244444 27.733333 9.244444 38.4 0l142.222223-120.888889c5.688889-4.977778 9.244444-12.088889 9.244444-19.2V565.333333c0-11.377778-7.822222-21.333333-19.911111-24.888889l-142.222222-41.955555c-2.844444-1.422222-5.688889-1.422222-8.533334-1.422222z"
+                fill="#194F82"
+                p-id="4804"
+              ></path>
+              <path
+                d="M789.333333 694.044444h-28.444444v-14.222222c0-1.422222 0-2.133333-0.711111-3.555555 25.6-12.088889 43.377778-36.977778 43.377778-66.844445 0-40.533333-33.422222-73.244444-74.666667-73.244444S654.222222 568.888889 654.222222 609.422222c0 32 20.622222 59.022222 49.777778 68.977778v113.066667c0 15.644444 12.8 27.733333 28.444444 27.733333s28.444444-12.8 28.444445-27.733333v-41.955556h28.444444c15.644444 0 28.444444-12.8 28.444445-27.733333 0-14.933333-12.8-27.733333-28.444445-27.733334z m-60.444444-101.688888c9.955556 0 17.777778 7.822222 17.777778 17.777777s-7.822222 17.777778-17.777778 17.777778-17.777778-7.822222-17.777778-17.777778 7.822222-17.777778 17.777778-17.777777z"
+                fill="#194F82"
+                p-id="4805"
+              ></path>
+            </svg>
+          </span>
+          权限管理
         </NuxtLink>
       </nav>
 
@@ -526,10 +592,35 @@
             class="text-sm font-bold text-slate-500 hover:text-[#45a6d5]"
             >返回前台 ↗</NuxtLink
           >
-          <div
-            class="w-10 h-10 bg-[#AEE2F9] rounded-full flex items-center justify-center text-white font-black shadow-sm"
-          >
-            {{ user?.email?.[0].toUpperCase() || "A" }}
+          
+          <div class="relative group">
+            <div
+              class="w-10 h-10 bg-[#AEE2F9] rounded-full flex items-center justify-center text-white font-black shadow-sm cursor-pointer"
+            >
+              {{ user?.email?.[0].toUpperCase() || "A" }}
+            </div>
+            
+            <!-- 悬浮下拉菜单 -->
+            <div class="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-lg border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden">
+              <div class="p-3 border-b border-slate-100">
+                <div class="text-xs font-black text-slate-800 truncate">{{ user?.email }}</div>
+                <div class="text-[10px] text-slate-500 mt-0.5">当前角色: {{ role }}</div>
+              </div>
+              <div class="p-2">
+                <button
+                  @click="switchUser"
+                  class="w-full text-left px-3 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-[#45a6d5] rounded-xl transition-colors"
+                >
+                  切换账号
+                </button>
+                <button
+                  @click="logout"
+                  class="w-full text-left px-3 py-2 text-sm font-bold text-rose-500 hover:bg-rose-50 rounded-xl transition-colors mt-1"
+                >
+                  退出登录
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -555,6 +646,7 @@ const pageTitle = computed(() => {
   if (route.path.includes("/members")) return "军团成员管理";
   if (route.path.includes("/tabs")) return "Tab 菜单配置";
   if (route.path.includes("/ai")) return "AI 分析模型配置";
+  if (route.path.includes("/rbac")) return "权限管理";
   if (route.path.includes("/cost-calculator")) return "装备造价配置";
   if (route.path.includes("/calculator")) return "装备造价计算";
   if (route.path.includes("/kinah-compare")) return "基纳比价";
@@ -563,14 +655,31 @@ const pageTitle = computed(() => {
   return "管理后台";
 });
 
-// 权限检查：如果没登录，踢出去
-watchEffect(() => {
-  if (!user.value) {
-    router.push("/login");
-  }
+const { role, loaded, fetchRole } = useAdminRole();
+const isAdmin = computed(() => role.value === "admin");
+const {
+  config: rbacConfig,
+  loaded: rbacLoaded,
+  fetchConfig: fetchRbacConfig,
+} = useAdminRbacConfig();
+
+const canView = (path) => {
+  if (isAdmin.value) return true;
+  const allowed = new Set(rbacConfig.value.user.allowedPages || []);
+  return allowed.has(path);
+};
+
+onMounted(() => {
+  if (!loaded.value) fetchRole();
+  if (!rbacLoaded.value) fetchRbacConfig();
 });
 
 const logout = async () => {
+  await supabase.auth.signOut();
+  router.push("/login");
+};
+
+const switchUser = async () => {
   await supabase.auth.signOut();
   router.push("/login");
 };
