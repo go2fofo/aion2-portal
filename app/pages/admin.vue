@@ -1,7 +1,7 @@
 <!--
  * @Author: whq
  * @Date: 2026-02-11 09:53:45
- * @LastEditTime: 2026-03-27 17:08:11
+ * @LastEditTime: 2026-03-27 17:58:01
  * @LastEditors: whq
  * @Description: 
  * @FilePath: /aion2-portal/app/pages/admin.vue
@@ -18,7 +18,7 @@
         >
           A
         </div>
-        <span class="font-black text-slate-800 text-lg">军团控制台</span>
+        <span class="font-black text-slate-800 text-lg">AION2宝宝巴士军团</span>
       </div>
 
       <nav class="flex-1 p-4 space-y-1 overflow-y-auto custom-scroll">
