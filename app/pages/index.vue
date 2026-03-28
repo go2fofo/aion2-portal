@@ -674,6 +674,12 @@ watchEffect(() => {
   }
 })
 
+const { role, loaded: roleLoaded, fetchRole } = useAdminRole()
+const effectiveRole = computed(() => {
+  if (role.value === "admin") return "admin"
+  return "user"
+})
+
 // Tab 标签页配置 (改用异步数据)
 const tabs = ref([])
 // 默认占位 Tab
@@ -689,10 +695,29 @@ const defaultTabs = [
   { id: 'join', name: '入团手续', hidden: false }
 ]
 
-const activeTab = useState('homeActiveTab', () => 'news')
+const activeTab = useState('homeActiveTab', () => '')
 const showMobileMenu = ref(false)
 
-const visibleTabs = computed(() => tabs.value.filter(t => !t.hidden))
+const userAllowedTabIds = new Set(["news", "fresh", "cost", "kinah", "members","search"])
+
+const visibleTabs = computed(() => {
+  const base = tabs.value.filter((t) => !t.hidden)
+  if (effectiveRole.value === "admin") return base
+  return base.filter((t) => userAllowedTabIds.has(t.id))
+})
+
+watchEffect(() => {
+  if (process.client && user.value && !roleLoaded.value) {
+    fetchRole()
+  }
+})
+
+watchEffect(() => {
+  const ids = new Set(visibleTabs.value.map((t) => t.id))
+  if (!ids.has(activeTab.value)) {
+    activeTab.value = visibleTabs.value[0]?.id || "news"
+  }
+})
 
 // 悬浮按钮拖拽逻辑
 const floatingBtnRef = ref(null)
