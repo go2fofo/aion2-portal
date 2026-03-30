@@ -84,9 +84,6 @@
                       <path d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
-                  <div v-if="!user" class="w-full md:w-auto px-6 py-3 bg-slate-100 text-slate-400 rounded-xl font-black text-sm text-center flex items-center justify-center border-2 border-slate-200 mt-2">
-                    登录后可记录历史
-                  </div>
                 </div>
               </div>
               <p
@@ -143,12 +140,9 @@
                     <span> 点击加载</span>
                   </div>
                 </button>
-                  <div v-if="!user" class="w-full md:w-auto px-6 py-3 bg-slate-100 text-slate-400 rounded-xl font-black text-sm text-center flex items-center justify-center border-2 border-slate-200 mt-2">
-                    登录后可记录历史
-                  </div>
-                </div>
               </div>
             </div>
+          </div>
         </div>
       </div>
     </div>
@@ -330,6 +324,35 @@
                 >
                   使用
                 </button>
+              </div>
+            </div>
+            <div
+              class="bg-white px-5 py-3 rounded-2xl border-2 border-slate-100 flex flex-col gap-2 shadow-sm w-full md:w-auto"
+            >
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-black text-slate-700 whitespace-nowrap">当前存量基纳</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="relative">
+                    <input
+                      type="number"
+                      v-model.number="kinahStockW"
+                      min="0"
+                      step="0.0001"
+                      inputmode="decimal"
+                      placeholder="0"
+                      class="w-28 px-3 py-2 bg-white border-2 border-slate-100 rounded-xl text-right font-mono text-base font-black text-slate-700 focus:border-[#45a6d5] focus:bg-white outline-none transition-all pr-9"
+                    />
+                    <span
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"
+                      >万</span
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="text-[10px] font-bold text-slate-400">
+                约 {{ formatNumber(kinahStockKinah) }} 基纳（公开状态不保存）
               </div>
             </div>
             <button
@@ -556,6 +579,19 @@
                 <div class="text-[10px] font-black text-emerald-400 mt-1">
                   {{ formatNumber(totalKinahCost) }} 基纳
                 </div>
+                <div class="mt-2 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">当前存量</div>
+                    <div class="text-xs font-mono font-black text-slate-700">{{ formatNumber(kinahStockKinah) }}</div>
+                  </div>
+                  <div class="flex items-center justify-between gap-3 mt-1">
+                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">需补充</div>
+                    <div class="text-xs font-mono font-black text-rose-600">{{ formatNumber(needSupplementKinah) }}</div>
+                  </div>
+                  <div class="text-[10px] font-bold text-slate-400 mt-1">
+                    约 ¥ {{ needSupplementRmb }}
+                  </div>
+                </div>
               </div>
 
               <div class="flex flex-col gap-2 shrink-0 w-full md:w-auto">
@@ -716,6 +752,46 @@
         </div>
       </div>
     </Transition>
+    <!-- 另存为确认弹窗 -->
+    <Transition name="modal">
+      <div
+        v-if="showOverwriteModal"
+        class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      >
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="showOverwriteModal = false"></div>
+        <div class="relative z-10 w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 text-center">
+          <div class="w-16 h-16 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-2xl">📝</span>
+          </div>
+          <h4 class="font-black text-slate-800 text-lg mb-2">更新保存记录</h4>
+          <p class="text-sm text-slate-500 font-bold mb-6">
+            检测到您正在修改已保存的计算记录，您要覆盖原记录，还是另存为一条新记录？
+          </p>
+          <div class="flex flex-col gap-3">
+            <button
+              @click="confirmSave(false)"
+              :disabled="saving"
+              class="w-full py-3 bg-[#45a6d5] text-white rounded-xl font-black shadow-md hover:bg-[#3b95c0] transition-all"
+            >
+              覆盖当前记录
+            </button>
+            <button
+              @click="confirmSave(true)"
+              :disabled="saving"
+              class="w-full py-3 bg-slate-800 text-white rounded-xl font-black shadow-md hover:bg-slate-700 transition-all"
+            >
+              另存为新记录
+            </button>
+            <button
+              @click="showOverwriteModal = false"
+              class="w-full py-3 bg-slate-100 text-slate-500 rounded-xl font-black hover:bg-slate-200 transition-all"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -731,6 +807,9 @@ const loadingSaved = ref(false);
 const recording = ref(false);
 const saving = ref(false);
 const showSaveModal = ref(false);
+const showOverwriteModal = ref(false);
+const currentLoadedSavedId = ref(null);
+const pendingSavePayload = ref(null);
 const saveRemark = ref("");
 const savedView = ref(user.value ? "mine" : "public");
 
@@ -749,9 +828,11 @@ const selectedCategory = ref("全部");
 const selectedEq = ref(null);
 
 const kinahRate = ref(0);
+const kinahStockW = ref(0);
 const userPrices = ref({});
 const userOwned = ref({});
 const savedList = ref([]);
+const localPublicSavedList = ref([]);
 const bestCompareRate = ref(null);
 const bestComparePlatform = ref("");
 
@@ -791,6 +872,23 @@ const totalKinahCost = computed(() => {
 const totalRmbCost = computed(() => {
   if (!kinahRate.value || kinahRate.value <= 0) return 0;
   return (totalKinahCost.value / (kinahRate.value * 10000)).toFixed(2);
+});
+
+const kinahStockKinah = computed(() => {
+  const v = Number(kinahStockW.value);
+  if (!Number.isFinite(v) || v <= 0) return 0;
+  return v * 10000;
+});
+
+const needSupplementKinah = computed(() => {
+  const need = totalKinahCost.value - kinahStockKinah.value;
+  if (!Number.isFinite(need) || need <= 0) return 0;
+  return need;
+});
+
+const needSupplementRmb = computed(() => {
+  if (!kinahRate.value || kinahRate.value <= 0) return 0;
+  return (needSupplementKinah.value / (kinahRate.value * 10000)).toFixed(2);
 });
 
 const fullMarketValue = computed(() => {
@@ -856,7 +954,14 @@ const fetchSaved = async () => {
   const { data, error } = await q;
 
   if (error) console.error("Fetch saved failed:", error);
-  else savedList.value = data || [];
+  else {
+    const remote = data || [];
+    if (savedView.value === "public") {
+      savedList.value = [...localPublicSavedList.value, ...remote];
+    } else {
+      savedList.value = remote;
+    }
+  }
   loadingSaved.value = false;
 };
 
@@ -868,6 +973,7 @@ const clearCurrent = (withConfirm) => {
     if (!ok) return;
   }
   selectedEq.value = null;
+  currentLoadedSavedId.value = null;
   userPrices.value = {};
   userOwned.value = {};
   showSaveModal.value = false;
@@ -880,6 +986,7 @@ const selectEquipment = (eq) => {
   if (selectedEq.value) {
     const ok = confirm("切换装备会清空当前已输入的单价/持有量，确定切换吗？");
     if (!ok) return;
+    currentLoadedSavedId.value = null;
     userPrices.value = {};
     userOwned.value = {};
   }
@@ -928,27 +1035,82 @@ const handleSave = async (isPublic) => {
     $alert("提示", "请先填写当前基纳汇率");
     return;
   }
+  const payload = {
+    equipment_id: selectedEq.value.id,
+    equipment_name: selectedEq.value.name,
+    remark: saveRemark.value,
+    kinah_rate: kinahRate.value,
+    user_prices: userPrices.value,
+    user_owned: userOwned.value,
+    total_kinah: needSupplementKinah.value,
+    total_rmb: parseFloat(String(needSupplementRmb.value || 0)),
+    actual_total_kinah: totalKinahCost.value,
+    actual_total_rmb: parseFloat(String(totalRmbCost.value || 0)),
+    kinah_stock_w: Number(kinahStockW.value || 0),
+    kinah_stock_kinah: kinahStockKinah.value,
+  };
+
+  if (isPublic) {
+    localPublicSavedList.value = [
+      {
+        ...payload,
+        id: `local_${Date.now()}`,
+        is_public: true,
+        user_id: null,
+        created_at: new Date().toISOString(),
+      },
+      ...localPublicSavedList.value,
+    ].slice(0, 20);
+
+    savedView.value = "public";
+    $alert("已生成公开结果", "公开结果不会写入数据库，仅在当前页面展示");
+    showSaveModal.value = false;
+    saveRemark.value = "";
+    fetchSaved();
+    return;
+  }
+
+  if (currentLoadedSavedId.value) {
+    pendingSavePayload.value = payload;
+    showSaveModal.value = false;
+    showOverwriteModal.value = true;
+  } else {
+    executeSavePrivate(payload, false);
+  }
+};
+
+const confirmSave = (isNew) => {
+  if (!pendingSavePayload.value) return;
+  executeSavePrivate(pendingSavePayload.value, !isNew);
+};
+
+const executeSavePrivate = async (payload, overwrite) => {
   saving.value = true;
 
   try {
-    const { error } = await supabase.from("saved_calculations").insert({
-      equipment_id: selectedEq.value.id,
-      equipment_name: selectedEq.value.name,
-      remark: saveRemark.value,
-      kinah_rate: kinahRate.value,
-      user_prices: userPrices.value,
-      user_owned: userOwned.value,
-      total_kinah: totalKinahCost.value,
-      total_rmb: parseFloat(totalRmbCost.value),
-      is_public: isPublic,
-      user_id: user.value.id,
-    });
+    let q = supabase.from("saved_calculations");
+    
+    if (overwrite && currentLoadedSavedId.value) {
+      const { error } = await q.update({
+        ...payload,
+        is_public: false,
+      }).eq("id", currentLoadedSavedId.value);
+      if (error) throw error;
+      $alert("更新成功", "已覆盖原保存记录");
+    } else {
+      const { error } = await q.insert({
+        ...payload,
+        is_public: false,
+        user_id: user.value.id,
+      });
+      if (error) throw error;
+      $alert("保存成功", "已保存为新的记录（仅自己可见）");
+    }
 
-    if (error) throw error;
-
-    $alert("保存成功", isPublic ? "已保存为公开记录（所有用户可见）" : "已保存到我的记录（仅自己可见）");
     showSaveModal.value = false;
+    showOverwriteModal.value = false;
     saveRemark.value = "";
+    pendingSavePayload.value = null;
     fetchSaved();
   } catch (err) {
     $alert("保存失败", err.message);
@@ -966,6 +1128,9 @@ const loadSaved = (item) => {
 
   selectedEq.value = eq;
   kinahRate.value = item.kinah_rate;
+  kinahStockW.value = Number(item.kinah_stock_w || 0);
+  currentLoadedSavedId.value = item.id;
+  saveRemark.value = item.remark || "";
   userPrices.value = { ...item.user_prices };
   userOwned.value = { ...item.user_owned };
   $alert("加载成功", `已恢复：${item.equipment_name}`);

@@ -715,7 +715,7 @@ watchEffect(() => {
 watchEffect(() => {
   const ids = new Set(visibleTabs.value.map((t) => t.id))
   if (!ids.has(activeTab.value)) {
-    activeTab.value = visibleTabs.value[0]?.id || "news"
+    activeTab.value = visibleTabs.value[0]?.id || ""
   }
 })
 
