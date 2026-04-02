@@ -1,4 +1,7 @@
 <script setup>
+import { computed } from 'vue'
+import { formatCombatPower } from '~/utils/formatCombatPower'
+
 const props = defineProps({
   member: {
     type: Object,
@@ -15,6 +18,15 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['sync'])
+
+const combatPower = computed(() => {
+  return (
+    props.member?.combat_power ??
+    props.member?.combatPower ??
+    props.member?.equipment_data?.raw_info?.profile?.combatPower ??
+    props.member?.equipment_data?.profile?.combatPower
+  )
+})
 
 const onSync = () => {
   emit('sync')
@@ -91,6 +103,13 @@ const onSync = () => {
             <div>
               <div class="text-[10px] text-slate-400 font-black uppercase leading-none mb-1">装等</div>
               <div class="text-yellow-600 font-black text-xs">{{ member.item_level || 'N/A' }}</div>
+            </div>
+          </div>
+          <div class="bg-white/80 p-3 rounded-2xl border-2 border-emerald-100 shadow-sm flex items-center gap-3">
+            <span class="text-xl bg-emerald-50 p-2 rounded-xl">💥</span>
+            <div>
+              <div class="text-[10px] text-slate-400 font-black uppercase leading-none mb-1">战斗力</div>
+              <div class="text-emerald-700 font-black text-xs">{{ formatCombatPower(combatPower) }}</div>
             </div>
           </div>
           <div class="bg-white/80 p-3 rounded-2xl border-2 border-pink-100 shadow-sm flex items-center gap-3">

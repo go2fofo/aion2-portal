@@ -97,6 +97,7 @@ const fetchPreviewData = async () => {
         class_name: res.data.profile.className,
         level: res.data.profile.level,
         item_level: res.data.profile.itemLevel,
+        combat_power: res.data.profile.combatPower || res.data.raw_info?.profile?.combatPower,
         profile_url: res.data.profile.profileImage,
         title_name: res.data.profile.titleName,
         title_list: res.data.raw_info?.title?.titleList || [],

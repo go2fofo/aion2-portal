@@ -1,5 +1,6 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
+import { getServersByRace } from '~/utils/aionServers'
 const supabase = useSupabaseClient()
 const { $alert, $confirm, $loading } = useNuxtApp()
 
@@ -8,6 +9,14 @@ const loading = ref(false)
 const searching = ref(false)
 const searchQuery = ref('')
 const searchResults = ref([])
+const searchRaceId = ref(2)
+const searchServerId = ref(2015)
+const searchServerOptions = computed(() => getServersByRace(searchRaceId.value))
+
+watch(searchRaceId, () => {
+  const list = searchServerOptions.value
+  searchServerId.value = list[0]?.serverId || (searchRaceId.value === 1 ? 1001 : 2001)
+})
 const members = ref([])
 const showAddModal = ref(false)
 const showBulkModal = ref(false)
@@ -156,7 +165,7 @@ const handleSearch = async () => {
   
   try {
     const data = await $fetch('/api/aion/search', {
-      params: { keyword: searchQuery.value }
+      query: { keyword: searchQuery.value, race: searchRaceId.value, serverId: searchServerId.value, page: 1, size: 30 }
     })
     
     // API 返回结构如果是直接数组 [...]
@@ -245,6 +254,7 @@ const addMember = async (char) => {
         newMember.title_id = detail.profile.titleId
         newMember.title_grade = detail.profile.titleGrade
         newMember.race_name = detail.profile.raceName
+        newMember.combat_power = detail.profile.combatPower
 
         // 存储复杂数据结构 (JSONB)
         if (detail.stat && detail.stat.statList) {
@@ -565,7 +575,7 @@ onMounted(() => {
           <div class="relative p-8 pb-4 flex justify-between items-start z-10">
             <div>
               <h3 class="font-black text-2xl text-slate-800 tracking-tight">招募新战友</h3>
-              <p class="text-slate-500 font-medium mt-1">搜索角色名，一键加入军团（搜索功能暂时只支持当前服务器简卡卡）</p>
+              <p class="text-slate-500 font-medium mt-1">选择种族与服务器后搜索角色名，一键加入军团</p>
             </div>
             <button 
               @click="showAddModal = false" 
@@ -579,7 +589,24 @@ onMounted(() => {
 
           <div class="p-8 pt-2 flex-1 flex flex-col min-h-0 z-10">
             <!-- 搜索栏 -->
-            <div class="flex gap-3 mb-6 relative group">
+            <div class="flex flex-col md:flex-row gap-3 mb-6 relative group">
+              <div class="flex gap-3 shrink-0">
+                <select
+                  v-model.number="searchRaceId"
+                  class="px-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700 transition-all"
+                >
+                  <option :value="1">天族</option>
+                  <option :value="2">魔族</option>
+                </select>
+                <select
+                  v-model.number="searchServerId"
+                  class="min-w-[10rem] px-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700 transition-all"
+                >
+                  <option v-for="s in searchServerOptions" :key="s.serverId" :value="s.serverId">
+                    {{ s.serverName }}
+                  </option>
+                </select>
+              </div>
               <div class="relative flex-1">
                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">🔍</span>
                 <input 

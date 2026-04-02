@@ -106,6 +106,7 @@ export default defineEventHandler(async (event) => {
         level: profile.characterLevel || undefined,
         item_level: itemLevel || undefined,
         class_name: profile.className || undefined,
+        combat_power: profile.combatPower || undefined,
         profile_url: profile.profileImage || undefined,
         title_name: profile.titleName || undefined,
         title_list: infoData.title?.titleList || undefined,

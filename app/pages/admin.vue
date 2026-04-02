@@ -1,7 +1,7 @@
 <!--
  * @Author: whq
  * @Date: 2026-02-11 09:53:45
- * @LastEditTime: 2026-03-27 17:58:01
+ * @LastEditTime: 2026-04-02 10:44:11
  * @LastEditors: whq
  * @Description: 
  * @FilePath: /aion2-portal/app/pages/admin.vue
@@ -18,7 +18,7 @@
         >
           A
         </div>
-        <span class="font-black text-slate-800 text-lg">AION2宝宝巴士军团</span>
+        <span class="font-black text-slate-800 text-lg">AION2</span>
       </div>
 
       <nav class="flex-1 p-4 space-y-1 overflow-y-auto custom-scroll">
@@ -495,6 +495,15 @@
         </NuxtLink>
         <NuxtLink
           v-if="isAdmin"
+          to="/admin/dungeon-plans"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors"
+          exact-active-class="bg-[#E6F7FF] text-[#45a6d5]"
+        >
+          <span class="text-xl">🧩</span>
+          副本编排
+        </NuxtLink>
+        <NuxtLink
+          v-if="isAdmin"
           to="/admin/rbac"
           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors"
           exact-active-class="bg-[#E6F7FF] text-[#45a6d5]"
@@ -647,6 +656,7 @@ const pageTitle = computed(() => {
   if (route.path.includes("/tabs")) return "Tab 菜单配置";
   if (route.path.includes("/ai")) return "AI 分析模型配置";
   if (route.path.includes("/rbac")) return "权限管理";
+  if (route.path.includes("/dungeon-plans")) return "副本编排";
   if (route.path.includes("/cost-calculator")) return "装备造价配置";
   if (route.path.includes("/calculator")) return "装备造价计算";
   if (route.path.includes("/kinah-compare")) return "基纳比价";

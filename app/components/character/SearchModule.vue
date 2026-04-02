@@ -1,10 +1,20 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { getServersByRace } from '~/utils/aionServers'
 
 const keyword = ref('')
 const loading = ref(false)
 const results = ref([])
 const searched = ref(false)
+const raceId = ref(2)
+const serverId = ref(2015)
+
+const serverOptions = computed(() => getServersByRace(raceId.value))
+
+watch(raceId, () => {
+  const list = serverOptions.value
+  serverId.value = list[0]?.serverId || (raceId.value === 1 ? 1001 : 2001)
+})
 
 const handleSearch = async () => {
   if (!keyword.value.trim()) return
@@ -13,7 +23,7 @@ const handleSearch = async () => {
   searched.value = true
   try {
     const res = await $fetch('/api/aion/search', {
-      query: { keyword: keyword.value }
+      query: { keyword: keyword.value, race: raceId.value, serverId: serverId.value, page: 1, size: 30 }
     })
     results.value = res.list || []
   } catch (e) {
@@ -50,6 +60,23 @@ const cleanName = (name) => {
   <div class="space-y-8 w-full">
     <!-- 搜索栏 -->
     <div class="bg-white/80 backdrop-blur-sm p-4 md:p-6 rounded-[2.5rem] border-4 border-white shadow-xl flex flex-col md:flex-row gap-4">
+      <div class="flex gap-3 flex-wrap md:flex-nowrap">
+        <select
+          v-model.number="raceId"
+          class="px-4 py-4 rounded-2xl bg-slate-50 border-2 border-slate-50 focus:border-sky-400 focus:bg-white outline-none font-black text-slate-700"
+        >
+          <option :value="1">天族</option>
+          <option :value="2">魔族</option>
+        </select>
+        <select
+          v-model.number="serverId"
+          class="min-w-[10rem] px-4 py-4 rounded-2xl bg-slate-50 border-2 border-slate-50 focus:border-sky-400 focus:bg-white outline-none font-black text-slate-700"
+        >
+          <option v-for="s in serverOptions" :key="s.serverId" :value="s.serverId">
+            {{ s.serverName }}
+          </option>
+        </select>
+      </div>
       <div class="flex-1 relative">
         <input 
           v-model="keyword"
