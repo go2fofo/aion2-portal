@@ -165,6 +165,8 @@
                       <span :class="m.raceId === 1 ? 'text-sky-600' : 'text-rose-600'">{{ m.raceName }}</span>
                       <span class="w-1 h-1 rounded-full bg-slate-300"></span>
                       <span>战 {{ formatCombatPower(m.combatPower) }}</span>
+                      <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+                      <span>评 {{ m.itemLevel || '-' }}</span>
                     </div>
                   </div>
                 </div>
@@ -257,7 +259,7 @@
                   v-model="form.title"
                   type="text"
                   class="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
-                  placeholder="例如：周六要塞 / 龙界本"
+                  placeholder="例如：周六副本/圣域等"
                 />
               </div>
               <div>
@@ -447,6 +449,7 @@
                         <span>{{ m.className }}</span>
                         <span>Lv.{{ m.characterLevel }}</span>
                         <span>战斗力 {{ formatCombatPower(m.combatPower) }}</span>
+                        <span>评分 {{ m.itemLevel || '-' }}</span>
                       </div>
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
@@ -899,6 +902,7 @@ const savePlan = async () => {
           className: m.className,
           characterLevel: m.characterLevel,
           combatPower: m.combatPower,
+          itemLevel: m.itemLevel,
         })),
       })),
     }
@@ -1090,7 +1094,8 @@ const fetchCharacterInfo = async (characterId, serverId) => {
   const detail = await $fetch('/api/aion/info', { params: { characterId, serverId } })
   const profile = detail?.profile
   if (!profile) throw new Error('角色信息不存在')
-  return profile
+  const itemLevel = detail?.stat?.statList?.find((x) => x?.type === 'ItemLevel')?.value
+  return { ...profile, itemLevel }
 }
 
 const addMemberToTeam = (profile) => {
@@ -1119,6 +1124,7 @@ const addMemberToTeam = (profile) => {
     className: profile.className,
     characterLevel: profile.characterLevel,
     combatPower: profile.combatPower,
+    itemLevel: profile.itemLevel,
   })
 
   pickerOpen.value = false
