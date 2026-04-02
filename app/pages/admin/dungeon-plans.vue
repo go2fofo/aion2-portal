@@ -423,57 +423,74 @@
                     添加队员
                   </button>
                 </div>
+                <div class="mt-2 text-[10px] font-bold text-slate-400">
+                  点击队员可与其他队伍的队员交换位置
+                  <span v-if="selectedSwap"
+                    >（已选：{{ selectedSwap.name }}，再点一个队员即可交换）</span
+                  >
+                </div>
 
                 <div v-if="t.members.length === 0" class="py-8 text-center text-slate-400 font-bold">
                   暂无队员
                 </div>
 
-                <div v-else class="space-y-2 mt-3">
+                <div class="space-y-2 mt-3">
                   <div
-                    v-for="(m, mIndex) in t.members"
-                    :key="m.key"
-                    class="p-3 rounded-2xl border border-slate-100 bg-white flex flex-col md:flex-row md:items-center justify-between gap-3"
+                    v-for="slotIndex in 4"
+                    :key="`slot_${t.id}_${slotIndex}`"
+                    class="p-3 rounded-2xl border bg-white flex flex-col md:flex-row md:items-center justify-between gap-3"
+                    :class="slotMember(t, slotIndex - 1) ? (isSelectedSwap(tIndex, slotIndex - 1) ? 'ring-2 ring-sky-300 border-sky-200 bg-sky-50/30 cursor-pointer' : 'border-slate-100 hover:border-sky-200 hover:shadow-sm cursor-pointer') : 'border-dashed border-slate-200 bg-slate-50/40'"
+                    @click="slotMember(t, slotIndex - 1) ? onSwapClick(tIndex, slotIndex - 1) : openPicker(tIndex)"
                   >
-                    <div class="min-w-0">
-                      <div class="flex items-center gap-2 flex-wrap">
-                        <div class="font-black text-slate-800">{{ m.characterName }}</div>
-                        <span class="text-[10px] font-black bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">{{ m.serverName }}</span>
-                        <span
-                          class="text-[10px] font-black px-2 py-1 rounded-lg"
-                          :class="m.raceId === 1 ? 'bg-sky-50 text-sky-600' : 'bg-rose-50 text-rose-600'"
+                    <template v-if="slotMember(t, slotIndex - 1)">
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <div class="font-black text-slate-800">{{ slotMember(t, slotIndex - 1).characterName }}</div>
+                          <span class="text-[10px] font-black bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">{{ slotMember(t, slotIndex - 1).serverName }}</span>
+                          <span
+                            class="text-[10px] font-black px-2 py-1 rounded-lg"
+                            :class="slotMember(t, slotIndex - 1).raceId === 1 ? 'bg-sky-50 text-sky-600' : 'bg-rose-50 text-rose-600'"
+                          >
+                            {{ slotMember(t, slotIndex - 1).raceName }}
+                          </span>
+                        </div>
+                        <div class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+                          <span>{{ slotMember(t, slotIndex - 1).className }}</span>
+                          <span>Lv.{{ slotMember(t, slotIndex - 1).characterLevel }}</span>
+                          <span>战斗力 {{ formatCombatPower(slotMember(t, slotIndex - 1).combatPower) }}</span>
+                          <span>评分 {{ slotMember(t, slotIndex - 1).itemLevel || '-' }}</span>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2 shrink-0">
+                        <button
+                          class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-black text-xs hover:bg-slate-200 transition-colors disabled:opacity-50"
+                          :disabled="slotIndex - 1 === 0"
+                          @click.stop="moveMember(tIndex, slotIndex - 1, -1)"
                         >
-                          {{ m.raceName }}
-                        </span>
+                          上移
+                        </button>
+                        <button
+                          class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-black text-xs hover:bg-slate-200 transition-colors disabled:opacity-50"
+                          :disabled="slotIndex - 1 === (t.members.length - 1)"
+                          @click.stop="moveMember(tIndex, slotIndex - 1, 1)"
+                        >
+                          下移
+                        </button>
+                        <button
+                          class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 font-black text-xs hover:bg-rose-100 transition-colors"
+                          @click.stop="removeMember(tIndex, slotIndex - 1)"
+                        >
+                          移除
+                        </button>
                       </div>
-                      <div class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
-                        <span>{{ m.className }}</span>
-                        <span>Lv.{{ m.characterLevel }}</span>
-                        <span>战斗力 {{ formatCombatPower(m.combatPower) }}</span>
-                        <span>评分 {{ m.itemLevel || '-' }}</span>
+                    </template>
+                    <template v-else>
+                      <div class="min-w-0">
+                        <div class="font-black text-slate-400">空位 {{ slotIndex }}</div>
+                        <div class="text-xs font-bold text-slate-400 mt-1">点击添加/替换队员</div>
                       </div>
-                    </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                      <button
-                        class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-black text-xs hover:bg-slate-200 transition-colors disabled:opacity-50"
-                        :disabled="mIndex === 0"
-                        @click="moveMember(tIndex, mIndex, -1)"
-                      >
-                        上移
-                      </button>
-                      <button
-                        class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-black text-xs hover:bg-slate-200 transition-colors disabled:opacity-50"
-                        :disabled="mIndex === t.members.length - 1"
-                        @click="moveMember(tIndex, mIndex, 1)"
-                      >
-                        下移
-                      </button>
-                      <button
-                        class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 font-black text-xs hover:bg-rose-100 transition-colors"
-                        @click="removeMember(tIndex, mIndex)"
-                      >
-                        移除
-                      </button>
-                    </div>
+                      <div class="text-xs font-black text-sky-600 shrink-0">添加 →</div>
+                    </template>
                   </div>
                 </div>
               </div>
@@ -1016,6 +1033,45 @@ const removeMember = (tIndex, mIndex) => {
   const team = form.value.teams[tIndex]
   if (!team) return
   team.members.splice(mIndex, 1)
+}
+
+const selectedSwap = ref(null)
+
+const slotMember = (team, index) => {
+  return team?.members?.[index] || null
+}
+
+const isSelectedSwap = (tIndex, mIndex) => {
+  return !!selectedSwap.value && selectedSwap.value.tIndex === tIndex && selectedSwap.value.mIndex === mIndex
+}
+
+const onSwapClick = (tIndex, mIndex) => {
+  const team = form.value.teams[tIndex]
+  const member = team?.members?.[mIndex]
+  if (!team || !member) return
+
+  if (!selectedSwap.value) {
+    selectedSwap.value = { tIndex, mIndex, name: member.characterName }
+    return
+  }
+
+  if (selectedSwap.value.tIndex === tIndex && selectedSwap.value.mIndex === mIndex) {
+    selectedSwap.value = null
+    return
+  }
+
+  const aTeam = form.value.teams[selectedSwap.value.tIndex]
+  const bTeam = form.value.teams[tIndex]
+  if (!aTeam?.members?.[selectedSwap.value.mIndex] || !bTeam?.members?.[mIndex]) {
+    selectedSwap.value = null
+    return
+  }
+
+  const tmp = aTeam.members[selectedSwap.value.mIndex]
+  aTeam.members[selectedSwap.value.mIndex] = bTeam.members[mIndex]
+  bTeam.members[mIndex] = tmp
+
+  selectedSwap.value = null
 }
 
 const pickerOpen = ref(false)
