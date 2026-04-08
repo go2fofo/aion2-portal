@@ -256,11 +256,28 @@
         <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
         <div class="relative z-10 w-full max-w-5xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
           <div class="p-6 border-b border-slate-100 flex items-center justify-between gap-4">
-            <div class="min-w-0">
-              <div class="font-black text-slate-800 text-lg">{{ editingId ? '编辑计划' : '新建计划' }}</div>
-              <div class="text-[10px] font-bold text-slate-400 mt-1 truncate">{{ editingId || '' }}</div>
+            <div class="min-w-0 flex items-center gap-4">
+              <div>
+                <div class="font-black text-slate-800 text-lg">{{ editingId ? '编辑计划' : '新建计划' }}</div>
+                <div v-if="editingId" class="text-[10px] font-bold text-slate-400 mt-1 truncate">{{ editingId }}</div>
+              </div>
+              <div v-if="selectedSwap" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-50 border border-sky-100 animate-pulse shrink-0">
+                <div class="w-2 h-2 rounded-full bg-sky-500"></div>
+                <div class="text-[11px] font-black text-sky-700 truncate max-w-[120px]">正在移动: {{ selectedSwap.name }}</div>
+                <button @click="selectedSwap = null" class="ml-1 p-0.5 rounded-full hover:bg-sky-200 text-sky-400 hover:text-sky-600 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+              </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
+              <button
+                @click="addGroup"
+                class="px-4 py-2 rounded-xl bg-slate-800 text-white font-black text-sm hover:bg-slate-700 transition-colors shadow-sm"
+                :class="{ 'opacity-20 pointer-events-none': selectedSwap }"
+              >
+                添加组
+              </button>
+              <div class="w-px h-8 bg-slate-100 mx-1"></div>
               <button
                 class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors"
                 @click="editorOpen = false"
@@ -374,23 +391,7 @@
             </div>
 
             <div class="flex items-center justify-between gap-4">
-              <div class="flex items-center gap-3">
-                <div class="font-black text-slate-800">编排组</div>
-                <div v-if="selectedSwap" class="flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 border border-sky-100 animate-pulse">
-                  <div class="w-2 h-2 rounded-full bg-sky-500"></div>
-                  <div class="text-[10px] font-black text-sky-700">正在移动: {{ selectedSwap.name }} (点击目标位置或取消)</div>
-                  <button @click="selectedSwap = null" class="ml-1 text-sky-400 hover:text-sky-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                  </button>
-                </div>
-              </div>
-              <button
-                @click="addGroup"
-                class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-black text-sm hover:bg-slate-200 transition-colors"
-                :class="{ 'opacity-20 pointer-events-none': selectedSwap }"
-              >
-                添加组
-              </button>
+              <div class="font-black text-slate-800">编排组</div>
             </div>
 
             <div class="space-y-8">
