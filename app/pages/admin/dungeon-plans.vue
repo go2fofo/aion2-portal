@@ -271,23 +271,31 @@
             </div>
             <div class="flex items-center gap-2 shrink-0">
               <button
+                v-if="selectedSwap"
+                @click="selectedSwap = null"
+                class="px-4 py-2 rounded-xl bg-rose-500 text-white font-black text-sm hover:bg-rose-600 transition-colors shadow-sm animate-in fade-in zoom-in duration-200"
+              >
+                取消选中
+              </button>
+              <button
+                v-else
                 @click="addGroup"
                 class="px-4 py-2 rounded-xl bg-slate-800 text-white font-black text-sm hover:bg-slate-700 transition-colors shadow-sm"
-                :class="{ 'opacity-20 pointer-events-none': selectedSwap }"
               >
                 添加组
               </button>
               <div class="w-px h-8 bg-slate-100 mx-1"></div>
               <button
-                class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors"
+                class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 @click="editorOpen = false"
+                :disabled="!!selectedSwap"
               >
                 关闭
               </button>
               <button
                 class="px-5 py-2 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 @click="savePlan"
-                :disabled="saving"
+                :disabled="saving || !!selectedSwap"
               >
                 {{ saving ? '保存中...' : '保存' }}
               </button>
