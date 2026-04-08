@@ -75,7 +75,7 @@
                   </span>
                 </div>
                 <div class="text-xs font-bold text-slate-500 mt-1">
-                  {{ formatDateTime(p.start_at) }} · {{ (p.teams || []).length }} 队
+                  {{ formatDateTime(p.start_at) }} · {{ (p.groups || []).length }} 组 · {{ (p.groups || []).reduce((acc, g) => acc + (g.teams || []).length, 0) }} 队
                 </div>
                 <div v-if="p.completed_at" class="text-[10px] font-bold text-slate-400 mt-1">
                   完成时间：{{ formatDateTime(p.completed_at) }}
@@ -123,54 +123,65 @@
                 #{{ tag }}
               </span>
             </div>
-            <div v-if="(p.teams || []).length" class="mt-4 space-y-3">
+            <div v-if="(p.groups || []).length" class="mt-4 space-y-4">
               <div
-                v-for="(t, tIndex) in (p.teams || [])"
-                :key="t.id || `${p.id}_${tIndex}`"
-                class="p-4 rounded-2xl bg-white/70 border border-slate-100"
+                v-for="(g, gIndex) in (p.groups || [])"
+                :key="g.id || `${p.id}_g_${gIndex}`"
+                class="p-4 rounded-2xl bg-slate-50/50 border border-slate-100"
               >
-                <div class="flex items-start justify-between gap-4">
-                  <div class="min-w-0">
-                    <div class="font-black text-slate-800">
-                      {{ t.title || `第${tIndex + 1}队` }}
-                    </div>
-                    <div class="text-xs font-bold text-slate-500 mt-1">
-                      {{ t.note || '—' }}
-                    </div>
+                <div class="flex items-center justify-between gap-4 mb-3">
+                  <div class="font-black text-slate-800 text-sm">
+                    {{ g.title || `第${gIndex + 1}组` }}
                   </div>
-                  <div class="text-[10px] font-black bg-white border border-slate-200 text-slate-600 px-2 py-1 rounded-lg shrink-0">
-                    {{ (t.members || []).length }}/4
+                  <div v-if="g.note" class="text-[10px] font-bold text-slate-400">
+                    {{ g.note }}
                   </div>
                 </div>
 
-                <div v-if="(t.members || []).length" class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div
-                    v-for="m in (t.members || [])"
-                    :key="m.key || `${m.characterId}_${m.serverId}`"
+                    v-for="(t, tIndex) in (g.teams || [])"
+                    :key="t.id || `${p.id}_g_${gIndex}_t_${tIndex}`"
                     class="p-3 rounded-xl bg-white border border-slate-100"
                   >
-                    <div class="flex items-center justify-between gap-3">
-                      <div class="font-black text-slate-800 truncate">
-                        {{ m.characterName }}
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                      <div class="font-black text-slate-700 text-xs truncate">
+                        {{ t.title || `第${tIndex + 1}队` }}
                       </div>
-                      <div class="text-[10px] font-black text-slate-500 shrink-0">
-                        Lv.{{ m.characterLevel }}
+                      <div class="text-[10px] font-black text-slate-400">
+                        {{ (t.members || []).length }}/4
                       </div>
                     </div>
-                    <div class="mt-1 text-xs font-bold text-slate-500 flex items-center gap-2 flex-wrap">
-                      <span>{{ m.className }}</span>
-                      <span class="w-1 h-1 rounded-full bg-slate-300"></span>
-                      <span>{{ m.serverName }}</span>
-                      <span class="w-1 h-1 rounded-full bg-slate-300"></span>
-                      <span :class="m.raceId === 1 ? 'text-sky-600' : 'text-rose-600'">{{ m.raceName }}</span>
-                      <span class="w-1 h-1 rounded-full bg-slate-300"></span>
-                      <span>战 {{ formatCombatPower(m.combatPower) }}</span>
-                      <span class="w-1 h-1 rounded-full bg-slate-300"></span>
-                      <span>评 {{ m.itemLevel || '-' }}</span>
+
+                    <div v-if="(t.members || []).length" class="space-y-1.5">
+                      <div
+                        v-for="m in (t.members || [])"
+                        :key="m.key || `${m.characterId}_${m.serverId}`"
+                        class="p-2 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between gap-2"
+                      >
+                        <div class="min-w-0">
+                          <div class="flex items-center gap-2">
+                            <div class="font-black text-slate-800 text-xs truncate">
+                              {{ m.characterName }}
+                            </div>
+                            <span class="text-[8px] font-medium text-slate-400 shrink-0">
+                              ({{ m.raceName }})
+                            </span>
+                          </div>
+                          <div class="text-[9px] font-black text-[#45a6d5] flex items-center gap-1.5 mt-0.5">
+                            <span>战 {{ formatCombatPower(m.combatPower) }}</span>
+                            <span class="w-0.5 h-0.5 rounded-full bg-slate-300"></span>
+                            <span>评 {{ m.itemLevel || '-' }}</span>
+                          </div>
+                          <div class="text-[8px] font-bold text-slate-400 truncate mt-0.5">
+                            {{ m.serverName }} · {{ m.className }} · Lv.{{ m.characterLevel }}
+                          </div>
+                        </div>
+                      </div>
                     </div>
+                    <div v-else class="py-4 text-center text-[10px] text-slate-300 font-bold">暂无队员</div>
                   </div>
                 </div>
-                <div v-else class="mt-3 text-xs text-slate-400 font-bold">暂无队员</div>
               </div>
             </div>
           </div>
@@ -348,149 +359,188 @@
             </div>
 
             <div class="flex items-center justify-between gap-4">
-              <div class="font-black text-slate-800">队伍</div>
+              <div class="font-black text-slate-800">编排组</div>
               <button
-                @click="addTeam"
+                @click="addGroup"
                 class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-black text-sm hover:bg-slate-200 transition-colors"
               >
-                添加队伍
+                添加组
               </button>
             </div>
 
-            <div class="space-y-4">
+            <div class="space-y-8">
               <div
-                v-for="(t, tIndex) in form.teams"
-                :key="t.id"
-                class="p-5 rounded-3xl border border-slate-100 bg-white"
+                v-for="(g, gIndex) in form.groups"
+                :key="g.id"
+                class="p-6 rounded-[2rem] border-2 border-slate-100 bg-slate-50/30"
               >
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                  <div class="flex items-center gap-2">
-                    <div class="font-black text-slate-800">{{ t.title || `第${tIndex + 1}队` }}</div>
-                    <span class="text-[10px] font-black bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">{{ (t.members || []).length }}/4</span>
+                <!-- Group Header -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-black text-sm">
+                      {{ gIndex + 1 }}
+                    </div>
+                    <div class="font-black text-slate-800 text-lg">{{ g.title || `第${gIndex + 1}组` }}</div>
                   </div>
                   <div class="flex items-center gap-2">
                     <button
-                      class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-black text-xs hover:bg-slate-200 transition-colors disabled:opacity-50"
-                      :disabled="tIndex === 0"
-                      @click="moveTeam(tIndex, -1)"
+                      class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 font-black text-xs hover:bg-slate-50 transition-colors disabled:opacity-50"
+                      :disabled="gIndex === 0"
+                      @click="moveGroup(gIndex, -1)"
                     >
                       上移
                     </button>
                     <button
-                      class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-black text-xs hover:bg-slate-200 transition-colors disabled:opacity-50"
-                      :disabled="tIndex === form.teams.length - 1"
-                      @click="moveTeam(tIndex, 1)"
+                      class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 font-black text-xs hover:bg-slate-50 transition-colors disabled:opacity-50"
+                      :disabled="gIndex === form.groups.length - 1"
+                      @click="moveGroup(gIndex, 1)"
                     >
                       下移
                     </button>
                     <button
                       class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 font-black text-xs hover:bg-rose-100 transition-colors"
-                      @click="removeTeam(tIndex)"
+                      @click="removeGroup(gIndex)"
                     >
-                      删除队伍
+                      删除组
                     </button>
                   </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                <!-- Group Fields -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div>
-                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">队伍标题</div>
+                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">组标题</div>
                     <input
-                      v-model="t.title"
+                      v-model="g.title"
                       type="text"
-                      class="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
-                      placeholder="例如：一队/二队/..."
+                      class="w-full px-4 py-3 rounded-2xl bg-white border-2 border-transparent focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all shadow-sm"
+                      placeholder="例如：主队/副队/..."
                     />
                   </div>
                   <div>
-                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">队伍备注</div>
+                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">组备注</div>
                     <input
-                      v-model="t.note"
+                      v-model="g.note"
                       type="text"
-                      class="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
-                      placeholder="例如：缺奶/缺t..."
+                      class="w-full px-4 py-3 rounded-2xl bg-white border-2 border-transparent focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all shadow-sm"
+                      placeholder="组任务说明..."
                     />
                   </div>
                 </div>
 
-                <div class="flex items-center justify-between gap-4 mt-5">
-                  <div class="font-black text-slate-800">队员</div>
+                <!-- Teams within Group -->
+                <div class="flex items-center justify-between gap-4 mb-4">
+                  <div class="text-xs font-black text-slate-500 uppercase tracking-wider">包含队伍（最多 2 队）</div>
                   <button
-                    class="px-4 py-2 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    :disabled="t.members.length >= 4"
-                    @click="openPicker(tIndex)"
+                    v-if="g.teams.length < 2"
+                    @click="addTeamToGroup(gIndex)"
+                    class="px-3 py-1.5 rounded-lg bg-[#45a6d5] text-white font-black text-xs hover:bg-[#3b95c0] transition-colors shadow-sm"
                   >
-                    添加队员
+                    添加队伍
                   </button>
                 </div>
-                <div class="mt-2 text-[10px] font-bold text-slate-400">
-                  点击队员可与其他队伍的队员交换位置
-                  <span v-if="selectedSwap"
-                    >（已选：{{ selectedSwap.name }}，再点一个队员即可交换）</span
-                  >
-                </div>
 
-                <div v-if="t.members.length === 0" class="py-8 text-center text-slate-400 font-bold">
-                  暂无队员
-                </div>
-
-                <div class="space-y-2 mt-3">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div
-                    v-for="slotIndex in 4"
-                    :key="`slot_${t.id}_${slotIndex}`"
-                    class="p-3 rounded-2xl border bg-white flex flex-col md:flex-row md:items-center justify-between gap-3"
-                    :class="slotMember(t, slotIndex - 1) ? (isSelectedSwap(tIndex, slotIndex - 1) ? 'ring-2 ring-sky-300 border-sky-200 bg-sky-50/30 cursor-pointer' : 'border-slate-100 hover:border-sky-200 hover:shadow-sm cursor-pointer') : 'border-dashed border-slate-200 bg-slate-50/40'"
-                    @click="slotMember(t, slotIndex - 1) ? onSwapClick(tIndex, slotIndex - 1) : openPicker(tIndex)"
+                    v-for="(t, tIndex) in g.teams"
+                    :key="t.id"
+                    class="p-5 rounded-3xl border border-slate-100 bg-white shadow-sm"
                   >
-                    <template v-if="slotMember(t, slotIndex - 1)">
-                      <div class="min-w-0">
-                        <div class="flex items-center gap-2 flex-wrap">
-                          <div class="font-black text-slate-800">{{ slotMember(t, slotIndex - 1).characterName }}</div>
-                          <span class="text-[10px] font-black bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">{{ slotMember(t, slotIndex - 1).serverName }}</span>
-                          <span
-                            class="text-[10px] font-black px-2 py-1 rounded-lg"
-                            :class="slotMember(t, slotIndex - 1).raceId === 1 ? 'bg-sky-50 text-sky-600' : 'bg-rose-50 text-rose-600'"
-                          >
-                            {{ slotMember(t, slotIndex - 1).raceName }}
-                          </span>
-                        </div>
-                        <div class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
-                          <span>{{ slotMember(t, slotIndex - 1).className }}</span>
-                          <span>Lv.{{ slotMember(t, slotIndex - 1).characterLevel }}</span>
-                          <span>战斗力 {{ formatCombatPower(slotMember(t, slotIndex - 1).combatPower) }}</span>
-                          <span>评分 {{ slotMember(t, slotIndex - 1).itemLevel || '-' }}</span>
-                        </div>
+                    <div class="flex items-center justify-between gap-3 mb-4">
+                      <div class="flex items-center gap-2">
+                        <div class="font-black text-slate-800 text-sm">{{ t.title || `队伍 ${tIndex + 1}` }}</div>
+                        <span class="text-[10px] font-black bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">
+                          {{ (t.members || []).length }}/4
+                        </span>
                       </div>
-                      <div class="flex items-center gap-2 shrink-0">
+                      <div class="flex items-center gap-1">
                         <button
-                          class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-black text-xs hover:bg-slate-200 transition-colors disabled:opacity-50"
-                          :disabled="slotIndex - 1 === 0"
-                          @click.stop="moveMember(tIndex, slotIndex - 1, -1)"
+                          class="p-1.5 rounded-lg bg-slate-50 text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-30"
+                          :disabled="tIndex === 0"
+                          @click="moveTeamInGroup(gIndex, tIndex, -1)"
                         >
-                          上移
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                         </button>
                         <button
-                          class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-black text-xs hover:bg-slate-200 transition-colors disabled:opacity-50"
-                          :disabled="slotIndex - 1 === (t.members.length - 1)"
-                          @click.stop="moveMember(tIndex, slotIndex - 1, 1)"
+                          class="p-1.5 rounded-lg bg-slate-50 text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-30"
+                          :disabled="tIndex === g.teams.length - 1"
+                          @click="moveTeamInGroup(gIndex, tIndex, 1)"
                         >
-                          下移
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                         </button>
                         <button
-                          class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 font-black text-xs hover:bg-rose-100 transition-colors"
-                          @click.stop="removeMember(tIndex, slotIndex - 1)"
+                          class="p-1.5 rounded-lg bg-rose-50 text-rose-400 hover:text-rose-600 transition-colors ml-1"
+                          @click="removeTeamFromGroup(gIndex, tIndex)"
                         >
-                          移除
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                         </button>
                       </div>
-                    </template>
-                    <template v-else>
-                      <div class="min-w-0">
-                        <div class="font-black text-slate-400">空位 {{ slotIndex }}</div>
-                        <div class="text-xs font-bold text-slate-400 mt-1">点击添加/替换队员</div>
+                    </div>
+
+                    <div class="space-y-3 mb-4">
+                      <input
+                        v-model="t.title"
+                        type="text"
+                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-xs text-slate-700 transition-all"
+                        placeholder="队伍名..."
+                      />
+                    </div>
+
+                    <div class="space-y-2">
+                      <div
+                        v-for="slotIndex in 4"
+                        :key="`slot_${t.id}_${slotIndex}`"
+                        class="p-2.5 rounded-xl border bg-white flex items-center justify-between gap-3 group transition-all"
+                        :class="slotMember(t, slotIndex - 1) ? (isSelectedSwap(gIndex, tIndex, slotIndex - 1) ? 'ring-2 ring-sky-300 border-sky-200 bg-sky-50/30 cursor-pointer' : 'border-slate-100 hover:border-sky-200 hover:shadow-sm cursor-pointer') : 'border-dashed border-slate-200 bg-slate-50/40'"
+                        @click="slotMember(t, slotIndex - 1) ? onSwapClick(gIndex, tIndex, slotIndex - 1) : openPicker(gIndex, tIndex)"
+                      >
+                        <template v-if="slotMember(t, slotIndex - 1)">
+                          <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                              <div class="font-black text-slate-800 text-sm truncate">{{ slotMember(t, slotIndex - 1).characterName }}</div>
+                              <span class="text-[10px] font-medium text-slate-400 shrink-0">({{ slotMember(t, slotIndex - 1).raceName }})</span>
+                            </div>
+                            <div class="text-xs font-black text-[#45a6d5] flex items-center gap-2 mt-0.5">
+                              <span>战 {{ formatCombatPower(slotMember(t, slotIndex - 1).combatPower) }}</span>
+                              <span class="w-1 h-1 rounded-full bg-slate-200"></span>
+                              <span>评 {{ slotMember(t, slotIndex - 1).itemLevel || '-' }}</span>
+                            </div>
+                            <div class="text-[10px] font-bold text-slate-400 mt-0.5 truncate">
+                              {{ slotMember(t, slotIndex - 1).serverName }} · {{ slotMember(t, slotIndex - 1).className }} · Lv.{{ slotMember(t, slotIndex - 1).characterLevel }}
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              class="p-1 rounded-md bg-slate-100 text-slate-500 hover:bg-slate-200 disabled:opacity-30"
+                              :disabled="slotIndex - 1 === 0"
+                              @click.stop="moveMember(gIndex, tIndex, slotIndex - 1, -1)"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                            </button>
+                            <button
+                              class="p-1 rounded-md bg-slate-100 text-slate-500 hover:bg-slate-200 disabled:opacity-30"
+                              :disabled="slotIndex - 1 === (t.members.length - 1)"
+                              @click.stop="moveMember(gIndex, tIndex, slotIndex - 1, 1)"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 9-6 6-6-6"/></svg>
+                            </button>
+                            <button
+                              class="p-1 rounded-md bg-rose-50 text-rose-500 hover:bg-rose-100"
+                              @click.stop="removeMember(gIndex, tIndex, slotIndex - 1)"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                            </button>
+                          </div>
+                        </template>
+                        <template v-else>
+                          <div class="font-black text-slate-300 text-[10px]">空位 {{ slotIndex }}</div>
+                          <div class="text-[10px] font-black text-sky-400 opacity-0 group-hover:opacity-100 transition-opacity">添加 +</div>
+                        </template>
                       </div>
-                      <div class="text-xs font-black text-sky-600 shrink-0">添加 →</div>
-                    </template>
+                    </div>
+                  </div>
+                  <div v-if="g.teams.length === 0" class="lg:col-span-2 py-12 text-center text-slate-300 font-bold border-2 border-dashed border-slate-100 rounded-3xl bg-white/50">
+                    暂无队伍，点击上方按钮添加
                   </div>
                 </div>
               </div>
@@ -695,7 +745,7 @@ const searchText = ref('')
 
 const editorOpen = ref(false)
 const editingId = ref(null)
-const form = ref({ title: '', start_at: '', notes: '', teams: [], is_public: false, tags: [] })
+const form = ref({ title: '', start_at: '', notes: '', groups: [], is_public: false, tags: [] })
 const tagInput = ref('')
 
 const statusOpen = ref(false)
@@ -857,27 +907,53 @@ const fetchPlans = async () => {
 
 const openCreate = () => {
   editingId.value = null
-  form.value = { title: '', start_at: formatLocalInput(roundUpMinutes(new Date(), 60)), notes: '', teams: [], is_public: false, tags: [] }
+  form.value = { title: '', start_at: formatLocalInput(roundUpMinutes(new Date(), 60)), notes: '', groups: [], is_public: false, tags: [] }
   tagInput.value = ''
   editorOpen.value = true
 }
 
 const openEdit = (p) => {
   editingId.value = p.id
+  
+  // 适配旧数据：如果只有 teams 没有 groups，则将 teams 包装到默认组中
+  let groups = []
+  if (Array.isArray(p.groups)) {
+    groups = p.groups.map((g, idx) => ({
+      id: g.id || `group_${idx}_${Date.now()}`,
+      title: g.title || '',
+      note: g.note || '',
+      teams: Array.isArray(g.teams)
+        ? g.teams.map((t, j) => ({
+            id: t.id || `team_${idx}_${j}_${Date.now()}`,
+            title: t.title || '',
+            note: t.note || '',
+            members: Array.isArray(t.members) ? t.members.map((m, k) => ({ ...m, key: m.key || `m_${idx}_${j}_${k}_${Date.now()}` })) : [],
+          }))
+        : [],
+    }))
+  } else if (Array.isArray(p.teams)) {
+    groups = [
+      {
+        id: `group_migrated_${Date.now()}`,
+        title: '默认组',
+        note: '从旧版本迁移',
+        teams: p.teams.map((t, idx) => ({
+          id: t.id || `team_${idx}_${Date.now()}`,
+          title: t.title || '',
+          note: t.note || '',
+          members: Array.isArray(t.members) ? t.members.map((m, j) => ({ ...m, key: m.key || `m_${idx}_${j}_${Date.now()}` })) : [],
+        })),
+      },
+    ]
+  }
+
   form.value = {
     title: p.title || '',
     start_at: toLocalInput(p.start_at),
     notes: p.notes || '',
     is_public: !!p.is_public,
     tags: Array.isArray(p.tags) ? p.tags : [],
-    teams: Array.isArray(p.teams)
-      ? p.teams.map((t, idx) => ({
-          id: t.id || `team_${idx}_${Date.now()}`,
-          title: t.title || '',
-          note: t.note || '',
-          members: Array.isArray(t.members) ? t.members.map((m, j) => ({ ...m, key: m.key || `m_${idx}_${j}_${Date.now()}` })) : [],
-        }))
-      : [],
+    groups,
   }
   tagInput.value = Array.isArray(p.tags) ? p.tags.join(',') : ''
   editorOpen.value = true
@@ -904,22 +980,27 @@ const savePlan = async () => {
       notes: form.value.notes || null,
       is_public: !!form.value.is_public,
       tags: form.value.is_public ? normalizeTags(tagInput.value) : [],
-      teams: (form.value.teams || []).map((t, idx) => ({
-        id: t.id || `team_${idx}_${Date.now()}`,
-        title: t.title || '',
-        note: t.note || '',
-        members: (t.members || []).map((m) => ({
-          key: m.key,
-          characterId: m.characterId,
-          characterName: m.characterName,
-          serverId: m.serverId,
-          serverName: m.serverName,
-          raceId: m.raceId,
-          raceName: m.raceName,
-          className: m.className,
-          characterLevel: m.characterLevel,
-          combatPower: m.combatPower,
-          itemLevel: m.itemLevel,
+      groups: (form.value.groups || []).map((g, idx) => ({
+        id: g.id || `group_${idx}_${Date.now()}`,
+        title: g.title || '',
+        note: g.note || '',
+        teams: (g.teams || []).map((t, j) => ({
+          id: t.id || `team_${idx}_${j}_${Date.now()}`,
+          title: t.title || '',
+          note: t.note || '',
+          members: (t.members || []).map((m) => ({
+            key: m.key,
+            characterId: m.characterId,
+            characterName: m.characterName,
+            serverId: m.serverId,
+            serverName: m.serverName,
+            raceId: m.raceId,
+            raceName: m.raceName,
+            className: m.className,
+            characterLevel: m.characterLevel,
+            combatPower: m.combatPower,
+            itemLevel: m.itemLevel,
+          })),
         })),
       })),
     }
@@ -1002,25 +1083,52 @@ const setStatus = async (status) => {
   }
 }
 
-const addTeam = () => {
-  form.value.teams.push({ id: `team_${Date.now()}`, title: '', note: '', members: [] })
+const addGroup = () => {
+  form.value.groups.push({ id: `group_${Date.now()}`, title: '', note: '', teams: [] })
 }
 
-const removeTeam = (tIndex) => {
-  form.value.teams.splice(tIndex, 1)
+const removeGroup = (gIndex) => {
+  form.value.groups.splice(gIndex, 1)
 }
 
-const moveTeam = (tIndex, delta) => {
+const moveGroup = (gIndex, delta) => {
+  const next = gIndex + delta
+  if (next < 0 || next >= form.value.groups.length) return
+  const arr = form.value.groups
+  const tmp = arr[gIndex]
+  arr[gIndex] = arr[next]
+  arr[next] = tmp
+}
+
+const addTeamToGroup = (gIndex) => {
+  const group = form.value.groups[gIndex]
+  if (!group) return
+  if (group.teams.length >= 2) {
+    $alert('提示', '每组最多只能有 2 个队伍')
+    return
+  }
+  group.teams.push({ id: `team_${Date.now()}`, title: '', note: '', members: [] })
+}
+
+const removeTeamFromGroup = (gIndex, tIndex) => {
+  const group = form.value.groups[gIndex]
+  if (!group) return
+  group.teams.splice(tIndex, 1)
+}
+
+const moveTeamInGroup = (gIndex, tIndex, delta) => {
+  const group = form.value.groups[gIndex]
+  if (!group) return
   const next = tIndex + delta
-  if (next < 0 || next >= form.value.teams.length) return
-  const arr = form.value.teams
+  if (next < 0 || next >= group.teams.length) return
+  const arr = group.teams
   const tmp = arr[tIndex]
   arr[tIndex] = arr[next]
   arr[next] = tmp
 }
 
-const moveMember = (tIndex, mIndex, delta) => {
-  const team = form.value.teams[tIndex]
+const moveMember = (gIndex, tIndex, mIndex, delta) => {
+  const team = form.value.groups[gIndex]?.teams[tIndex]
   const next = mIndex + delta
   if (!team || next < 0 || next >= team.members.length) return
   const arr = team.members
@@ -1029,8 +1137,8 @@ const moveMember = (tIndex, mIndex, delta) => {
   arr[next] = tmp
 }
 
-const removeMember = (tIndex, mIndex) => {
-  const team = form.value.teams[tIndex]
+const removeMember = (gIndex, tIndex, mIndex) => {
+  const team = form.value.groups[gIndex]?.teams[tIndex]
   if (!team) return
   team.members.splice(mIndex, 1)
 }
@@ -1041,27 +1149,31 @@ const slotMember = (team, index) => {
   return team?.members?.[index] || null
 }
 
-const isSelectedSwap = (tIndex, mIndex) => {
-  return !!selectedSwap.value && selectedSwap.value.tIndex === tIndex && selectedSwap.value.mIndex === mIndex
+const isSelectedSwap = (gIndex, tIndex, mIndex) => {
+  return !!selectedSwap.value && 
+         selectedSwap.value.gIndex === gIndex && 
+         selectedSwap.value.tIndex === tIndex && 
+         selectedSwap.value.mIndex === mIndex
 }
 
-const onSwapClick = (tIndex, mIndex) => {
-  const team = form.value.teams[tIndex]
+const onSwapClick = (gIndex, tIndex, mIndex) => {
+  const team = form.value.groups[gIndex]?.teams[tIndex]
   const member = team?.members?.[mIndex]
   if (!team || !member) return
 
   if (!selectedSwap.value) {
-    selectedSwap.value = { tIndex, mIndex, name: member.characterName }
+    selectedSwap.value = { gIndex, tIndex, mIndex, name: member.characterName }
     return
   }
 
-  if (selectedSwap.value.tIndex === tIndex && selectedSwap.value.mIndex === mIndex) {
+  if (selectedSwap.value.gIndex === gIndex && selectedSwap.value.tIndex === tIndex && selectedSwap.value.mIndex === mIndex) {
     selectedSwap.value = null
     return
   }
 
-  const aTeam = form.value.teams[selectedSwap.value.tIndex]
-  const bTeam = form.value.teams[tIndex]
+  const aTeam = form.value.groups[selectedSwap.value.gIndex]?.teams[selectedSwap.value.tIndex]
+  const bTeam = form.value.groups[gIndex]?.teams[tIndex]
+  
   if (!aTeam?.members?.[selectedSwap.value.mIndex] || !bTeam?.members?.[mIndex]) {
     selectedSwap.value = null
     return
@@ -1075,10 +1187,12 @@ const onSwapClick = (tIndex, mIndex) => {
 }
 
 const pickerOpen = ref(false)
+const pickerGroupIndex = ref(-1)
 const pickerTeamIndex = ref(-1)
 const pickerTab = ref('legion')
 
-const openPicker = async (tIndex) => {
+const openPicker = async (gIndex, tIndex) => {
+  pickerGroupIndex.value = gIndex
   pickerTeamIndex.value = tIndex
   pickerTab.value = 'legion'
   pickerOpen.value = true
@@ -1155,15 +1269,16 @@ const fetchCharacterInfo = async (characterId, serverId) => {
 }
 
 const addMemberToTeam = (profile) => {
+  const gIndex = pickerGroupIndex.value
   const tIndex = pickerTeamIndex.value
-  const team = form.value.teams[tIndex]
+  const team = form.value.groups[gIndex]?.teams[tIndex]
   if (!team) return
   if (team.members.length >= 4) {
     $alert('提示', '每队最多 4 人')
     return
   }
 
-  const exists = form.value.teams.some((t) => (t.members || []).some((m) => m.characterId === profile.characterId))
+  const exists = form.value.groups.some((g) => (g.teams || []).some((t) => (t.members || []).some((m) => m.characterId === profile.characterId)))
   if (exists) {
     $alert('提示', '该角色已在计划中')
     return

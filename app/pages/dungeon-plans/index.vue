@@ -43,7 +43,7 @@
                     </span>
                   </div>
                   <div class="text-xs font-bold text-slate-500 mt-1">
-                    {{ formatDateTime(p.start_at) }} · {{ (p.teams || []).length }} 队
+                    {{ formatDateTime(p.start_at) }} · {{ (p.groups || []).length }} 组 · {{ (p.groups || []).reduce((acc, g) => acc + (g.teams || []).length, 0) }} 队
                   </div>
                 </div>
                 <div class="text-xs font-black text-sky-600 shrink-0">查看 →</div>

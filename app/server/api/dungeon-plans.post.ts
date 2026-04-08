@@ -1,3 +1,11 @@
+/*
+ * @Author: whq
+ * @Date: 2026-04-02 10:32:11
+ * @LastEditTime: 2026-04-08 13:15:44
+ * @LastEditors: whq
+ * @Description: 
+ * @FilePath: /aion2/aion2-portal/app/server/api/dungeon-plans.post.ts
+ */
 import { defineEventHandler, readBody } from 'h3'
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
 
@@ -17,7 +25,7 @@ export default defineEventHandler(async (event) => {
     title,
     start_at,
     notes: body?.notes ? String(body.notes) : null,
-    teams: body?.teams ?? [],
+    groups: body?.groups ?? [],
     is_public: !!body?.is_public,
     tags: Array.isArray(body?.tags) ? body.tags : [],
     status: 'active',

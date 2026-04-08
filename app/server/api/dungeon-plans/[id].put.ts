@@ -1,3 +1,11 @@
+/*
+ * @Author: whq
+ * @Date: 2026-04-02 10:32:24
+ * @LastEditTime: 2026-04-08 13:15:59
+ * @LastEditors: whq
+ * @Description: 
+ * @FilePath: /aion2/aion2-portal/app/server/api/dungeon-plans/[id].put.ts
+ */
 import { defineEventHandler, readBody, getRouterParam } from 'h3'
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
 
@@ -18,7 +26,7 @@ export default defineEventHandler(async (event) => {
   if (body?.title !== undefined) payload.title = String(body.title || '').trim()
   if (body?.start_at !== undefined) payload.start_at = String(body.start_at || '')
   if (body?.notes !== undefined) payload.notes = body.notes ? String(body.notes) : null
-  if (body?.teams !== undefined) payload.teams = body.teams
+  if (body?.groups !== undefined) payload.groups = body.groups
   if (body?.is_public !== undefined) payload.is_public = !!body.is_public
   if (body?.tags !== undefined) payload.tags = Array.isArray(body.tags) ? body.tags : []
   if (body?.status !== undefined) payload.status = String(body.status || 'active')
