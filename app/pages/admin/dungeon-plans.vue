@@ -153,33 +153,47 @@
                       </div>
                     </div>
 
-                    <div v-if="(t.members || []).length" class="space-y-1.5">
-                      <div
-                        v-for="m in (t.members || [])"
-                        :key="m.key || `${m.characterId}_${m.serverId}`"
-                        class="p-2 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between gap-2"
-                      >
-                        <div class="min-w-0">
-                          <div class="flex items-center gap-2">
-                            <div class="font-black text-slate-800 text-xs truncate">
-                              {{ m.characterName }}
+                    <div class="space-y-1.5">
+                      <div v-for="slotIndex in 4" :key="`${p.id}_${gIndex}_${tIndex}_slot_${slotIndex}`">
+                        <div
+                          v-if="t.members?.[slotIndex - 1]"
+                          class="p-2 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between gap-2"
+                        >
+                          <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                              <div class="font-black text-slate-800 text-[10px] truncate">
+                                {{ t.members[slotIndex - 1].characterName }}
+                              </div>
+                              <span class="text-[8px] font-black text-slate-500 bg-slate-100 px-1 py-0.5 rounded shrink-0">
+                                {{ t.members[slotIndex - 1].className }}
+                              </span>
                             </div>
-                            <span class="text-[8px] font-medium text-slate-400 shrink-0">
-                              ({{ m.raceName }})
-                            </span>
+                            <div class="text-[8px] font-black text-[#45a6d5] flex items-center gap-1.5 mt-0.5">
+                              <span>战 {{ formatCombatPower(t.members[slotIndex - 1].combatPower) }}</span>
+                              <span class="w-0.5 h-0.5 rounded-full bg-slate-300"></span>
+                              <span>评 {{ t.members[slotIndex - 1].itemLevel || '-' }}</span>
+                            </div>
+                            <div v-if="t.members[slotIndex - 1].remark" class="mt-0.5 text-[8px] font-bold text-amber-600 italic truncate max-w-[120px]">
+                              # {{ t.members[slotIndex - 1].remark }}
+                            </div>
                           </div>
-                          <div class="text-[9px] font-black text-[#45a6d5] flex items-center gap-1.5 mt-0.5">
-                            <span>战 {{ formatCombatPower(m.combatPower) }}</span>
-                            <span class="w-0.5 h-0.5 rounded-full bg-slate-300"></span>
-                            <span>评 {{ m.itemLevel || '-' }}</span>
+                          <div class="text-[8px] font-medium text-slate-400 shrink-0">
+                            ({{ t.members[slotIndex - 1].raceName }})
                           </div>
-                          <div class="text-[8px] font-bold text-slate-400 truncate mt-0.5">
-                            {{ m.serverName }} · {{ m.className }} · Lv.{{ m.characterLevel }}
+                        </div>
+                        <div
+                          v-else
+                          class="p-2 rounded-lg bg-white border border-dashed border-slate-200 flex items-center justify-between gap-2 opacity-60"
+                        >
+                          <div class="font-black text-slate-400 text-[10px] truncate italic">
+                            {{ t.slot_remarks?.[slotIndex - 1] || '等待组队' }}
+                          </div>
+                          <div class="text-[8px] font-black text-slate-300 shrink-0 uppercase tracking-tighter">
+                            待组 {{ slotIndex }}
                           </div>
                         </div>
                       </div>
                     </div>
-                    <div v-else class="py-4 text-center text-[10px] text-slate-300 font-bold">暂无队员</div>
                   </div>
                 </div>
               </div>
@@ -498,15 +512,27 @@
                           <div class="min-w-0">
                             <div class="flex items-center gap-2">
                               <div class="font-black text-slate-800 text-sm truncate">{{ slotMember(t, slotIndex - 1).characterName }}</div>
+                              <span class="text-[10px] font-black text-slate-600 bg-slate-100 px-2 py-0.5 rounded shrink-0">
+                                {{ slotMember(t, slotIndex - 1).className }}
+                              </span>
                               <span class="text-[10px] font-medium text-slate-400 shrink-0">({{ slotMember(t, slotIndex - 1).raceName }})</span>
                             </div>
-                            <div class="text-xs font-black text-[#45a6d5] flex items-center gap-2 mt-0.5">
+                            <div class="text-[9px] font-black text-[#45a6d5] flex items-center gap-2 mt-0.5">
                               <span>战 {{ formatCombatPower(slotMember(t, slotIndex - 1).combatPower) }}</span>
                               <span class="w-1 h-1 rounded-full bg-slate-200"></span>
                               <span>评 {{ slotMember(t, slotIndex - 1).itemLevel || '-' }}</span>
                             </div>
-                            <div class="text-[10px] font-bold text-slate-400 mt-0.5 truncate">
-                              {{ slotMember(t, slotIndex - 1).serverName }} · {{ slotMember(t, slotIndex - 1).className }} · Lv.{{ slotMember(t, slotIndex - 1).characterLevel }}
+                            <div class="mt-1">
+                              <input
+                                v-model="slotMember(t, slotIndex - 1).remark"
+                                type="text"
+                                class="w-full px-2 py-1 rounded bg-slate-50 border border-slate-100 focus:border-sky-300 outline-none font-bold text-[9px] text-slate-500 placeholder:text-slate-300"
+                                placeholder="添加成员备注..."
+                                @click.stop
+                              />
+                            </div>
+                            <div class="text-[10px] font-bold text-slate-400 mt-1 truncate">
+                              {{ slotMember(t, slotIndex - 1).serverName }} · Lv.{{ slotMember(t, slotIndex - 1).characterLevel }}
                             </div>
                           </div>
                           <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -533,7 +559,15 @@
                           </div>
                         </template>
                         <template v-else>
-                          <div class="font-black text-slate-300 text-[10px]">空位 {{ slotIndex }}</div>
+                          <div class="flex-1">
+                            <input
+                              v-model="t.slot_remarks[slotIndex - 1]"
+                              type="text"
+                              class="w-full px-2 py-1 rounded bg-transparent border-b border-slate-100 focus:border-sky-300 outline-none font-bold text-[10px] text-slate-400 placeholder:text-slate-200"
+                              :placeholder="`空位 ${slotIndex} 备注...`"
+                              @click.stop
+                            />
+                          </div>
                           <div class="text-[10px] font-black text-sky-400 opacity-0 group-hover:opacity-100 transition-opacity">添加 +</div>
                         </template>
                       </div>
@@ -927,7 +961,12 @@ const openEdit = (p) => {
             id: t.id || `team_${idx}_${j}_${Date.now()}`,
             title: t.title || '',
             note: t.note || '',
-            members: Array.isArray(t.members) ? t.members.map((m, k) => ({ ...m, key: m.key || `m_${idx}_${j}_${k}_${Date.now()}` })) : [],
+            slot_remarks: Array.isArray(t.slot_remarks) ? t.slot_remarks : ['', '', '', ''],
+            members: Array.isArray(t.members) ? t.members.map((m, k) => ({ 
+              ...m, 
+              key: m.key || `m_${idx}_${j}_${k}_${Date.now()}`,
+              remark: m.remark || '' 
+            })) : [],
           }))
         : [],
     }))
@@ -941,7 +980,12 @@ const openEdit = (p) => {
           id: t.id || `team_${idx}_${Date.now()}`,
           title: t.title || '',
           note: t.note || '',
-          members: Array.isArray(t.members) ? t.members.map((m, j) => ({ ...m, key: m.key || `m_${idx}_${j}_${Date.now()}` })) : [],
+          slot_remarks: Array.isArray(t.slot_remarks) ? t.slot_remarks : ['', '', '', ''],
+          members: Array.isArray(t.members) ? t.members.map((m, j) => ({ 
+            ...m, 
+            key: m.key || `m_${idx}_${j}_${Date.now()}`,
+            remark: m.remark || '' 
+          })) : [],
         })),
       },
     ]
@@ -988,6 +1032,7 @@ const savePlan = async () => {
           id: t.id || `team_${idx}_${j}_${Date.now()}`,
           title: t.title || '',
           note: t.note || '',
+          slot_remarks: Array.isArray(t.slot_remarks) ? t.slot_remarks : ['', '', '', ''],
           members: (t.members || []).map((m) => ({
             key: m.key,
             characterId: m.characterId,
@@ -1000,6 +1045,7 @@ const savePlan = async () => {
             characterLevel: m.characterLevel,
             combatPower: m.combatPower,
             itemLevel: m.itemLevel,
+            remark: m.remark || null,
           })),
         })),
       })),
@@ -1107,7 +1153,7 @@ const addTeamToGroup = (gIndex) => {
     $alert('提示', '每组最多只能有 2 个队伍')
     return
   }
-  group.teams.push({ id: `team_${Date.now()}`, title: '', note: '', members: [] })
+  group.teams.push({ id: `team_${Date.now()}`, title: '', note: '', members: [], slot_remarks: ['', '', '', ''] })
 }
 
 const removeTeamFromGroup = (gIndex, tIndex) => {

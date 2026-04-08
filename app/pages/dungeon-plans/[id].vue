@@ -60,32 +60,46 @@
                     </div>
                   </div>
 
-                  <div v-if="(t.members || []).length" class="space-y-2">
-                    <div v-for="m in (t.members || [])" :key="m.key || `${m.characterId}_${m.serverId}`" class="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-3">
-                      <div class="min-w-0">
-                        <div class="flex items-center gap-2 flex-wrap">
-                          <div class="font-black text-slate-800 text-base">{{ m.characterName }}</div>
-                          <span class="text-[10px] font-medium text-slate-400">
-                            ({{ m.raceName }})
-                          </span>
+                  <div class="space-y-2">
+                    <div v-for="slotIndex in 4" :key="`${plan.id}_${gIndex}_${tIndex}_slot_${slotIndex}`">
+                      <div v-if="t.members?.[slotIndex - 1]" class="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                          <div class="flex items-center gap-2 flex-wrap">
+                            <div class="font-black text-slate-800 text-base">{{ t.members[slotIndex - 1].characterName }}</div>
+                            <span class="text-[11px] font-black text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-lg shrink-0">
+                              {{ t.members[slotIndex - 1].className }}
+                            </span>
+                            <span class="text-[10px] font-medium text-slate-400">
+                              ({{ t.members[slotIndex - 1].raceName }})
+                            </span>
+                          </div>
+                          <div class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+                            <span>Lv.{{ t.members[slotIndex - 1].characterLevel }}</span>
+                            <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+                            <span>{{ t.members[slotIndex - 1].serverName }}</span>
+                          </div>
+                          <div v-if="t.members[slotIndex - 1].remark" class="mt-1.5 p-1.5 rounded-lg bg-amber-50/50 border border-amber-100/50 text-[10px] font-bold text-amber-700 leading-relaxed break-words">
+                            <span class="opacity-60 mr-1">备注:</span>{{ t.members[slotIndex - 1].remark }}
+                          </div>
                         </div>
-                        <div class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
-                          <span>{{ m.className }}</span>
-                          <span class="w-1 h-1 rounded-full bg-slate-300"></span>
-                          <span>Lv.{{ m.characterLevel }}</span>
-                          <span class="w-1 h-1 rounded-full bg-slate-300"></span>
-                          <span>{{ m.serverName }}</span>
+                        <div class="text-right shrink-0">
+                          <div class="text-[10px] font-black text-slate-400 mb-0.5">能力评分</div>
+                          <div class="text-sm font-black text-[#45a6d5]">战 {{ formatCombatPower(t.members[slotIndex - 1].combatPower) }}</div>
+                          <div class="text-xs font-black text-[#45a6d5]/80">评 {{ t.members[slotIndex - 1].itemLevel || '-' }}</div>
                         </div>
                       </div>
-                      <div class="text-right shrink-0">
-                        <div class="text-[10px] font-black text-slate-400 mb-0.5">能力评分</div>
-                        <div class="text-sm font-black text-[#45a6d5]">战 {{ formatCombatPower(m.combatPower) }}</div>
-                        <div class="text-xs font-black text-[#45a6d5]/80">评 {{ m.itemLevel || '-' }}</div>
+                      <div v-else class="p-4 rounded-2xl bg-white border border-dashed border-slate-200 flex items-center justify-between gap-3 opacity-80 shadow-sm">
+                        <div class="min-w-0">
+                          <div class="text-xs font-black text-slate-400 mb-1 uppercase tracking-tight">空位待组</div>
+                          <div class="text-sm font-black text-slate-400 italic">
+                            {{ t.slot_remarks?.[slotIndex - 1] || '待组（虚位以待）' }}
+                          </div>
+                        </div>
+                        <div class="px-3 py-1.5 rounded-xl bg-slate-50 text-slate-300 font-black text-[10px] uppercase">
+                          待组 {{ slotIndex }}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div v-else class="py-12 text-center text-xs text-slate-300 font-bold border-2 border-dashed border-slate-50 rounded-2xl">
-                    暂无队员
                   </div>
                 </div>
               </div>
