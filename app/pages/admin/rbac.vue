@@ -129,7 +129,7 @@ const allPages = [
   { path: "/admin/craft-history", label: "造价历史记录" },
   { path: "/admin/materials", label: "材料库" },
   { path: "/admin/search", label: "即时查询" },
-  { path: "/admin/dungeon-plans", label: "副本编排" },
+  { path: "/admin/dungeon-plans", label: "副本队伍编排" },
   { path: "/admin/material-trends", label: "材料趋势" },
 ];
 

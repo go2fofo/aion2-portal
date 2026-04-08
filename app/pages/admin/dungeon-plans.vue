@@ -3,7 +3,7 @@
     <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
       <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div class="text-lg font-black text-slate-800">副本编排</div>
+          <div class="text-lg font-black text-slate-800">副本队伍编排</div>
           <div class="text-xs font-bold text-slate-500 mt-1">
             新建副本计划、编排队伍与队员（每队 4 人）
           </div>

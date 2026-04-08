@@ -4,7 +4,7 @@
       <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
         <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div class="text-lg font-black text-slate-800">公开副本编排</div>
+            <div class="text-lg font-black text-slate-800">公开副本队伍编排</div>
             <div class="text-xs font-bold text-slate-500 mt-1">可查看与复用其他玩家公开的编排</div>
           </div>
           <div class="flex items-center gap-2">

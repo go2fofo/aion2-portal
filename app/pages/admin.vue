@@ -1,10 +1,10 @@
 <!--
  * @Author: whq
  * @Date: 2026-02-11 09:53:45
- * @LastEditTime: 2026-04-02 10:51:56
+ * @LastEditTime: 2026-04-08 15:01:52
  * @LastEditors: whq
  * @Description: 
- * @FilePath: /aion2-portal/app/pages/admin.vue
+ * @FilePath: /aion2/aion2-portal/app/pages/admin.vue
 -->
 <template>
   <div class="h-screen bg-slate-50 flex overflow-hidden">
@@ -500,7 +500,7 @@
           exact-active-class="bg-[#E6F7FF] text-[#45a6d5]"
         >
           <span class="text-xl">🧩</span>
-          副本编排
+          副本队伍编排
         </NuxtLink>
         <NuxtLink
           v-if="isAdmin"
@@ -656,7 +656,7 @@ const pageTitle = computed(() => {
   if (route.path.includes("/tabs")) return "Tab 菜单配置";
   if (route.path.includes("/ai")) return "AI 分析模型配置";
   if (route.path.includes("/rbac")) return "权限管理";
-  if (route.path.includes("/dungeon-plans")) return "副本编排";
+  if (route.path.includes("/dungeon-plans")) return "副本队伍编排";
   if (route.path.includes("/cost-calculator")) return "装备造价配置";
   if (route.path.includes("/calculator")) return "装备造价计算";
   if (route.path.includes("/kinah-compare")) return "基纳比价";
