@@ -157,38 +157,39 @@
                       <div v-for="slotIndex in 4" :key="`${p.id}_${gIndex}_${tIndex}_slot_${slotIndex}`">
                         <div
                           v-if="t.members?.[slotIndex - 1]"
-                          class="p-2 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between gap-2"
+                          class="p-2 rounded-lg border flex items-center justify-between gap-2 transition-all bg-slate-50/50 border-slate-100"
                         >
                           <div class="min-w-0">
                             <div class="flex items-center gap-2">
-                              <div class="font-black text-slate-800 text-[10px] truncate">
+                              <div class="font-black text-[10px] truncate text-slate-800">
                                 {{ t.members[slotIndex - 1].characterName }}
                               </div>
-                              <span class="text-[8px] font-black text-slate-500 bg-slate-100 px-1 py-0.5 rounded shrink-0">
+                              <span class="text-[8px] font-black px-1 py-0.5 rounded shrink-0 bg-slate-100 text-slate-600">
                                 {{ t.members[slotIndex - 1].className }}
                               </span>
                             </div>
-                            <div class="text-[8px] font-black text-[#45a6d5] flex items-center gap-1.5 mt-0.5">
+                            <div class="text-[8px] font-black flex items-center gap-1.5 mt-0.5 text-[#45a6d5]">
                               <span>战 {{ formatCombatPower(t.members[slotIndex - 1].combatPower) }}</span>
-                              <span class="w-0.5 h-0.5 rounded-full bg-slate-300"></span>
+                              <span class="w-0.5 h-0.5 rounded-full bg-slate-200"></span>
                               <span>评 {{ t.members[slotIndex - 1].itemLevel || '-' }}</span>
                             </div>
-                            <div v-if="t.members[slotIndex - 1].remark" class="mt-0.5 text-[8px] font-bold text-amber-600 italic truncate max-w-[120px]">
+                            <div v-if="t.members[slotIndex - 1].remark" class="mt-0.5 text-[8px] font-bold italic truncate max-w-[120px] text-slate-400">
                               # {{ t.members[slotIndex - 1].remark }}
                             </div>
                           </div>
-                          <div class="text-[8px] font-medium text-slate-400 shrink-0">
-                            ({{ t.members[slotIndex - 1].raceName }})
+                          <div class="text-[8px] font-black shrink-0 text-slate-400">
+                            {{ t.members[slotIndex - 1].raceName }}
                           </div>
                         </div>
                         <div
                           v-else
-                          class="p-2 rounded-lg bg-white border border-dashed border-slate-200 flex items-center justify-between gap-2 opacity-60"
+                          class="p-2 rounded-lg border border-dashed flex items-center justify-between gap-2 opacity-80 transition-all"
+                          :class="t.slot_remarks?.[slotIndex - 1] ? 'bg-emerald-50/30 border-emerald-100' : 'bg-rose-50/30 border-rose-100'"
                         >
-                          <div class="font-black text-slate-400 text-[10px] truncate italic">
+                          <div class="font-black text-[10px] truncate italic" :class="t.slot_remarks?.[slotIndex - 1] ? 'text-emerald-400' : 'text-rose-400'">
                             {{ t.slot_remarks?.[slotIndex - 1] || '等待组队' }}
                           </div>
-                          <div class="text-[8px] font-black text-slate-300 shrink-0 uppercase tracking-tighter">
+                          <div class="text-[8px] font-black shrink-0 uppercase tracking-tighter" :class="t.slot_remarks?.[slotIndex - 1] ? 'text-emerald-300' : 'text-rose-300'">
                             待组 {{ slotIndex }}
                           </div>
                         </div>
@@ -516,19 +517,19 @@
                         v-for="slotIndex in 4"
                         :key="`slot_${t.id}_${slotIndex}`"
                         class="p-2.5 rounded-xl border bg-white flex items-center justify-between gap-3 group transition-all"
-                        :class="slotMember(t, slotIndex - 1) ? (isSelectedSwap(gIndex, tIndex, slotIndex - 1) ? 'ring-2 ring-sky-300 border-sky-200 bg-sky-50/30 cursor-pointer' : 'border-slate-100 hover:border-sky-200 hover:shadow-sm cursor-pointer') : (selectedSwap ? 'ring-2 ring-sky-300 border-dashed border-sky-200 bg-sky-50/30 cursor-pointer' : 'border-dashed border-slate-200 bg-slate-50/40')"
+                        :class="slotMember(t, slotIndex - 1) ? (isSelectedSwap(gIndex, tIndex, slotIndex - 1) ? 'ring-2 ring-sky-300 border-sky-200 bg-sky-50/30 cursor-pointer' : 'border-slate-100 hover:border-sky-200 hover:shadow-sm cursor-pointer') : (selectedSwap ? 'ring-2 ring-sky-300 border-dashed border-sky-200 bg-sky-50/30 cursor-pointer' : (t.slot_remarks?.[slotIndex - 1] ? 'bg-emerald-50/20 border-dashed border-emerald-100' : 'bg-rose-50/20 border-dashed border-rose-100'))"
                         @click="handleSlotClick(gIndex, tIndex, slotIndex - 1)"
                       >
                         <template v-if="slotMember(t, slotIndex - 1)">
                           <div class="min-w-0">
                             <div class="flex items-center gap-2">
-                              <div class="font-black text-slate-800 text-sm truncate">{{ slotMember(t, slotIndex - 1).characterName }}</div>
-                              <span class="text-[10px] font-black text-slate-600 bg-slate-100 px-2 py-0.5 rounded shrink-0">
+                              <div class="font-black text-sm truncate text-slate-800">{{ slotMember(t, slotIndex - 1).characterName }}</div>
+                              <span class="text-[10px] font-black px-2 py-0.5 rounded shrink-0 bg-slate-100 text-slate-600">
                                 {{ slotMember(t, slotIndex - 1).className }}
                               </span>
-                              <span class="text-[10px] font-medium text-slate-400 shrink-0">({{ slotMember(t, slotIndex - 1).raceName }})</span>
+                              <span class="text-[10px] font-medium shrink-0 text-slate-400">({{ slotMember(t, slotIndex - 1).raceName }})</span>
                             </div>
-                            <div class="text-[9px] font-black text-[#45a6d5] flex items-center gap-2 mt-0.5">
+                            <div class="text-[9px] font-black flex items-center gap-2 mt-0.5 text-[#45a6d5]">
                               <span>战 {{ formatCombatPower(slotMember(t, slotIndex - 1).combatPower) }}</span>
                               <span class="w-1 h-1 rounded-full bg-slate-200"></span>
                               <span>评 {{ slotMember(t, slotIndex - 1).itemLevel || '-' }}</span>
@@ -537,12 +538,12 @@
                               <input
                                 v-model="slotMember(t, slotIndex - 1).remark"
                                 type="text"
-                                class="w-full px-2 py-1 rounded bg-slate-50 border border-slate-100 focus:border-sky-300 outline-none font-bold text-[9px] text-slate-500 placeholder:text-slate-300"
+                                class="w-full px-2 py-1 rounded border outline-none font-bold text-[9px] transition-all bg-white/50 border-slate-100 focus:border-sky-300 text-slate-700 placeholder:text-slate-200"
                                 placeholder="添加成员备注..."
                                 @click.stop
                               />
                             </div>
-                            <div class="text-[10px] font-bold text-slate-400 mt-1 truncate">
+                            <div class="text-[10px] font-bold mt-1 truncate text-slate-400">
                               {{ slotMember(t, slotIndex - 1).serverName }} · Lv.{{ slotMember(t, slotIndex - 1).characterLevel }}
                             </div>
                           </div>
