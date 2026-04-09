@@ -1,3 +1,11 @@
+<!--
+ * @Author: whq
+ * @Date: 2026-02-08 09:11:19
+ * @LastEditTime: 2026-04-09 09:33:17
+ * @LastEditors: whq
+ * @Description: 
+ * @FilePath: /aion2-portal/README.md
+-->
 # 🚌 B.B.B.S - AION2 军团门户 (AION2 Portal)
 
 B.B.B.S (宝宝巴士) 是一个专为《永恒之塔2》(AION2) 玩家打造的军团门户网站。它集成了角色查询、实时战力分析、AI 深度建议以及高度可配置的后台管理系统。
@@ -66,3 +74,12 @@ pnpm dev
 
 ***
 
+
+
+<br />
+
+# 项目展示
+![项目展示](./docs/longshot20260409092903.png)
+![项目展示](./docs/longshot20260409092946.png)
+![项目展示](./docs/longshot20260409093027.png)
+![项目展示](./docs/longshot20260409093044.png)
