@@ -127,7 +127,8 @@
               <div
                 v-for="(g, gIndex) in (p.groups || [])"
                 :key="g.id || `${p.id}_g_${gIndex}`"
-                class="p-4 rounded-2xl bg-slate-50/50 border border-slate-100"
+                class="p-4 rounded-2xl border"
+                :class="groupCardClass(gIndex)"
               >
                 <div class="flex items-center justify-between gap-4 mb-3">
                   <div class="font-black text-slate-800 text-sm">
@@ -416,7 +417,8 @@
               <div
                 v-for="(g, gIndex) in form.groups"
                 :key="g.id"
-                class="p-6 rounded-[2rem] border-2 border-slate-100 bg-slate-50/30"
+                class="p-6 rounded-[2rem] border-2"
+                :class="groupEditorClass(gIndex)"
               >
                 <!-- Group Header -->
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -1011,6 +1013,28 @@ const statusBadgeClass = (s) => {
   if (s === 'overdue') return 'bg-amber-50 text-amber-700'
   if (s === 'canceled') return 'bg-rose-50 text-rose-700'
   return 'bg-sky-50 text-sky-700'
+}
+
+const groupCardClass = (gIndex) => {
+  const palette = [
+    'bg-sky-50/40 border-sky-100',
+    'bg-emerald-50/30 border-emerald-100',
+    'bg-amber-50/30 border-amber-100',
+    'bg-violet-50/30 border-violet-100',
+    'bg-rose-50/25 border-rose-100',
+  ]
+  return palette[gIndex % palette.length]
+}
+
+const groupEditorClass = (gIndex) => {
+  const palette = [
+    'bg-sky-50/25 border-sky-100',
+    'bg-emerald-50/20 border-emerald-100',
+    'bg-amber-50/20 border-amber-100',
+    'bg-violet-50/20 border-violet-100',
+    'bg-rose-50/15 border-rose-100',
+  ]
+  return palette[gIndex % palette.length]
 }
 
 const planCardClass = (p) => {
