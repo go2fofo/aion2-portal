@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
-import { getServersByRace } from '~/utils/aionServers'
+import { formatServerDisplay, getServersByRace, parseNameWithServerShort } from '~/utils/aionServers'
 const supabase = useSupabaseClient()
 const { $alert, $confirm, $loading } = useNuxtApp()
 
@@ -164,8 +164,14 @@ const handleSearch = async () => {
   searchResults.value = [] // 先清空旧数据
   
   try {
+    const parsed = parseNameWithServerShort(searchQuery.value)
+    const qKeyword = parsed ? parsed.keyword : searchQuery.value
+    if (parsed) {
+      searchRaceId.value = parsed.raceId
+      searchServerId.value = parsed.serverId
+    }
     const data = await $fetch('/api/aion/search', {
-      query: { keyword: searchQuery.value, race: searchRaceId.value, serverId: searchServerId.value, page: 1, size: 30 }
+      query: { keyword: qKeyword, race: searchRaceId.value, serverId: searchServerId.value, page: 1, size: 30 }
     })
     
     // API 返回结构如果是直接数组 [...]
@@ -603,7 +609,7 @@ onMounted(() => {
                   class="min-w-[10rem] px-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700 transition-all"
                 >
                   <option v-for="s in searchServerOptions" :key="s.serverId" :value="s.serverId">
-                    {{ s.serverName }}
+                    {{ formatServerDisplay(s.serverId) }}
                   </option>
                 </select>
               </div>
@@ -614,7 +620,7 @@ onMounted(() => {
                   @keyup.enter="handleSearch"
                   type="text" 
                   class="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all placeholder:text-slate-400" 
-                  placeholder="输入完整的角色名称..."
+                  placeholder="输入角色名，或 角色名[区服简写]（例如 問號[奎靈]）"
                 />
               </div>
               <button 

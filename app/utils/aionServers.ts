@@ -46,3 +46,34 @@ export const aionServerList: AionServer[] = [
 
 export const getServersByRace = (raceId: 1 | 2) => aionServerList.filter(s => s.raceId === raceId)
 
+export const getServerById = (serverId: number) => aionServerList.find(s => s.serverId === Number(serverId)) || null
+
+export const getServerCode = (serverId: number) => {
+  const id = Number(serverId)
+  if (!Number.isFinite(id)) return null
+  if (id >= 1000 && id < 2000) return { raceId: 1 as const, code: id - 1000 }
+  if (id >= 2000 && id < 3000) return { raceId: 2 as const, code: id - 2000 }
+  return null
+}
+
+export const formatServerDisplay = (serverId: number) => {
+  const s = getServerById(serverId)
+  if (!s) return String(serverId)
+  const code = getServerCode(s.serverId)
+  const suffix = code ? `-${code.raceId === 1 ? '天' : '魔'}${code.code}` : ''
+  return `${s.serverName}（${s.serverShortName}）${suffix}`
+}
+
+export const getServerShortNameById = (serverId: number) => getServerById(serverId)?.serverShortName || null
+
+export const parseNameWithServerShort = (input: string) => {
+  const raw = String(input || '').trim()
+  const m = raw.match(/^(.+?)\s*\[([^\]]+)\]\s*$/)
+  if (!m) return null
+  const keyword = m[1].trim()
+  const short = m[2].trim()
+  if (!keyword || !short) return null
+  const server = aionServerList.find(s => s.serverShortName === short || s.serverName === short)
+  if (!server) return null
+  return { keyword, raceId: server.raceId, serverId: server.serverId, serverShortName: server.serverShortName }
+}

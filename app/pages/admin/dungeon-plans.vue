@@ -162,7 +162,7 @@
                           <div class="min-w-0">
                             <div class="flex items-center gap-2">
                               <div class="font-black text-[10px] truncate text-slate-800">
-                                {{ t.members[slotIndex - 1].characterName }}
+                                {{ formatNameWithServerShort(t.members[slotIndex - 1]) }}
                               </div>
                               <span class="text-[8px] font-black px-1 py-0.5 rounded shrink-0 bg-slate-100 text-slate-600">
                                 {{ t.members[slotIndex - 1].className }}
@@ -177,8 +177,18 @@
                               # {{ t.members[slotIndex - 1].remark }}
                             </div>
                           </div>
-                          <div class="text-[8px] font-black shrink-0 text-slate-400">
-                            {{ t.members[slotIndex - 1].raceName }}
+                          <div class="flex items-center gap-2 shrink-0">
+                            <div class="text-[8px] font-black text-slate-400">
+                              {{ t.members[slotIndex - 1].raceName }}
+                            </div>
+                            <button
+                              type="button"
+                              class="p-1 rounded-md bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors"
+                              @click.stop="copyText(formatNameWithServerShort(t.members[slotIndex - 1]))"
+                              title="复制角色名"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            </button>
                           </div>
                         </div>
                         <div
@@ -532,7 +542,7 @@
                         <template v-if="slotMember(t, slotIndex - 1)">
                           <div class="min-w-0">
                             <div class="flex items-center gap-2">
-                              <div class="font-black text-sm truncate text-slate-800">{{ slotMember(t, slotIndex - 1).characterName }}</div>
+                              <div class="font-black text-sm truncate text-slate-800">{{ formatNameWithServerShort(slotMember(t, slotIndex - 1)) }}</div>
                               <span class="text-[10px] font-black px-2 py-0.5 rounded shrink-0 bg-slate-100 text-slate-600">
                                 {{ slotMember(t, slotIndex - 1).className }}
                               </span>
@@ -553,10 +563,17 @@
                               />
                             </div>
                             <div class="text-[10px] font-bold mt-1 truncate text-slate-400">
-                              {{ slotMember(t, slotIndex - 1).serverName }} · Lv.{{ slotMember(t, slotIndex - 1).characterLevel }}
+                              {{ formatServerDisplay(slotMember(t, slotIndex - 1).serverId) }} · Lv.{{ slotMember(t, slotIndex - 1).characterLevel }}
                             </div>
                           </div>
                           <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" :class="{ 'hidden': selectedSwap }">
+                            <button
+                              class="p-1 rounded-md bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+                              @click.stop="copyText(formatNameWithServerShort(slotMember(t, slotIndex - 1)))"
+                              title="复制角色名"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            </button>
                             <button
                               class="p-1 rounded-md bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
                               :class="{ 'animate-spin': refreshingSlots[`${gIndex}-${tIndex}-${slotIndex - 1}`] }"
@@ -678,7 +695,7 @@
                   <div class="min-w-0">
                     <div class="font-black text-slate-800 truncate">{{ m.name }}</div>
                     <div class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
-                      <span>{{ m.server_name || m.server_id }}</span>
+                      <span>{{ formatServerDisplay(m.server_id || 0) }}</span>
                       <span>{{ m.class_name }}</span>
                       <span>Lv.{{ m.level }}</span>
                     </div>
@@ -705,7 +722,7 @@
                   class="px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700"
                 >
                   <option v-for="s in searchServerOptions" :key="s.serverId" :value="s.serverId">
-                    {{ s.serverName }}
+                    {{ formatServerDisplay(s.serverId) }}
                   </option>
                 </select>
                 <input
@@ -713,6 +730,19 @@
                   class="px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
                   placeholder="输入角色名关键词..."
                 />
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2">
+                <input
+                  v-model="searchQuick"
+                  class="px-4 py-3 rounded-2xl bg-white border-2 border-slate-100 focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all"
+                  placeholder="快捷粘贴：角色名[区服简写]（例如 xxx[简卡]）"
+                />
+                <button
+                  class="px-5 py-3 rounded-2xl bg-slate-100 text-slate-700 font-black text-sm hover:bg-slate-200 transition-colors"
+                  @click="applyQuickToSearchAndSearch"
+                >
+                  解析并查询
+                </button>
               </div>
               <div class="flex items-center justify-end">
                 <button
@@ -736,7 +766,7 @@
                     <div class="min-w-0">
                       <div class="font-black text-slate-800 truncate" v-html="c.name"></div>
                       <div class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
-                        <span>{{ c.serverName }}</span>
+                        <span>{{ formatServerDisplay(c.serverId) }}</span>
                         <span>{{ c.race === 1 ? '天族' : '魔族' }}</span>
                         <span>Lv.{{ c.level }}</span>
                       </div>
@@ -762,7 +792,7 @@
                   class="px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700"
                 >
                   <option v-for="s in manualServerOptions" :key="s.serverId" :value="s.serverId">
-                    {{ s.serverName }}
+                    {{ formatServerDisplay(s.serverId) }}
                   </option>
                 </select>
                 <input
@@ -770,6 +800,19 @@
                   class="px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
                   placeholder="输入完整角色名..."
                 />
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2">
+                <input
+                  v-model="manualQuick"
+                  class="px-4 py-3 rounded-2xl bg-white border-2 border-slate-100 focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all"
+                  placeholder="快捷粘贴：角色名[区服简写]（例如 問號[奎靈]）"
+                />
+                <button
+                  class="px-5 py-3 rounded-2xl bg-slate-100 text-slate-700 font-black text-sm hover:bg-slate-200 transition-colors"
+                  @click="applyQuickToManual"
+                >
+                  解析
+                </button>
               </div>
               <div class="flex items-center justify-end">
                 <button
@@ -790,7 +833,7 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { getServersByRace } from '~/utils/aionServers'
+import { formatServerDisplay, getServerShortNameById, getServersByRace, parseNameWithServerShort } from '~/utils/aionServers'
 import { formatCombatPower } from '~/utils/formatCombatPower'
 
 definePageMeta({ layout: 'admin' })
@@ -814,6 +857,39 @@ const tagInput = ref('')
 const statusOpen = ref(false)
 const statusSaving = ref(false)
 const statusTarget = ref(null)
+
+const formatNameWithServerShort = (m) => {
+  const name = String(m?.characterName || '').trim()
+  const sid = Number(m?.serverId)
+  const short = String(m?.serverShortName || getServerShortNameById(sid) || '').trim()
+  if (!name) return ''
+  if (!short) return name
+  return `${name}[${short}]`
+}
+
+const copyText = async (text) => {
+  const v = String(text || '').trim()
+  if (!v) return
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(v)
+    } else {
+      const el = document.createElement('textarea')
+      el.value = v
+      el.style.position = 'fixed'
+      el.style.left = '-9999px'
+      el.style.top = '-9999px'
+      document.body.appendChild(el)
+      el.focus()
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
+    }
+    $alert('已复制', v)
+  } catch (e) {
+    $alert('复制失败', e?.message || String(e))
+  }
+}
 
 const formatDateTime = (iso) => {
   if (!iso) return '-'
@@ -1082,14 +1158,15 @@ const savePlan = async () => {
           title: t.title || '',
           note: t.note || '',
           slot_remarks: Array.isArray(t.slot_remarks) ? t.slot_remarks : ['', '', '', ''],
-          members: (t.members || [])
-            .filter((m) => m !== null)
-            .map((m) => ({
+          members: (t.members || []).slice(0, 4).map((m) => {
+            if (!m) return null
+            return {
               key: m.key,
               characterId: m.characterId,
               characterName: m.characterName,
               serverId: m.serverId,
               serverName: m.serverName,
+              serverShortName: m.serverShortName || getServerShortNameById(m.serverId),
               raceId: m.raceId,
               raceName: m.raceName,
               className: m.className,
@@ -1097,7 +1174,8 @@ const savePlan = async () => {
               combatPower: m.combatPower,
               itemLevel: m.itemLevel,
               remark: m.remark || null,
-            })),
+            }
+          }),
         })),
       })),
     }
@@ -1283,6 +1361,9 @@ const refreshMember = async (gIndex, tIndex, mIndex) => {
         itemLevel: updated.itemLevel,
         raceId: updated.raceId,
         raceName: updated.raceName,
+        serverId: updated.serverId,
+        serverName: updated.serverName,
+        serverShortName: getServerShortNameById(updated.serverId),
       }
     }
   } catch (e) {
@@ -1370,15 +1451,40 @@ watch(searchRaceId, () => {
 })
 
 const searchKeyword = ref('')
+const searchQuick = ref('')
 const searchResults = ref([])
 const searchLoading = ref(false)
 const searchedOnce = ref(false)
+
+const applyQuickToSearch = () => {
+  const parsed = parseNameWithServerShort(searchQuick.value)
+  if (!parsed) {
+    $alert('格式提示', '请输入例如：問號[奎靈]')
+    return null
+  }
+  searchRaceId.value = parsed.raceId
+  searchServerId.value = parsed.serverId
+  searchKeyword.value = parsed.keyword
+  searchQuick.value = ''
+  return parsed
+}
+
+const applyQuickToSearchAndSearch = async () => {
+  const parsed = applyQuickToSearch()
+  if (!parsed) return
+  await searchCharacters()
+}
 
 const searchCharacters = async () => {
   if (!searchKeyword.value.trim()) return
   searchLoading.value = true
   searchedOnce.value = true
   try {
+    const embedded = parseNameWithServerShort(searchKeyword.value)
+    if (embedded) {
+      searchQuick.value = searchKeyword.value
+      applyQuickToSearch()
+    }
     const res = await $fetch('/api/aion/search', { query: { keyword: searchKeyword.value, race: searchRaceId.value, serverId: searchServerId.value, page: 1, size: 30 } })
     searchResults.value = res?.list || []
   } catch {
@@ -1396,7 +1502,21 @@ watch(manualRaceId, () => {
   manualServerId.value = list[0]?.serverId || (manualRaceId.value === 1 ? 1001 : 2001)
 })
 const manualName = ref('')
+const manualQuick = ref('')
 const manualLoading = ref(false)
+
+const applyQuickToManual = () => {
+  const parsed = parseNameWithServerShort(manualQuick.value)
+  if (!parsed) {
+    $alert('格式提示', '请输入例如：問號[奎靈]')
+    return null
+  }
+  manualRaceId.value = parsed.raceId
+  manualServerId.value = parsed.serverId
+  manualName.value = parsed.keyword
+  manualQuick.value = ''
+  return parsed
+}
 
 const fetchCharacterInfo = async (characterId, serverId) => {
   const detail = await $fetch('/api/aion/info', { params: { characterId, serverId } })
@@ -1431,6 +1551,7 @@ const addMemberToTeam = (profile) => {
     characterName: profile.characterName,
     serverId: profile.serverId,
     serverName: profile.serverName,
+    serverShortName: getServerShortNameById(profile.serverId),
     raceId: profile.raceId,
     raceName: profile.raceName,
     className: profile.className,
@@ -1468,6 +1589,11 @@ const pickFromSearch = async (c) => {
 }
 
 const manualValidate = async () => {
+  const embedded = parseNameWithServerShort(manualName.value)
+  if (embedded) {
+    manualQuick.value = manualName.value
+    applyQuickToManual()
+  }
   const name = manualName.value.trim()
   if (!name) return
   manualLoading.value = true

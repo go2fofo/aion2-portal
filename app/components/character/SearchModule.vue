@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { getServersByRace } from '~/utils/aionServers'
+import { formatServerDisplay, getServersByRace, parseNameWithServerShort } from '~/utils/aionServers'
 
 const keyword = ref('')
 const loading = ref(false)
@@ -19,6 +19,13 @@ watch(raceId, () => {
 const handleSearch = async () => {
   if (!keyword.value.trim()) return
   
+  const parsed = parseNameWithServerShort(keyword.value)
+  if (parsed) {
+    keyword.value = parsed.keyword
+    raceId.value = parsed.raceId
+    serverId.value = parsed.serverId
+  }
+
   loading.value = true
   searched.value = true
   try {
@@ -73,7 +80,7 @@ const cleanName = (name) => {
           class="min-w-[10rem] px-4 py-4 rounded-2xl bg-slate-50 border-2 border-slate-50 focus:border-sky-400 focus:bg-white outline-none font-black text-slate-700"
         >
           <option v-for="s in serverOptions" :key="s.serverId" :value="s.serverId">
-            {{ s.serverName }}
+            {{ formatServerDisplay(s.serverId) }}
           </option>
         </select>
       </div>
@@ -81,7 +88,7 @@ const cleanName = (name) => {
         <input 
           v-model="keyword"
           type="text" 
-          placeholder="输入 AION2 角色名称关键词..."
+          placeholder="输入角色名，或 角色名[区服简写]（例如 問號[奎靈]）"
           class="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl focus:border-sky-400 focus:bg-white transition-all font-bold text-slate-700 outline-none"
           @keyup.enter="handleSearch"
         />
@@ -118,7 +125,7 @@ const cleanName = (name) => {
         <!-- 卡片头部背景 -->
         <div class="h-16 bg-gradient-to-r from-slate-50 to-slate-100 relative overflow-hidden shrink-0">
           <div class="absolute inset-0 opacity-10 font-black text-2xl flex items-center justify-center pointer-events-none select-none italic">
-            {{ item.serverName }}
+            {{ formatServerDisplay(item.serverId) }}
           </div>
         </div>
 
