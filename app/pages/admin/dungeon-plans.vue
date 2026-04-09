@@ -1091,10 +1091,12 @@ const openEdit = (p) => {
             if (Array.isArray(t.members)) {
               t.members.forEach((m, k) => {
                 if (k < 4) {
+                  if (!m) return
                   members[k] = {
                     ...m,
                     key: m.key || `m_${idx}_${j}_${k}_${Date.now()}`,
                     remark: m.remark || '',
+                    serverShortName: m.serverShortName || getServerShortNameById(m.serverId),
                   }
                 }
               })
@@ -1120,10 +1122,12 @@ const openEdit = (p) => {
           if (Array.isArray(t.members)) {
             t.members.forEach((m, j) => {
               if (j < 4) {
+                if (!m) return
                 members[j] = {
                   ...m,
                   key: m.key || `m_${idx}_${j}_${Date.now()}`,
                   remark: m.remark || '',
+                  serverShortName: m.serverShortName || getServerShortNameById(m.serverId),
                 }
               }
             })
