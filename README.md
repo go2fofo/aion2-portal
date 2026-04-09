@@ -1,7 +1,7 @@
 <!--
  * @Author: whq
  * @Date: 2026-02-08 09:11:19
- * @LastEditTime: 2026-04-09 09:33:17
+ * @LastEditTime: 2026-04-09 09:37:38
  * @LastEditors: whq
  * @Description: 
  * @FilePath: /aion2-portal/README.md
@@ -81,5 +81,7 @@ pnpm dev
 # 项目展示
 ![项目展示](./docs/longshot20260409092903.png)
 ![项目展示](./docs/longshot20260409092946.png)
+![项目展示](./docs/longshot20260409093638.png)
+![项目展示](./docs/longshot20260409093705.png)
 ![项目展示](./docs/longshot20260409093027.png)
 ![项目展示](./docs/longshot20260409093044.png)
