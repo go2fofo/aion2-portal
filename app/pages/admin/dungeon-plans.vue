@@ -25,6 +25,12 @@
               公开
             </button>
           </div>
+          <button
+            class="px-4 py-2 rounded-xl bg-white border border-slate-100 text-slate-700 font-black text-sm hover:bg-slate-50 transition-colors"
+            @click="openMyMembersManager"
+          >
+            我的队员
+          </button>
           <input
             v-model="searchText"
             class="w-48 md:w-64 px-4 py-2 rounded-xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
@@ -184,6 +190,23 @@
                             </div>
                             <button
                               type="button"
+                              class="p-1 rounded-md bg-slate-100 border border-slate-200 text-slate-600 hover:bg-slate-200 transition-colors"
+                              @click.stop="saveMyMemberFromPlan(t.members[slotIndex - 1])"
+                              title="存为我的队员"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                            </button>
+                            <button
+                              v-if="canEdit(p) && isMemberIncomplete(t.members[slotIndex - 1])"
+                              type="button"
+                              class="p-1 rounded-md bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors"
+                              @click.stop="refreshMemberInList(p, gIndex, tIndex, slotIndex - 1)"
+                              title="重新获取角色信息"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                            </button>
+                            <button
+                              type="button"
                               class="p-1 rounded-md bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors"
                               @click.stop="copyText(formatNameWithServerShort(t.members[slotIndex - 1]))"
                               title="复制角色名"
@@ -257,6 +280,100 @@
               <div class="font-black text-rose-700">作废</div>
               <div class="text-xs font-bold text-rose-600/80 mt-1">可选择删除该编排</div>
             </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <Transition name="modal">
+      <div v-if="myManagerOpen" class="fixed inset-0 z-[65] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+        <div class="relative z-10 w-full max-w-3xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
+          <div class="p-6 border-b border-slate-100 flex items-center justify-between gap-4">
+            <div class="min-w-0">
+              <div class="font-black text-slate-800 text-lg">我的队员</div>
+              <div class="text-xs font-bold text-slate-500 mt-1">可在编排列表/军团成员/查询角色里点“存为我的”快速加入</div>
+            </div>
+            <button
+              class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors"
+              @click="myManagerOpen = false"
+            >
+              关闭
+            </button>
+          </div>
+
+          <div class="p-6 space-y-4 max-h-[80vh] overflow-y-auto custom-scroll">
+            <div class="flex items-center gap-2">
+              <input
+                v-model="myKeyword"
+                class="flex-1 px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+                placeholder="搜索我的队员（名称/备注/区服简写）..."
+              />
+              <button
+                class="px-4 py-3 rounded-2xl bg-slate-100 text-slate-700 font-black text-sm hover:bg-slate-200 transition-colors"
+                :disabled="myLoading"
+                @click="fetchMyMembers"
+              >
+                {{ myLoading ? '刷新中...' : '刷新' }}
+              </button>
+            </div>
+
+            <div v-if="myLoading" class="py-10 text-center text-slate-400 font-bold">加载中...</div>
+            <div v-else class="space-y-2">
+              <div
+                v-for="m in filteredMyMembers"
+                :key="m.id"
+                class="p-4 rounded-2xl border border-slate-100 bg-white hover:bg-slate-50/40 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-3"
+              >
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <div class="font-black text-slate-800 truncate">
+                      {{ formatNameWithServerShort({ characterName: m.character_name, serverId: m.server_id, serverShortName: m.server_short_name }) }}
+                    </div>
+                    <span class="text-[10px] font-black px-2 py-1 rounded-lg bg-slate-100 text-slate-600">
+                      {{ formatServerDisplay(m.server_id) }}
+                    </span>
+                  </div>
+                  <div class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+                    <span>{{ m.class_name || '—' }}</span>
+                    <span v-if="m.character_level">Lv.{{ m.character_level }}</span>
+                    <span>战 {{ formatCombatPower(m.combat_power) }}</span>
+                    <span>评 {{ m.item_level || '-' }}</span>
+                  </div>
+                  <div class="mt-2">
+                    <input
+                      v-model="m.remark"
+                      type="text"
+                      class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 focus:border-[#45a6d5] outline-none font-bold text-xs text-slate-700 transition-all"
+                      placeholder="备注（可选）"
+                    />
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <button
+                    class="px-3 py-2 rounded-xl bg-slate-100 text-slate-700 font-black text-xs hover:bg-slate-200 transition-colors"
+                    @click="copyText(formatNameWithServerShort({ characterName: m.character_name, serverId: m.server_id, serverShortName: m.server_short_name }))"
+                  >
+                    复制
+                  </button>
+                  <button
+                    class="px-3 py-2 rounded-xl bg-slate-800 text-white font-black text-xs hover:bg-slate-700 transition-colors disabled:opacity-50"
+                    :disabled="mySaving[m.id]"
+                    @click="updateMyMember(m)"
+                  >
+                    {{ mySaving[m.id] ? '保存中...' : '保存' }}
+                  </button>
+                  <button
+                    class="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 font-black text-xs hover:bg-rose-100 transition-colors disabled:opacity-50"
+                    :disabled="mySaving[m.id]"
+                    @click="deleteMyMember(m)"
+                  >
+                    删除
+                  </button>
+                </div>
+              </div>
+              <div v-if="filteredMyMembers.length === 0" class="py-10 text-center text-slate-400 font-bold">暂无队员</div>
+            </div>
           </div>
         </div>
       </div>
@@ -649,6 +766,13 @@
           <div class="p-6 space-y-4 max-h-[80vh] overflow-y-auto custom-scroll">
             <div class="flex items-center gap-2 flex-wrap">
               <button
+                @click="pickerTab = 'mine'"
+                class="px-4 py-2 rounded-xl font-black text-sm border-2 transition-all"
+                :class="pickerTab === 'mine' ? 'bg-[#45a6d5] text-white border-[#45a6d5]' : 'bg-white text-slate-600 border-slate-100 hover:border-sky-200'"
+              >
+                我的队员
+              </button>
+              <button
                 @click="pickerTab = 'legion'"
                 class="px-4 py-2 rounded-xl font-black text-sm border-2 transition-all"
                 :class="pickerTab === 'legion' ? 'bg-[#45a6d5] text-white border-[#45a6d5]' : 'bg-white text-slate-600 border-slate-100 hover:border-sky-200'"
@@ -671,7 +795,79 @@
               </button>
             </div>
 
-            <div v-if="pickerTab === 'legion'" class="space-y-3">
+            <div v-if="pickerTab === 'mine'" class="space-y-3">
+              <div class="flex items-center gap-2">
+                <input
+                  v-model="myKeyword"
+                  class="flex-1 px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+                  placeholder="搜索我的队员..."
+                />
+                <button
+                  class="px-4 py-3 rounded-2xl bg-slate-100 text-slate-700 font-black text-sm hover:bg-slate-200 transition-colors"
+                  :disabled="myLoading"
+                  @click="fetchMyMembers"
+                >
+                  {{ myLoading ? '刷新中...' : '刷新' }}
+                </button>
+              </div>
+
+              <div v-if="myLoading" class="py-10 text-center text-slate-400 font-bold">加载中...</div>
+              <div v-else class="max-h-[55vh] overflow-y-auto custom-scroll space-y-2">
+                <div
+                  v-for="m in filteredMyMembers"
+                  :key="m.id"
+                  class="p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3"
+                >
+                  <div class="min-w-0">
+                    <div class="font-black text-slate-800 truncate">
+                      {{ formatNameWithServerShort({ characterName: m.character_name, serverId: m.server_id, serverShortName: m.server_short_name }) }}
+                    </div>
+                    <div class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+                      <span>{{ formatServerDisplay(m.server_id) }}</span>
+                      <span>{{ m.class_name || '—' }}</span>
+                      <span v-if="m.character_level">Lv.{{ m.character_level }}</span>
+                      <span>战 {{ formatCombatPower(m.combat_power) }}</span>
+                      <span>评 {{ m.item_level || '-' }}</span>
+                    </div>
+                    <div class="mt-2">
+                      <input
+                        v-model="m.remark"
+                        type="text"
+                        class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 focus:border-[#45a6d5] outline-none font-bold text-xs text-slate-700 transition-all"
+                        placeholder="备注（可选）"
+                      />
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <button
+                      class="px-3 py-2 rounded-xl bg-[#45a6d5] text-white font-black text-xs hover:bg-[#3b95c0] transition-colors"
+                      @click="pickFromMyMember(m)"
+                    >
+                      选择
+                    </button>
+                    <button
+                      class="px-3 py-2 rounded-xl bg-slate-100 text-slate-700 font-black text-xs hover:bg-slate-200 transition-colors disabled:opacity-50"
+                      :disabled="mySaving[m.id]"
+                      @click="updateMyMember(m)"
+                    >
+                      {{ mySaving[m.id] ? '保存中...' : '保存备注' }}
+                    </button>
+                    <button
+                      class="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 font-black text-xs hover:bg-rose-100 transition-colors disabled:opacity-50"
+                      :disabled="mySaving[m.id]"
+                      @click="deleteMyMember(m)"
+                    >
+                      删除
+                    </button>
+                  </div>
+                </div>
+                <div v-if="filteredMyMembers.length === 0" class="py-10 text-center text-slate-400 font-bold">
+                  暂无队员
+                </div>
+              </div>
+            </div>
+
+            <div v-else-if="pickerTab === 'legion'" class="space-y-3">
               <div class="flex items-center gap-2">
                 <input
                   v-model="legionKeyword"
@@ -692,7 +888,6 @@
                   v-for="m in filteredLegionMembers"
                   :key="m.character_id"
                   class="p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer flex items-center justify-between gap-3"
-                  @click="pickFromLegion(m)"
                 >
                   <div class="min-w-0">
                     <div class="font-black text-slate-800 truncate">{{ m.name }}</div>
@@ -702,7 +897,20 @@
                       <span>Lv.{{ m.level }}</span>
                     </div>
                   </div>
-                  <div class="text-xs font-black text-sky-600 shrink-0">选择</div>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <button
+                      class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-black text-xs hover:bg-slate-200 transition-colors"
+                      @click.stop="saveMyMemberFromLegion(m)"
+                    >
+                      存为我的
+                    </button>
+                    <button
+                      class="px-3 py-1.5 rounded-xl bg-[#45a6d5] text-white font-black text-xs hover:bg-[#3b95c0] transition-colors"
+                      @click.stop="pickFromLegion(m)"
+                    >
+                      选择
+                    </button>
+                  </div>
                 </div>
                 <div v-if="!legionLoading && filteredLegionMembers.length === 0" class="py-8 text-center text-slate-400 font-bold">
                   暂无结果
@@ -762,7 +970,6 @@
                   v-for="c in searchResults"
                   :key="c.characterId"
                   class="p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer"
-                  @click="pickFromSearch(c)"
                 >
                   <div class="flex items-center justify-between gap-3">
                     <div class="min-w-0">
@@ -773,7 +980,20 @@
                         <span>Lv.{{ c.level }}</span>
                       </div>
                     </div>
-                    <div class="text-xs font-black text-sky-600 shrink-0">选择</div>
+                    <div class="flex items-center gap-2 shrink-0">
+                      <button
+                        class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-black text-xs hover:bg-slate-200 transition-colors"
+                        @click.stop="saveMyMemberFromSearch(c)"
+                      >
+                        存为我的
+                      </button>
+                      <button
+                        class="px-3 py-1.5 rounded-xl bg-[#45a6d5] text-white font-black text-xs hover:bg-[#3b95c0] transition-colors"
+                        @click.stop="pickFromSearch(c)"
+                      >
+                        选择
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <div v-if="searchedOnce && searchResults.length === 0" class="py-8 text-center text-slate-400 font-bold">暂无结果</div>
@@ -835,7 +1055,7 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { formatServerDisplay, getServerShortNameById, getServersByRace, parseNameWithServerShort } from '~/utils/aionServers'
+import { formatServerDisplay, getServerById, getServerShortNameById, getServersByRace, parseNameWithServerShort } from '~/utils/aionServers'
 import { formatCombatPower } from '~/utils/formatCombatPower'
 
 definePageMeta({ layout: 'admin' })
@@ -860,6 +1080,13 @@ const statusOpen = ref(false)
 const statusSaving = ref(false)
 const statusTarget = ref(null)
 
+const myManagerOpen = ref(false)
+
+const openMyMembersManager = async () => {
+  myManagerOpen.value = true
+  await fetchMyMembers()
+}
+
 const formatNameWithServerShort = (m) => {
   const name = String(m?.characterName || '').trim()
   const sid = Number(m?.serverId)
@@ -867,6 +1094,32 @@ const formatNameWithServerShort = (m) => {
   if (!name) return ''
   if (!short) return name
   return `${name}[${short}]`
+}
+
+const isMemberIncomplete = (m) => {
+  if (!m) return false
+  return !!m.needsRefresh
+}
+
+const stripHtml = (v) => String(v || '').replace(/<[^>]+>/g, '')
+
+const buildFallbackProfile = ({ characterId, characterName, serverId, raceId, level, className }) => {
+  const sid = Number(serverId)
+  const s = getServerById(sid)
+  const rid = Number(raceId)
+  return {
+    characterId: String(characterId),
+    characterName: String(characterName),
+    serverId: sid,
+    serverName: s?.serverName || String(serverId),
+    raceId: rid,
+    raceName: rid === 1 ? '天族' : '魔族',
+    className: className ? String(className) : '未知',
+    characterLevel: level ? Number(level) : null,
+    combatPower: null,
+    itemLevel: null,
+    needsRefresh: true,
+  }
 }
 
 const copyText = async (text) => {
@@ -1068,6 +1321,41 @@ const fetchPlans = async () => {
   }
 }
 
+const refreshMemberInList = async (p, gIndex, tIndex, mIndex) => {
+  const member = p?.groups?.[gIndex]?.teams?.[tIndex]?.members?.[mIndex]
+  if (!member?.characterId || !member?.serverId) return
+  $loading.show('正在重新获取角色信息...')
+  try {
+    const updated = await fetchCharacterInfo(member.characterId, member.serverId)
+    const groups = JSON.parse(JSON.stringify(p.groups || []))
+    const target = groups?.[gIndex]?.teams?.[tIndex]?.members?.[mIndex]
+    if (target) {
+      groups[gIndex].teams[tIndex].members[mIndex] = {
+        ...target,
+        characterName: updated.characterName,
+        className: updated.className,
+        characterLevel: updated.characterLevel,
+        combatPower: updated.combatPower,
+        itemLevel: updated.itemLevel,
+        raceId: updated.raceId,
+        raceName: updated.raceName,
+        serverId: updated.serverId,
+        serverName: updated.serverName,
+        serverShortName: getServerShortNameById(updated.serverId),
+        needsRefresh: false,
+      }
+    }
+
+    const res = await $fetch(`/api/dungeon-plans/${p.id}`, { method: 'PUT', body: { groups } })
+    if (!res?.success) throw new Error(res?.error || '更新失败')
+    await fetchPlans()
+  } catch (e) {
+    $alert('获取失败', '角色详情接口暂时不可用，可稍后再试')
+  } finally {
+    $loading.hide()
+  }
+}
+
 const openCreate = () => {
   editingId.value = null
   form.value = { title: '', start_at: formatLocalInput(roundUpMinutes(new Date(), 60)), notes: '', groups: [], is_public: false, tags: [] }
@@ -1202,6 +1490,7 @@ const savePlan = async () => {
               combatPower: m.combatPower,
               itemLevel: m.itemLevel,
               remark: m.remark || null,
+              needsRefresh: !!m.needsRefresh,
             }
           }),
         })),
@@ -1392,6 +1681,7 @@ const refreshMember = async (gIndex, tIndex, mIndex) => {
         serverId: updated.serverId,
         serverName: updated.serverName,
         serverShortName: getServerShortNameById(updated.serverId),
+        needsRefresh: false,
       }
     }
   } catch (e) {
@@ -1437,6 +1727,41 @@ const pickerTeamIndex = ref(-1)
 const pickerMemberIndex = ref(-1)
 const pickerTab = ref('legion')
 
+const myLoading = ref(false)
+const myMembers = ref([])
+const myKeyword = ref('')
+const mySaving = ref({})
+
+const fetchMyMembers = async () => {
+  myLoading.value = true
+  try {
+    const res = await $fetch('/api/my-members', { query: { limit: 200 } })
+    myMembers.value = res?.success ? (res.data || []) : []
+  } catch {
+    myMembers.value = []
+  } finally {
+    myLoading.value = false
+  }
+}
+
+watch(
+  () => pickerTab.value,
+  (v) => {
+    if (v === 'mine') fetchMyMembers()
+  },
+)
+
+const filteredMyMembers = computed(() => {
+  const kw = myKeyword.value.trim().toLowerCase()
+  if (!kw) return myMembers.value
+  return myMembers.value.filter((m) => {
+    const n = String(m.character_name || '').toLowerCase()
+    const r = String(m.remark || '').toLowerCase()
+    const s = String(m.server_short_name || '').toLowerCase()
+    return n.includes(kw) || r.includes(kw) || s.includes(kw)
+  })
+})
+
 const openPicker = async (gIndex, tIndex, mIndex = -1) => {
   pickerGroupIndex.value = gIndex
   pickerTeamIndex.value = tIndex
@@ -1444,6 +1769,130 @@ const openPicker = async (gIndex, tIndex, mIndex = -1) => {
   pickerTab.value = 'legion'
   pickerOpen.value = true
   await fetchLegionMembers()
+}
+
+const saveMyMember = async (payload) => {
+  $loading.show('正在保存到我的队员...')
+  try {
+    const res = await $fetch('/api/my-members', { method: 'POST', body: payload })
+    if (!res?.success) throw new Error(res?.error || '保存失败')
+    $alert('已保存', '已加入我的队员')
+    if (pickerTab.value === 'mine') await fetchMyMembers()
+  } catch (e) {
+    $alert('保存失败', e?.message || String(e))
+  } finally {
+    $loading.hide()
+  }
+}
+
+const saveMyMemberFromPlan = async (m) => {
+  if (!m?.characterId || !m?.serverId) {
+    $alert('无法保存', '该队员信息不完整')
+    return
+  }
+  await saveMyMember({
+    character_id: m.characterId,
+    character_name: m.characterName,
+    server_id: m.serverId,
+    server_name: m.serverName || null,
+    server_short_name: m.serverShortName || getServerShortNameById(m.serverId),
+    race_id: m.raceId || null,
+    race_name: m.raceName || null,
+    class_name: m.className || null,
+    character_level: m.characterLevel || null,
+    combat_power: m.combatPower ?? null,
+    item_level: m.itemLevel ?? null,
+    remark: m.remark || null,
+  })
+}
+
+const saveMyMemberFromLegion = async (m) => {
+  if (!m?.character_id || !m?.server_id) {
+    $alert('无法保存', '该成员信息不完整')
+    return
+  }
+  await saveMyMember({
+    character_id: m.character_id,
+    character_name: m.name,
+    server_id: m.server_id,
+    server_name: m.server_name || null,
+    server_short_name: getServerShortNameById(m.server_id),
+    race_id: m.race_id || null,
+    race_name: m.race_name || null,
+    class_name: m.class_name || null,
+    character_level: m.level || null,
+    combat_power: null,
+    item_level: null,
+    remark: null,
+  })
+}
+
+const saveMyMemberFromSearch = async (c) => {
+  if (!c?.characterId || !c?.serverId) {
+    $alert('无法保存', '该角色信息不完整')
+    return
+  }
+  await saveMyMember({
+    character_id: c.characterId,
+    character_name: stripHtml(c.name),
+    server_id: c.serverId,
+    server_name: getServerById(c.serverId)?.serverName || null,
+    server_short_name: getServerShortNameById(c.serverId),
+    race_id: c.race || null,
+    race_name: c.race === 1 ? '天族' : '魔族',
+    class_name: null,
+    character_level: c.level || null,
+    combat_power: null,
+    item_level: null,
+    remark: null,
+  })
+}
+
+const pickFromMyMember = (m) => {
+  addMemberToTeam({
+    characterId: m.character_id,
+    characterName: m.character_name,
+    serverId: m.server_id,
+    serverName: m.server_name || getServerById(m.server_id)?.serverName || String(m.server_id),
+    serverShortName: m.server_short_name || getServerShortNameById(m.server_id),
+    raceId: m.race_id || null,
+    raceName: m.race_name || (m.race_id === 1 ? '天族' : m.race_id === 2 ? '魔族' : ''),
+    className: m.class_name || '未知',
+    characterLevel: m.character_level || null,
+    combatPower: m.combat_power ?? null,
+    itemLevel: m.item_level ?? null,
+    remark: m.remark || '',
+    needsRefresh: false,
+  })
+}
+
+const updateMyMember = async (m) => {
+  if (!m?.id) return
+  mySaving.value[m.id] = true
+  try {
+    const res = await $fetch(`/api/my-members/${m.id}`, { method: 'PUT', body: { remark: m.remark || null } })
+    if (!res?.success) throw new Error(res?.error || '保存失败')
+  } catch (e) {
+    $alert('保存失败', e?.message || String(e))
+  } finally {
+    mySaving.value[m.id] = false
+  }
+}
+
+const deleteMyMember = async (m) => {
+  if (!m?.id) return
+  const ok = await $confirm('删除确认', `确定删除「${m.character_name}」吗？`)
+  if (!ok) return
+  mySaving.value[m.id] = true
+  try {
+    const res = await $fetch(`/api/my-members/${m.id}`, { method: 'DELETE' })
+    if (!res?.success) throw new Error(res?.error || '删除失败')
+    await fetchMyMembers()
+  } catch (e) {
+    $alert('删除失败', e?.message || String(e))
+  } finally {
+    mySaving.value[m.id] = false
+  }
 }
 
 const legionLoading = ref(false)
@@ -1573,20 +2022,23 @@ const addMemberToTeam = (profile) => {
     return
   }
 
+  const initialRemark = String(profile?.remark ?? team.slot_remarks?.[targetIndex] ?? '').trim()
+
   team.members[targetIndex] = {
     key: `m_${Date.now()}`,
     characterId: profile.characterId,
     characterName: profile.characterName,
     serverId: profile.serverId,
     serverName: profile.serverName,
-    serverShortName: getServerShortNameById(profile.serverId),
+    serverShortName: profile.serverShortName || getServerShortNameById(profile.serverId),
     raceId: profile.raceId,
     raceName: profile.raceName,
     className: profile.className,
     characterLevel: profile.characterLevel,
     combatPower: profile.combatPower,
     itemLevel: profile.itemLevel,
-    remark: '',
+    remark: initialRemark,
+    needsRefresh: !!profile.needsRefresh,
   }
 
   pickerOpen.value = false
@@ -1595,7 +2047,21 @@ const addMemberToTeam = (profile) => {
 const pickFromLegion = async (m) => {
   $loading.show('正在获取角色信息...')
   try {
-    const profile = await fetchCharacterInfo(m.character_id, m.server_id)
+    let profile
+    try {
+      profile = await fetchCharacterInfo(m.character_id, m.server_id)
+      profile.needsRefresh = false
+    } catch {
+      profile = buildFallbackProfile({
+        characterId: m.character_id,
+        characterName: m.name,
+        serverId: m.server_id,
+        raceId: m.race_id,
+        level: m.level,
+        className: m.class_name,
+      })
+      $alert('已添加', '角色详情接口暂时不可用，已先添加占位信息，可稍后点刷新补全')
+    }
     addMemberToTeam(profile)
   } catch (e) {
     $alert('添加失败', e?.message || String(e))
@@ -1607,7 +2073,21 @@ const pickFromLegion = async (m) => {
 const pickFromSearch = async (c) => {
   $loading.show('正在获取角色信息...')
   try {
-    const profile = await fetchCharacterInfo(c.characterId, c.serverId)
+    let profile
+    try {
+      profile = await fetchCharacterInfo(c.characterId, c.serverId)
+      profile.needsRefresh = false
+    } catch {
+      profile = buildFallbackProfile({
+        characterId: c.characterId,
+        characterName: stripHtml(c.name),
+        serverId: c.serverId,
+        raceId: c.race,
+        level: c.level,
+        className: null,
+      })
+      $alert('已添加', '角色详情接口暂时不可用，已先添加占位信息，可稍后点刷新补全')
+    }
     addMemberToTeam(profile)
   } catch (e) {
     $alert('添加失败', e?.message || String(e))
@@ -1631,7 +2111,21 @@ const manualValidate = async () => {
     const list = res?.list || []
     const exact = list.find((x) => String(x.name || '').replace(/<[^>]+>/g, '') === name) || list[0]
     if (!exact) throw new Error('角色不存在')
-    const profile = await fetchCharacterInfo(exact.characterId, exact.serverId)
+    let profile
+    try {
+      profile = await fetchCharacterInfo(exact.characterId, exact.serverId)
+      profile.needsRefresh = false
+    } catch {
+      profile = buildFallbackProfile({
+        characterId: exact.characterId,
+        characterName: stripHtml(exact.name),
+        serverId: exact.serverId,
+        raceId: exact.race,
+        level: exact.level,
+        className: null,
+      })
+      $alert('已添加', '角色详情接口暂时不可用，已先添加占位信息，可稍后点刷新补全')
+    }
     addMemberToTeam(profile)
     manualName.value = ''
   } catch (e) {
