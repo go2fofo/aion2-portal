@@ -273,29 +273,83 @@ export default defineEventHandler(async (event) => {
     };
   };
 
+  const getAcwScV2 = (arg1: string) => {
+    const StringHex = "3000176000856006061501533003690027800375";
+    let u = "";
+    let v = "";
+    const q: string[] = [];
+    const m = [15, 35, 29, 24, 33, 16, 1, 38, 10, 9, 19, 31, 40, 27, 22, 23, 25, 13, 6, 11, 39, 18, 20, 8, 14, 21, 32, 26, 2, 30, 7, 4, 17, 5, 3, 28, 34, 37, 12, 36];
+    
+    for (let x = 0; x < arg1.length; x++) {
+        for (let z = 0; z < m.length; z++) {
+            if (m[z] === x + 1) {
+                q[z] = arg1[x];
+            }
+        }
+    }
+    u = q.join("");
+    for (let x = 0; x < u.length && x < StringHex.length; x += 2) {
+        let A = parseInt(u.substring(x, x + 2), 16) ^ parseInt(StringHex.substring(x, x + 2), 16);
+        let hex = A.toString(16);
+        if (hex.length === 1) {
+            hex = "0" + hex;
+        }
+        v += hex;
+    }
+    return v;
+  };
+
   const fetchDd373 = async (): Promise<
     SourceResult<Dd373Offer, number> & { bestUnitPrice: number | null }
   > => {
     let lastErr = null;
     for (const url of dd373Urls) {
       try {
-        const res = await withTimeout(
-          (signal) =>
-            fetch(url, {
-              headers: {
-                "user-agent":
-                  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-                accept:
-                  "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-                "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
-                referer: "https://www.dd373.com/",
-              },
-              signal,
-            }),
+        const headers: any = {
+          "user-agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+          accept:
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+          "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
+          referer: "https://www.dd373.com/",
+        };
+
+        let res = await withTimeout(
+          (signal) => fetch(url, { headers, signal }),
           12000,
         );
 
-        const html = await res.text();
+        let html = await res.text();
+        
+        // Check for WAF protection
+        const arg1Match = html.match(/arg1='([^']+)'/);
+        if (arg1Match) {
+          const acwScV2 = getAcwScV2(arg1Match[1]);
+          
+          // Try to extract cookies from the first response
+          const setCookieHeaders = res.headers.get('set-cookie') || '';
+          let cookies: string[] = [];
+          if (typeof (res.headers as any).getSetCookie === 'function') {
+            cookies = (res.headers as any).getSetCookie();
+          } else if (setCookieHeaders) {
+             // Basic parsing of multiple set-cookie headers joined by comma
+             // Not perfect but works for acw_tc and cdn_sec_tc which don't usually contain comma in values
+             cookies = setCookieHeaders.split(',').filter((c: string) => c.includes('acw_tc=') || c.includes('cdn_sec_tc='));
+          }
+
+          let cookieStr = cookies.map((c: string) => c.split(';')[0].trim()).join('; ');
+          cookieStr += (cookieStr ? '; ' : '') + `acw_sc__v2=${acwScV2}`;
+          
+          headers["cookie"] = cookieStr;
+          
+          // Second fetch with cookies
+          res = await withTimeout(
+            (signal) => fetch(url, { headers, signal }),
+            12000,
+          );
+          html = await res.text();
+        }
+
         const parsed = extractDd373Rates(html);
         if (parsed.bestRate) {
           return {
