@@ -1,6 +1,10 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
+import { useSupabaseClient, useNuxtApp } from '#imports'
 import { formatServerDisplay, getServersByRace, parseNameWithServerShort } from '~/utils/aionServers'
+
+definePageMeta({ layout: 'admin' })
+
 const supabase = useSupabaseClient()
 const { $alert, $confirm, $loading } = useNuxtApp()
 
