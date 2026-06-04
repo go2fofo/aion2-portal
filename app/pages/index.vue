@@ -317,6 +317,7 @@
               </div>
               <!-- Aion2更新动态 -->
               <Aion2UpdateBoard v-else-if="activeTab === 'updateAIon2'" />
+              <!-- 职业攻略 careerStrategy-->
 
               <!-- 其他 Tab 内容暂保持静态或后续扩展 -->
               <div v-else-if="activeTab === 'analysis'" class="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">

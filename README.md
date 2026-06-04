@@ -6,9 +6,10 @@
  * @Description: 
  * @FilePath: /aion2-portal/README.md
 -->
-# 🚌 B.B.B.S - AION2 军团门户 (AION2 Portal)
 
-B.B.B.S (宝宝巴士) 是一个专为《永恒之塔2》(AION2) 玩家打造的军团门户网站。它集成了角色查询、实时战力分析、AI 深度建议以及高度可配置的后台管理系统。
+# 🚌 B.B.B.S - AION2 门户 (AION2 Portal)
+
+B.B.B.S (宝宝巴士) 是一个专为《永恒之塔2》(AION2) 玩家打造的门户网站。它集成了角色查询、实时战力分析、AI 深度建议以及高度可配置的后台管理系统。
 
 ## 🌟 核心特性
 
@@ -31,7 +32,7 @@ B.B.B.S (宝宝巴士) 是一个专为《永恒之塔2》(AION2) 玩家打造的
 - **图表库**: [Apache ECharts](https://echarts.apache.org/)
 - **AI 渲染**: [Marked](https://marked.js.org/) (Markdown 解析)
 - **部署平台**: [Vercel](https://vercel.com/) / [Zeabur](https://zeabur.com/)
-- **要求Nodejs版本**: [>=](https://marked.js.org/)20
+- **要求Nodejs版本**: [&gt;=](https://marked.js.org/)20
 
 ## 🛠️ 快速开始
 
@@ -72,13 +73,12 @@ pnpm dev
 - 生产环境建议通过 Vercel 控制台设置环境变量，变量名需带 `NUXT_` 前缀。
 - API Key 在管理后台支持明文/密文切换，方便管理员直接维护。
 
-***
-
-
+---
 
 <br />
 
 # 项目展示
+
 ![项目展示](./docs/longshot20260409092903.png)
 ![项目展示](./docs/longshot20260409092946.png)
 ![项目展示](./docs/longshot20260409093638.png)
