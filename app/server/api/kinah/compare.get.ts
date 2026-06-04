@@ -1,8 +1,19 @@
+import { aionServerList } from "~/utils/aionServers";
+
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
   const force =
     String((query as any)?.force || "") === "1" ||
     String((query as any)?.force || "") === "true";
+
+  const rawRaceId = Number((query as any)?.raceId);
+  const filterRaceId: 1 | 2 | null =
+    rawRaceId === 1 || rawRaceId === 2 ? rawRaceId : null;
+
+  const rawServerId = Number((query as any)?.serverId);
+  const filterServerId: number | null = Number.isFinite(rawServerId)
+    ? rawServerId
+    : null;
 
   type LuluOffer = {
     id: string;
@@ -47,7 +58,7 @@ export default defineEventHandler(async (event) => {
     bestUnitPrice?: number | null;
   };
 
-  const cacheKey = "__kinah_compare_cache__";
+  const cacheKey = `__kinah_compare_cache__:${filterRaceId || "all"}:${filterServerId || "all"}`;
   const now = Date.now();
   const ttlMs = 5 * 60 * 1000;
   const g = globalThis as unknown as Record<string, unknown>;
@@ -61,26 +72,15 @@ export default defineEventHandler(async (event) => {
     return cached.data;
 
   const luluUrl = "https://www.lulu233.com/api/goods/goods/queryByPage";
-  const luluBody = {
-    goods: {
-      bizType: 2,
-      gameId: "1983455802783035396",
-      regionTreePath: "1998683040308588546",
-      categoryTreePath: "1998679620088557569",
-    },
-    attrs: [],
-    page: {
-      pageNum: 1,
-      pageSize: 30,
-      orderByColumn: "coinOneMoney",
-      asc: "desc",
-    },
-  };
+  const luluGameId = "1983455802783035396";
+  const luluBizType = 2;
+  const luluCategoryTreePath = "1998679620088557569";
 
   const dd373Urls = [
     "https://www.dd373.com/s-r0f5te-1tkp0u-vbtj5r-0-0-0-pccpee-0-0-0-0-0-1-0-5-0.html",
     "https://www.dd373.com/s-r0f5te-1tkp0u-vbtj5r-0-0-0-0-0-0-0-0-0-1-0-5-0.html",
   ];
+  const dd373Aion2BaseUrl = "https://www.dd373.com/s-r0f5te-c-pccpee-1.html";
 
   const url7881 =
     "https://gw.7881.com/goods-service-api/api/goods/list";
@@ -112,8 +112,70 @@ export default defineEventHandler(async (event) => {
     }
   };
 
-  const fetchLulu = async (): Promise<SourceResult<LuluOffer, LuluOffer>> => {
+  const fetchLuluRegionTree = async () => {
+    const regionCacheKey = "__lulu_aion2_region_tree_cache__";
+    const cached = g[regionCacheKey] as
+      | { ts: number; data: any }
+      | undefined;
+    if (cached && now - (cached.ts || 0) < 24 * 60 * 60 * 1000) return cached.data;
+
+    const url = `https://www.lulu233.com/api/goods/region/queryTreeByGameId?gameId=${encodeURIComponent(luluGameId)}&bizType=${encodeURIComponent(String(luluBizType))}&isDl=true`;
+    const res = await withTimeout(
+      (signal) =>
+        fetch(url, {
+          headers: {
+            "user-agent":
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+            accept: "application/json, text/plain, */*",
+          },
+          signal,
+        }),
+      12000,
+    );
+    const json: any = await res.json();
+    const list: any[] = Array.isArray(json?.data) ? json.data : [];
+    const byRace: Record<string, any> = {};
+    const serverNameToId: Record<string, string> = {};
+
+    for (const raceNode of list) {
+      const raceName = String(raceNode?.name || "");
+      if (raceName.includes("天族")) byRace["1"] = raceNode;
+      if (raceName.includes("魔族")) byRace["2"] = raceNode;
+      const children: any[] = Array.isArray(raceNode?.children)
+        ? raceNode.children
+        : [];
+      for (const s of children) {
+        const name = String(s?.name || "");
+        const id = String(s?.id || "");
+        if (name && id) serverNameToId[name] = id;
+      }
+    }
+
+    const data = { byRace, serverNameToId };
+    (g as any)[regionCacheKey] = { ts: now, data };
+    return data;
+  };
+
+  const fetchLuluByRegionTreePath = async (
+    regionTreePath: string,
+  ): Promise<SourceResult<LuluOffer, LuluOffer>> => {
     try {
+      const body = {
+        goods: {
+          bizType: luluBizType,
+          gameId: luluGameId,
+          regionTreePath,
+          categoryTreePath: luluCategoryTreePath,
+        },
+        attrs: [],
+        page: {
+          pageNum: 1,
+          pageSize: 30,
+          orderByColumn: "coinOneMoney",
+          asc: "desc",
+        },
+      };
+
       const res = await withTimeout(
         (signal) =>
           fetch(luluUrl, {
@@ -123,7 +185,7 @@ export default defineEventHandler(async (event) => {
               "user-agent":
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
             },
-            body: JSON.stringify(luluBody),
+            body: JSON.stringify(body),
             signal,
           }),
         12000,
@@ -147,7 +209,7 @@ export default defineEventHandler(async (event) => {
           createdAt: String(g.createdAt || ""),
           detailUrl: (() => {
             const goodsId = String(g.id || g.goodsCode || "");
-            const bizType = String(luluBody?.goods?.bizType ?? 2);
+            const bizType = String(luluBizType);
             if (!goodsId) return "https://www.lulu233.com/";
             return `https://www.lulu233.com/product/${encodeURIComponent(goodsId)}/${encodeURIComponent(bizType)}`;
           })(),
@@ -299,56 +361,136 @@ export default defineEventHandler(async (event) => {
     return v;
   };
 
+  const fetchDd373Html = async (url: string) => {
+    const headers: any = {
+      "user-agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+      accept:
+        "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+      "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
+      referer: "https://www.dd373.com/",
+    };
+
+    let res = await withTimeout((signal) => fetch(url, { headers, signal }), 12000);
+    let html = await res.text();
+
+    const arg1Match = html.match(/arg1='([^']+)'/);
+    if (!arg1Match) return html;
+
+    const acwScV2 = getAcwScV2(arg1Match[1]);
+
+    const setCookieHeaders = res.headers.get("set-cookie") || "";
+    let cookies: string[] = [];
+    if (typeof (res.headers as any).getSetCookie === "function") {
+      cookies = (res.headers as any).getSetCookie();
+    } else if (setCookieHeaders) {
+      cookies = setCookieHeaders
+        .split(",")
+        .filter((c: string) => c.includes("acw_tc=") || c.includes("cdn_sec_tc="));
+    }
+
+    let cookieStr = cookies.map((c: string) => c.split(";")[0].trim()).join("; ");
+    cookieStr += (cookieStr ? "; " : "") + `acw_sc__v2=${acwScV2}`;
+    headers["cookie"] = cookieStr;
+
+    res = await withTimeout((signal) => fetch(url, { headers, signal }), 12000);
+    html = await res.text();
+    return html;
+  };
+
+  const fetchDd373Aion2Map = async () => {
+    const mapCacheKey = "__dd373_aion2_server_url_map__";
+    const cached = g[mapCacheKey] as { ts: number; data: any } | undefined;
+    if (cached && now - (cached.ts || 0) < 24 * 60 * 60 * 1000) return cached.data;
+
+    const html = await fetchDd373Html(dd373Aion2BaseUrl);
+    const origin = "https://www.dd373.com";
+
+    const strip = (s: string) =>
+      String(s || "")
+        .replace(/<[^>]+>/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    const raceBaseUrls: Record<string, string> = {
+      "1": dd373Aion2BaseUrl,
+      "2": dd373Aion2BaseUrl,
+    };
+
+    const anchorRegex = /<a[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g;
+    const serverUrlById: Record<string, string> = {};
+
+    let m: RegExpExecArray | null;
+    while ((m = anchorRegex.exec(html))) {
+      const href = String(m[1] || "");
+      const text = strip(String(m[2] || ""));
+      if (!href || !text) continue;
+
+      if (text.includes("天族（台服）")) {
+        raceBaseUrls["1"] = href.startsWith("http") ? href : `${origin}${href}`;
+        continue;
+      }
+      if (text.includes("魔族（台服）")) {
+        raceBaseUrls["2"] = href.startsWith("http") ? href : `${origin}${href}`;
+        continue;
+      }
+
+      const codeMatch = text.match(/([天魔])\s*(\d+)\s*$/);
+      if (!codeMatch) continue;
+
+      const side = codeMatch[1];
+      const code = Number(codeMatch[2]);
+      if (!Number.isFinite(code) || code <= 0) continue;
+
+      const serverId = side === "天" ? 1000 + code : 2000 + code;
+      const abs = href.startsWith("http") ? href : `${origin}${href}`;
+      serverUrlById[String(serverId)] = abs;
+    }
+
+    if (raceBaseUrls["1"]) {
+      const tianHtml = await fetchDd373Html(raceBaseUrls["1"]);
+      anchorRegex.lastIndex = 0;
+      let m2: RegExpExecArray | null;
+      while ((m2 = anchorRegex.exec(tianHtml))) {
+        const href = String(m2[1] || "");
+        const text = strip(String(m2[2] || ""));
+        if (!href || !text) continue;
+        const codeMatch = text.match(/([天魔])\s*(\d+)\s*$/);
+        if (!codeMatch) continue;
+        const side = codeMatch[1];
+        const code = Number(codeMatch[2]);
+        if (!Number.isFinite(code) || code <= 0) continue;
+        const serverId = side === "天" ? 1000 + code : 2000 + code;
+        const abs = href.startsWith("http") ? href : `${origin}${href}`;
+        serverUrlById[String(serverId)] = abs;
+      }
+    }
+
+    const data = { raceBaseUrls, serverUrlById };
+    (g as any)[mapCacheKey] = { ts: now, data };
+    return data;
+  };
+
   const fetchDd373 = async (): Promise<
     SourceResult<Dd373Offer, number> & { bestUnitPrice: number | null }
   > => {
     let lastErr = null;
-    for (const url of dd373Urls) {
+    const map = await fetchDd373Aion2Map().catch(() => null);
+    const urlCandidates: string[] = [];
+
+    if (filterServerId && map?.serverUrlById?.[String(filterServerId)]) {
+      urlCandidates.push(String(map.serverUrlById[String(filterServerId)]));
+    } else if (filterRaceId && map?.raceBaseUrls?.[String(filterRaceId)]) {
+      urlCandidates.push(String(map.raceBaseUrls[String(filterRaceId)]));
+    } else if (map?.raceBaseUrls?.["2"]) {
+      urlCandidates.push(String(map.raceBaseUrls["2"]));
+    } else {
+      urlCandidates.push(...dd373Urls);
+    }
+
+    for (const url of urlCandidates) {
       try {
-        const headers: any = {
-          "user-agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-          accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-          "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
-          referer: "https://www.dd373.com/",
-        };
-
-        let res = await withTimeout(
-          (signal) => fetch(url, { headers, signal }),
-          12000,
-        );
-
-        let html = await res.text();
-        
-        // Check for WAF protection
-        const arg1Match = html.match(/arg1='([^']+)'/);
-        if (arg1Match) {
-          const acwScV2 = getAcwScV2(arg1Match[1]);
-          
-          // Try to extract cookies from the first response
-          const setCookieHeaders = res.headers.get('set-cookie') || '';
-          let cookies: string[] = [];
-          if (typeof (res.headers as any).getSetCookie === 'function') {
-            cookies = (res.headers as any).getSetCookie();
-          } else if (setCookieHeaders) {
-             // Basic parsing of multiple set-cookie headers joined by comma
-             // Not perfect but works for acw_tc and cdn_sec_tc which don't usually contain comma in values
-             cookies = setCookieHeaders.split(',').filter((c: string) => c.includes('acw_tc=') || c.includes('cdn_sec_tc='));
-          }
-
-          let cookieStr = cookies.map((c: string) => c.split(';')[0].trim()).join('; ');
-          cookieStr += (cookieStr ? '; ' : '') + `acw_sc__v2=${acwScV2}`;
-          
-          headers["cookie"] = cookieStr;
-          
-          // Second fetch with cookies
-          res = await withTimeout(
-            (signal) => fetch(url, { headers, signal }),
-            12000,
-          );
-          html = await res.text();
-        }
+        const html = await fetchDd373Html(url);
 
         const parsed = extractDd373Rates(html);
         if (parsed.bestRate) {
@@ -490,12 +632,115 @@ export default defineEventHandler(async (event) => {
     }
   };
 
+  const fetchLulu = async (): Promise<SourceResult<LuluOffer, LuluOffer>> => {
+    const fallbackRegionTreePath = "1998683040308588546";
+    try {
+      const aionServer = filterServerId
+        ? aionServerList.find((s) => s.serverId === filterServerId) || null
+        : null;
+
+      const tree = await fetchLuluRegionTree().catch(() => null);
+
+      let regionTreePaths: string[] = [];
+      if (aionServer && tree?.serverNameToId?.[aionServer.serverName]) {
+        regionTreePaths = [String(tree.serverNameToId[aionServer.serverName])];
+      } else if (filterRaceId && tree?.byRace?.[String(filterRaceId)]?.id) {
+        regionTreePaths = [String(tree.byRace[String(filterRaceId)].id)];
+      } else if (tree?.byRace?.["1"]?.id && tree?.byRace?.["2"]?.id) {
+        regionTreePaths = [String(tree.byRace["1"].id), String(tree.byRace["2"].id)];
+      } else {
+        regionTreePaths = [fallbackRegionTreePath];
+      }
+
+      const parts = await Promise.all(
+        regionTreePaths.map((rtp) => fetchLuluByRegionTreePath(rtp)),
+      );
+      const okParts = parts.filter((p) => p.ok);
+      if (!okParts.length) return parts[0] || {
+        ok: false,
+        url: "https://www.lulu233.com/",
+        offers: [],
+        best: null,
+        error: "no data",
+      };
+
+      const offers = okParts.flatMap((p) => p.offers || []);
+      offers.sort((a, b) => b.coinOneMoney - a.coinOneMoney);
+      return {
+        ok: true,
+        url: "https://www.lulu233.com/",
+        offers: offers.slice(0, 10),
+        best: offers[0] || null,
+      };
+    } catch (e) {
+      const err = e as any;
+      return {
+        ok: false,
+        url: "https://www.lulu233.com/",
+        offers: [],
+        best: null,
+        error: (err && (err.message || String(err))) || "unknown error",
+      };
+    }
+  };
+
   const [lulu, dd373] = await Promise.all([
     fetchLulu(),
     fetchDd373(),
   ]);
 
   const s7881: SourceResult<Offer7881, Offer7881> = { ok: false, url: "https://www.7881.com/", offers: [], best: null, error: "暂时隐藏" };
+
+  const regionPass = (regionNames: string | null | undefined) => {
+    if (!filterRaceId && !filterServerId) return true;
+    const raw = String(regionNames || "").trim();
+    if (!raw) return false;
+
+    const servers = filterServerId
+      ? aionServerList.filter((s) => s.serverId === filterServerId)
+      : aionServerList.filter((s) => s.raceId === filterRaceId);
+
+    if (!servers.length) return false;
+    return servers.some(
+      (s) => raw.includes(s.serverName) || raw.includes(s.serverShortName),
+    );
+  };
+
+  const filterLulu = (src: SourceResult<LuluOffer, LuluOffer>) => {
+    if (!src.ok) return src;
+    const offers = (src.offers || [])
+      .filter((o) => regionPass(o.regionNames))
+      .sort((a, b) => b.coinOneMoney - a.coinOneMoney);
+    return { ...src, offers, best: offers[0] || null };
+  };
+
+  const filterDd373 = (
+    src: SourceResult<Dd373Offer, number> & { bestUnitPrice: number | null },
+  ) => {
+    if (!src.ok) return src;
+    const offers = (src.offers || [])
+      .filter((o) => regionPass(o.regionNames))
+      .sort((a, b) => b.coinOneMoney - a.coinOneMoney);
+    const best = offers[0]?.coinOneMoney ?? null;
+    const bestUnitPrice = offers.reduce((min: number | null, o) => {
+      if (!Number.isFinite(o.moneyOneCoin) || o.moneyOneCoin <= 0) return min;
+      if (min === null) return o.moneyOneCoin;
+      return Math.min(min, o.moneyOneCoin);
+    }, null);
+    return { ...src, offers, best, bestUnitPrice };
+  };
+
+  const filter7881 = (src: SourceResult<Offer7881, Offer7881>) => {
+    if (!src.ok) return src;
+    const offers = (src.offers || [])
+      .filter((o) => regionPass(o.regionNames))
+      .sort((a, b) => b.coinOneMoney - a.coinOneMoney);
+    return { ...src, offers, best: offers[0] || null };
+  };
+
+  const luluFiltered = filterLulu(lulu);
+  const dd373Filtered = filterDd373(dd373);
+  const s7881Filtered = filter7881(s7881);
 
   const normalizeBest = (source: any): number | null => {
     if (!source?.ok) return null;
@@ -509,9 +754,9 @@ export default defineEventHandler(async (event) => {
     return null;
   };
 
-  const luluBest = normalizeBest(lulu);
-  const ddBest = normalizeBest(dd373);
-  const s7881Best = normalizeBest(s7881);
+  const luluBest = normalizeBest(luluFiltered);
+  const ddBest = normalizeBest(dd373Filtered);
+  const s7881Best = normalizeBest(s7881Filtered);
 
   const candidates = [
     { key: "lulu233", val: luluBest },
@@ -527,8 +772,8 @@ export default defineEventHandler(async (event) => {
 
   // 生成全平台统一排行榜
   const combinedRanking = [];
-  if (lulu.ok && Array.isArray(lulu.offers)) {
-    for (const o of lulu.offers) {
+  if (luluFiltered.ok && Array.isArray(luluFiltered.offers)) {
+    for (const o of luluFiltered.offers) {
       combinedRanking.push({
         platform: "lulu233",
         coinOneMoney: o.coinOneMoney,
@@ -541,8 +786,8 @@ export default defineEventHandler(async (event) => {
       });
     }
   }
-  if (dd373.ok && Array.isArray(dd373.offers)) {
-    for (const o of dd373.offers) {
+  if (dd373Filtered.ok && Array.isArray(dd373Filtered.offers)) {
+    for (const o of dd373Filtered.offers) {
       combinedRanking.push({
         platform: "dd373",
         coinOneMoney: o.coinOneMoney,
@@ -555,8 +800,8 @@ export default defineEventHandler(async (event) => {
       });
     }
   }
-  if (s7881.ok && Array.isArray(s7881.offers)) {
-    for (const o of s7881.offers) {
+  if (s7881Filtered.ok && Array.isArray(s7881Filtered.offers)) {
+    for (const o of s7881Filtered.offers) {
       combinedRanking.push({
         platform: "7881",
         coinOneMoney: o.coinOneMoney,
@@ -573,32 +818,14 @@ export default defineEventHandler(async (event) => {
 
   const topN = 20;
   const ranking = combinedRanking.slice(0, topN);
-  const ensurePlatforms = ["lulu233", "dd373", "7881"];
-  for (const p of ensurePlatforms) {
-    const hasPlatform = ranking.some((x) => x.platform === p);
-    if (hasPlatform) continue;
-    const bestOfPlatform = combinedRanking.find((x) => x.platform === p);
-    if (!bestOfPlatform) continue;
-
-    const alreadyIn = ranking.some(
-      (x) =>
-        x.detailUrl &&
-        bestOfPlatform.detailUrl &&
-        x.detailUrl === bestOfPlatform.detailUrl,
-    );
-    if (alreadyIn) continue;
-
-    if (ranking.length < topN) ranking.push(bestOfPlatform);
-    else ranking[ranking.length - 1] = bestOfPlatform;
-  }
 
   const data = {
     updated_at: new Date().toISOString(),
     winner,
-    combinedRanking: ranking, // Top 20（确保每个平台至少 1 条）
-    lulu233: lulu,
-    dd373,
-    s7881,
+    combinedRanking: ranking, // Top 20
+    lulu233: luluFiltered,
+    dd373: dd373Filtered,
+    s7881: s7881Filtered,
   };
 
   (g as any)[cacheKey] = { ts: now, data };

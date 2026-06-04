@@ -1,10 +1,10 @@
 <!--
  * @Author: whq
  * @Date: 2026-02-11 09:53:45
- * @LastEditTime: 2026-04-08 15:01:52
- * @LastEditors: whq
+ * @LastEditTime: 2026-06-04 11:03:03
+ * @LastEditors: fofo
  * @Description: 
- * @FilePath: /aion2/aion2-portal/app/pages/admin.vue
+ * @FilePath: /aion2-portal/app/pages/admin.vue
 -->
 <template>
   <div class="h-screen bg-slate-50 flex overflow-hidden">
@@ -18,7 +18,7 @@
         >
           A
         </div>
-        <span class="font-black text-slate-800 text-lg">AION2宝宝巴士军团</span>
+        <span class="font-black text-slate-800 text-lg">AION2宝宝巴士</span>
       </div>
 
       <nav class="flex-1 p-4 space-y-1 overflow-y-auto custom-scroll">

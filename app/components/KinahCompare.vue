@@ -30,7 +30,32 @@
             <span class="text-sky-700/90">点击任意报价或「去购买」可跳转</span>
           </div>
         </div>
-        <div class="flex items-center gap-3 w-full md:w-auto">
+        <div
+          class="flex flex-col sm:flex-row sm:items-center gap-3 w-full md:w-auto"
+        >
+          <div class="flex gap-2 w-full md:w-auto">
+            <select
+              v-model="filterRaceId"
+              class="px-4 py-2.5 bg-white border-2 border-slate-100 rounded-2xl focus:border-[#45a6d5] outline-none font-black text-slate-700 transition-all"
+            >
+              <option :value="null">全部</option>
+              <option :value="1">天族</option>
+              <option :value="2">魔族</option>
+            </select>
+            <select
+              v-model="filterServerId"
+              class="w-full md:w-auto min-w-[12rem] px-4 py-2.5 bg-white border-2 border-slate-100 rounded-2xl focus:border-[#45a6d5] outline-none font-black text-slate-700 transition-all"
+            >
+              <option :value="null">全部区服</option>
+              <option
+                v-for="s in filterServerOptions"
+                :key="s.serverId"
+                :value="s.serverId"
+              >
+                {{ formatServerDisplay(s.serverId) }}
+              </option>
+            </select>
+          </div>
           <button
             @click="refreshPrices"
             :disabled="pending"
@@ -145,7 +170,7 @@
           </div>
           <div class="flex-1 overflow-y-auto custom-scroll pr-2 space-y-2">
             <a
-              v-for="(o, idx) in data?.combinedRanking || []"
+              v-for="(o, idx) in combinedRankingShown"
               :key="idx"
               :href="
                 o.detailUrl ||
@@ -187,7 +212,26 @@
                   }}</span>
                 </div>
                 <div class="text-[10px] text-slate-400 font-bold truncate">
-                  {{ o.regionNames || `¥ ${formatMoney(o.rmb)}` }}
+                  <div class="flex flex-wrap gap-1">
+                    <span
+                      v-for="s in offerServers(o.regionNames)"
+                      :key="s.serverId"
+                      class="px-2 py-0.5 rounded font-black"
+                      :class="
+                        filterServerId && s.serverId === filterServerId
+                          ? 'bg-sky-100 text-sky-700'
+                          : 'bg-slate-100 text-slate-600'
+                      "
+                    >
+                      {{ formatServerDisplay(s.serverId) }}
+                    </span>
+                    <span
+                      v-if="!offerServers(o.regionNames).length"
+                      class="truncate"
+                    >
+                      {{ o.regionNames || `¥ ${formatMoney(o.rmb)}` }}
+                    </span>
+                  </div>
                 </div>
               </div>
               <div class="text-right shrink-0 flex flex-col items-end gap-1">
@@ -206,7 +250,7 @@
               </div>
             </a>
             <div
-              v-if="!data?.combinedRanking?.length"
+              v-if="!combinedRankingShown.length"
               class="text-center py-8 text-slate-400 font-bold text-sm"
             >
               暂无排行数据
@@ -284,12 +328,12 @@
                   >Top 报价</span
                 >
                 <span class="text-[10px] font-black text-slate-500"
-                  >{{ (data?.lulu233?.offers || []).length }} 条</span
+                  >{{ luluOffersShown.length }} 条</span
                 >
               </div>
               <div class="space-y-2">
                 <a
-                  v-for="o in (data?.lulu233?.offers || []).slice(0, 5)"
+                  v-for="o in luluOffersShown.slice(0, 5)"
                   :key="o.id"
                   :href="o.detailUrl || data?.lulu233?.url"
                   target="_blank"
@@ -301,10 +345,27 @@
                       <div class="text-sm font-black text-slate-800 truncate">
                         {{ o.goodsName }}
                       </div>
-                      <div
-                        class="text-[10px] text-slate-400 font-bold mt-0.5 truncate"
-                      >
-                        {{ o.regionNames }}
+                      <div class="text-[10px] text-slate-400 font-bold mt-0.5">
+                        <div class="flex flex-wrap gap-1">
+                          <span
+                            v-for="s in offerServers(o.regionNames)"
+                            :key="s.serverId"
+                            class="px-2 py-0.5 rounded font-black"
+                            :class="
+                              filterServerId && s.serverId === filterServerId
+                                ? 'bg-sky-100 text-sky-700'
+                                : 'bg-slate-100 text-slate-600'
+                            "
+                          >
+                            {{ formatServerDisplay(s.serverId) }}
+                          </span>
+                          <span
+                            v-if="!offerServers(o.regionNames).length"
+                            class="truncate"
+                          >
+                            {{ o.regionNames }}
+                          </span>
+                        </div>
                       </div>
                     </div>
                     <div
@@ -399,12 +460,12 @@
                   >Top 报价</span
                 >
                 <span class="text-[10px] font-black text-slate-500"
-                  >{{ (data?.dd373?.offers || []).length }} 条</span
+                  >{{ ddOffersShown.length }} 条</span
                 >
               </div>
               <div class="space-y-2">
                 <a
-                  v-for="(o, idx) in (data?.dd373?.offers || []).slice(0, 5)"
+                  v-for="(o, idx) in ddOffersShown.slice(0, 5)"
                   :key="idx"
                   :href="o.detailUrl || data?.dd373?.url"
                   target="_blank"
@@ -420,9 +481,28 @@
                         }}
                       </div>
                       <div
-                        class="text-[10px] text-slate-400 font-bold mt-0.5 truncate"
+                        class="text-[10px] text-slate-400 font-bold mt-0.5"
                       >
-                        {{ o.regionNames || `¥ ${formatMoney(o.rmb)}` }}
+                        <div class="flex flex-wrap gap-1">
+                          <span
+                            v-for="s in offerServers(o.regionNames)"
+                            :key="s.serverId"
+                            class="px-2 py-0.5 rounded font-black"
+                            :class="
+                              filterServerId && s.serverId === filterServerId
+                                ? 'bg-sky-100 text-sky-700'
+                                : 'bg-slate-100 text-slate-600'
+                            "
+                          >
+                            {{ formatServerDisplay(s.serverId) }}
+                          </span>
+                          <span
+                            v-if="!offerServers(o.regionNames).length"
+                            class="truncate"
+                          >
+                            {{ o.regionNames || `¥ ${formatMoney(o.rmb)}` }}
+                          </span>
+                        </div>
                       </div>
                     </div>
                     <div
@@ -528,19 +608,54 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
+import {
+  aionServerList,
+  formatServerDisplay,
+  getServersByRace,
+} from "~/utils/aionServers";
 
 const refreshNonce = ref(Date.now());
 const forceRefresh = ref(false);
+
+const filterRaceId = ref(null);
+const filterServerId = ref(null);
+const filterServerOptions = computed(() =>
+  filterRaceId.value ? getServersByRace(filterRaceId.value) : aionServerList,
+);
+
+watch(filterRaceId, () => {
+  filterServerId.value = null;
+});
 
 const { data, pending, error } = useFetch("/api/kinah/compare", {
   server: false,
   query: computed(() => ({
     force: forceRefresh.value ? "1" : undefined,
+    raceId: filterRaceId.value || undefined,
+    serverId: filterServerId.value || undefined,
     t: String(refreshNonce.value),
   })),
   watch: [refreshNonce, forceRefresh],
 });
+
+const offerServers = (regionNames) => {
+  const raw = String(regionNames || "").trim();
+  if (!raw) return [];
+
+  const hitsByName = aionServerList.filter(
+    (s) => raw.includes(s.serverName) || raw.includes(s.serverShortName),
+  );
+  const uniq = new Map();
+  for (const s of hitsByName) uniq.set(s.serverId, s);
+  return Array.from(uniq.values());
+};
+
+const matchServerFilter = (regionNames) => {
+  if (!filterServerId.value) return true;
+  const servers = offerServers(regionNames);
+  return servers.some((s) => s.serverId === filterServerId.value);
+};
 
 const refreshPrices = () => {
   forceRefresh.value = true;
@@ -549,6 +664,21 @@ const refreshPrices = () => {
     forceRefresh.value = false;
   }, 0);
 };
+
+const combinedRankingShown = computed(() => {
+  const list = data.value?.combinedRanking || [];
+  return list.filter((o) => matchServerFilter(o.regionNames));
+});
+
+const luluOffersShown = computed(() => {
+  const list = data.value?.lulu233?.offers || [];
+  return list.filter((o) => matchServerFilter(o.regionNames));
+});
+
+const ddOffersShown = computed(() => {
+  const list = data.value?.dd373?.offers || [];
+  return list.filter((o) => matchServerFilter(o.regionNames));
+});
 
 const winnerKey = computed(() => data.value?.winner || null);
 const winnerLabel = computed(() => {

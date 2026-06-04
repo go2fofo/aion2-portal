@@ -1,8 +1,8 @@
 <!--
  * @Author: whq
  * @Date: 2026-02-08 09:11:19
- * @LastEditTime: 2026-02-13 22:01:56
- * @LastEditors: whq
+ * @LastEditTime: 2026-06-04 11:02:56
+ * @LastEditors: fofo
  * @Description: 
  * @FilePath: /aion2-portal/app/app.vue
 -->
@@ -23,9 +23,9 @@
 
 // 例如：设置全局的 SEO 标题
 useHead({
-  title: 'AION2 宝宝巴士军团',
+  title: 'AION2 宝宝巴士',
   meta: [
-    { name: 'description', content: 'AION2 宝宝巴士军团门户网站' }
+    { name: 'description', content: 'AION2 宝宝巴士门户网站' }
   ],
   link: [
     { rel: 'icon', type: 'image/png', href: '/bbbswz.png' }

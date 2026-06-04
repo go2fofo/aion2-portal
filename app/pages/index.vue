@@ -149,12 +149,12 @@
         
         <h2 class="relative text-3xl sm:text-5xl md:text-7xl font-black tracking-widest drop-shadow-[0_2px_0_#fff] md:drop-shadow-[0_4px_0_#fff] flex flex-col md:block items-center gap-2">
           <span class="inline-block transform hover:scale-110 transition-transform duration-300 cursor-default text-[#0ea5e9]" style="text-shadow: 2px 2px 0px #0284c7, 4px 4px 0px #bae6fd;">宝宝巴士</span>
-          <span class="inline-block ml-0 md:ml-4 transform -rotate-3 md:-rotate-6 bg-[#f9b11d] text-white px-3 py-1 md:px-4 md:py-1 rounded-2xl text-2xl sm:text-4xl md:text-6xl shadow-[3px_3px_0_0_#d98a00] md:shadow-[4px_4px_0_0_#d98a00] hover:rotate-0 hover:scale-110 transition-all duration-300 cursor-pointer border-2 border-white">
-            军团
+          <span class="inline-block ml-0 md:ml-4 transform -rotate-3 md:-rotate-6 bg-[#f9b11d] text-white px-3 py-1 md:px- md:py-1 rounded-2xl text-2xl sm:text-4xl md:text-6xl shadow-[3px_3px_0_0_#d98a00] md:shadow-[4px_4px_0_0_#d98a00] hover:rotate-0 hover:scale-110 transition-all duration-300 cursor-pointer border-2 border-white">
+            出发喽～
             <span class="absolute -top-2 -right-2 text-xl md:text-2xl animate-ping">✨</span>
           </span>
         </h2>
-        <p class="mt-2 text-sky-700 font-bold text-sm md:text-base">宝宝巴士，带你的每一个本都是宝宝本</p>
+        <p class="mt-2 text-sky-700 font-bold text-sm md:text-base">宝宝巴士，你的每一个本都是宝宝本</p>
         <div class="mt-1 flex gap-2">
           <span class="w-2 h-2 rounded-full bg-[#45a6d5]"></span>
           <span class="w-2 h-2 rounded-full bg-[#AEE2F9]"></span>
@@ -300,9 +300,7 @@
                   </div>
                 </div>
               </div>
-
-              <!-- Tab 2: 军团鲜哒 (Fresh) -->
-              <div v-else-if="activeTab === 'fresh'" class="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
+                            <div v-else-if="activeTab === 'fresh'" class="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
                  <div v-if="loadingPosts" class="col-span-full flex items-center justify-center text-slate-400 font-bold">加载中...</div>
                  <template v-else>
                     <div v-for="post in posts" :key="post.id" class="p-4 bg-[#F0F9FF] rounded-2xl border-2 border-white hover:-translate-y-1 transition-transform">
@@ -314,6 +312,21 @@
                     <div v-if="posts.length === 0" class="col-span-full flex flex-col items-center justify-center text-slate-400 py-10">
                       <span class="text-4xl mb-2">📭</span>
                       <span class="font-bold">暂无新鲜事</span>
+                    </div>
+                 </template>
+              </div>
+              <!-- Aion2更新动态 -->
+              <div v-else-if="activeTab === 'updateAIon2'" class="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
+                 <div v-if="loadingPosts" class="col-span-full flex items-center justify-center text-slate-400 font-bold">加载中...</div>
+                 <template v-else>
+                    <div v-for="post in posts" :key="post.id" class="p-4 bg-[#F0F9FF] rounded-2xl border-2 border-white hover:-translate-y-1 transition-transform">
+                      <div class="text-4xl mb-2">🐼</div>
+                      <p class="text-sky-900 font-bold line-clamp-2">{{ post.title }}</p>
+                      <p class="text-xs text-sky-400 mt-2">{{ new Date(post.created_at).toLocaleDateString() }}</p>
+                    </div>
+                    <!-- 补充空位 -->
+                    <div v-if="posts.length === 0" class="col-span-full flex flex-col items-center justify-center text-slate-400 py-10">
+                      <span class="font-bold">暂无更新动态</span>
                     </div>
                  </template>
               </div>
