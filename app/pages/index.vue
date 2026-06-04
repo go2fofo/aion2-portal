@@ -316,20 +316,7 @@
                  </template>
               </div>
               <!-- Aion2更新动态 -->
-              <div v-else-if="activeTab === 'updateAIon2'" class="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
-                 <div v-if="loadingPosts" class="col-span-full flex items-center justify-center text-slate-400 font-bold">加载中...</div>
-                 <template v-else>
-                    <div v-for="post in posts" :key="post.id" class="p-4 bg-[#F0F9FF] rounded-2xl border-2 border-white hover:-translate-y-1 transition-transform">
-                      <div class="text-4xl mb-2">🐼</div>
-                      <p class="text-sky-900 font-bold line-clamp-2">{{ post.title }}</p>
-                      <p class="text-xs text-sky-400 mt-2">{{ new Date(post.created_at).toLocaleDateString() }}</p>
-                    </div>
-                    <!-- 补充空位 -->
-                    <div v-if="posts.length === 0" class="col-span-full flex flex-col items-center justify-center text-slate-400 py-10">
-                      <span class="font-bold">暂无更新动态</span>
-                    </div>
-                 </template>
-              </div>
+              <Aion2UpdateBoard v-else-if="activeTab === 'updateAIon2'" />
 
               <!-- 其他 Tab 内容暂保持静态或后续扩展 -->
               <div v-else-if="activeTab === 'analysis'" class="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
@@ -970,6 +957,7 @@ watch(activeTab, (val) => {
     fetchMembers()
   } else if (val === 'cost' || val === 'search') {
     // 自身组件内部处理加载
+  } else if (val === 'updateAIon2') {
   } else {
     fetchPosts()
   }

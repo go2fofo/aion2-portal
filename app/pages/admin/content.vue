@@ -8,6 +8,8 @@ const form = ref({ title: '', content: '', type: 'news' })
 const posts = ref([])
 const loading = ref(false)
 const submitting = ref(false)
+const syncingAion2 = ref(false)
+const aion2SyncInfo = ref(null)
 
 const tabs = [
   { value: 'news', label: '军团伴说' },
@@ -87,10 +89,46 @@ const deletePost = async (id) => {
 onMounted(() => {
   fetchPosts()
 })
+
+const syncAion2Updates = async () => {
+  if (syncingAion2.value) return
+  syncingAion2.value = true
+  $loading.show('正在同步 AION2 更新动态...')
+  try {
+    const res = await $fetch('/api/admin/aion2-updates/sync', { method: 'POST' })
+    if (!res?.success) {
+      $alert('同步失败', res?.error || 'unknown error')
+      return
+    }
+    aion2SyncInfo.value = res.data
+    $alert('同步成功', `已更新 ${res.data?.count || 0} 条`)
+  } finally {
+    syncingAion2.value = false
+    $loading.hide()
+  }
+}
 </script>
 
 <template>
   <div class="space-y-6">
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="font-black text-slate-800">AION2 更新动态</div>
+          <div class="text-xs font-bold text-slate-400 mt-1">
+            {{ aion2SyncInfo?.syncedAt ? `上次同步：${new Date(aion2SyncInfo.syncedAt).toLocaleString()}` : '未同步' }}
+          </div>
+        </div>
+        <button
+          @click="syncAion2Updates"
+          :disabled="syncingAion2"
+          class="px-6 py-2 bg-slate-100 text-slate-700 rounded-xl font-black hover:bg-slate-200 transition-colors disabled:opacity-50"
+        >
+          {{ syncingAion2 ? '同步中...' : '手动同步' }}
+        </button>
+      </div>
+    </div>
+
     <!-- 内容发布表单 -->
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
       <h3 class="font-black text-slate-800 mb-4">发布新动态</h3>
