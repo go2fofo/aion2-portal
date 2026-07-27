@@ -6846,10 +6846,13 @@ var _hmt = _hmt || [];
                         <div class="highlight-card" style="background: linear-gradient(135deg, rgba(156,39,176,0.15) 0%, rgba(156,39,176,0.05) 100%); border-color: rgba(156,39,176,0.4);" data-stat="runs" data-tooltip="总共肝了多少次副本？🏰">
                             <div class="highlight-value" style="color: #9c27b0; text-shadow: 0 0 20px rgba(156,39,176,0.4);" id="totalRuns">0</div>
                             <div class="highlight-label">总远征副本 (次) <span style="color: #4caf50; font-weight: 600;">可刷: <span id="availableRuns">0</span></span></div>
+                             
+                          
                         </div>
                         <div class="highlight-card" style="background: linear-gradient(135deg, rgba(255,87,34,0.15) 0%, rgba(255,87,34,0.05) 100%); border-color: rgba(255,87,34,0.4);" data-stat="transcendRuns" data-tooltip="总共肝了多少次超越副本？🔥">
                             <div class="highlight-value" style="color: #ff5722; text-shadow: 0 0 20px rgba(255,87,34,0.4);" id="totalTranscendRuns">0</div>
                             <div class="highlight-label">总超越副本 (次) <span style="color: #4caf50; font-weight: 600;">可刷: <span id="availableTranscendRuns">0</span></span></div>
+                         
                         </div>
                     </div>
                     
@@ -7186,6 +7189,13 @@ var _hmt = _hmt || [];
                                 <span style="font-size: 0.9em; color: var(--bili-gray-text);">（每次-80奥德能量）</span>
                             </label>
                         </div>
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bili-gray-bg);">
+                            <input type="radio" id="clearRunTriple" name="clearRunEnergy" value="120">
+                            <label for="clearRunTriple" style="font-weight: 600; color: var(--bili-dark-text);">
+                                三倍消耗
+                                <span style="font-size: 0.9em; color: var(--bili-gray-text);">（每次-120奥德能量）</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -7225,14 +7235,14 @@ var _hmt = _hmt || [];
                     <label style="font-weight: 700; color: var(--bili-dark-text); font-size: 1.1em;">奥德能量消耗：</label>
                     <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
                         <div style="display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bili-gray-bg);">
-                            <input type="radio" id="clearTranscendRunSingle" name="clearTranscendRunEnergy" value="40" checked>
+                            <input type="radio" id="clearTranscendRunSingle" name="clearTranscendRunEnergy" value="80" checked>
                             <label for="clearTranscendRunSingle" style="font-weight: 600; color: var(--bili-dark-text);">
                                 单倍消耗
                                 <span style="font-size: 0.9em; color: var(--bili-gray-text);">（每次-40奥德能量）</span>
                             </label>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bili-gray-bg);">
-                            <input type="radio" id="clearTranscendRunDouble" name="clearTranscendRunEnergy" value="80">
+                            <input type="radio" id="clearTranscendRunDouble" name="clearTranscendRunEnergy" value="120">
                             <label for="clearTranscendRunDouble" style="font-weight: 600; color: var(--bili-dark-text);">
                                 双倍消耗
                                 <span style="font-size: 0.9em; color: var(--bili-gray-text);">（每次-80奥德能量）</span>
@@ -8174,7 +8184,7 @@ var _hmt = _hmt || [];
                 
                 // 恢复按钮状态
                 if (calculateBtn) {
-                    calculateBtn.innerHTML = '🚀 点击计算精确收益';
+                    calculateBtn.innerHTML = '点击计算精确收益';
                     calculateBtn.disabled = false;
                 }
             }, 300);
@@ -8677,10 +8687,10 @@ var _hmt = _hmt || [];
         let clearDefaultsSettings = {
             // 远征副本默认设置
             expeditionCount: 1,
-            expeditionEnergy: 40, // 40=单倍, 80=双倍
+            expeditionEnergy: 120, // 40=单倍, 80=双倍
             // 超越副本默认设置
             transcendCount: 1,
-            transcendEnergy: 40, // 40=单倍, 80=双倍
+            transcendEnergy: 120, // 40=单倍, 80=双倍
             // 每日副本默认设置
             dailyCount: 1,
             dailyType: 'normal', // 'normal'=普通, 'stored'=储存
@@ -11928,6 +11938,20 @@ var _hmt = _hmt || [];
             const totalRuns = filteredCharacters.reduce((sum, char) => sum + (char.runs || 0) + (char.storedRuns || 0), 0);
             const totalEnergy = filteredCharacters.reduce((sum, char) => sum + (char.energy || 0) + (char.storedEnergy || 0), 0);
             const totalNightmare = filteredCharacters.reduce((sum, char) => sum + (char.nightmareCount || 0), 0);
+
+
+
+            const totalExpedition =
+            characters.reduce((sum,char)=>{
+                return sum + (char.totalExpeditionRuns || 0);
+            },0);
+
+
+            const totalTranscend =
+            characters.reduce((sum,char)=>{
+                return sum + (char.totalTranscendRuns || 0);
+            },0);
+
             
             // 计算总可刷次数：每个角色单独计算 min(次数, 能量/80)，然后求和
             const totalAvailableRuns = filteredCharacters.reduce((sum, char) => {
@@ -13858,7 +13882,6 @@ case 'weekly':
                                 <input type="number" class="stat-value-input" id="stored-runs-input-${char.id}" value="${char.storedRuns || 0}" min="0" aria-label="${charNameEscaped} - 存储远征副本次数" onchange="quickUpdateStoredRuns(${char.id}, this.value)" style="margin-top: 4px;" ondblclick="event.stopPropagation()" ondragstart="event.stopPropagation()" draggable="false" data-tooltip="存储次数，明天刷！📦">
                                 <div class="stat-update" data-tooltip="上次摸鱼时间：${lastRunsTime}🕒">更新: ${lastRunsTime}</div>
                                 <div class="stat-update" data-tooltip="下次恢复时间：每日5/13/21点各+1次">⏰ 下次: ${(char.runs || 0) >= 21 ? '✅ 已满' : getNextRunRecoveryTime(char.serverRegion)}</div>
-                                <div class="final-boss-info" data-tooltip="远征副本最终首领消减次数，每周三凌晨五点重置为35次">首领消减: ${char.finalBossReductionRuns ?? 35}/35</div>
                                 <input type="number" class="stat-value-input final-boss-input" id="final-boss-reduction-input-${char.id}" value="${char.finalBossReductionRuns ?? 35}" min="0" max="35" aria-label="${charNameEscaped} - 最终首领消减次数" onchange="quickUpdateFinalBossReductionRuns(${char.id}, this.value)" ondblclick="event.stopPropagation()" ondragstart="event.stopPropagation()" draggable="false" data-tooltip="最终首领消减次数 (0-35次)">
                             </div>` : ''}
                             ${charDisplaySettings.showTranscendRuns ? `<div class="stat-item" style="position: relative;" ondblclick="openCompoundEditModal(${char.id}, 'transcend')" data-tooltip="双击编辑超越副本次数！✏️">
@@ -13868,7 +13891,6 @@ case 'weekly':
                                 <input type="number" class="stat-value-input" id="stored-transcend-runs-input-${char.id}" value="${char.storedTranscendRuns || 0}" min="0" aria-label="${charNameEscaped} - 存储超越副本次数" onchange="quickUpdateStoredTranscendRuns(${char.id}, this.value)" style="margin-top: 4px;" ondblclick="event.stopPropagation()" ondragstart="event.stopPropagation()" draggable="false" data-tooltip="存储次数，明天刷！📦">
                                 <div class="stat-update runs-count" data-tooltip="还能肝${estimatedTranscendRuns}次，冲啊！🚀">可刷: ${estimatedTranscendRuns}次</div>
                                 <div class="stat-update" data-tooltip="下次恢复时间：每日5/17点各+1次，上限14次">⏰ 下次: ${(char.transcendRuns || 0) >= 14 ? '✅ 已满' : getNextTranscendRunRecoveryTime(char.serverRegion)}</div>
-                                <div class="final-boss-info" data-tooltip="超越副本最终首领消减次数，每周三凌晨五点重置为28次">首领消减: ${char.finalBossReductionRunsTranscend ?? 28}/28</div>
                                 <input type="number" class="stat-value-input final-boss-input" id="final-boss-reduction-transcend-input-${char.id}" value="${char.finalBossReductionRunsTranscend ?? 28}" min="0" max="28" aria-label="${charNameEscaped} - 最终首领消减次数（超越）" onchange="quickUpdateFinalBossReductionRunsTranscend(${char.id}, this.value)" ondragstart="event.stopPropagation()" draggable="false" data-tooltip="最终首领消减次数（超越） (0-28次)">
                             </div>` : ''}
                         </div>
@@ -13960,7 +13982,7 @@ case 'weekly':
                                 <div class="stat-label"><span class="stat-icon">🏰</span> 远征副本</div>
                                 <div style="display: flex; align-items: center; gap: 8px; justify-content: center;">
                                     <div class="stat-value ${runsStatus}">
-                                        ${char.runs}/21+${char.storedRuns || 0}
+                                       ${char.totalExpeditionRuns || 0}次
                                     </div>
                                     <button class="icon-btn" onclick="openClearRunModal(${char.id})" ondblclick="event.stopPropagation()" data-tooltip="一键清空，秃头加速！🏃" style="right: -12px;">
                                         🏃
@@ -16970,6 +16992,9 @@ case 'weekly':
             } else {
                 document.getElementById('clearRunSingle').checked = true;
             }
+            if (clearDefaultsSettings.expeditionEnergy === 120) {
+                document.getElementById('clearRunTriple').checked = true;
+            }
             
             showModal('clearRunModal');
         }
@@ -17082,10 +17107,18 @@ case 'weekly':
 
             // 使用默认设置重置表单
             document.getElementById('clearTranscendRunCount').value = clearDefaultsSettings.transcendCount;
-            if (clearDefaultsSettings.transcendEnergy === 80) {
+            if (clearDefaultsSettings.transcendEnergy === 120) {
+
+                document.getElementById('clearTranscendRunTriple').checked = true;
+
+            } else if (clearDefaultsSettings.transcendEnergy === 80) {
+
                 document.getElementById('clearTranscendRunDouble').checked = true;
+
             } else {
+
                 document.getElementById('clearTranscendRunSingle').checked = true;
+
             }
             
             showModal('clearTranscendRunModal');
@@ -17120,7 +17153,7 @@ case 'weekly':
             }
 
             const runCount = parseInt(document.getElementById('clearTranscendRunCount').value) || 1;
-            const energyPerRun = parseInt(document.querySelector('input[name="clearTranscendRunEnergy"]:checked').value) || 40;
+            const energyPerRun = parseInt(document.querySelector('input[name="clearTranscendRunEnergy"]:checked').value) || 80;
             const totalEnergyCost = runCount * energyPerRun;
 
             // 检查是否有足够的超越副本次数
@@ -17138,7 +17171,15 @@ case 'weekly':
             }
 
             // 确认操作
-            const energyType = energyPerRun === 40 ? '单倍' : '双倍';
+            let energyType = '';
+
+            if (energyPerRun === 40) {
+                energyType = '单倍';
+            } else if (energyPerRun === 80) {
+                energyType = '双倍';
+            } else if (energyPerRun === 120) {
+                energyType = '三倍';
+            }
             const confirmMessage = `确定要对角色"${char.name}"执行超越副本清本操作吗？\n\n操作详情：\n• 清理次数：${runCount}次\n• 能量消耗：${energyType}（${totalEnergyCost}点）\n• 优先使用普通超越副本次数和奥德能量\n• 最终首领消减次数将减少${runCount}次`;
 
             if (!confirm(confirmMessage)) {
@@ -17161,6 +17202,7 @@ case 'weekly':
             if (char.transcendRuns >= remainingRuns) {
                 char.transcendRuns -= remainingRuns;
                 remainingRuns = 0;
+                char.totalTranscendRuns =(char.totalTranscendRuns || 0) + runCount;
             } else {
                 remainingRuns -= (char.transcendRuns || 0);
                 char.transcendRuns = 0;
@@ -17181,7 +17223,7 @@ case 'weekly':
             updateStats();
             closeClearTranscendRunModal();
 
-            showSuccessToast(`✅ 角色"${char.name}"成功清理${runCount}次超越副本`);
+            showSuccessToast(`角色"${char.name}"成功清理${runCount}次超越副本`);
         }
 
         // 打开清空圣域奖励次数弹窗

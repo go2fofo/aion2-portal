@@ -1,7 +1,8 @@
 <template>
   <div
-    class="min-h-screen w-full relative bg-watercolor font-sans custom-scroll overflow-x-hidden"
+    class="flex flex-col relative min-h-screen w-full relative bg-watercolor font-sans custom-scroll overflow-x-hidden"
     :class="{ 'h-screen overflow-hidden': showIntro && isClient }"
+    ref="scrollContainer"
   >
     <ClientOnly>
       <!-- 视频引导层 -->
@@ -235,7 +236,7 @@
       </div>
     </nav>
 
-    <main class="relative z-20 flex flex-col items-center pt-8 h-full">
+    <main class="flex-1 relative z-20 flex flex-col items-center pt-8 h-full">
       <div
         class="relative mb-8 flex flex-col items-center max-w-full px-4 w-full"
         v-if="activeTab !== 'userAdmin'"
@@ -482,7 +483,7 @@
                     </div>
                     <div class="flex-1">
                       <span class="font-black text-sky-900"
-                        >定潇帽喜豆 #888+8{{ i }}</span
+                        >{{ i }}</span
                       >
                     </div>
                     <button
@@ -533,9 +534,10 @@
               <div v-else-if="activeTab === 'boss'" class="h-full">
                 <PvpBoss />
               </div>
-              <!-- 角色管理 -->
+              <!-- 多角色管理 -->
               <div v-else-if="activeTab === 'userAdmin'" class="h-full">
-                <EmbeddedHtml />
+                <!-- <EmbeddedHtml /> -->
+                <UsersAdmin />
               </div>
 
               <!-- 职业攻略 careerStrategy-->
@@ -1003,7 +1005,7 @@
 
     <!-- 底部动态草地层 -->
     <div
-      class="absolute bottom-0 w-full h-32 md:h-48 pointer-events-none overflow-hidden z-10"
+      class="fixed bottom-0 w-full h-32 md:h-48 pointer-events-none overflow-hidden z-10"
     >
       <!-- 远景草坡 -->
       <svg
@@ -1200,12 +1202,13 @@
 </template>
 
 <script setup>
+import UsersAdmin from "../components/UsersAdmin.vue";
 const user = useSupabaseUser();
 const supabase = useSupabaseClient();
 const router = useRouter();
 const route = useRoute();
 const isClient = process.client;
-
+const scrollContainer = ref(null);
 // 用户显示名
 const displayUsername = ref("guest");
 
@@ -1288,7 +1291,6 @@ watchEffect(() => {
     activeTab.value = visibleTabs.value[0]?.id || "";
   }
 });
-
 // 悬浮按钮拖拽逻辑
 const floatingBtnRef = ref(null);
 const windowWidth = ref(0);
@@ -1537,12 +1539,53 @@ onActivated(() => {
 // 监听 Tab 切换，自动拉取对应内容
 watch(
   activeTab,
-  (val) => {
+  async (val) => {
     if (val === "members") {
       fetchMembers();
     } else if (val === "cost" || val === "search") {
       // 自身组件内部处理加载
     } else if (val === "updateAIon2") {
+    } else if (val === "userAdmin") {
+   showMobileMenu.value = false;
+      await nextTick();
+
+      if (!scrollContainer.value) return;
+
+      // 如果当前已经有高度差，直接滚动
+      if (scrollContainer.value.scrollHeight > scrollContainer.value.clientHeight) {
+        scrollContainer.value.scrollTo({
+          top: scrollContainer.value.scrollHeight,
+          behavior: "smooth"
+        });
+        return;
+      }
+
+      // 如果高度还没被撑开（内容在异步加载），使用 MutationObserver 监听内容撑开的瞬间
+      const observer = new MutationObserver(() => {
+        if (scrollContainer.value) {
+          const { scrollHeight, clientHeight } = scrollContainer.value;
+          // 一旦内容高度大于可视高度，说明加载完成了，立刻滚动到底部
+          if (scrollHeight > clientHeight) {
+            scrollContainer.value.scrollTo({
+              top: scrollHeight,
+              behavior: "smooth"
+            });
+            observer.disconnect(); // 滚动完成后销毁监听
+          }
+        }
+      });
+
+      // 开始监听容器内部 DOM 的变化
+      observer.observe(scrollContainer.value, {
+        childList: true,
+        subtree: true,
+        attributes: true
+      });
+
+      // 设置一个兜底超时，防止接口卡住无限监听（比如 2 秒后自动断开）
+      setTimeout(() => {
+        observer.disconnect();
+      }, 2000);
     } else {
       fetchPosts();
     }
@@ -2119,6 +2162,7 @@ watch(
 
 /* 自定义滚动条 */
 .custom-scroll {
+  height: 100vh;
   scrollbar-width: thin;
   scrollbar-color: #aee2f9 #e6f7ff;
 }
