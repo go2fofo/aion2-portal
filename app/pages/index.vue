@@ -238,6 +238,7 @@
     <main class="relative z-20 flex flex-col items-center pt-8 h-full">
       <div
         class="relative mb-8 flex flex-col items-center max-w-full px-4 w-full"
+        v-if="activeTab !== 'userAdmin'"
       >
         <!-- 装饰元素 -->
         <div
@@ -531,6 +532,10 @@
               <!-- 深渊BOSS boss-->
               <div v-else-if="activeTab === 'boss'" class="h-full">
                 <PvpBoss />
+              </div>
+              <!-- 角色管理 -->
+              <div v-else-if="activeTab === 'userAdmin'" class="h-full">
+                <EmbeddedHtml />
               </div>
 
               <!-- 职业攻略 careerStrategy-->
@@ -1253,6 +1258,7 @@ const defaultTabs = [
 const activeTab = useState("homeActiveTab", () => "");
 const showMobileMenu = ref(false);
 
+//默认显示
 const userAllowedTabIds = new Set([
   "news",
   "fresh",
@@ -1260,6 +1266,8 @@ const userAllowedTabIds = new Set([
   "kinah",
   "members",
   "search",
+  "boss",
+  "userAdmin",
 ]);
 
 const visibleTabs = computed(() => {
