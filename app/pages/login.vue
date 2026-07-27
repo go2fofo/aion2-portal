@@ -19,8 +19,8 @@
         <div class="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-md border-2 border-[#AEE2F9]">
           <img src="/bbbswz.png" class="w-16 h-16 object-contain" />
         </div>
-        <h1 class="text-2xl font-black text-[#45a6d5] tracking-widest">登录军团</h1>
-        <p class="text-sky-600/60 text-sm font-bold mt-1">加入艾昂大陆的冒险之旅</p>
+        <h1 class="text-2xl font-black text-[#45a6d5] tracking-widest">登录</h1>
+        <p class="text-sky-600/60 text-sm font-bold mt-1">加入冒险之旅</p>
       </div>
 
       <form @submit.prevent="handleLogin" class="space-y-4">
