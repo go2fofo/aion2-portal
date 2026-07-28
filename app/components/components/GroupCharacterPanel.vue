@@ -154,6 +154,7 @@ const KinahOdSate = {
     {
       stars: 5,
       name: "深渊重铸: 卢德菜",
+      key: "s1",
       difficulties: [
         { mode: "默认", energy: 160, kina: 200, boundKina: 200, total: 400 },
       ],
@@ -161,6 +162,7 @@ const KinahOdSate = {
     {
       stars: 5,
       name: "侵蚀净化所",
+      key: "s2",
       difficulties: [
         { mode: "默认", energy: 160, kina: 800, boundKina: 0, total: 800 },
       ],
@@ -168,11 +170,35 @@ const KinahOdSate = {
     {
       stars: 5,
       name: "穆斯费尔圣杯",
+      key: "s3",
       difficulties: [
         { mode: "困难", energy: 160, kina: 1200, boundKina: 0, total: 1200 },
         { mode: "普通", energy: 160, kina: 1000, boundKina: 0, total: 1000 },
       ],
     },
+  ],
+};
+// 副本挑战次数与吉纳获取衰减规则
+const dungeonDecayRules = {
+  // 征服/远征副本衰减阶梯
+  expedition: [
+    { maxCount: 84, rate: 1.0, label: "0-84次 (基纳获得量 100%)" },
+    { maxCount: 105, rate: 0.8, label: "85-105次 (基纳获得量 80%)" },
+    { maxCount: 126, rate: 0.6, label: "106-126次 (基纳获得量 60%)" },
+    { maxCount: 147, rate: 0.4, label: "127-147次 (基纳获得量 40%)" },
+    { maxCount: Infinity, rate: 0.2, label: "148次以上 (基纳获得量 20%)" },
+  ],
+  // 超越副本衰减阶梯
+  surpass: [
+    { maxCount: 56, rate: 1.0, label: "0-56次 (基纳获得量 100%)" },
+    { maxCount: 70, rate: 0.8, label: "57-70次 (基纳获得量 80%)" },
+    { maxCount: 84, rate: 0.6, label: "71-84次 (基纳获得量 60%)" },
+    { maxCount: 98, rate: 0.4, label: "85-98次 (基纳获得量 40%)" },
+    { maxCount: Infinity, rate: 0.2, label: "99次以上 (基纳获得量 20%)" },
+  ],
+  // 圣域默认不衰减 (100%)
+  sanctuary: [
+    { maxCount: Infinity, rate: 1.0, label: "无衰减 (基纳获得量 100%)" },
   ],
 };
 const props = defineProps({
@@ -391,15 +417,40 @@ const handleExecuteSupplement = async () => {
 
   $alert(`成功补充 ${addedPoints} 点奥德能量并已保存！`);
 };
-
-//消耗奥德
-// 1. 初始化消耗表单（优先读取 localStorage 记忆，如果没有则给默认值）
+// 消耗表单与挑战次数状态
 const consumeForm = ref({
   dungeonType: localStorage.getItem("aion2_last_dungeon_type") || "expedition",
   selectedDungeonIndex:
     Number(localStorage.getItem("aion2_last_dungeon_idx")) || 0,
   selectedDiffIndex: Number(localStorage.getItem("aion2_last_diff_idx")) || 0,
   multiplier: Number(localStorage.getItem("aion2_last_multiplier")) || 1,
+});
+// 动态绑定当前角色的远征或超越通关次数
+const currentActiveRuns = computed({
+  get() {
+    if (consumeForm.value.dungeonType === "expedition") {
+      return gameplayCharForm.value?.runs || 0;
+    } else if (consumeForm.value.dungeonType === "surpass") {
+      return gameplayCharForm.value?.transcendRuns || 0;
+    }
+    return 0;
+  },
+  set(val) {
+    const nowStr = new Date().toLocaleString();
+    if (consumeForm.value.dungeonType === "expedition") {
+      gameplayCharForm.value = {
+        ...gameplayCharForm.value,
+        runs: val,
+        lastRunsUpdate: nowStr,
+      };
+    } else if (consumeForm.value.dungeonType === "surpass") {
+      gameplayCharForm.value = {
+        ...gameplayCharForm.value,
+        transcendRuns: val,
+        lastTranscendRunsUpdate: nowStr,
+      };
+    }
+  },
 });
 
 // 2. 当前大类对应的副本列表
@@ -429,6 +480,19 @@ watch(
   },
 );
 
+// 根据当前类型和挑战次数获取对应衰减阶梯
+const currentDecayRule = computed(() => {
+  const rules =
+    dungeonDecayRules[consumeForm.value.dungeonType] ||
+    dungeonDecayRules.expedition;
+  const count = currentActiveRuns.value;
+  for (const rule of rules) {
+    if (count <= rule.maxCount) {
+      return rule;
+    }
+  }
+  return rules[rules.length - 1];
+});
 // 4. 动态计算：最终奥德消耗
 const calculatedEnergyCost = computed(() => {
   const diffs = currentDifficultiesList.value;
@@ -437,23 +501,41 @@ const calculatedEnergyCost = computed(() => {
   return baseEnergy * consumeForm.value.multiplier;
 });
 
-// 5. 动态计算：吉纳收益（基纳、绑基、合计，均乘以倍数）
+const currentDecayRate = computed(() => currentDecayRule.value.rate);
+const currentDecayRuleLabel = computed(() => currentDecayRule.value.label);
+
+// 收益计算联动衰减比例
 const calculatedKinaGain = computed(() => {
   const diffs = currentDifficultiesList.value;
   const diff = diffs[consumeForm.value.selectedDiffIndex];
-  return (diff ? diff.kina : 0) * consumeForm.value.multiplier;
+  const base = diff ? diff.kina : 0;
+  return (
+    Math.round(
+      base * consumeForm.value.multiplier * currentDecayRate.value * 10,
+    ) / 10
+  );
 });
 
 const calculatedBoundKinaGain = computed(() => {
   const diffs = currentDifficultiesList.value;
   const diff = diffs[consumeForm.value.selectedDiffIndex];
-  return (diff ? diff.boundKina : 0) * consumeForm.value.multiplier;
+  const base = diff ? diff.boundKina : 0;
+  return (
+    Math.round(
+      base * consumeForm.value.multiplier * currentDecayRate.value * 10,
+    ) / 10
+  );
 });
 
 const calculatedTotalGain = computed(() => {
   const diffs = currentDifficultiesList.value;
   const diff = diffs[consumeForm.value.selectedDiffIndex];
-  return (diff ? diff.total : 0) * consumeForm.value.multiplier;
+  const base = diff ? diff.total : 0;
+  return (
+    Math.round(
+      base * consumeForm.value.multiplier * currentDecayRate.value * 10,
+    ) / 10
+  );
 });
 
 // 6. 自动持久化记忆到 localStorage
@@ -474,16 +556,15 @@ watch(
   (val) => localStorage.setItem("aion2_last_multiplier", val),
 );
 
-// 7. 执行扣除奥德逻辑
-// 7. 执行扣除奥德逻辑（优先扣基础奥德，不足部分扣存储奥德）
+// 7. 执行扣除奥德逻辑（优先扣基础奥德，不足部分扣存储奥德，并自动累加对应副本挑战次数）
 const handleExecuteConsume = async () => {
   const cost = calculatedEnergyCost.value;
   const currentEnergy = gameplayCharForm.value?.energy || 0;
   const currentStored = gameplayCharForm.value?.storedEnergy || 0;
 
-  // 检查总奥德（基础 + 存储）是否足够支付本次消耗
+  // 1. 检查总奥德是否足够
   if (currentEnergy + currentStored < cost) {
-    alert("当前角色的基础奥德与存储奥德总和不足，无法完成本次消耗！");
+    $alert("当前角色的基础奥德与存储奥德总和不足，无法完成本次消耗！");
     return;
   }
 
@@ -491,37 +572,115 @@ const handleExecuteConsume = async () => {
   let newStored = currentStored;
 
   if (currentEnergy >= cost) {
-    // 情况1：基础奥德足够直接全部从基础奥德扣
     newEnergy = currentEnergy - cost;
   } else {
-    // 情况2：基础奥德不够，先把基础奥德扣光（剩0），剩下的差额从存储奥德中扣
     const remainingCost = cost - currentEnergy;
     newEnergy = 0;
     newStored = Math.max(0, currentStored - remainingCost);
   }
 
-  // 组装更新后的角色表单对象
+  // 2. 计算本次通关应当增加的次数
+  const addRunsCount = consumeForm.value.multiplier || 1;
+  const nowStr = new Date().toLocaleString();
+
+  // 拷贝现有的远征与超越次数
+  let updatedRuns = gameplayCharForm.value?.runs || 0;
+  let updatedLastRunsUpdate = gameplayCharForm.value?.lastRunsUpdate || "";
+
+  let updatedTranscendRuns = gameplayCharForm.value?.transcendRuns || 0;
+  let updatedLastTranscendRunsUpdate =
+    gameplayCharForm.value?.lastTranscendRunsUpdate || "";
+
+  // 拷贝或初始化圣域副本次数对象（例如 {"s1": 1, "s2": 0, "s3": 0}）
+  let updatedSanctuaryRuns = {
+    ...(gameplayCharForm.value?.sanctuaryRuns || {}),
+  };
+  let updatedLastSanctuaryRunsUpdate =
+    gameplayCharForm.value?.lastSanctuaryRunsUpdate || "";
+
+  // 3. 根据当前副本大类，自动更新对应的挑战次数与时间戳
+  if (consumeForm.value.dungeonType === "expedition") {
+    updatedRuns += addRunsCount;
+    updatedLastRunsUpdate = nowStr;
+  } else if (consumeForm.value.dungeonType === "surpass") {
+    updatedTranscendRuns += addRunsCount;
+    updatedLastTranscendRunsUpdate = nowStr;
+  } else if (consumeForm.value.dungeonType === "sanctuary") {
+    // 获取当前选中的圣域副本对象（包含 key，如 s1, s2, s3）
+    const selectedDungeon =
+      currentDungeonList.value[consumeForm.value.selectedDungeonIndex];
+    if (selectedDungeon && selectedDungeon.key) {
+      const dungeonKey = selectedDungeon.key;
+      const currentCount = updatedSanctuaryRuns[dungeonKey] || 0;
+      updatedSanctuaryRuns[dungeonKey] = currentCount + addRunsCount;
+      updatedLastSanctuaryRunsUpdate = nowStr;
+    }
+  }
+
+  // 4. 组装更新后的完整角色对象
   const updatedCharacter = {
     ...gameplayCharForm.value,
     energy: newEnergy,
     storedEnergy: newStored,
+    runs: updatedRuns,
+    lastRunsUpdate: updatedLastRunsUpdate,
+    transcendRuns: updatedTranscendRuns,
+    lastTranscendRunsUpdate: updatedLastTranscendRunsUpdate,
+    sanctuaryRuns: updatedSanctuaryRuns,
+    lastSanctuaryRunsUpdate: updatedLastSanctuaryRunsUpdate,
   };
 
-  // 1. 更新当前表单响应式数据
+  // 5. 更新本地表单状态并打印调试
   gameplayCharForm.value = updatedCharacter;
-
-  // 2. 触发父组件更新或直接调用你的持久化保存方法
-  if (typeof groupCharacterPanelHandleUpdateCharacter === "function") {
-    await groupCharacterPanelHandleUpdateCharacter(updatedCharacter);
-  } else {
-    emit("update:update-character", updatedCharacter);
-  }
-
-  $alert(
-    `消耗成功！扣除基础奥德：${currentEnergy - newEnergy} 点，存储奥德：${currentStored - newStored} 点`,
+  console.log(
+    `🔍 [GroupCharacterPanel:611] %c updatedCharacter 消耗奥德触发的角色保存: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    updatedCharacter,
   );
-};
+  debugger;
 
+  // 6. 触发持久化保存（调用你现有的保存方法落库）
+  emit("update-character", updatedCharacter);
+  // $alert(
+  //   `消耗成功！扣除基础奥德：${currentEnergy - newEnergy} 点，存储奥德：${currentStored - newStored} 点。对应副本挑战次数已自动更新！`,
+  // );
+};
+// 过滤后的具体副本列表（若圣域次数用尽则自动隐藏）
+const filteredDungeonList = computed(() => {
+  const list = currentDungeonList.value || [];
+
+  return list
+    .map((item, idx) => {
+      let currentRuns = 0;
+      // 如果是圣域，获取当前 key 的挑战次数
+      if (consumeForm.value.dungeonType === "sanctuary" && item.key) {
+        const sanctuaryRunsMap = gameplayCharForm.value?.sanctuaryRuns || {};
+        currentRuns = sanctuaryRunsMap[item.key] || 0;
+      }
+      return {
+        ...item,
+        originalIndex: idx,
+        currentRuns,
+      };
+    })
+    .filter((item) => {
+      // 仅针对圣域判断：如果次数 >= 1 则隐藏（可根据需要调整圣域上限阈值）
+      if (consumeForm.value.dungeonType === "sanctuary") {
+        const maxLimit = item.maxLimit || 1; // 默认圣域每个限1次
+        return item.currentRuns < maxLimit;
+      }
+      return true;
+    });
+});
+
+// 监听大类切换时，如果当前选中的下拉索引在过滤后失效，自动重置为第一个可用选项
+watch(
+  () => consumeForm.value.dungeonType,
+  () => {
+    consumeForm.value.selectedDungeonIndex = 0;
+    consumeForm.value.selectedDiffIndex = 0;
+  },
+);
 //========================游玩消耗/补充弹框结束========================
 
 watch(
@@ -954,12 +1113,12 @@ watch(
             </div>
           </div>
           <div
-            v-if="gameplayCharForm.characterId"
+            v-if="gameplayCharForm?.characterId"
             class="p-4 bg-sky-50/60 border border-sky-100 rounded-2xl flex items-center gap-4 transition-all"
           >
             <img
-              v-if="gameplayCharForm.profileImage"
-              :src="gameplayCharForm.profileImage"
+              v-if="gameplayCharForm?.profileImage"
+              :src="gameplayCharForm?.profileImage"
               alt="头像"
               class="w-14 h-14 rounded-xl object-cover border border-sky-200 shadow-sm"
             />
@@ -969,10 +1128,12 @@ watch(
                   昵称 / 职业
                 </div>
                 <div class="text-sm font-black text-slate-800 truncate">
-                  {{ gameplayCharForm.characterName || gameplayCharForm.name }}
+                  {{
+                    gameplayCharForm?.characterName || gameplayCharForm?.name
+                  }}
                   <span class="text-xs font-bold text-[#45a6d5]"
                     >({{
-                      gameplayCharForm.className || gameplayCharForm.class
+                      gameplayCharForm?.className || gameplayCharForm?.class
                     }})</span
                   >
                 </div>
@@ -982,10 +1143,10 @@ watch(
                   等级 / 装等
                 </div>
                 <div class="text-sm font-black text-slate-800">
-                  Lv.{{ gameplayCharForm.characterLevel || 1 }}
+                  Lv.{{ gameplayCharForm?.characterLevel || 1 }}
                   <span class="text-xs font-bold text-amber-600"
                     >(
-                    {{ formatCombatPower(gameplayCharForm.combatPower || 0) }}
+                    {{ formatCombatPower(gameplayCharForm?.combatPower || 0) }}
                     )</span
                   >
                 </div>
@@ -1036,20 +1197,21 @@ watch(
                     </div>
                   </div>
                   <!-- 当前奥德状态提示 -->
-                  <span class="text-xs font-bold text-slate-500">
-                    当前角色奥德:
-                    <strong class="text-[#45a6d5]">{{
-                      gameplayCharForm?.energy || 0
-                    }}</strong>
-                    / {{ energyLimit }}
-                  </span>
-                  <span class="text-xs font-bold text-slate-500">
-                    当前角色补充奥德:
-                    <strong class="text-[#45a6d5]">{{
-                      gameplayCharForm?.storedEnergy || 0
-                    }}</strong>
-                    / {{ storedEnergyLimit }}
-                  </span>
+                  <div class="flex items-center gap-3">
+                    <span class="text-xs font-bold text-slate-500">
+                      基础:
+                      <strong class="text-[#45a6d5]">{{
+                        gameplayCharForm?.energy || 0
+                      }}</strong>
+                      / {{ energyLimit }}
+                    </span>
+                    <span class="text-xs font-bold text-slate-500">
+                      存储:
+                      <strong class="text-amber-600">{{
+                        gameplayCharForm?.storedEnergy || 0
+                      }}</strong>
+                    </span>
+                  </div>
                 </div>
 
                 <!-- 1. 选择副本大类 -->
@@ -1097,7 +1259,62 @@ watch(
                   </div>
                 </div>
 
-                <!-- 2. 选择具体副本 -->
+                <!-- 2. 角色专属挑战次数与衰减提示联动（自动统计，只读展示） -->
+                <div
+                  v-if="consumeForm.dungeonType !== 'sanctuary'"
+                  class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-2"
+                >
+                  <div class="flex items-center justify-between">
+                    <label
+                      class="text-xs font-black text-slate-700 flex items-center gap-2"
+                    >
+                      <span
+                        >{{
+                          consumeForm.dungeonType === "expedition"
+                            ? "远征副本"
+                            : "超越副本"
+                        }}
+                        本周已挑战次数</span
+                      >
+                      <span class="text-[10px] font-bold text-slate-400"
+                        >（自动统计）</span
+                      >
+                    </label>
+                    <span
+                      class="text-[10px] font-black px-2.5 py-0.5 rounded-full"
+                      :class="
+                        currentDecayRate < 1
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-emerald-100 text-emerald-700'
+                      "
+                    >
+                      当前收益率: {{ currentDecayRate * 100 }}%
+                    </span>
+                  </div>
+
+                  <div class="flex items-center justify-between pt-1">
+                    <div class="text-xs font-bold text-slate-600">
+                      已累计通关:
+                      <strong class="text-sm font-black text-[#45a6d5]">{{
+                        currentActiveRuns
+                      }}</strong>
+                      次
+                      <span
+                        v-if="currentLastUpdate"
+                        class="text-[10px] font-normal text-slate-400 ml-2"
+                      >
+                        (更新于: {{ currentLastUpdate }})
+                      </span>
+                    </div>
+                    <div class="text-[11px] font-bold text-slate-500">
+                      当前衰减阶梯:
+                      <span class="text-amber-600 font-black">{{
+                        currentDecayRuleLabel
+                      }}</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- 3. 选择具体副本 -->
                 <div class="space-y-2">
                   <label class="text-xs font-bold text-slate-500"
                     >选择具体副本</label
@@ -1107,16 +1324,18 @@ watch(
                     class="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#45a6d5] outline-none font-bold text-xs text-slate-800 transition-all"
                   >
                     <option
-                      v-for="(item, idx) in currentDungeonList"
-                      :key="idx"
-                      :value="idx"
+                      v-for="(item) in filteredDungeonList"
+                      :key="item.originalIndex"
+                      :value="item.originalIndex"
                     >
                       {{ "⭐".repeat(item.stars) }} - {{ item.name }}
+                      <span v-if="consumeForm.dungeonType === 'sanctuary'"
+                        >(已完成: {{ item.currentRuns }}/1)</span
+                      >
                     </option>
                   </select>
                 </div>
-
-                <!-- 3. 选择难度 / 阶段 -->
+                <!-- 4. 选择难度 / 阶段 -->
                 <div class="space-y-2">
                   <label class="text-xs font-bold text-slate-500"
                     >选择难度 / 阶段</label
@@ -1139,11 +1358,11 @@ watch(
                   </div>
                 </div>
 
-                <!-- 4. 消耗倍数选择 (1倍=标准, 2倍=2倍消耗与收益, 3倍=3倍消耗与收益) -->
+                <!-- 5. 消耗倍数选择 -->
                 <div class="space-y-2">
                   <div class="flex items-center justify-between">
                     <label class="text-xs font-bold text-slate-500"
-                      >消耗倍数</label
+                      >消耗倍数 (1倍=40奥德)</label
                     >
                     <span class="text-xs font-black text-amber-600">
                       最终消耗奥德: {{ calculatedEnergyCost }} 点
@@ -1167,14 +1386,17 @@ watch(
                   </div>
                 </div>
 
-                <!-- 5. 收益面板展示 -->
+                <!-- 6. 收益面板展示（受挑战次数衰减影响） -->
                 <div
                   class="p-4 bg-amber-50/60 border border-amber-200/80 rounded-2xl space-y-2"
                 >
                   <div
                     class="text-xs font-black text-amber-800 flex items-center justify-between"
                   >
-                    <span>预计吉纳总收益:</span>
+                    <span
+                      >预计吉纳总收益 (已乘衰减
+                      {{ currentDecayRate * 100 }}%):</span
+                    >
                     <span class="text-sm font-black text-amber-700"
                       >{{ calculatedTotalGain }} 万</span
                     >
@@ -1199,10 +1421,10 @@ watch(
               </div>
             </template>
             <template v-else>
+              <!-- 能量不足占位符 -->
               <div
                 class="p-8 bg-slate-50/70 border border-slate-200/80 rounded-3xl flex flex-col items-center justify-center text-center space-y-4 shadow-inner"
               >
-                <!-- 图标外发光圆圈 -->
                 <div
                   class="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200/80 shadow-sm flex items-center justify-center text-amber-500"
                 >
@@ -1220,8 +1442,6 @@ watch(
                     ></path>
                   </svg>
                 </div>
-
-                <!-- 提示文案 -->
                 <div class="space-y-1">
                   <div class="text-sm font-black text-slate-700">
                     当前角色奥德能量不足
@@ -1230,8 +1450,6 @@ watch(
                     请先前往“奥德存储补充”配置能量后，再进行副本消耗计算
                   </div>
                 </div>
-
-                <!-- 快捷跳转/切换到补充 Tab 的按钮（如果有的话） -->
                 <button
                   type="button"
                   class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5"
@@ -1242,10 +1460,9 @@ watch(
               </div>
             </template>
           </div>
-
           <!-- 第二个分组：补充内容 -->
           <template
-            v-if="activeTab === 'supplement' && gameplayCharForm.characterId"
+            v-if="activeTab === 'supplement' && gameplayCharForm?.characterId"
           >
             <!-- 奥德存储补充配置卡片 -->
             <div
@@ -1376,21 +1593,13 @@ watch(
         <div
           class="px-8 py-5 border-t border-slate-100 bg-white flex items-center justify-end gap-4 z-10"
         >
-          <button
-            type="button"
-            @click="showAddCharModal = false"
-            class="px-6 py-3 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-all"
-          >
-            取消
-          </button>
-
           <!-- 确认消耗快捷按钮 (仅在 consume 标签页且满足条件时显示) -->
           <button
             type="button"
             v-if="
-              gameplayCharForm.characterId &&
-              (gameplayCharForm.energy > 0 ||
-                gameplayCharForm.storedEnergy > 0) &&
+              gameplayCharForm?.characterId &&
+              (gameplayCharForm?.energy > 0 ||
+                gameplayCharForm?.storedEnergy > 0) &&
               calculatedEnergyCost > 0 &&
               activeTab === 'consume'
             "
@@ -1403,7 +1612,7 @@ watch(
           <!-- 确认补充按钮 (仅在 supplement 标签页且已选角色时显示) -->
           <button
             type="button"
-            v-if="gameplayCharForm.characterId && activeTab === 'supplement'"
+            v-if="gameplayCharForm?.characterId && activeTab === 'supplement'"
             @click="handleExecuteSupplement"
             :disabled="saving"
             class="px-8 py-3 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-all shadow-md shadow-sky-500/25 disabled:opacity-50"

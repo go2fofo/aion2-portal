@@ -19,8 +19,6 @@ import GroupCharacterPanel from "./components/GroupCharacterPanel.vue";
 const client = useSupabaseClient();
 const user = useSupabaseUser();
 
-
-
 // 游戏数据结构
 const gameData = ref({
   characters: [],
@@ -136,12 +134,16 @@ const openAddCharModal = () => {
 
 // 数据持久化
 const saveData = async () => {
+  console.log(
+    `🔍 [UsersAdmin:144] %c 最终保存的gameData: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    gameData.value,
+  );
+
   if (typeof saving !== "undefined") saving.value = true;
   if (gameData.value) {
     gameData.value.exportDate = new Date().toLocaleString();
   }
-
-  console.log(`🔍 [UsersAdmin:144] %c 最终保存的gameData: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', gameData.value);
 
   try {
     if (
@@ -729,7 +731,8 @@ const groupCharacterPanelHandleUpdateCharacter = async (char) => {
     }
     return c;
   });
-  await updateCharacter(char);
+  console.log(`🔍 [UsersAdmin:734] %c gameData保存签前groupCharacterPanelHandleUpdateCharacter: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', gameData.value);
+  await saveData();
 };
 
 // 分组角色卡片列表切换任务事件处理
@@ -1348,7 +1351,7 @@ watch(gameData, (newVal) => {
                           newCharForm?.premiumMember ||
                           gameData?.characters?.some(
                             (c) =>
-                              c.group === newCharForm.group && c.premiumMember, 
+                              c.group === newCharForm.group && c.premiumMember,
                           )
                             ? 840
                             : 560
