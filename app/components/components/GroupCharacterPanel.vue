@@ -711,25 +711,51 @@ watch(
           </div>
         </div>
 
-        <!-- 奥德能量进度（纯展示） -->
+<!-- 奥德能量进度（基础 + 存储复合展示） -->
         <div
-          class="p-3 bg-slate-50/70 border border-slate-200/60 rounded-2xl space-y-2"
+          class="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl space-y-3 shadow-sm"
         >
-          <div
-            class="flex items-center justify-between text-[11px] font-bold text-slate-500"
-          >
-            <span>奥德能量</span>
-            <span class="font-black text-slate-700"
-              >{{ char.energy || 0 }} / 840</span
-            >
+          <!-- 头部文本与数值 -->
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-black text-slate-700 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-[#45a6d5]"></span>
+              奥德能量
+            </span>
+            <div class="flex items-center gap-1.5 font-black text-xs">
+              <span class="text-[#45a6d5]" title="基础奥德">{{ char.energy || 0 }}</span>
+              <span class="text-slate-300">+</span>
+              <span class="text-amber-600" title="存储奥德">{{ char.storedEnergy || 0 }}</span>
+              <span class="text-slate-400 font-medium">/ {{ char.premiumMember ? 840 : 560 }}</span>
+            </div>
           </div>
-          <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+
+          <!-- 双色复合进度条 -->
+          <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden flex p-0.5 bg-slate-100 border border-slate-200/60">
+            <!-- 基础奥德进度段 -->
             <div
-              class="bg-[#45a6d5] h-full rounded-full transition-all duration-300"
+              class="bg-[#45a6d5] h-full rounded-l-full transition-all duration-500 relative"
               :style="{
-                width: `${Math.min(100, ((char.energy || 0) / 840) * 100)}%`,
+                width: `${Math.min(100, Math.max(0, ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100))}%`
               }"
+              title="基础奥德"
             ></div>
+            <!-- 存储奥德叠加段 -->
+            <div
+              class="bg-amber-500 h-full rounded-r-full transition-all duration-500 relative opacity-90"
+              :style="{
+                width: `${Math.min(100 - Math.min(100, ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100), ((char.storedEnergy || 0) / (char.premiumMember ? 840 : 560)) * 100)}%`
+              }"
+              title="存储奥德"
+            ></div>
+          </div>
+
+       <!-- 底部小标签提示 -->
+          <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 pt-0.5">
+            <span class="flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#45a6d5]"></span> 基础
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 ml-1"></span> 存储
+            </span>
+            <span>总计: <strong class="text-slate-700">{{ (char.energy || 0) + (char.storedEnergy || 0) }}</strong> 点</span>
           </div>
         </div>
 
@@ -994,14 +1020,14 @@ watch(
                   <span class="text-xs font-bold text-slate-500">
                     当前角色奥德:
                     <strong class="text-[#45a6d5]">{{
-                      gameplayCharForm.value?.energy || 0
+                      gameplayCharForm?.energy || 0
                     }}</strong>
                     / {{ energyLimit }}
                   </span>
                   <span class="text-xs font-bold text-slate-500">
                     当前角色补充奥德:
                     <strong class="text-[#45a6d5]">{{
-                      gameplayCharForm.value?.storedEnergy || 0
+                      gameplayCharForm?.storedEnergy || 0
                     }}</strong>
                     / {{ storedEnergyLimit }}
                   </span>
