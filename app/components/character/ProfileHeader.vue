@@ -1,147 +1,294 @@
 <script setup>
 import { computed } from 'vue'
-import { formatCombatPower } from '~/utils/formatCombatPower'
 
 const props = defineProps({
-  member: {
-    type: Object,
+  activeTabGroup: {
+    type: [String, Number],
     required: true
   },
-  syncing: {
-    type: Boolean,
-    default: false
-  },
-  coreCombatStats: {
-    type: Array,
-    default: () => []
+  gameData: {
+    type: Object,
+    required: true
   }
 })
 
-const emit = defineEmits(['sync'])
+const emit = defineEmits([
+  'update-character',
+  'delete-character',
+  'toggle-lock',
+  'toggle-task'
+])
 
-const combatPower = computed(() => {
-  return (
-    props.member?.combat_power ??
-    props.member?.combatPower ??
-    props.member?.equipment_data?.raw_info?.profile?.combatPower ??
-    props.member?.equipment_data?.profile?.combatPower
-  )
+const { $confirm } = useNuxtApp()
+
+// 根据 activeTabGroup 过滤当前展示的角色列表
+const filteredCharacters = computed(() => {
+  const characters = props.gameData?.characters || []
+  const groups = props.gameData?.groups || []
+  const tab = props.activeTabGroup
+
+  if (tab === 'all') {
+    return characters
+  }
+  if (tab === 'default') {
+    return characters.filter(c => !c.group || !groups.some(g => g.id === c.group))
+  }
+  return characters.filter(c => Number(c.group) === Number(tab))
 })
 
-const onSync = () => {
-  emit('sync')
+// 获取当前 Tab 的标题名称
+const currentTabTitle = computed(() => {
+  const tab = props.activeTabGroup
+  if (tab === 'all') return '全部角色'
+  if (tab === 'default') return '默认分组'
+  const found = props.gameData?.groups?.find(g => Number(g.id) === Number(tab))
+  return found ? found.name : '未知分组'
+})
+
+// 根据分组 ID 获取分组名称
+const getGroupName = (groupId) => {
+  if (!groupId) return '默认分组'
+  const found = props.gameData?.groups?.find(g => Number(g.id) === Number(groupId))
+  return found ? found.name : '默认分组'
+}
+
+// 战斗力格式化函数
+const formatCombatPower = (val) => {
+  if (!val) return '0'
+  return Number(val).toLocaleString()
+}
+
+// 事件抛出处理
+const handleStatChange = (char, field, value) => {
+  const updatedChar = { ...char, [field]: Number(value) }
+  emit('update-character', updatedChar)
+}
+
+const handleTextChange = (char, field, value) => {
+  const updatedChar = { ...char, [field]: value }
+  emit('update-character', updatedChar)
+}
+
+const handleToggleLock = (char) => {
+  emit('toggle-lock', char)
+}
+
+const handleDelete = async (char) => {
+  try {
+    await $confirm?.('确定要删除该角色吗？删除后不可恢复', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    emit('delete-character', char)
+  } catch {
+    // 取消删除
+  }
+}
+
+const handleToggleTask = (char, field) => {
+  const updatedChar = { ...char, [field]: !char[field] }
+  emit('update-character', updatedChar)
 }
 </script>
 
 <template>
-  <div class="relative bg-white/70 backdrop-blur-sm rounded-[3rem] p-6 md:p-10 shadow-xl border-4 border-white overflow-hidden">
-    <!-- 背景装饰 -->
-    <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-yellow-200/20 to-sky-200/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-    
-    <div class="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-10">
-      <!-- 头像区 -->
-      <div class="relative group shrink-0">
-        <div class="w-40 h-40 md:w-56 md:h-56 rounded-[3.5rem] border-4 border-white shadow-[0_12px_30px_rgba(69,166,213,0.15)] overflow-hidden bg-sky-50 transition-all group-hover:shadow-[0_12px_40px_rgba(69,166,213,0.25)]">
-          <img :src="member.profile_url || '/bbbswz.png'" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-        </div>
-        <!-- 等级徽章 -->
-        <div class="absolute -bottom-3 -right-3 bg-gradient-to-br from-yellow-400 to-orange-500 text-white font-black text-2xl px-5 py-2 rounded-2xl border-4 border-white shadow-lg z-20">
-          Lv.{{ member.level }}
+  <div class="space-y-6">
+    <!-- 分组头部信息展示 -->
+    <div class="flex items-center justify-between bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-3 h-3 rounded-full bg-[#45a6d5]"></div>
+        <div>
+          <h2 class="text-base font-black text-slate-800">{{ currentTabTitle }}</h2>
+          <p class="text-xs font-bold text-slate-400">当前分组共有 {{ filteredCharacters.length }} 个角色</p>
         </div>
       </div>
+    </div>
 
-      <!-- 信息与核心数值区 -->
-      <div class="flex-1 w-full space-y-6">
-        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-          <div class="flex flex-col md:flex-row items-center gap-4">
-            <h1 class="text-4xl md:text-5xl font-black text-slate-800 tracking-tight drop-shadow-sm">{{ member.name }}</h1>
-            <div class="flex items-center gap-2">
-              <span v-if="member.role === 'leader'" class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-[10px] px-3 py-1 rounded-full font-black shadow-md animate-bounce">👑 军团长</span>
-              <span v-else-if="member.role === 'officer'" class="bg-gradient-to-r from-purple-400 to-indigo-500 text-white text-[10px] px-3 py-1 rounded-full font-black shadow-md">⚔️ 精英军官</span>
-              <span v-else-if="member.role === 'member'" class="bg-gradient-to-r from-slate-400 to-slate-500 text-white text-[10px] px-3 py-1 rounded-full font-black shadow-md">🛡️ 军团兵</span>
+    <!-- 角色卡片列表网格 -->
+    <div v-if="filteredCharacters.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div 
+        v-for="char in filteredCharacters" 
+        :key="char.id || char.characterId"
+        class="bg-white border border-slate-200/80 p-5 rounded-3xl shadow-sm space-y-4 hover:border-[#45a6d5] transition-all flex flex-col"
+        :class="char.locked ? 'opacity-90 bg-slate-50/50' : ''"
+      >
+        <!-- 顶部标题栏 -->
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-3">
+            <button 
+              type="button"
+              class="w-8 h-8 rounded-xl flex items-center justify-center border text-xs font-bold transition-all shadow-sm"
+              :class="char.locked ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-slate-100 text-slate-600 border-slate-200'"
+              @click="handleToggleLock(char)"
+              title="切换锁定状态"
+            >
+              {{ char.locked ? '锁定' : '解锁' }}
+            </button>
+            <div class="w-10 h-10 rounded-2xl bg-sky-50 text-[#45a6d5] font-black flex items-center justify-center border border-sky-100 shadow-sm overflow-hidden">
+              <img v-if="char.profileImage" :src="char.profileImage" alt="avatar" class="w-full h-full object-cover" />
+              <span v-else>{{ char.characterName ? char.characterName.charAt(0) : '角' }}</span>
+            </div>
+            <div>
+              <div class="text-sm font-black text-slate-800 flex items-center gap-2">
+                <span>{{ char.characterName || '未命名角色' }}</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                  {{ char.className || '选择职业' }}
+                </span>
+              </div>
+              <div class="text-[10px] font-bold text-slate-400 mt-0.5 flex items-center gap-2">
+                <span>等级: {{ char.characterLevel || 1 }}</span>
+                <span>{{ char.raceName || '未知种族' }}</span>
+                <span>{{ char.serverName || '未知服务器' }}</span>
+              </div>
+            </div>
+          </div>
+          <!-- 状态标识 -->
+          <div>
+            <span v-if="char.locked" class="px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-100 text-slate-500">已锁定</span>
+            <span v-else class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-600">可刷</span>
+          </div>
+        </div>
+
+        <!-- 基础数值指标卡片区（匹配主题风格，不含 emoji） -->
+        <div class="grid grid-cols-3 gap-2">
+          <!-- 基纳数 -->
+          <div class="p-2.5 bg-slate-50/70 border border-slate-200/60 rounded-2xl flex flex-col justify-between space-y-1">
+            <span class="text-[10px] font-bold text-slate-400">基纳数(万)</span>
+            <input 
+              type="number" 
+              :value="char.kina || 0"
+              :disabled="char.locked"
+              @change="(e) => handleStatChange(char, 'kina', e.target.value)"
+              class="w-full bg-white px-2 py-1 rounded-xl border border-slate-200 text-xs font-black text-slate-800 outline-none focus:border-[#45a6d5] disabled:bg-slate-100 disabled:text-slate-500"
+            />
+          </div>
+
+          <!-- 装分卡片（采用指定卡片样式） -->
+          <div class="bg-white/80 p-2.5 rounded-2xl border-2 border-yellow-100 shadow-sm flex flex-col justify-between space-y-1">
+            <div class="text-[10px] text-slate-400 font-black uppercase leading-none">装等</div>
+            <div class="text-yellow-600 font-black text-xs">{{ char.itemLevel || char.equipmentScore || 'N/A' }}</div>
+          </div>
+
+          <!-- 战斗力卡片（采用指定卡片样式） -->
+          <div class="bg-white/80 p-2.5 rounded-2xl border-2 border-emerald-100 shadow-sm flex flex-col justify-between space-y-1">
+            <div class="text-[10px] text-slate-400 font-black uppercase leading-none">战斗力</div>
+            <div class="text-emerald-700 font-black text-xs">{{ formatCombatPower(char.combatPower) }}</div>
+          </div>
+        </div>
+
+        <!-- 副本及核心进度区 -->
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div class="p-3 bg-slate-50/70 border border-slate-200/60 rounded-2xl space-y-2 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-[11px] font-bold text-slate-500">
+              <span>远征副本</span>
+              <span class="font-black text-[#45a6d5]">{{ char.dailyRuns || 0 }} / 14</span>
+            </div>
+            <div class="flex items-center justify-between text-[11px] font-bold text-slate-500">
+              <span>存储补充</span>
+              <span class="font-black text-amber-600">{{ char.storedDailyRuns || 0 }} / 30</span>
             </div>
           </div>
 
-          <!-- 刷新按钮 -->
+          <div class="p-3 bg-slate-50/70 border border-slate-200/60 rounded-2xl space-y-2 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-[11px] font-bold text-slate-500">
+              <span>超越副本</span>
+              <span class="font-black text-purple-600">{{ char.transcendRuns || 0 }} / 14</span>
+            </div>
+            <div class="flex items-center justify-between text-[11px] font-bold text-slate-500">
+              <span>存储补充</span>
+              <span class="font-black text-amber-600">{{ char.storedTranscendRuns || 0 }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 奥德能量进度 -->
+        <div class="p-3 bg-slate-50/70 border border-slate-200/60 rounded-2xl space-y-2">
+          <div class="flex items-center justify-between text-[11px] font-bold text-slate-500">
+            <span>奥德能量</span>
+            <span class="font-black text-slate-700">{{ char.energy || 0 }} / 840</span>
+          </div>
+          <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+            <div 
+              class="bg-[#45a6d5] h-full rounded-full transition-all duration-300" 
+              :style="{ width: `${Math.min(100, ((char.energy || 0) / 840) * 100)}%` }"
+            ></div>
+          </div>
+        </div>
+
+        <!-- 任务状态按钮组 -->
+        <div class="grid grid-cols-4 gap-2 pt-1">
           <button 
-            @click="onSync" 
-            :disabled="syncing"
-            class="group relative flex items-center gap-2 px-6 py-3 rounded-2xl bg-white border-2 border-sky-100 text-sky-600 font-black text-sm shadow-sm hover:border-sky-300 hover:text-sky-700 hover:shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none overflow-hidden"
+            type="button"
+            class="px-2 py-1.5 rounded-xl text-[11px] font-black border transition-all shadow-sm"
+            :class="char.dailyMission ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'"
+            @click="handleToggleTask(char, 'dailyMission')"
           >
-            <div class="absolute inset-0 bg-gradient-to-r from-sky-50 to-white opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span class="relative flex items-center justify-center">
-              <svg v-if="syncing" class="w-5 h-5 animate-spin text-sky-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"></circle>
-                <path d="M12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.0434 16.4522" stroke="currentColor" stroke-width="4" stroke-linecap="round" class="opacity-75"></path>
-              </svg>
-              <svg v-else class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500 text-sky-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 12C4 7.58172 7.58172 4 12 4C14.5 4 16.7341 5.14722 18.2002 6.94444M18.2002 6.94444V3M18.2002 6.94444H14.5M20 12C20 16.4183 16.4183 20 12 20C9.5 20 7.26595 18.8528 5.7998 17.0556M5.7998 17.0556V21M5.7998 17.0556H9.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-            <span class="relative">{{ syncing ? '同步中...' : '刷新数据' }}</span>
+            日常任务
+          </button>
+          <button 
+            type="button"
+            class="px-2 py-1.5 rounded-xl text-[11px] font-black border transition-all shadow-sm"
+            :class="char.dailySignIn ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'"
+            @click="handleToggleTask(char, 'dailySignIn')"
+          >
+            每日签到
+          </button>
+          <button 
+            type="button"
+            class="px-2 py-1.5 rounded-xl text-[11px] font-black border transition-all shadow-sm"
+            :class="char.awakening ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'"
+            @click="handleToggleTask(char, 'awakening')"
+          >
+            觉醒之战
+          </button>
+          <button 
+            type="button"
+            class="px-2 py-1.5 rounded-xl text-[11px] font-black border transition-all shadow-sm"
+            :class="char.weeklyEnergyPurchased ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'"
+            @click="handleToggleTask(char, 'weeklyEnergyPurchased')"
+          >
+            能量兑换
           </button>
         </div>
 
-        <div class="bg-sky-50/50 p-4 rounded-3xl border border-sky-100/50 inline-block md:block">
-          <p class="text-slate-600 font-black italic text-lg leading-relaxed">
-            "{{ member.title_name || member.note || '这只宝宝很懒，什么都没留下~' }}"
-          </p>
+        <!-- 备注输入框 -->
+        <div>
+          <textarea 
+            :value="char.note || ''"
+            :disabled="char.locked"
+            placeholder="点击添加备注信息..."
+            rows="2"
+            @change="(e) => handleTextChange(char, 'note', e.target.value)"
+            class="w-full bg-slate-50/70 border border-slate-200/60 p-2.5 rounded-2xl text-xs font-bold text-slate-700 outline-none focus:border-[#45a6d5] resize-none disabled:bg-slate-100"
+          ></textarea>
         </div>
 
-        <!-- 核心档案数值网格 -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          <!-- 基础信息 -->
-          <div class="bg-white/80 p-3 rounded-2xl border-2 border-sky-100 shadow-sm flex items-center gap-3">
-            <span class="text-xl bg-sky-50 p-2 rounded-xl">🛡️</span>
-            <div>
-              <div class="text-[10px] text-slate-400 font-black uppercase leading-none mb-1">职业</div>
-              <div class="text-sky-800 font-black text-xs">{{ member.class_name }}</div>
-            </div>
+        <!-- 底部操作与元信息标签 -->
+        <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] font-bold text-slate-400">
+          <span>分组: {{ getGroupName(char.group) }}</span>
+          
+          <div class="flex items-center gap-2" v-if="!char.locked">
+            <button 
+              type="button"
+              class="px-3 py-1 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all font-black text-[10px]"
+              @click="handleDelete(char)"
+            >
+              删除
+            </button>
           </div>
-          <div class="bg-white/80 p-3 rounded-2xl border-2 border-yellow-100 shadow-sm flex items-center gap-3">
-            <span class="text-xl bg-yellow-50 p-2 rounded-xl">⚔️</span>
-            <div>
-              <div class="text-[10px] text-slate-400 font-black uppercase leading-none mb-1">装等</div>
-              <div class="text-yellow-600 font-black text-xs">{{ member.item_level || 'N/A' }}</div>
-            </div>
-          </div>
-          <div class="bg-white/80 p-3 rounded-2xl border-2 border-emerald-100 shadow-sm flex items-center gap-3">
-            <span class="text-xl bg-emerald-50 p-2 rounded-xl">💥</span>
-            <div>
-              <div class="text-[10px] text-slate-400 font-black uppercase leading-none mb-1">战斗力</div>
-              <div class="text-emerald-700 font-black text-xs">{{ formatCombatPower(combatPower) }}</div>
-            </div>
-          </div>
-          <div class="bg-white/80 p-3 rounded-2xl border-2 border-pink-100 shadow-sm flex items-center gap-3">
-            <span class="text-xl bg-pink-50 p-2 rounded-xl">{{ member.gender === 'female' ? '♀' : '♂' }}</span>
-            <div>
-              <div class="text-[10px] text-slate-400 font-black uppercase leading-none mb-1">性别</div>
-              <div class="text-pink-600 font-black text-xs">{{ member.gender === 'female' ? '女' : '男' }}</div>
-            </div>
-          </div>
-          <div class="bg-white/80 p-3 rounded-2xl border-2 border-indigo-100 shadow-sm flex items-center gap-3">
-            <span class="text-xl bg-indigo-50 p-2 rounded-xl">🏳️</span>
-            <div>
-              <div class="text-[10px] text-slate-400 font-black uppercase leading-none mb-1">种族</div>
-              <div class="text-indigo-800 font-black text-xs">{{ member.race_id === 1 ? '天族' : '魔族' }}</div>
-            </div>
-          </div>
-
-          <!-- 核心战斗数值 -->
-          <div 
-            v-for="stat in coreCombatStats" 
-            :key="stat.type"
-            class="bg-white/80 p-3 rounded-2xl border-2 shadow-sm flex items-center gap-3 border-slate-50"
-            :class="stat.bg"
-          >
-            <span class="text-xl p-2 rounded-xl bg-white/50">{{ stat.icon }}</span>
-            <div>
-              <div class="text-[10px] text-slate-400 font-black uppercase leading-none mb-1">{{ stat.label }}</div>
-              <div class="font-black text-xs" :class="stat.color">{{ stat.value }}</div>
-            </div>
-          </div>
+          <span v-else class="text-slate-400">已锁定保护</span>
         </div>
       </div>
+    </div>
+
+    <!-- 空状态展示 -->
+    <div v-else class="bg-white border border-slate-200/80 p-12 rounded-3xl text-center space-y-3 shadow-sm">
+      <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center font-black">
+        空
+      </div>
+      <div class="text-sm font-black text-slate-700">当前分组下暂无角色</div>
+      <p class="text-xs font-bold text-slate-400">请切换其他分组或新增角色来查看详细面板~</p>
     </div>
   </div>
 </template>

@@ -77,3 +77,34 @@ export const parseNameWithServerShort = (input: string) => {
   if (!server) return null
   return { keyword, raceId: server.raceId, serverId: server.serverId, serverShortName: server.serverShortName }
 }
+/**
+ * 检测字符串中是否含有方括号 `[]` 且成对闭合
+ * @param {string} str - 需要检测的字符串
+ * @returns {boolean} - 如果存在 `[]` 且完全闭合返回 true，否则返回 false
+ */
+export const hasValidBrackets = (str: string) => {
+  if (typeof str !== 'string') return false;
+
+  let hasBracket = false; // 用于标记字符串中是否至少出现过一次方括号
+  const stack = [];
+
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i];
+
+    if (char === '[') {
+      hasBracket = true;
+      stack.push('['); // 遇到左括号入栈
+    } else if (char === ']') {
+      hasBracket = true;
+      if (stack.length === 0) {
+        return false; // 遇到右括号但没有对应的左括号（闭合失败）
+      }
+      stack.pop(); // 匹配成功，左括号出栈
+    }
+  }
+
+  // 必须满足：
+  // 1. 字符串中确实包含过方括号 (hasBracket 为 true)
+  // 2. 栈最终为空（所有左括号都有对应的右括号闭合）
+  return hasBracket && stack.length === 0;
+}
