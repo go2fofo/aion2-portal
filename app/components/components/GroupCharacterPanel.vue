@@ -711,7 +711,7 @@ watch(
           </div>
         </div>
 
-<!-- 奥德能量进度（基础 + 存储复合展示） -->
+        <!-- 奥德能量进度（基础 + 存储复合展示） -->
         <div
           class="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl space-y-3 shadow-sm"
         >
@@ -722,20 +722,30 @@ watch(
               奥德能量
             </span>
             <div class="flex items-center gap-1.5 font-black text-xs">
-              <span class="text-[#45a6d5]" title="基础奥德">{{ char.energy || 0 }}</span>
+              <span class="text-[#45a6d5]" title="基础奥德">{{
+                char.energy || 0
+              }}</span>
+              （
               <span class="text-slate-300">+</span>
-              <span class="text-amber-600" title="存储奥德">{{ char.storedEnergy || 0 }}</span>
-              <span class="text-slate-400 font-medium">/ {{ char.premiumMember ? 840 : 560 }}</span>
+              <span class="text-amber-600" title="存储奥德">{{
+                char.storedEnergy || 0
+              }}</span>
+              ）
+              <span class="text-slate-400 font-medium"
+                >/ {{ char.premiumMember ? 840 : 560 }}</span
+              >
             </div>
           </div>
 
           <!-- 双色复合进度条 -->
-          <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden flex p-0.5 bg-slate-100 border border-slate-200/60">
+          <div
+            class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden flex p-0.5 bg-slate-100 border border-slate-200/60"
+          >
             <!-- 基础奥德进度段 -->
             <div
               class="bg-[#45a6d5] h-full rounded-l-full transition-all duration-500 relative"
               :style="{
-                width: `${Math.min(100, Math.max(0, ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100))}%`
+                width: `${Math.min(100, Math.max(0, ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100))}%`,
               }"
               title="基础奥德"
             ></div>
@@ -743,19 +753,28 @@ watch(
             <div
               class="bg-amber-500 h-full rounded-r-full transition-all duration-500 relative opacity-90"
               :style="{
-                width: `${Math.min(100 - Math.min(100, ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100), ((char.storedEnergy || 0) / (char.premiumMember ? 840 : 560)) * 100)}%`
+                width: `${Math.min(100 - Math.min(100, ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100), ((char.storedEnergy || 0) / (char.premiumMember ? 840 : 560)) * 100)}%`,
               }"
               title="存储奥德"
             ></div>
           </div>
 
-       <!-- 底部小标签提示 -->
-          <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 pt-0.5">
+          <!-- 底部小标签提示 -->
+          <div
+            class="flex items-center justify-between text-[10px] font-bold text-slate-400 pt-0.5"
+          >
             <span class="flex items-center gap-1">
               <span class="w-1.5 h-1.5 rounded-full bg-[#45a6d5]"></span> 基础
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 ml-1"></span> 存储
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 ml-1"></span>
+              存储
             </span>
-            <span>总计: <strong class="text-slate-700">{{ (char.energy || 0) + (char.storedEnergy || 0) }}</strong> 点</span>
+            <span
+              >总计:
+              <strong class="text-slate-700">{{
+                (char.energy || 0) + (char.storedEnergy || 0)
+              }}</strong>
+              点</span
+            >
           </div>
         </div>
 
@@ -999,8 +1018,8 @@ watch(
           <div v-if="activeTab === 'consume'" class="space-y-6">
             <template
               v-if="
-                (gameplayCharForm?.energy > 0) ||
-                (gameplayCharForm?.storedEnergy > 0)
+                gameplayCharForm?.energy > 0 ||
+                gameplayCharForm?.storedEnergy > 0
               "
             >
               <!-- 副本类型与吉纳收益联动配置卡片 -->
@@ -1358,32 +1377,36 @@ watch(
           class="px-8 py-5 border-t border-slate-100 bg-white flex items-center justify-end gap-4 z-10"
         >
           <button
+            type="button"
             @click="showAddCharModal = false"
             class="px-6 py-3 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-all"
           >
             取消
           </button>
-          <!-- 执行消耗快捷按钮 -->
-          <div class="pt-2">
-            <button
-              type="button"
-              v-if="
-                gameplayCharForm.characterId &&
-                gameplayCharForm.energy > 0 &&
-                calculatedEnergyCost > 0 &&
-                activeTab === 'consume'
-              "
-              class="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs transition-all shadow-md shadow-amber-500/20 flex items-center justify-center gap-2"
-              @click="handleExecuteConsume"
-            >
-              <span>确认消耗 {{ calculatedEnergyCost }} 点奥德并完成记录</span>
-            </button>
-          </div>
+
+          <!-- 确认消耗快捷按钮 (仅在 consume 标签页且满足条件时显示) -->
           <button
+            type="button"
+            v-if="
+              gameplayCharForm.characterId &&
+              (gameplayCharForm.energy > 0 ||
+                gameplayCharForm.storedEnergy > 0) &&
+              calculatedEnergyCost > 0 &&
+              activeTab === 'consume'
+            "
+            class="px-8 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-sm transition-all shadow-md shadow-amber-500/20 flex items-center justify-center gap-2"
+            @click="handleExecuteConsume"
+          >
+            <span>确认消耗 {{ calculatedEnergyCost }} 点奥德并完成记录</span>
+          </button>
+
+          <!-- 确认补充按钮 (仅在 supplement 标签页且已选角色时显示) -->
+          <button
+            type="button"
             v-if="gameplayCharForm.characterId && activeTab === 'supplement'"
             @click="handleExecuteSupplement"
             :disabled="saving"
-            class="px-8 py-3 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-all shadow-md shadow-sky-500/25"
+            class="px-8 py-3 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-all shadow-md shadow-sky-500/25 disabled:opacity-50"
           >
             {{ saving ? "补充中..." : "确认补充" }}
           </button>
