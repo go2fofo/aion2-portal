@@ -53,7 +53,7 @@ const gameData = ref({
       updatedAt: new Date(),
       runs: 0,
       transcendRuns: 0,
-      runLogs: [],  
+      runLogs: [],
     },
     {
       id: 4,
@@ -63,7 +63,7 @@ const gameData = ref({
       updatedAt: new Date(),
       runs: 0,
       transcendRuns: 0,
-      runLogs: [],  
+      runLogs: [],
     },
     {
       id: 5,
@@ -73,7 +73,7 @@ const gameData = ref({
       updatedAt: new Date(),
       runs: 0,
       transcendRuns: 0,
-      runLogs: [],  
+      runLogs: [],
     },
   ],
   groupCount: 5,
@@ -205,7 +205,7 @@ const characterValidationRules = [
     label: "分组",
     validate: (form) => {
       const val = Number(form.group) || 0;
-      return val > 0 && val <= props.gameData?.groupCount;
+      return val > 0 && val <= gameData.value?.groupCount;
     },
     message: () => "请选择分组",
   },
@@ -592,12 +592,13 @@ const pickFromSearch = async (c) => {
 // 1. 检查同组（排除当前正在编辑的角色自己）是否已经有其他角色配置过每日副本挑战次数
 const hasGroupDailyRuns = computed(() => {
   const characters = gameData.value?.characters || [];
-  return characters.some(
+  let runs = characters.some(
     (c) =>
       c.group === newCharForm.value.group &&
       c.characterId !== newCharForm.value.characterId &&
       (c.dailyRuns ?? 0) > 0,
   );
+  return runs;
 });
 
 // 2. 获取当前分组共享的挑战次数值（并自动把值同步给当前表单，方便提交）
@@ -812,8 +813,8 @@ const handleSaveCharacter = async () => {
     newChar.premiumStartTime = calculatedStartTime.value;
     newChar.premiumEndTime = calculatedEndTime.value;
   }
-  //如果有分组需清空每日副本
-  if (newCharForm?.value?.group) {
+  //如果有当前角色有分组并且分组已经设置了每日副本需需清空当前角色的每日副本
+  if (newCharForm?.value?.group && hasGroupDailyRuns.value) {
     newChar.dailyRuns = 0;
   }
 
@@ -950,7 +951,6 @@ const saveGroup = async () => {
       runs: 0,
       transcendRuns: 0,
       runLogs: [],
-
     });
   }
   await saveData();
@@ -1100,7 +1100,7 @@ watch(
       validationResult.value = { isValid: true, errors: {}, invalidFields: [] };
     }
   },
-  { deep: true, immediate: true }
+  { deep: true, immediate: true },
 );
 </script>
 

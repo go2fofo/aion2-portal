@@ -388,9 +388,17 @@ const gameplayCharForm = ref(null); //当前点击游玩消耗/补充的角色
 const activeTab = ref("consume");
 
 const saving = ref(false);
-// 关闭弹窗方法（如果你原有的是直接改 openGameplay = false 也可以用下面的方式绑定 emit）
-const handleClose = () => {
-  emit("update:openGameplay", false);
+
+// 点击游玩消耗触发
+const handleClickGameplay = (char) => {
+  gameplayCharForm.value = char;
+  openGameplay.value = true;
+  //清空重置默认字段
+  //补充奥德
+  supplementFormValues.value = {
+    bigOdCount: 0,
+    smallOdCount: 0,
+  };
 };
 
 // 检查同组是否有角色已配置过挑战次数
@@ -439,20 +447,26 @@ const storedEnergyLimit = computed(() => {
   return 2000;
 });
 
-// 存储补充的独立累加表单状态
-const addODForm = ref({
-  bigOdCount: 0,
-  smallOdCount: 0,
+// 游玩补充 表单内的控制
+const supplementFormValues = ref({
+  bigOdCount: 0, //大奥德数量
+  smallOdCount: 0, //小奥德数量
+  // 每日副本补充
+  storedDailyRuns: 0,
+  //噩梦补充
+  storedNightmareCount: 0,
+  // 小游戏补充次数
+  storedMinigameCount: 0,
 });
 
 // 计算大奥德提供的总点数 (每个40点)
 const bigOdTotalPoints = computed(() => {
-  return (addODForm.value.bigOdCount || 0) * 40;
+  return (supplementFormValues.value.bigOdCount || 0) * 40;
 });
 
 // 计算小奥德提供的总点数 (每个10点)
 const smallOdTotalPoints = computed(() => {
-  return (addODForm.value.smallOdCount || 0) * 10;
+  return (supplementFormValues.value.smallOdCount || 0) * 10;
 });
 
 // 计算本次总共补充的奥德能量之和
@@ -468,14 +482,14 @@ const totalSupplementPoints = computed(() => {
 // 计数器加减操作
 const handleUpdateOdCount = (type, delta) => {
   if (type === "big") {
-    addODForm.value.bigOdCount = Math.max(
+    supplementFormValues.value.bigOdCount = Math.max(
       0,
-      (addODForm.value.bigOdCount || 0) + delta,
+      (supplementFormValues.value.bigOdCount || 0) + delta,
     );
   } else if (type === "small") {
-    addODForm.value.smallOdCount = Math.max(
+    supplementFormValues.value.smallOdCount = Math.max(
       0,
-      (addODForm.value.smallOdCount || 0) + delta,
+      (supplementFormValues.value.smallOdCount || 0) + delta,
     );
   }
 };
@@ -487,8 +501,8 @@ const handleExecuteSupplement = async () => {
 
   // 计算本次新增的总能量（大奥德每个40点，小奥德每个10点）
   const addedPoints =
-    (addODForm.value.bigOdCount || 0) * 40 +
-    (addODForm.value.smallOdCount || 0) * 10;
+    (supplementFormValues.value.bigOdCount || 0) * 40 +
+    (supplementFormValues.value.smallOdCount || 0) * 10;
 
   if (addedPoints <= 0) {
     $alert("请先选择或输入要补充的大/小奥德数量！");
@@ -511,8 +525,8 @@ const handleExecuteSupplement = async () => {
   emit("update-character", updatedCharacter);
 
   // 4. 补充成功后，清空本次的累加计数器，方便下次继续追加
-  addODForm.value.bigOdCount = 0;
-  addODForm.value.smallOdCount = 0;
+  supplementFormValues.value.bigOdCount = 0;
+  supplementFormValues.value.smallOdCount = 0;
 
   $alert(`成功补充 ${addedPoints} 点奥德能量并已保存！`);
 };
@@ -1077,10 +1091,7 @@ watch(
         <button
           type="button"
           class="absolute top-0 right-0 px-3.5 py-1.5 bg-gradient-to-l from-purple-500 to-indigo-500 text-white font-black text-[12px] rounded-bl-2xl shadow-sm hover:from-purple-600 hover:to-indigo-600 transition-all tracking-wider z-10"
-          @click="
-            gameplayCharForm = char;
-            openGameplay = true;
-          "
+          @click="handleClickGameplay(char)"
         >
           点击进行游玩消耗/补充
         </button>
@@ -1432,7 +1443,7 @@ watch(
                 "
                 @click="activeTab = 'supplement'"
               >
-                补充内容
+                游玩补充
               </button>
             </div>
           </div>
@@ -1953,7 +1964,7 @@ watch(
                         -
                       </button>
                       <input
-                        v-model.number="addODForm.bigOdCount"
+                        v-model.number="supplementFormValues.bigOdCount"
                         type="number"
                         min="0"
                         class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
@@ -1989,7 +2000,7 @@ watch(
                         -
                       </button>
                       <input
-                        v-model.number="addODForm.smallOdCount"
+                        v-model.number="supplementFormValues.smallOdCount"
                         type="number"
                         min="0"
                         class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
@@ -2013,8 +2024,8 @@ watch(
                     已选:
                     <strong class="text-slate-800"
                       >{{
-                        (addODForm.bigOdCount || 0) +
-                        (addODForm.smallOdCount || 0)
+                        (supplementFormValues.bigOdCount || 0) +
+                        (supplementFormValues.smallOdCount || 0)
                       }}
                       个</strong
                     >
@@ -2045,6 +2056,53 @@ watch(
                 </div>
               </div>
             </div>
+            <!-- 每日副本补充卡片 -->
+              <div class="p-6 bg-white border-2 border-slate-200/80 rounded-3xl space-y-5 shadow-sm transition-all">
+                <!-- 顶栏标题 -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                    <div class="text-sm font-black uppercase tracking-wider text-slate-700">
+                      每日副本补充
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-bold text-slate-400">
+                    道具消耗: 每日副本卷
+                  </span>
+                </div>
+
+                <!-- 计数器操作区域 -->
+                <div class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-4">
+                  <div class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-600">
+                      <span>每日副本卷 (每次增加 1 次)</span>
+                      <span class="text-amber-600 font-black">+{{ supplementFormValues.storedDailyRuns || 0 }} 次</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                        @click="supplementFormValues.storedDailyRuns = Math.max(0, (supplementFormValues.storedDailyRuns || 0) - 1)"
+                      >
+                        -
+                      </button>
+                      <input
+                        v-model.number="supplementFormValues.storedDailyRuns"
+                        type="number"
+                        min="0"
+                        class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
+                      />
+                      <button
+                        type="button"
+                        class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                        @click="supplementFormValues.storedDailyRuns = (supplementFormValues.storedDailyRuns || 0) + 1"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
           </template>
         </div>
         <!-- 弹窗底部操作按钮 -->
