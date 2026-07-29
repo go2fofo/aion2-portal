@@ -25,11 +25,51 @@ const gameData = ref({
   characters: [],
   accounts: [],
   groups: [
-    { id: 1, name: "分组1", sort: 1 },
-    { id: 2, name: "分组2", sort: 2 },
-    { id: 3, name: "分组3", sort: 3 },
-    { id: 4, name: "分组4", sort: 4 },
-    { id: 5, name: "分组5", sort: 5 },
+    {
+      id: 1,
+      name: "分组1",
+      sort: 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      runs: 0,
+      transcendRuns: 0,
+    },
+    {
+      id: 2,
+      name: "分组2",
+      sort: 2,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      runs: 0,
+      transcendRuns: 0,
+    },
+    {
+      id: 3,
+      name: "分组3",
+      sort: 3,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      runs: 0,
+      transcendRuns: 0,
+    },
+    {
+      id: 4,
+      name: "分组4",
+      sort: 4,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      runs: 0,
+      transcendRuns: 0,
+    },
+    {
+      id: 5,
+      name: "分组5",
+      sort: 5,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      runs: 0,
+      transcendRuns: 0,
+    },
   ],
   groupCount: 5,
   autoRefreshEnabled: true,
@@ -153,6 +193,16 @@ const characterValidationRules = [
       return "特级会员剩余天数不能超过 28 天";
     },
   },
+  //11.分组必填
+  {
+    field: "group",
+    label: "分组",
+    validate: (form) => {
+      const val = Number(form.group) || 0;
+      return val > 0 && val <= props.gameData?.groupCount;
+    },
+    message: () => "请选择分组",
+  },
 ];
 
 // 新增角色的表单数据一角色的默认数据
@@ -271,12 +321,10 @@ const saveData = async () => {
         },
         { onConflict: "user_id" },
       );
-      $alert("数据已成功保存！");
     } else if (typeof saveLocalGameData === "function") {
       // const cleanData = JSON.parse(JSON.stringify(gameData.value));
       const cleanData = cloneDeep(gameData.value);
       await saveLocalGameData(cleanData);
-      $alert("数据已成功保存！");
     } else {
       localStorage.setItem(
         "aion2_portal_game_data",
@@ -789,7 +837,7 @@ const handleSaveCharacter = async () => {
   showAddCharModal.value = false;
 
   debugger;
-  // await saveData();
+  await saveData();
 };
 
 //============================角色管理开始============================
@@ -964,6 +1012,31 @@ const groupCharacterPanelHandleUpdateCharacter = async (char) => {
   );
   await saveData();
 };
+// 分组角色卡片列表更新分组事件处理（兼容传入单个分组或整个分组数组）
+const groupCharacterPanelHandleUpdateGroup = async (
+  updatedGroupsOrSingleGroup,
+) => {
+  if (Array.isArray(updatedGroupsOrSingleGroup)) {
+    // 如果子组件传过来的是一整个 groups 数组，直接整体替换
+    gameData.value.groups = updatedGroupsOrSingleGroup;
+  } else if (updatedGroupsOrSingleGroup && updatedGroupsOrSingleGroup.id) {
+    // 兼容老代码：如果传过来的是单个分组对象
+    gameData.value.groups = gameData.value.groups.map((g) => {
+      if (g.id === updatedGroupsOrSingleGroup.id) {
+        return { ...g, ...updatedGroupsOrSingleGroup };
+      }
+      return g;
+    });
+  }
+
+  console.log(
+    `🔍 [UsersAdmin] %c gameData保存前 groupCharacterPanelHandleUpdateGroup: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    gameData.value.groups,
+  );
+
+  await saveData();
+};
 
 // 分组角色卡片列表切换任务事件处理
 const groupCharacterPanelHandleToggleTask = async (char, field) => {
@@ -996,14 +1069,26 @@ watch(gameData, (newVal) => {
     );
   }
 });
+// watch(
+//   () => newCharForm.value,
+//   (newVal) => {
+//     if (newVal) {
+//       validationResult.value = validateCharacterForm(newVal);
+//     }
+//   },
+//   { deep: true, immediate: true },
+// );
 watch(
   () => newCharForm.value,
   (newVal) => {
-    if (newVal) {
+    if (newVal && Object.keys(newVal).length > 0) {
       validationResult.value = validateCharacterForm(newVal);
+    } else {
+      // 如果置空了，也可以顺便清空校验结果
+      validationResult.value = { isValid: true, errors: {}, invalidFields: [] };
     }
   },
-  { deep: true, immediate: true },
+  { deep: true, immediate: true }
 );
 </script>
 
@@ -1137,7 +1222,7 @@ watch(
       </button>
 
       <!-- 默认分组 Tab -->
-      <button
+      <!-- <button
         @click="activeTabGroup = 'default'"
         class="px-5 py-2.5 rounded-2xl font-black text-xs transition-colors duration-150 whitespace-nowrap flex items-center gap-2 border"
         :class="
@@ -1161,7 +1246,7 @@ watch(
             ).length
           }}
         </span>
-      </button>
+      </button> -->
 
       <!-- 自定义分组 Tab -->
       <button
@@ -1191,11 +1276,14 @@ watch(
 
     <!-- 分组角色卡片列表 -->
     <GroupCharacterPanel
+      :key="activeTabGroup"
+      v-if="activeTabGroup"
       :activeTabGroup="activeTabGroup"
       :gameData="gameData"
       @character-delete="groupCharacterPanelHandleDelete"
       @toggle-lock="groupCharacterPanelHandleToggleLock"
       @update-character="groupCharacterPanelHandleUpdateCharacter"
+      @update-groups="groupCharacterPanelHandleUpdateGroup"
       @toggle-task="groupCharacterPanelHandleToggleTask"
       @consume-energy="groupCharacterPanelHandleConsumeEnergy"
     />
@@ -1203,7 +1291,7 @@ watch(
     <Transition name="modal">
       <div
         v-if="showAddCharModal"
-        class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/30 backdrop-blur-sm"
+        class="fixed inset-0 z-50 flex items-start justify-center pt-20 p-4 bg-slate-900/30 backdrop-blur-sm"
       >
         <div
           class="relative w-full max-w-5xl bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl overflow-hidden text-slate-800 flex flex-col h-[90vh]"
@@ -1328,7 +1416,7 @@ watch(
                   </div>
                 </div>
               </div>
-              <!-- 卡片二：所属分组与账号属性配置 (独立卡片) -->
+              <!-- 卡片二：所属分组配置 (独立卡片) -->
               <div
                 class="bg-white border border-slate-200/80 p-6 rounded-3xl space-y-5 shadow-sm"
               >
@@ -1337,54 +1425,53 @@ watch(
                   <div
                     class="text-sm font-black uppercase tracking-wider text-slate-700"
                   >
-                    所属分组与账号属性配置
+                    所属分组配置
                   </div>
                 </div>
                 <p class="text-xs font-bold text-slate-400">
-                  添加分组后会视为同一账号，共享部分资源
+                  选择角色所属的分组，同组账号将共享远征/超越挑战次数等资源
                 </p>
 
-                <div
-                  class="grid grid-cols-1 md:grid-cols-3 gap-5 pt-1 items-stretch"
-                >
+                <div class="grid grid-cols-1 gap-5 pt-1">
                   <!-- 分组选择 -->
                   <div class="flex flex-col">
                     <div class="flex items-center justify-between mb-2">
+                      <!-- 标题 -->
                       <label class="text-xs font-bold text-slate-500 block"
                         >所属分组</label
                       >
-                      <!-- 清空按钮：只有当有值时才高亮显示，点击触发清空 -->
-                      <button
-                        v-if="
-                          newCharForm.group !== null &&
-                          newCharForm.group !== undefined &&
-                          newCharForm.group !== ''
-                        "
-                        type="button"
-                        @click="newCharForm.group = null"
-                        class="text-[10px] font-extrabold text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1 cursor-pointer bg-slate-100 hover:bg-red-50 px-2 py-0.5 rounded-md"
+
+                      <!-- 错误提示（右侧对齐） -->
+                      <span
+                        v-if="validationResult.errors.group"
+                        class="text-[10px] text-red-500 font-bold"
                       >
-                        <svg
-                          class="w-3 h-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2.5"
-                            d="M6 18L18 6M6 6l12 12"
-                          ></path>
-                        </svg>
-                        清空分组
-                      </button>
+                        {{ validationResult.errors.group }}
+                      </span>
                     </div>
 
                     <div class="flex-1 flex items-center gap-2">
                       <select
                         v-model.number="newCharForm.group"
-                        @change="handleGroupChange"
+                        @change="
+                          (e) => {
+                            const selectedGroupId = Number(e.target.value);
+                            // 检查目标分组下是否存在角色
+                            const groupChars = gameData?.characters?.filter(
+                              (c) => c.group === selectedGroupId,
+                            );
+                            if (!groupChars || groupChars.length === 0) {
+                              // 如果该组没有角色，重置主账号和特级会员为关闭状态特级会员天数设置为空
+                              newCharForm.primaryAccount = false;
+                              newCharForm.premiumMember = false;
+                              newCharForm.premiumMemberDay = null;
+                            }
+                            // 执行你原有的分组切换回调（如果有的话）
+                            if (typeof handleGroupChange === 'function') {
+                              handleGroupChange(e);
+                            }
+                          }
+                        "
                         class="w-full h-[50px] px-4 rounded-2xl bg-slate-50 border-2 border-slate-200/80 focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-sm text-slate-800 transition-all cursor-pointer box-border"
                         :class="
                           validationResult.invalidFields.includes('group')
@@ -1392,8 +1479,7 @@ watch(
                             : 'border-slate-200/80'
                         "
                       >
-                        <!-- 可选：加一个默认请选择项 -->
-                        <option :value="null" disabled>
+                        <option :value="null" disabled hidden>
                           请选择所属分组...
                         </option>
                         <option
@@ -1405,14 +1491,26 @@ watch(
                         </option>
                       </select>
                     </div>
-                    <!-- 错误提示 -->
-                    <span
-                      v-if="validationResult.errors.group"
-                      class="text-[10px] text-red-500 font-bold mt-1 block"
-                    >
-                      {{ validationResult.errors.group }}
-                    </span>
                   </div>
+                </div>
+              </div>
+
+              <!-- 卡片三：账号属性配置 (独立卡片：主账号与特级会员) -->
+              <div
+                class="bg-white border border-slate-200/80 p-6 rounded-3xl space-y-5 shadow-sm"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                  <div
+                    class="text-sm font-black uppercase tracking-wider text-slate-700"
+                  >
+                    账号属性配置
+                  </div>
+                </div>
+
+                <div
+                  class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1 items-stretch"
+                >
                   <!-- 是否为主账号 (带同组排他提示) -->
                   <div class="flex flex-col">
                     <label class="text-xs font-bold text-slate-500 block mb-2"
@@ -1423,10 +1521,9 @@ watch(
                         class="w-full h-[50px] flex items-center justify-between px-4 rounded-2xl bg-slate-50 border-2 border-slate-200/80 cursor-pointer select-none transition-all hover:border-[#45a6d5] box-border"
                         @click="
                           () => {
-                            const groupChars =
-                              gameData.value?.characters?.filter(
-                                (c) => c.group === newCharForm.group,
-                              );
+                            const groupChars = gameData?.characters?.filter(
+                              (c) => c.group === newCharForm.group,
+                            );
                             const hasPrimary = groupChars?.some(
                               (c) => c.primaryAccount,
                             );
@@ -2181,7 +2278,7 @@ watch(
     <Transition name="modal2">
       <div
         v-if="pickerOpen"
-        class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+        class="fixed inset-0 z-[60] flex items-start justify-center pt-20 p-4"
       >
         <div
           class="relative z-10 w-full max-w-3xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden max-h-[90vh"
@@ -2400,7 +2497,7 @@ watch(
     <Transition name="modal3">
       <div
         v-if="groupOpen"
-        class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+        class="fixed inset-0 z-[60] flex items-start justify-center pt-20 p-4"
       >
         <div
           class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
