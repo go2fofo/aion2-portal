@@ -33,6 +33,7 @@ const gameData = ref({
       updatedAt: new Date(),
       runs: 0,
       transcendRuns: 0,
+      runLogs: [],
     },
     {
       id: 2,
@@ -42,6 +43,7 @@ const gameData = ref({
       updatedAt: new Date(),
       runs: 0,
       transcendRuns: 0,
+      runLogs: [],
     },
     {
       id: 3,
@@ -51,6 +53,7 @@ const gameData = ref({
       updatedAt: new Date(),
       runs: 0,
       transcendRuns: 0,
+      runLogs: [],  
     },
     {
       id: 4,
@@ -60,6 +63,7 @@ const gameData = ref({
       updatedAt: new Date(),
       runs: 0,
       transcendRuns: 0,
+      runLogs: [],  
     },
     {
       id: 5,
@@ -69,6 +73,7 @@ const gameData = ref({
       updatedAt: new Date(),
       runs: 0,
       transcendRuns: 0,
+      runLogs: [],  
     },
   ],
   groupCount: 5,
@@ -78,6 +83,7 @@ const gameData = ref({
   version: "1.0.0",
   dataType: "complete",
 });
+
 const groupOpen = ref(false);
 const pickerOpen = ref(false);
 const pickerOpenOther = ref({
@@ -939,6 +945,12 @@ const saveGroup = async () => {
     gameData.value.groups.push({
       id: nextId,
       name: name,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      runs: 0,
+      transcendRuns: 0,
+      runLogs: [],
+
     });
   }
   await saveData();

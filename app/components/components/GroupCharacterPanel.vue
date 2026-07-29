@@ -1406,18 +1406,17 @@ watch(
           class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white z-10"
         >
           <div class="flex items-center gap-6">
-            <div class="text-xl font-black tracking-wide text-slate-900">
-              游玩消耗/补充
-            </div>
             <!-- Tab 切换按钮组 -->
-            <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-2xl">
+            <div
+              class="flex items-center gap-1.5 bg-slate-200/70 p-1.5 rounded-2xl border border-slate-200"
+            >
               <button
                 type="button"
-                class="px-4 py-1.5 rounded-xl text-xs font-black transition-all"
+                class="flex-1 px-4 py-2 rounded-xl text-xs font-black transition-all shadow-2xs"
                 :class="
                   activeTab === 'consume'
-                    ? 'bg-white text-slate-800 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-600'
+                    ? 'bg-[#45a6d5] text-white shadow-md shadow-[#45a6d5]/30'
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'
                 "
                 @click="activeTab = 'consume'"
               >
@@ -1425,11 +1424,11 @@ watch(
               </button>
               <button
                 type="button"
-                class="px-4 py-1.5 rounded-xl text-xs font-black transition-all"
+                class="flex-1 px-4 py-2 rounded-xl text-xs font-black transition-all shadow-2xs"
                 :class="
                   activeTab === 'supplement'
-                    ? 'bg-white text-slate-800 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-600'
+                    ? 'bg-[#45a6d5] text-white shadow-md shadow-[#45a6d5]/30'
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'
                 "
                 @click="activeTab = 'supplement'"
               >
@@ -1444,96 +1443,75 @@ watch(
             关闭
           </button>
         </div>
-        <!-- 卡片一：基础身份信息 -->
+        <!-- 卡片：以奥德为核心的极简状态栏 -->
         <div
-          class="bg-white border border-slate-200/80 p-6 rounded-3xl space-y-4 shadow-sm"
+          v-if="gameplayCharForm?.characterId"
+          class="bg-gradient-to-r from-sky-50 via-white to-sky-50/60 border border-sky-200/80 px-4 py-3 flex items-center justify-between flex-wrap gap-4 shadow-2xs"
         >
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
-              <div
-                class="text-sm font-black uppercase tracking-wider text-slate-700"
-              >
-                基础身份信息
-              </div>
-            </div>
+          <!-- 左侧：角色基础身份（小号紧凑显示，不抢戏） -->
+          <div class="flex items-center flex-wrap gap-2 text-xs">
+            <span class="font-black text-slate-800 text-sm">
+              {{ gameplayCharForm?.characterName || gameplayCharForm?.name }}
+            </span>
+            <span
+              class="px-1.5 py-0.5 rounded bg-[#45a6d5]/10 text-[#45a6d5] font-bold text-[10px]"
+            >
+              {{
+                gameplayCharForm?.className || gameplayCharForm?.class || "未知"
+              }}
+            </span>
+            <span class="text-slate-300">|</span>
+            <span class="text-slate-500 font-bold"
+              >Lv.{{ gameplayCharForm?.characterLevel || 1 }}</span
+            >
+            <span class="text-slate-300">|</span>
+            <span class="text-slate-500 font-medium truncate max-w-[100px]">{{
+              gameplayCharForm.serverName || "未知"
+            }}</span>
+
+            <!-- 特级会员极简标 -->
+            <span
+              v-if="gameplayCharForm?.premiumMember"
+              class="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded"
+            >
+              已开通特级会员
+            </span>
+            <span v-else class="text-[10px] font-bold px-1.5 py-0.5 rounded">
+              未开通特级会员
+            </span>
           </div>
+
+          <!-- 右侧：绝对C位 —— 凸显当前奥德状态 -->
           <div
-            v-if="gameplayCharForm?.characterId"
-            class="p-4 bg-sky-50/60 border border-sky-100 rounded-2xl flex items-center gap-4 transition-all"
+            class="flex items-center gap-3 bg-white border border-sky-200/80 px-3.5 py-1.5 rounded-xl shadow-2xs"
           >
-            <img
-              v-if="gameplayCharForm?.profileImage"
-              :src="gameplayCharForm?.profileImage"
-              alt="头像"
-              class="w-14 h-14 rounded-xl object-cover border border-sky-200 shadow-sm"
-            />
-            <div class="flex-1 min-w-0 grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div>
-                <div class="text-[10px] font-bold text-slate-400">
-                  昵称 / 职业
-                </div>
-                <div class="text-sm font-black text-slate-800 truncate">
-                  {{
-                    gameplayCharForm?.characterName || gameplayCharForm?.name
-                  }}
-                  <span class="text-xs font-bold text-[#45a6d5]"
-                    >({{
-                      gameplayCharForm?.className || gameplayCharForm?.class
-                    }})</span
-                  >
-                </div>
-              </div>
-              <div>
-                <div class="text-[10px] font-bold text-slate-400">
-                  等级 / 装等
-                </div>
-                <div class="text-sm font-black text-slate-800">
-                  Lv.{{ gameplayCharForm?.characterLevel || 1 }}
-                  <span class="text-xs font-bold text-amber-600"
-                    >(
-                    {{ formatCombatPower(gameplayCharForm?.combatPower || 0) }}
-                    )</span
-                  >
-                </div>
-              </div>
-              <div>
-                <div class="text-[10px] font-bold text-slate-400">
-                  服务器 / 种族
-                </div>
-                <div class="text-sm font-black text-slate-800 truncate">
-                  {{ gameplayCharForm.serverName || "未知" }} ·
-                  <span class="text-xs font-bold text-purple-600">{{
-                    gameplayCharForm.raceName || "未知"
-                  }}</span>
-                </div>
-              </div>
-              <div>
-                <div class="text-[10px] font-bold text-slate-400">特级会员</div>
-                <div
-                  class="text-sm font-black truncate flex items-center gap-1.5 mt-0.5"
+            <div class="flex items-center gap-1.5">
+              <div
+                class="w-2 h-2 rounded-full bg-[#45a6d5] animate-pulse"
+              ></div>
+              <span class="text-[11px] font-black text-slate-400">奥德</span>
+            </div>
+
+            <div class="flex items-center gap-3 text-xs">
+              <!-- 基础奥德（大号高亮） -->
+              <div class="flex items-baseline gap-0.5">
+                <span class="text-[10px] font-bold text-slate-400">基</span>
+                <strong class="text-sm font-black text-[#45a6d5]">{{
+                  gameplayCharForm?.energy || 0
+                }}</strong>
+                <span class="text-[10px] text-slate-400"
+                  >/{{ energyLimit }}</span
                 >
-                  <template v-if="gameplayCharForm?.premiumMember">
-                    <span
-                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-black bg-gradient-to-r from-amber-500 to-yellow-400 text-white shadow-xs shadow-amber-500/20"
-                    >
-                      <!-- 皇冠 SVG 图标 -->
-                      <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                        <path
-                          d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-1h14v1Z"
-                        />
-                      </svg>
-                      特级会员
-                    </span>
-                  </template>
-                  <template v-else>
-                    <span
-                      class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-400"
-                    >
-                      未开通特级会员
-                    </span>
-                  </template>
-                </div>
+              </div>
+
+              <div class="h-3 w-px bg-slate-200"></div>
+
+              <!-- 存储奥德（大号高亮） -->
+              <div class="flex items-baseline gap-0.5">
+                <span class="text-[10px] font-bold text-slate-400">存</span>
+                <strong class="text-sm font-black text-amber-600">{{
+                  gameplayCharForm?.storedEnergy || 0
+                }}</strong>
               </div>
             </div>
           </div>
@@ -1564,7 +1542,7 @@ watch(
                     </div>
                   </div>
                   <!-- 当前奥德状态提示 -->
-                  <div class="flex items-center gap-3">
+                  <!-- <div class="flex items-center gap-3">
                     <span class="text-xs font-bold text-slate-500">
                       基础:
                       <strong class="text-[#45a6d5]">{{
@@ -1578,7 +1556,7 @@ watch(
                         gameplayCharForm?.storedEnergy || 0
                       }}</strong>
                     </span>
-                  </div>
+                  </div> -->
                 </div>
 
                 <!-- 1. 选择副本大类 -->
