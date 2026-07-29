@@ -460,7 +460,7 @@ const totalSupplementPoints = computed(() => {
   let total = bigOdTotalPoints.value + smallOdTotalPoints.value;
   //触发校验
   validationResult.value = validateCharacterForm({
-    storedEnergy: total,
+    storedEnergy: (gameplayCharForm.value.storedEnergy || 0) + total,
   });
   return total;
 });
