@@ -13,6 +13,7 @@
     "@nuxtjs/supabase": "^1.1.6",
     "echarts": "^5.5.0",
     "https-proxy-agent": "^7.0.6",
+    "lodash": "^4.18.1",
     "marked": "^17.0.2",
     "nuxt": "^3.12.4",
     "nuxt-echarts": "^1.0.1",

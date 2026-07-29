@@ -648,8 +648,7 @@ const handleExecuteConsume = async () => {
 // 过滤后的具体副本列表（若圣域次数用尽则自动隐藏）
 const filteredDungeonList = computed(() => {
   const list = currentDungeonList.value || [];
-
-  return list
+  const newList = list
     .map((item, idx) => {
       let currentRuns = 0;
       // 如果是圣域，获取当前 key 的挑战次数
@@ -671,6 +670,12 @@ const filteredDungeonList = computed(() => {
       }
       return true;
     });
+  // 设置圣域默认值
+  if (consumeForm.value.dungeonType === "sanctuary") {
+    consumeForm.value.selectedDungeonIndex = 0;
+  }
+
+  return newList;
 });
 
 // 监听大类切换时，如果当前选中的下拉索引在过滤后失效，自动重置为第一个可用选项
@@ -1321,10 +1326,11 @@ watch(
                   >
                   <select
                     v-model="consumeForm.selectedDungeonIndex"
+                    placeholder="请选择"
                     class="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#45a6d5] outline-none font-bold text-xs text-slate-800 transition-all"
                   >
                     <option
-                      v-for="(item) in filteredDungeonList"
+                      v-for="item in filteredDungeonList"
                       :key="item.originalIndex"
                       :value="item.originalIndex"
                     >

@@ -16,6 +16,7 @@ import {
 } from "~/utils/aionServers";
 import { formatCombatPower } from "~/utils/formatCombatPower";
 import GroupCharacterPanel from "./components/GroupCharacterPanel.vue";
+import { cloneDeep } from "lodash";
 const client = useSupabaseClient();
 const user = useSupabaseUser();
 
@@ -48,8 +49,117 @@ const { $alert, $confirm, $loading } = useNuxtApp();
 const showAddCharModal = ref(false);
 const saving = ref(false);
 
-// 新增角色的表单数据
+//y验证规则放回返
+const validationResult = ref({
+  isValid: true,
+  invalidFields: [],
+  errors: {},
+});
+// 验证规则配置数组
+const characterValidationRules = [
+  // 1. 基础奥德能量 (energy)
+  {
+    field: "energy",
+    label: "基础奥德能量",
+    validate: (form) => {
+      const val = Number(form.energy) || 0;
+      const maxLimit = form.premiumMember ? 840 : 560;
+      return val <= maxLimit;
+    },
+    message: () =>
+      "特级会员状态下能量上限为840，未开通上限为560，当前值超出限制",
+  },
+  // 2. 存储奥德能量 (storedEnergy)
+  {
+    field: "storedEnergy",
+    label: "存储奥德能量",
+    validate: (form) => (Number(form.storedEnergy) || 0) <= 2000,
+    message: () => "存储/积压奥德能量不能超过2000",
+  },
+  // 3. 噩梦次数 (nightmareCount)
+  {
+    field: "nightmareCount",
+    label: "噩梦次数",
+    validate: (form) => (Number(form.nightmareCount) || 0) <= 14,
+    message: () => "噩梦次数不能超过14次",
+  },
+  // 4. 存储噩梦次数 (storedNightmareCount)
+  {
+    field: "storedNightmareCount",
+    label: "存储噩梦次数",
+    validate: (form) => (Number(form.storedNightmareCount) || 0) <= 30,
+    message: () => "存储噩梦次数不能超过30次",
+  },
+  // 5. 每日副本次数 (dailyRuns)
+  {
+    field: "dailyRuns",
+    label: "每日副本次数",
+    validate: (form) => (Number(form.dailyRuns) || 0) <= 14,
+    message: () => "每日副本次数不能超过14次",
+  },
+  // 6. 存储每日副本次数 (storedDailyRuns)
+  {
+    field: "storedDailyRuns",
+    label: "存储每日副本次数",
+    validate: (form) => (Number(form.storedDailyRuns) || 0) <= 30,
+    message: () => "存储每日副本次数不能超过30次",
+  },
+  // 7. 圣域副本 s1
+  {
+    field: "sanctuary.s1", // 对应表单中的嵌套路径
+    label: "圣域副本 s1",
+    validate: (form) => {
+      const s1 = form.sanctuary?.s1 ?? 0;
+      return Number(s1) <= 1;
+    },
+    message: () => "圣域 s1 次数不能超过1次",
+  },
+  // 8. 圣域副本 s2
+  {
+    field: "sanctuary.s2",
+    label: "圣域副本 s2",
+    validate: (form) => {
+      const s2 = form.sanctuary?.s2 ?? 0;
+      return Number(s2) <= 1;
+    },
+    message: () => "圣域 s2 次数不能超过1次",
+  },
+  // 9. 圣域副本 s3
+  {
+    field: "sanctuary.s3",
+    label: "圣域副本 s3",
+    validate: (form) => {
+      const s3 = form.sanctuary?.s3 ?? 0;
+      return Number(s3) <= 1;
+    },
+    message: () => "圣域 s3 次数不能超过1次",
+  },
+  // 10. 特级会员剩余天数（前置条件：开启了特级会员 且 非同组共享）
+  {
+    field: "premiumMemberDay",
+    label: "特级会员剩余天数",
+    validate: (form) => {
+      // 前置条件：必须开启了特级会员，且不是同组共享状态
+      const isSelfMember = form.premiumMember && !isGroupHasOtherPremium.value;
+      if (!isSelfMember) return true; // 未开启或共享状态无需校验此项
+
+      const days = Number(form.premiumMemberDay) || 0;
+      // 必须大于0且不能超过28天
+      return days > 0 && days <= 28;
+    },
+    message: (form) => {
+      const days = Number(form.premiumMemberDay) || 0;
+      if (days <= 0) return "请输入有效的特级会员剩余天数";
+      return "特级会员剩余天数不能超过 28 天";
+    },
+  },
+];
+
+// 新增角色的表单数据一角色的默认数据
 const newCharForm = ref({
+  nightmareCount: 14, //噩梦次数
+  dailyRuns: 14, //每日副本次数
+  //圣域
   sanctuary: {
     s1: 1,
     s2: 1,
@@ -122,6 +232,8 @@ const totalKinaStats = computed(() => {
 const openAddCharModal = () => {
   // const defaultAccount = gameData.value.accounts?.[0]?.id || "";
   newCharForm.value = {
+    nightmareCount: 14, //噩梦次数
+    dailyRuns: 0, //每日副本次数
     locked: true,
     sanctuary: {
       s1: 1,
@@ -161,7 +273,9 @@ const saveData = async () => {
       );
       $alert("数据已成功保存！");
     } else if (typeof saveLocalGameData === "function") {
-      await saveLocalGameData(gameData.value);
+      // const cleanData = JSON.parse(JSON.stringify(gameData.value));
+      const cleanData = cloneDeep(gameData.value);
+      await saveLocalGameData(cleanData);
       $alert("数据已成功保存！");
     } else {
       localStorage.setItem(
@@ -507,7 +621,38 @@ const handleGroupChange = () => {
   }
 };
 
-// 提交保存前的校验逻辑
+/**
+ * 校验角色表单数据
+ * @param {Object} formData 当前表单对象 (如 newCharForm)
+ * @returns {Object} { isValid: boolean, invalidFields: string[], errors: Object }
+ */
+const validateCharacterForm = (formData) => {
+  const invalidFields = []; // 不符合要求的字段名集合（如 'energy', 'sanctuary.s1'）
+  const errors = {}; // 具体的错误信息键值对
+
+  characterValidationRules.forEach((rule) => {
+    try {
+      const passes = rule.validate(formData);
+      if (!passes) {
+        invalidFields.push(rule.field);
+        errors[rule.field] =
+          typeof rule.message === "function"
+            ? rule.message(formData)
+            : rule.message;
+      }
+    } catch (e) {
+      console.error(`验证规则执行出错 [${rule.field}]:`, e);
+    }
+  });
+
+  return {
+    isValid: invalidFields.length === 0,
+    invalidFields,
+    errors,
+  };
+};
+
+// 提交保存前的校验逻辑 确认添加角色保存触发 新增角色 新建角色
 const handleSaveCharacter = async () => {
   // characterId: c.characterId,
   //     characterName: stripHtml(c.name),
@@ -552,36 +697,36 @@ const handleSaveCharacter = async () => {
       return;
     }
   }
+
+  // const validationResult = validateCharacterForm(newCharForm.value);
+
+  // validationResult.value = validationResult;
+  // console.log(`🔍 [UsersAdmin:683] %c validationResult验证结果: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', validationResult);
+
   const nowIso = new Date().toISOString();
   const newChar = {
     id: Date.now(),
 
     // 能量与资源
-    energy: Number(newCharForm.value.energy),
-    storedEnergy: Number(newCharForm.value.storedEnergy),
-    kina: Number(newCharForm.value.kina),
+    energy: 0,
+    storedEnergy: 0,
+    kina: 0,
     weeklyEnergyPurchased: false,
     weeklyEnergyPurchasedDate: nowIso,
     breezeEnergyPurchased: false,
     breezeEnergyPurchasedDate: nowIso,
 
     // 副本与次数进度
-    runs: Number(newCharForm.value.runs),
+    runs: 0,
     lastRunsUpdate: nowIso,
-    transcendRuns: Number(newCharForm.value.transcendRuns),
+    transcendRuns: 0,
     lastTranscendRunsUpdate: nowIso,
-    nightmareCount: Number(newCharForm.value.nightmareCount),
-    storedNightmareCount: Number(newCharForm.value.storedNightmareCount),
+    nightmareCount: 0,
+    storedNightmareCount: 0,
     lastNightmareUpdate: nowIso,
-    dailyRuns: Number(newCharForm.value.dailyRuns),
-    storedDailyRuns: Number(newCharForm.value.storedDailyRuns),
+    dailyRuns: 0,
+    storedDailyRuns: 0,
     lastDailyRunsUpdate: nowIso,
-
-    // 最终Boss削弱进度
-    finalBossReductionRuns: 0,
-    finalBossReductionRunsDate: nowIso,
-    finalBossReductionRunsTranscend: 0,
-    finalBossReductionRunsTranscendDate: nowIso,
 
     // 圣域、小游戏及日常状态
     sanctuary: { s1: 1, s2: 1, s3: 1 },
@@ -596,9 +741,9 @@ const handleSaveCharacter = async () => {
     dailySignInDate: nowIso,
 
     // 战斗属性
-    equipmentScore: Number(newCharForm.value.equipmentScore),
-    combatPower: Number(newCharForm.value.combatPower),
-    transcendNote: newCharForm.value.transcendNote,
+    equipmentScore: 0,
+    combatPower: 0,
+    transcendNote: "",
     teamId: null,
     lastEnergyUpdate: nowIso,
     abyssOrderCompleted: false,
@@ -608,15 +753,96 @@ const handleSaveCharacter = async () => {
     ...newCharForm.value,
   };
 
+  //特级会员日期处理
+  if (newCharForm?.premiumMemberDay && newCharForm.value?.premiumMember) {
+    newChar.premiumStartTime = calculatedStartTime.value;
+    newChar.premiumEndTime = calculatedEndTime.value;
+  }
+  //如果有分组需清空每日副本
+  if (newCharForm?.value?.group) {
+    newChar.dailyRuns = 0;
+  }
+
   if (!gameData.value.characters) {
     gameData.value.characters = [];
   }
+
+  console.log(
+    `🔍 [UsersAdmin:623] %c newCharForm: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    newCharForm.value,
+  );
+  console.log(
+    `🔍 [UsersAdmin:624] %c newChar: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    newChar,
+  );
+  console.log(
+    `🔍 [UsersAdmin:624] %c calculatedStartTime: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    calculatedStartTime.value,
+  );
+
   gameData.value?.characters?.unshift(newChar);
   gameData.value.characterCount = gameData.value?.characters?.length || 0;
 
   showAddCharModal.value = false;
-  await saveData();
+
+  debugger;
+  // await saveData();
 };
+
+//============================角色管理开始============================
+
+//会员相关处理
+// 辅助函数：格式化日期为 YYYY-MM-DD HH:mm 或 YYYY-MM-DD
+const formatDate = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+};
+
+// 1. 当前角色自主输入剩余天数时，动态计算开通日期
+const calculatedStartTime = computed(() => {
+  const remainingDays = Number(newCharForm.value.premiumMemberDay) || 0;
+  if (remainingDays < 0 || remainingDays > 28) return "剩余天数应在 0~28 之间";
+
+  const totalDays = 28;
+  const passedDays = totalDays - remainingDays; // 已经过去的天数
+
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - passedDays);
+  return formatDate(startDate);
+});
+
+// 2. 当前角色自主输入剩余天数时，动态计算结束（到期）日期
+const calculatedEndTime = computed(() => {
+  const remainingDays = Number(newCharForm.value.premiumMemberDay) || 0;
+  if (remainingDays < 0 || remainingDays > 28) return "无效范围";
+
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + remainingDays);
+  return formatDate(endDate);
+});
+
+// 3. 如果是同组共享模式，推导共享角色的开通与结束时间（假设共享数据里存的是对应的剩余天数）
+const groupSharedStartTime = computed(() => {
+  const remainingDays = Number(groupSharedPremiumDays.value) || 0;
+  const passedDays = 28 - remainingDays;
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - passedDays);
+  return formatDate(startDate);
+});
+
+const groupSharedEndTime = computed(() => {
+  const remainingDays = Number(groupSharedPremiumDays.value) || 0;
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + remainingDays);
+  return formatDate(endDate);
+});
+
+//============================角色管理结束============================
 
 //============================分组管理开始============================
 
@@ -731,7 +957,11 @@ const groupCharacterPanelHandleUpdateCharacter = async (char) => {
     }
     return c;
   });
-  console.log(`🔍 [UsersAdmin:734] %c gameData保存签前groupCharacterPanelHandleUpdateCharacter: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', gameData.value);
+  console.log(
+    `🔍 [UsersAdmin:734] %c gameData保存签前groupCharacterPanelHandleUpdateCharacter: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    gameData.value,
+  );
   await saveData();
 };
 
@@ -766,6 +996,15 @@ watch(gameData, (newVal) => {
     );
   }
 });
+watch(
+  () => newCharForm.value,
+  (newVal) => {
+    if (newVal) {
+      validationResult.value = validateCharacterForm(newVal);
+    }
+  },
+  { deep: true, immediate: true },
+);
 </script>
 
 <template>
@@ -1110,15 +1349,53 @@ watch(gameData, (newVal) => {
                 >
                   <!-- 分组选择 -->
                   <div class="flex flex-col">
-                    <label class="text-xs font-bold text-slate-500 block mb-2"
-                      >所属分组</label
-                    >
-                    <div class="flex-1 flex items-center">
+                    <div class="flex items-center justify-between mb-2">
+                      <label class="text-xs font-bold text-slate-500 block"
+                        >所属分组</label
+                      >
+                      <!-- 清空按钮：只有当有值时才高亮显示，点击触发清空 -->
+                      <button
+                        v-if="
+                          newCharForm.group !== null &&
+                          newCharForm.group !== undefined &&
+                          newCharForm.group !== ''
+                        "
+                        type="button"
+                        @click="newCharForm.group = null"
+                        class="text-[10px] font-extrabold text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1 cursor-pointer bg-slate-100 hover:bg-red-50 px-2 py-0.5 rounded-md"
+                      >
+                        <svg
+                          class="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2.5"
+                            d="M6 18L18 6M6 6l12 12"
+                          ></path>
+                        </svg>
+                        清空分组
+                      </button>
+                    </div>
+
+                    <div class="flex-1 flex items-center gap-2">
                       <select
                         v-model.number="newCharForm.group"
                         @change="handleGroupChange"
                         class="w-full h-[50px] px-4 rounded-2xl bg-slate-50 border-2 border-slate-200/80 focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-sm text-slate-800 transition-all cursor-pointer box-border"
+                        :class="
+                          validationResult.invalidFields.includes('group')
+                            ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                            : 'border-slate-200/80'
+                        "
                       >
+                        <!-- 可选：加一个默认请选择项 -->
+                        <option :value="null" disabled>
+                          请选择所属分组...
+                        </option>
                         <option
                           v-for="(group, key) in gameData.groups"
                           :key="key"
@@ -1128,8 +1405,14 @@ watch(gameData, (newVal) => {
                         </option>
                       </select>
                     </div>
+                    <!-- 错误提示 -->
+                    <span
+                      v-if="validationResult.errors.group"
+                      class="text-[10px] text-red-500 font-bold mt-1 block"
+                    >
+                      {{ validationResult.errors.group }}
+                    </span>
                   </div>
-
                   <!-- 是否为主账号 (带同组排他提示) -->
                   <div class="flex flex-col">
                     <label class="text-xs font-bold text-slate-500 block mb-2"
@@ -1238,43 +1521,91 @@ watch(gameData, (newVal) => {
                     class="pt-2"
                   >
                     <div
-                      class="p-4 bg-amber-50/50 border border-amber-200/60 rounded-2xl space-y-2"
+                      class="p-4 bg-amber-50/50 border border-amber-200/60 rounded-2xl space-y-3"
                     >
                       <label class="text-xs font-bold text-amber-700 block"
                         >特级会员剩余天数</label
                       >
 
                       <!-- 情况 A：同组已有其他角色开启了会员（只展示共享天数，自动同步） -->
-                      <div
-                        v-if="isGroupHasOtherPremium"
-                        class="flex items-center justify-between py-1"
-                      >
-                        <span class="text-sm font-black text-amber-900">
-                          同组共享天数：<span
-                            class="text-base text-amber-600"
-                            >{{ groupSharedPremiumDays }}</span
+                      <div v-if="isGroupHasOtherPremium" class="space-y-1 py-1">
+                        <div class="flex items-center justify-between">
+                          <span class="text-sm font-black text-amber-900">
+                            同组共享天数：<span
+                              class="text-base text-amber-600"
+                              >{{ groupSharedPremiumDays }}</span
+                            >
+                            天（已自动同步）
+                          </span>
+                          <span
+                            class="text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-bold"
+                            >组内一致</span
                           >
-                          天（已自动同步）
-                        </span>
-                        <span
-                          class="text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-bold"
-                          >组内一致</span
+                        </div>
+                        <!-- 同组共享时的起止时间展示 -->
+                        <div
+                          class="text-[11px] font-bold text-amber-700/80 flex items-center gap-3 pt-1"
                         >
+                          <span
+                            >开通时间:
+                            {{ groupSharedStartTime || "未知" }}</span
+                          >
+                          <span>|</span>
+                          <span
+                            >到期时间: {{ groupSharedEndTime || "未知" }}</span
+                          >
+                        </div>
                       </div>
 
                       <!-- 情况 B：当前角色自己是组内第一个开启会员的（允许输入天数） -->
-                      <input
-                        v-else
-                        v-model.number="newCharForm.premiumMemberDay"
-                        type="number"
-                        placeholder="请输入剩余天数..."
-                        class="w-full md:w-1/3 px-4 py-2.5 rounded-xl bg-white border-2 border-amber-200 focus:border-amber-500 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
-                      />
+                      <div v-else class="space-y-2">
+                        <input
+                          v-model.number="newCharForm.premiumMemberDay"
+                          type="number"
+                          min="1"
+                          max="28"
+                          placeholder="请输入剩余天数（最多28天）..."
+                          class="w-full md:w-1/3 px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                          :class="
+                            validationResult.invalidFields.includes(
+                              'premiumMemberDay',
+                            )
+                              ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                              : 'border-amber-200 focus:border-amber-500'
+                          "
+                        />
+                        <!-- 错误提示小字 -->
+                        <span
+                          v-if="validationResult.errors.premiumMemberDay"
+                          class="text-[10px] text-red-500 font-bold block"
+                        >
+                          {{ validationResult.errors.premiumMemberDay }}
+                        </span>
+
+                        <!-- 实时计算并展示：开通时间 与 结束时间（基于总时长28天倒推与顺延） -->
+                        <div
+                          v-if="
+                            newCharForm.premiumMemberDay &&
+                            !validationResult.errors.premiumMemberDay
+                          "
+                          class="text-xs font-bold text-amber-800 bg-amber-100/60 px-3 py-2 rounded-xl flex flex-wrap items-center gap-x-4 gap-y-1"
+                        >
+                          <span
+                            >预计开通时间：<strong class="text-amber-900">{{
+                              calculatedStartTime
+                            }}</strong></span
+                          >
+                          <span
+                            >预计到期时间：<strong class="text-amber-900">{{
+                              calculatedEndTime
+                            }}</strong></span
+                          >
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </Transition>
               </div>
-
               <!-- 卡片三：能量与资源 (合并优化版) -->
               <!-- 奥德能量组合卡片 (当前 + 存储补充) -->
               <div
@@ -1327,12 +1658,12 @@ watch(gameData, (newVal) => {
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
+                  <!-- 基础奥德能量 -->
                   <div>
                     <div class="flex items-center justify-between mb-1.5">
                       <label class="text-xs font-bold text-slate-500"
                         >当前能量</label
                       >
-                      <!-- 实时计算并展示“当前值 (还需补充值) / 上限” -->
                       <span class="text-[10px] font-black text-[#45a6d5]">
                         {{ newCharForm?.energy || 0 }} ({{
                           Math.max(
@@ -1361,15 +1692,27 @@ watch(gameData, (newVal) => {
                     <input
                       v-model.number="newCharForm.energy"
                       type="number"
-                      class="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200/80 focus:border-[#45a6d5] outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                      class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                      :class="
+                        validationResult.invalidFields.includes('energy')
+                          ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                          : 'border-slate-200/80 focus:border-[#45a6d5]'
+                      "
                     />
+                    <span
+                      v-if="validationResult.errors.energy"
+                      class="text-[10px] text-red-500 font-bold mt-1 block"
+                    >
+                      {{ validationResult.errors.energy }}
+                    </span>
                   </div>
+
+                  <!-- 存储补充能量 -->
                   <div>
                     <div class="flex items-center justify-between mb-1.5">
                       <label class="text-xs font-bold text-slate-500"
                         >存储补充能量</label
                       >
-                      <!-- 实时计算并展示存储补充能量的格式：“当前存储 (还需补充至2000) / 2000” -->
                       <span class="text-[10px] font-black text-amber-600">
                         {{ newCharForm.storedEnergy || 0 }} ({{
                           Math.max(0, 2000 - (newCharForm.storedEnergy || 0))
@@ -1379,11 +1722,23 @@ watch(gameData, (newVal) => {
                     <input
                       v-model.number="newCharForm.storedEnergy"
                       type="number"
-                      class="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200/80 focus:border-[#45a6d5] outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                      class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                      :class="
+                        validationResult.invalidFields.includes('storedEnergy')
+                          ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                          : 'border-slate-200/80 focus:border-[#45a6d5]'
+                      "
                     />
+                    <span
+                      v-if="validationResult.errors.storedEnergy"
+                      class="text-[10px] text-red-500 font-bold mt-1 block"
+                    >
+                      {{ validationResult.errors.storedEnergy }}
+                    </span>
                   </div>
                 </div>
               </div>
+
               <!-- 卡片三：次数进度配置 -->
               <div
                 class="bg-white border border-slate-200/80 p-6 rounded-3xl space-y-6 shadow-sm"
@@ -1397,43 +1752,131 @@ watch(gameData, (newVal) => {
                   </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <!-- 噩梦副本卡片 (挑战 + 存储) -->
-                  <div
-                    class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
-                  >
-                    <div
-                      class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
-                    >
-                      噩梦副本
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                      <div>
-                        <label
-                          class="text-xs font-bold text-slate-500 block mb-1.5"
-                          >挑战次数</label
-                        >
-                        <input
-                          v-model.number="newCharForm.nightmareCount"
-                          type="number"
-                          class="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200/80 focus:border-[#45a6d5] outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
-                        />
+                <!-- 噩梦副本卡片 -->
+                <div
+                  class="p-6 bg-white border border-slate-200/80 rounded-3xl space-y-4 shadow-sm"
+                >
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
+                      <div
+                        class="text-sm font-black uppercase tracking-wider text-slate-700"
+                      >
+                        噩梦副本 (角色独立配置)
                       </div>
-                      <div>
-                        <label
-                          class="text-xs font-bold text-slate-500 block mb-1.5"
-                          >存储次数</label
-                        >
-                        <input
-                          v-model.number="newCharForm.storedNightmareCount"
-                          type="number"
-                          class="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200/80 focus:border-[#45a6d5] outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
-                        />
+                    </div>
+                    <span
+                      class="text-[10px] font-bold px-3 py-1 rounded-full bg-sky-50 text-[#45a6d5]"
+                    >
+                      当前角色独立维护
+                    </span>
+                  </div>
+
+                  <p class="text-xs font-bold text-slate-400">
+                    噩梦副本挑战次数（上限14）与存储补充次数（上限30）均为当前角色独立所有，不与其他组内角色共享。
+                  </p>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                    <!-- 挑战次数卡片 -->
+                    <div
+                      class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                    >
+                      <div
+                        class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
+                      >
+                        <span>挑战次数 (角色独立 / 上限14)</span>
+                        <span class="text-xs font-black text-[#45a6d5]">
+                          {{ newCharForm.nightmareCount || 0 }} / 14
+                        </span>
+                      </div>
+                      <div class="grid grid-cols-1 gap-4">
+                        <div>
+                          <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-xs font-bold text-slate-500"
+                              >当前次数</label
+                            >
+                          </div>
+                          <input
+                            v-model.number="newCharForm.nightmareCount"
+                            type="number"
+                            max="14"
+                            min="0"
+                            @input="clampNightmareCount"
+                            class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                            :class="
+                              validationResult.invalidFields.includes(
+                                'nightmareCount',
+                              )
+                                ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                                : 'border-slate-200/80 focus:border-[#45a6d5]'
+                            "
+                          />
+                          <span
+                            v-if="validationResult.errors.nightmareCount"
+                            class="text-[10px] text-red-500 font-bold mt-1 block"
+                          >
+                            {{ validationResult.errors.nightmareCount }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 存储补充次数卡片 -->
+                    <div
+                      class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                    >
+                      <div
+                        class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
+                      >
+                        <span>存储补充次数 (角色独立 / 上限30)</span>
+                        <span class="text-xs font-black text-amber-600">
+                          {{ newCharForm.storedNightmareCount || 0 }} / 30
+                        </span>
+                      </div>
+                      <div class="grid grid-cols-1 gap-4">
+                        <div>
+                          <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-xs font-bold text-slate-500"
+                              >存储次数</label
+                            >
+                            <span class="text-[10px] font-black text-amber-600">
+                              剩余可补充:
+                              {{
+                                Math.max(
+                                  0,
+                                  30 - (newCharForm.storedNightmareCount || 0),
+                                )
+                              }}
+                            </span>
+                          </div>
+                          <input
+                            v-model.number="newCharForm.storedNightmareCount"
+                            type="number"
+                            max="30"
+                            min="0"
+                            @input="clampStoredNightmareCount"
+                            class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                            :class="
+                              validationResult.invalidFields.includes(
+                                'storedNightmareCount',
+                              )
+                                ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                                : 'border-slate-200/80 focus:border-[#45a6d5]'
+                            "
+                          />
+                          <span
+                            v-if="validationResult.errors.storedNightmareCount"
+                            class="text-[10px] text-red-500 font-bold mt-1 block"
+                          >
+                            {{ validationResult.errors.storedNightmareCount }}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <!-- 每日副本卡片 (挑战共享 + 存储独立) -->
+
+                <!-- 每日副本卡片 -->
                 <div
                   class="p-6 bg-white border border-slate-200/80 rounded-3xl space-y-4 shadow-sm"
                 >
@@ -1446,7 +1889,6 @@ watch(gameData, (newVal) => {
                         每日副本 (组内共享挑战 / 独立存储)
                       </div>
                     </div>
-                    <!-- 组内状态提示 -->
                     <span
                       class="text-[10px] font-bold px-3 py-1 rounded-full"
                       :class="
@@ -1468,7 +1910,7 @@ watch(gameData, (newVal) => {
                   </p>
 
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                    <!-- 挑战次数卡片 (如果同组已配置过，则直接隐藏该卡片) -->
+                    <!-- 挑战次数卡片 -->
                     <div
                       v-if="!hasGroupDailyRuns"
                       class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
@@ -1493,13 +1935,26 @@ watch(gameData, (newVal) => {
                             type="number"
                             max="14"
                             min="0"
-                            class="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200/80 focus:border-[#45a6d5] outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                            class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                            :class="
+                              validationResult.invalidFields.includes(
+                                'dailyRuns',
+                              )
+                                ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                                : 'border-slate-200/80 focus:border-[#45a6d5]'
+                            "
                           />
+                          <span
+                            v-if="validationResult.errors.dailyRuns"
+                            class="text-[10px] text-red-500 font-bold mt-1 block"
+                          >
+                            {{ validationResult.errors.dailyRuns }}
+                          </span>
                         </div>
                       </div>
                     </div>
 
-                    <!-- 如果同组已配置过，给个友好的提示卡片占位（或让存储卡片自适应宽度） -->
+                    <!-- 同组已配置占位 -->
                     <div
                       v-else
                       class="p-4 bg-amber-50/50 border border-amber-200/60 rounded-2xl flex flex-col justify-center space-y-2"
@@ -1515,7 +1970,7 @@ watch(gameData, (newVal) => {
                       </div>
                     </div>
 
-                    <!-- 存储补充次数卡片 (角色独立) -->
+                    <!-- 存储补充次数卡片 -->
                     <div
                       class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
                     >
@@ -1548,13 +2003,27 @@ watch(gameData, (newVal) => {
                             type="number"
                             max="30"
                             min="0"
-                            class="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200/80 focus:border-[#45a6d5] outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                            class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                            :class="
+                              validationResult.invalidFields.includes(
+                                'storedDailyRuns',
+                              )
+                                ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                                : 'border-slate-200/80 focus:border-[#45a6d5]'
+                            "
                           />
+                          <span
+                            v-if="validationResult.errors.storedDailyRuns"
+                            class="text-[10px] text-red-500 font-bold mt-1 block"
+                          >
+                            {{ validationResult.errors.storedDailyRuns }}
+                          </span>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
+
                 <!-- 圣域系列次数分组 -->
                 <div
                   class="p-5 bg-emerald-50/40 border border-emerald-100/80 rounded-2xl space-y-3"
@@ -1562,9 +2031,10 @@ watch(gameData, (newVal) => {
                   <div
                     class="text-[11px] font-extrabold text-emerald-600 uppercase tracking-wider"
                   >
-                    圣域副本次数
+                    圣域副本次数 (每项上限1次)
                   </div>
                   <div class="grid grid-cols-3 gap-4">
+                    <!-- S1 -->
                     <div>
                       <label
                         class="text-xs font-bold text-slate-600 block mb-1.5"
@@ -1573,9 +2043,25 @@ watch(gameData, (newVal) => {
                       <input
                         v-model.number="newCharForm.sanctuary.s1"
                         type="number"
-                        class="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200/80 focus:border-emerald-500 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                        max="1"
+                        min="0"
+                        class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                        :class="
+                          validationResult.invalidFields.includes(
+                            'sanctuary.s1',
+                          )
+                            ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                            : 'border-slate-200/80 focus:border-emerald-500'
+                        "
                       />
+                      <span
+                        v-if="validationResult.errors['sanctuary.s1']"
+                        class="text-[10px] text-red-500 font-bold mt-1 block"
+                      >
+                        {{ validationResult.errors["sanctuary.s1"] }}
+                      </span>
                     </div>
+                    <!-- S2 -->
                     <div>
                       <label
                         class="text-xs font-bold text-slate-600 block mb-1.5"
@@ -1584,9 +2070,25 @@ watch(gameData, (newVal) => {
                       <input
                         v-model.number="newCharForm.sanctuary.s2"
                         type="number"
-                        class="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200/80 focus:border-emerald-500 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                        max="1"
+                        min="0"
+                        class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                        :class="
+                          validationResult.invalidFields.includes(
+                            'sanctuary.s2',
+                          )
+                            ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                            : 'border-slate-200/80 focus:border-emerald-500'
+                        "
                       />
+                      <span
+                        v-if="validationResult.errors['sanctuary.s2']"
+                        class="text-[10px] text-red-500 font-bold mt-1 block"
+                      >
+                        {{ validationResult.errors["sanctuary.s2"] }}
+                      </span>
                     </div>
+                    <!-- S3 -->
                     <div>
                       <label
                         class="text-xs font-bold text-slate-600 block mb-1.5"
@@ -1595,8 +2097,23 @@ watch(gameData, (newVal) => {
                       <input
                         v-model.number="newCharForm.sanctuary.s3"
                         type="number"
-                        class="w-full px-4 py-2.5 rounded-xl bg-white border-2 border-slate-200/80 focus:border-emerald-500 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                        max="1"
+                        min="0"
+                        class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                        :class="
+                          validationResult.invalidFields.includes(
+                            'sanctuary.s3',
+                          )
+                            ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                            : 'border-slate-200/80 focus:border-emerald-500'
+                        "
                       />
+                      <span
+                        v-if="validationResult.errors['sanctuary.s3']"
+                        class="text-[10px] text-red-500 font-bold mt-1 block"
+                      >
+                        {{ validationResult.errors["sanctuary.s3"] }}
+                      </span>
                     </div>
                   </div>
                 </div>
