@@ -16,8 +16,7 @@ import {
 } from "~/utils/aionServers";
 import { formatCombatPower } from "~/utils/formatCombatPower";
 import GroupCharacterPanel from "./components/GroupCharacterPanel.vue";
-import _ from 'lodash';
-const { cloneDeep } = _;
+import cloneDeep from 'lodash/cloneDeep';
 const client = useSupabaseClient();
 const user = useSupabaseUser();
 
