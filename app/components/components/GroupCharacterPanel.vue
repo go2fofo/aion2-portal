@@ -9,63 +9,153 @@ const KinahOdSate = {
       stars: 6,
       name: "堕落守护者之城",
       difficulties: [
-        { mode: "困难", energy: 60, kina: 360, boundKina: 0, total: 360 },
-        { mode: "普通", energy: 40, kina: 201, boundKina: 0, total: 201 },
+        {
+          mode: "困难",
+          energy: 60,
+          kina: 360,
+          boundKina: 0,
+          total: 360,
+        },
+        {
+          mode: "普通",
+          energy: 40,
+          kina: 201,
+          boundKina: 0,
+          total: 201,
+        },
       ],
     },
     {
       stars: 5,
       name: "青息之岛",
       difficulties: [
-        { mode: "困难", energy: 40, kina: 201, boundKina: 0, total: 201 },
-        { mode: "普通", energy: 40, kina: 162, boundKina: 0, total: 162 },
+        {
+          mode: "困难",
+          energy: 40,
+          kina: 201,
+          boundKina: 0,
+          total: 201,
+        },
+        {
+          mode: "普通",
+          energy: 40,
+          kina: 162,
+          boundKina: 0,
+          total: 162,
+        },
       ],
     },
     {
       stars: 5,
       name: "幻影回廊",
       difficulties: [
-        { mode: "困难", energy: 40, kina: 201, boundKina: 0, total: 201 },
-        { mode: "普通", energy: 40, kina: 162, boundKina: 0, total: 162 },
+        {
+          mode: "困难",
+          energy: 40,
+          kina: 201,
+          boundKina: 0,
+          total: 201,
+        },
+        {
+          mode: "普通",
+          energy: 40,
+          kina: 162,
+          boundKina: 0,
+          total: 162,
+        },
       ],
     },
     {
       stars: 4,
       name: "无之摇篮",
       difficulties: [
-        { mode: "困难", energy: 40, kina: 162, boundKina: 0, total: 162 },
-        { mode: "普通", energy: 40, kina: 60, boundKina: 60, total: 120 },
+        {
+          mode: "困难",
+          energy: 40,
+          kina: 162,
+          boundKina: 0,
+          total: 162,
+        },
+        {
+          mode: "普通",
+          energy: 40,
+          kina: 60,
+          boundKina: 60,
+          total: 120,
+        },
       ],
     },
     {
       stars: 4,
       name: "死亡德拉玛塔巢穴",
       difficulties: [
-        { mode: "困难", energy: 40, kina: 162, boundKina: 0, total: 162 },
-        { mode: "普通", energy: 40, kina: 60, boundKina: 60, total: 120 },
+        {
+          mode: "困难",
+          energy: 40,
+          kina: 162,
+          boundKina: 0,
+          total: 162,
+        },
+        {
+          mode: "普通",
+          energy: 40,
+          kina: 60,
+          boundKina: 60,
+          total: 120,
+        },
       ],
     },
     {
       stars: 3,
       name: "凶猛的角窟",
       difficulties: [
-        { mode: "困难", energy: 40, kina: 51, boundKina: 51, total: 102 },
-        { mode: "普通", energy: 40, kina: 0, boundKina: 102, total: 102 },
+        {
+          mode: "困难",
+          energy: 40,
+          kina: 51,
+          boundKina: 51,
+          total: 102,
+        },
+        {
+          mode: "普通",
+          energy: 40,
+          kina: 0,
+          boundKina: 102,
+          total: 102,
+        },
       ],
     },
     {
       stars: 3,
       name: "火之神殿",
       difficulties: [
-        { mode: "困难", energy: 40, kina: 51, boundKina: 51, total: 102 },
-        { mode: "普通", energy: 40, kina: 0, boundKina: 102, total: 102 },
+        {
+          mode: "困难",
+          energy: 40,
+          kina: 51,
+          boundKina: 51,
+          total: 102,
+        },
+        {
+          mode: "普通",
+          energy: 40,
+          kina: 0,
+          boundKina: 102,
+          total: 102,
+        },
       ],
     },
     {
       stars: 2,
       name: "巴克隆空中岛",
       difficulties: [
-        { mode: "困难", energy: 40, kina: 0, boundKina: 102, total: 102 },
+        {
+          mode: "困难",
+          energy: 40,
+          kina: 0,
+          boundKina: 102,
+          total: 102,
+        },
         { mode: "普通", energy: 40, kina: 0, boundKina: 81, total: 81 },
       ],
     },
@@ -73,7 +163,13 @@ const KinahOdSate = {
       stars: 2,
       name: "乌努库库峡谷",
       difficulties: [
-        { mode: "困难", energy: 40, kina: 0, boundKina: 102, total: 102 },
+        {
+          mode: "困难",
+          energy: 40,
+          kina: 0,
+          boundKina: 102,
+          total: 102,
+        },
         { mode: "普通", energy: 40, kina: 0, boundKina: 81, total: 81 },
       ],
     },
@@ -81,7 +177,13 @@ const KinahOdSate = {
       stars: 1,
       name: "德拉乌伯尼尔",
       difficulties: [
-        { mode: "困难", energy: 40, kina: 0, boundKina: 102, total: 102 },
+        {
+          mode: "困难",
+          energy: 40,
+          kina: 0,
+          boundKina: 102,
+          total: 102,
+        },
         { mode: "普通", energy: 40, kina: 0, boundKina: 60, total: 60 },
       ],
     },
@@ -89,7 +191,13 @@ const KinahOdSate = {
       stars: 1,
       name: "克洞穴",
       difficulties: [
-        { mode: "困难", energy: 40, kina: 0, boundKina: 102, total: 102 },
+        {
+          mode: "困难",
+          energy: 40,
+          kina: 0,
+          boundKina: 102,
+          total: 102,
+        },
         { mode: "普通", energy: 40, kina: 0, boundKina: 60, total: 60 },
       ],
     },
@@ -101,50 +209,170 @@ const KinahOdSate = {
       stars: 4,
       name: "深渊角窟",
       difficulties: [
-        { mode: "阶段4", energy: 60, kina: 420, boundKina: 0, total: 420 },
-        { mode: "阶段3", energy: 40, kina: 240, boundKina: 0, total: 240 },
-        { mode: "阶段2", energy: 40, kina: 201, boundKina: 0, total: 201 },
-        { mode: "阶段1", energy: 40, kina: 171, boundKina: 0, total: 171 },
+        {
+          mode: "阶段4",
+          energy: 60,
+          kina: 420,
+          boundKina: 0,
+          total: 420,
+        },
+        {
+          mode: "阶段3",
+          energy: 40,
+          kina: 240,
+          boundKina: 0,
+          total: 240,
+        },
+        {
+          mode: "阶段2",
+          energy: 40,
+          kina: 201,
+          boundKina: 0,
+          total: 201,
+        },
+        {
+          mode: "阶段1",
+          energy: 40,
+          kina: 171,
+          boundKina: 0,
+          total: 171,
+        },
       ],
     },
     {
       stars: 3,
       name: "绯红羁绊之镜",
       difficulties: [
-        { mode: "阶段4", energy: 40, kina: 240, boundKina: 0, total: 240 },
-        { mode: "阶段3", energy: 40, kina: 201, boundKina: 0, total: 201 },
-        { mode: "阶段2", energy: 40, kina: 171, boundKina: 0, total: 171 },
-        { mode: "阶段1", energy: 40, kina: 150, boundKina: 0, total: 150 },
+        {
+          mode: "阶段4",
+          energy: 40,
+          kina: 240,
+          boundKina: 0,
+          total: 240,
+        },
+        {
+          mode: "阶段3",
+          energy: 40,
+          kina: 201,
+          boundKina: 0,
+          total: 201,
+        },
+        {
+          mode: "阶段2",
+          energy: 40,
+          kina: 171,
+          boundKina: 0,
+          total: 171,
+        },
+        {
+          mode: "阶段1",
+          energy: 40,
+          kina: 150,
+          boundKina: 0,
+          total: 150,
+        },
       ],
     },
     {
       stars: 2,
       name: "沉没的生命神殿",
       difficulties: [
-        { mode: "阶段4", energy: 40, kina: 75, boundKina: 75, total: 150 },
-        { mode: "阶段3", energy: 40, kina: 72, boundKina: 69, total: 141 },
-        { mode: "阶段2", energy: 40, kina: 66, boundKina: 66, total: 132 },
-        { mode: "阶段1", energy: 40, kina: 60, boundKina: 60, total: 120 },
+        {
+          mode: "阶段4",
+          energy: 40,
+          kina: 75,
+          boundKina: 75,
+          total: 150,
+        },
+        {
+          mode: "阶段3",
+          energy: 40,
+          kina: 72,
+          boundKina: 69,
+          total: 141,
+        },
+        {
+          mode: "阶段2",
+          energy: 40,
+          kina: 66,
+          boundKina: 66,
+          total: 132,
+        },
+        {
+          mode: "阶段1",
+          energy: 40,
+          kina: 60,
+          boundKina: 60,
+          total: 120,
+        },
       ],
     },
     {
       stars: 1,
       name: "破碎的雅尔卡尼斯",
       difficulties: [
-        { mode: "阶段4", energy: 40, kina: 0, boundKina: 114, total: 114 },
-        { mode: "阶段3", energy: 40, kina: 0, boundKina: 90, total: 90 },
-        { mode: "阶段2", energy: 40, kina: 0, boundKina: 72, total: 72 },
-        { mode: "阶段1", energy: 40, kina: 0, boundKina: 60, total: 60 },
+        {
+          mode: "阶段4",
+          energy: 40,
+          kina: 0,
+          boundKina: 114,
+          total: 114,
+        },
+        {
+          mode: "阶段3",
+          energy: 40,
+          kina: 0,
+          boundKina: 90,
+          total: 90,
+        },
+        {
+          mode: "阶段2",
+          energy: 40,
+          kina: 0,
+          boundKina: 72,
+          total: 72,
+        },
+        {
+          mode: "阶段1",
+          energy: 40,
+          kina: 0,
+          boundKina: 60,
+          total: 60,
+        },
       ],
     },
     {
       stars: 1,
       name: "德乌斯研究基地",
       difficulties: [
-        { mode: "阶段4", energy: 40, kina: 0, boundKina: 114, total: 114 },
-        { mode: "阶段3", energy: 40, kina: 0, boundKina: 90, total: 90 },
-        { mode: "阶段2", energy: 40, kina: 0, boundKina: 72, total: 72 },
-        { mode: "阶段1", energy: 40, kina: 0, boundKina: 60, total: 60 },
+        {
+          mode: "阶段4",
+          energy: 40,
+          kina: 0,
+          boundKina: 114,
+          total: 114,
+        },
+        {
+          mode: "阶段3",
+          energy: 40,
+          kina: 0,
+          boundKina: 90,
+          total: 90,
+        },
+        {
+          mode: "阶段2",
+          energy: 40,
+          kina: 0,
+          boundKina: 72,
+          total: 72,
+        },
+        {
+          mode: "阶段1",
+          energy: 40,
+          kina: 0,
+          boundKina: 60,
+          total: 60,
+        },
       ],
     },
   ],
@@ -156,7 +384,13 @@ const KinahOdSate = {
       name: "深渊重铸: 卢德菜",
       key: "s1",
       difficulties: [
-        { mode: "默认", energy: 80, kina: 200, boundKina: 200, total: 400 },
+        {
+          mode: "默认",
+          energy: 80,
+          kina: 200,
+          boundKina: 200,
+          total: 400,
+        },
       ],
     },
     {
@@ -164,7 +398,13 @@ const KinahOdSate = {
       name: "侵蚀净化所",
       key: "s2",
       difficulties: [
-        { mode: "默认", energy: 80, kina: 800, boundKina: 0, total: 800 },
+        {
+          mode: "默认",
+          energy: 80,
+          kina: 800,
+          boundKina: 0,
+          total: 800,
+        },
       ],
     },
     {
@@ -172,8 +412,20 @@ const KinahOdSate = {
       name: "穆斯费尔圣杯",
       key: "s3",
       difficulties: [
-        { mode: "困难", energy: 80, kina: 1200, boundKina: 0, total: 1200 },
-        { mode: "普通", energy: 80, kina: 1000, boundKina: 0, total: 1000 },
+        {
+          mode: "困难",
+          energy: 80,
+          kina: 1200,
+          boundKina: 0,
+          total: 1200,
+        },
+        {
+          mode: "普通",
+          energy: 80,
+          kina: 1000,
+          boundKina: 0,
+          total: 1000,
+        },
       ],
     },
   ],
@@ -197,9 +449,7 @@ const dungeonDecayRules = {
     { maxCount: Infinity, rate: 0.2, label: "99次以上 (基纳获得量 20%)" },
   ],
   // 圣域默认不衰减 (100%)
-  sanctuary: [
-    { maxCount: Infinity, rate: 1.0, label: "无衰减 (基纳获得量 100%)" },
-  ],
+  sanctuary: [{ maxCount: Infinity, rate: 1.0, label: "无衰减 (基纳获得量 100%)" }],
 };
 // 验证规则配置数组
 const characterValidationRules = [
@@ -221,9 +471,7 @@ const characterValidationRules = [
 
       // 计算同组其他角色的总和
       const otherGroupSum = allCharacters
-        .filter(
-          (char) => char.group === currentGroupId && char.id !== currentFormId,
-        )
+        .filter((char) => char.group === currentGroupId && char.id !== currentFormId)
         .reduce((sum, char) => sum + (Number(char?.storedDailyRuns) || 0), 0);
 
       // 同组总和 + 当前表单填写的值
@@ -247,12 +495,9 @@ const characterValidationRules = [
         .filter(
           (char) =>
             char.group === currentGroupId &&
-            (char.characterId || char.id) !== currentFormId,
+            (char.characterId || char.id) !== currentFormId
         )
-        .reduce(
-          (sum, char) => sum + (Number(char?.storedMinigameCount) || 0),
-          0,
-        );
+        .reduce((sum, char) => sum + (Number(char?.storedMinigameCount) || 0), 0);
 
       // 同组总和 + 当前表单填写的值
       const total = otherGroupSum + (Number(form?.storedMinigameCount) || 0);
@@ -262,13 +507,18 @@ const characterValidationRules = [
     message: () => "同组账号下古树庆典存储补充次数总和不能超过30次",
   },
   // // 4. 存储噩梦次数 (storedNightmareCount)
-  // {
-  //   field: "storedNightmareCount",
-  //   label: "存储噩梦次数",
-  //   validate: (form) => (Number(form.storedNightmareCount) || 0) <= 30,
-  //   message: () => "存储噩梦次数不能超过30次",
-  // },
-
+  {
+    field: "storedNightmareCount",
+    label: "存储噩梦次数",
+    validate: (form) => (Number(form.storedNightmareCount) || 0) <= 30,
+    message: () => "存储噩梦次数不能超过30次",
+  },
+  {
+    field: "storedAwakening",
+    label: "存储觉醒战次数",
+    validate: (form) => (Number(form.storedAwakening) || 0) <= 30,
+    message: () => "存储噩梦次数不能超过30次",
+  },
   // // 6. 存储每日副本次数 (storedDailyRuns)
   // {
   //   field: "storedDailyRuns",
@@ -348,9 +598,7 @@ const filteredCharacters = computed(() => {
     return characters;
   }
   if (tab === "default") {
-    return characters.filter(
-      (c) => !c.group || !groups.some((g) => g.id === c.group),
-    );
+    return characters.filter((c) => !c.group || !groups.some((g) => g.id === c.group));
   }
   return characters.filter((c) => Number(c.group) === Number(tab));
 });
@@ -360,18 +608,14 @@ const currentTabTitle = computed(() => {
   const tab = props.activeTabGroup;
   if (tab === "all") return "全部角色";
   if (tab === "default") return "默认分组";
-  const found = props.gameData?.groups?.find(
-    (g) => Number(g.id) === Number(tab),
-  );
+  const found = props.gameData?.groups?.find((g) => Number(g.id) === Number(tab));
   return found ? found.name : "未知分组";
 });
 
 // 根据分组 ID 获取分组名称
 const getGroupName = (groupId) => {
   if (!groupId) return "默认分组";
-  const found = props.gameData?.groups?.find(
-    (g) => Number(g.id) === Number(groupId),
-  );
+  const found = props.gameData?.groups?.find((g) => Number(g.id) === Number(groupId));
   return found ? found.name : "默认分组";
 };
 /**
@@ -390,9 +634,7 @@ const validateCharacterForm = (formData, context = {}) => {
       if (!passes) {
         invalidFields.push(rule.field);
         errors[rule.field] =
-          typeof rule.message === "function"
-            ? rule.message(formData)
-            : rule.message;
+          typeof rule.message === "function" ? rule.message(formData) : rule.message;
       }
     } catch (e) {
       console.error(`验证规则执行出错 [${rule.field}]:`, e);
@@ -471,9 +713,7 @@ const energyLimit = computed(() => {
   const isPremium =
     props.gameplayCharForm?.premiumMember ||
     (props.gameData?.characters || []).some(
-      (c) =>
-        Number(c.group) === Number(props.gameplayCharForm?.group) &&
-        c.premiumMember,
+      (c) => Number(c.group) === Number(props.gameplayCharForm?.group) && c.premiumMember
     );
   return isPremium ? 840 : 560;
 });
@@ -491,6 +731,8 @@ const supplementFormValues = ref({
   storedDailyRuns: 0,
   //噩梦补充
   storedNightmareCount: 0,
+  //觉醒战补充
+  storedAwakening: 0,
   // 古树庆典小游戏补充次数
   storedMinigameCount: 0,
 });
@@ -514,6 +756,12 @@ const totalSupplementPoints = computed(() => {
   // });
   return total;
 });
+//计算补充奥德和已存奥德之和
+const totalsStoredEnergyCount = computed(() => {
+  let total = (gameplayCharForm.value?.storedEnergy || 0) + totalSupplementPoints.value;
+
+  return total;
+});
 
 //  每日副本补充次数：组内全员共享统计
 const totalGroupStoredDailyRuns = computed(() => {
@@ -531,8 +779,7 @@ const totalGroupStoredDailyRuns = computed(() => {
 
   // 加上当前表单里输入的数值
   let totalGroupStoredDailyRunsNum =
-    otherCharactersSum +
-    (Number(supplementFormValues.value?.storedDailyRuns) || 0);
+    otherCharactersSum + (Number(supplementFormValues.value?.storedDailyRuns) || 0);
 
   console.log("totalGroupStoredDailyRunsNum", totalGroupStoredDailyRunsNum);
   return totalGroupStoredDailyRunsNum;
@@ -555,14 +802,29 @@ const totalGroupStoredMinigameCount = computed(() => {
 
   // 加上当前表单里输入的数值
   let totalGroupStoredMinigameCountNum =
-    otherCharactersSum +
-    (Number(supplementFormValues.value?.storedMinigameCount) || 0);
+    otherCharactersSum + (Number(supplementFormValues.value?.storedMinigameCount) || 0);
 
-  console.log(
-    "totalGroupStoredMinigameCountNum",
-    totalGroupStoredMinigameCountNum,
-  );
+  console.log("totalGroupStoredMinigameCountNum", totalGroupStoredMinigameCountNum);
   return totalGroupStoredMinigameCountNum;
+});
+
+// 噩梦战补充次数：角色统计
+const totalsToredNightmareCountRuns = computed(() => {
+  const otherSum = gameplayCharForm.value?.storedNightmareCount;
+  // 加上当前表单里输入的数值
+  let totalsToredNightmareCountNum =
+    otherSum + (Number(supplementFormValues.value?.storedNightmareCount) || 0);
+
+  return totalsToredNightmareCountNum;
+});
+// 觉醒战补充次数：角色统计
+const totalStoredAwakeningRuns = computed(() => {
+  const otherSum = gameplayCharForm.value?.storedAwakening;
+  // 加上当前表单里输入的数值
+  let totalstoredAwakeningCountNum =
+    otherSum + (Number(supplementFormValues.value?.storedAwakening) || 0);
+
+  return totalstoredAwakeningCountNum;
 });
 
 // 计数器加减操作
@@ -570,12 +832,12 @@ const handleUpdateOdCount = (type, delta) => {
   if (type === "big") {
     supplementFormValues.value.bigOdCount = Math.max(
       0,
-      (supplementFormValues.value.bigOdCount || 0) + delta,
+      (supplementFormValues.value.bigOdCount || 0) + delta
     );
   } else if (type === "small") {
     supplementFormValues.value.smallOdCount = Math.max(
       0,
-      (supplementFormValues.value.smallOdCount || 0) + delta,
+      (supplementFormValues.value.smallOdCount || 0) + delta
     );
   }
 };
@@ -584,100 +846,56 @@ const handleExecuteSupplement = async () => {
   const currentTarget = gameplayCharForm.value;
   if (!currentTarget) return;
 
-  // 1. 定义所有补充类型的计算与验证规则（未来新增类型只需在这里加一个配置对象即可！）
-  const supplementRules = [
-    {
-      key: "energy", // 对应后端/角色对象里的字段
-      name: "奥德能量",
-      unit: "点",
-      // 计算本次增加的数量（大奥德*40 + 小奥德*10）
-      getAdded: () =>
-        (supplementFormValues.value.bigOdCount || 0) * 40 +
-        (supplementFormValues.value.smallOdCount || 0) * 10,
-      // 计算更新后的总量，并应用上限限制（例如奥德上限 2000）
-      getNewValue: (current, added) => Math.min(2000, (current || 0) + added),
-      // 重置本次填写的临时表单字段
-      resetForm: () => {
-        supplementFormValues.value.bigOdCount = 0;
-        supplementFormValues.value.smallOdCount = 0;
-      },
-    },
-    {
-      key: "storedDailyRuns",
-      name: "每日副本补充次数",
-      unit: "次",
-      getAdded: () => supplementFormValues.value.storedDailyRuns || 0,
-      // 组内共享上限 30（此处也可以结合你前面的校验总和，若传了校验结果可直接用）
-      getNewValue: (current, added) => Math.min(30, (current || 0) + added),
-      resetForm: () => {
-        supplementFormValues.value.storedDailyRuns = 0;
-      },
-    },
-    {
-      key: "storedMinigameCount",
-      name: "古树庆典补充次数",
-      unit: "次",
-      getAdded: () => supplementFormValues.value.storedMinigameCount || 0,
-      getNewValue: (current, added) => Math.min(30, (current || 0) + added),
-      resetForm: () => {
-        supplementFormValues.value.storedMinigameCount = 0;
-      },
-    },
-    // 💡 【未来拓展示例】如果以后还有新的“某某补充”，只需要在这里追加一个对象：
-    // {
-    //   key: 'newFeatureCount',
-    //   name: '新道具补充',
-    //   unit: '个',
-    //   getAdded: () => supplementFormValues.value.newFeatureCount || 0,
-    //   getNewValue: (current, added) => (current || 0) + added,
-    //   resetForm: () => { supplementFormValues.value.newFeatureCount = 0; },
-    // },
-  ];
+  let { isValid } = validateCharacterForm(currentTarget);
+  if (!isValid) return;
 
-  // 2. 遍历规则，收集本次所有有实际操作（新增量 > 0）的变更项
-  let hasAnyChange = false;
-  const updates = {};
-  const successMessages = [];
+  // 先解构出需要用到的字段，避免反复写 supplementFormValues.value
+  const {
+    bigOdCount,
+    smallOdCount,
+    storedNightmareCount,
+    storedDailyRuns,
+    storedMinigameCount,
+    storedAwakening,
+  } = supplementFormValues.value || {};
 
-  for (const rule of supplementRules) {
-    const addedCount = rule.getAdded();
-    if (addedCount > 0) {
-      hasAnyChange = true;
-      const currentValue = currentTarget[rule.key] || 0;
-      const newValue = rule.getNewValue(currentValue, addedCount);
-
-      updates[rule.key] = newValue;
-      successMessages.push(`${rule.name} +${addedCount}${rule.unit}`);
-    }
-  }
-
-  // 3. 校验是否有选择任何补充内容
-  if (!hasAnyChange) {
-    $alert("请先选择或输入要补充的数量！");
-    return;
-  }
-
-  // 4. 组装更新后的完整角色对象
+  // 组装更新后的完整角色对象
   const updatedCharacter = {
     ...currentTarget,
-    ...updates,
+    // 奥德能量：只要有大/小 Od 补充，就更新为计算后的总能量（角色）
+    ...(bigOdCount || smallOdCount
+      ? { storedEnergy: totalsStoredEnergyCount.value }
+      : {}),
+
+    // 噩梦补充（角色）
+    ...(storedNightmareCount
+      ? { storedNightmareCount: totalsToredNightmareCountRuns.value }
+      : {}),
+
+    //觉醒战补充（角色）
+    ...(storedAwakening ? { storedAwakening: totalStoredAwakeningRuns.value } : {}),
+
+    // 每日副本补充（账号共享）
+    ...(storedDailyRuns ? { storedDailyRuns } : {}),
+
+    // 古树庆典小游戏补充，（账号共享）
+    ...(storedMinigameCount ? { storedMinigameCount } : {}),
   };
 
-  // 5. 更新本地响应式数据
+  //  更新本地响应式数据
   gameplayCharForm.value = updatedCharacter;
 
+  console.log(
+    `🔍 [GroupCharacterPanel:928] %c updatedCharacter 补充保存: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    updatedCharacter
+  );
+
+  debugger;
   // 6. 触发持久化保存事件
   emit("update-character", updatedCharacter);
 
-  // 7. 清空所有已参与补充的临时表单字段
-  for (const rule of supplementRules) {
-    if (rule.getAdded() > 0) {
-      rule.resetForm();
-    }
-  }
-
-  // 8. 统一吐出友好的提示信息
-  $alert(`成功完成补充：${successMessages.join("，")}！`);
+  $alert(`成功完成补充`);
 };
 
 // ========================================副本消耗与吉纳收益计算开始========================================
@@ -685,16 +903,14 @@ const handleExecuteSupplement = async () => {
 // 消耗表单与挑战次数状态
 const consumeForm = ref({
   dungeonType: localStorage.getItem("aion2_last_dungeon_type") || "expedition",
-  selectedDungeonIndex:
-    Number(localStorage.getItem("aion2_last_dungeon_idx")) || 0,
+  selectedDungeonIndex: Number(localStorage.getItem("aion2_last_dungeon_idx")) || 0,
   selectedDiffIndex: Number(localStorage.getItem("aion2_last_diff_idx")) || 0,
   multiplier: Number(localStorage.getItem("aion2_last_multiplier")) || 1,
 });
 // 动态绑定当前角色所属分组的远征或超越通关次数
 const currentActiveRuns = computed({
   get() {
-    const groupId =
-      gameplayCharForm.value?.group ?? gameplayCharForm.value?.groupId;
+    const groupId = gameplayCharForm.value?.group ?? gameplayCharForm.value?.groupId;
     const groups = props.gameData?.groups || [];
 
     // 如果没有绑定分组，直接返回 0
@@ -705,17 +921,12 @@ const currentActiveRuns = computed({
     if (consumeForm.value.dungeonType === "expedition") {
       return currentGroup?.runs ?? gameplayCharForm.value?.runs ?? 0;
     } else if (consumeForm.value.dungeonType === "surpass") {
-      return (
-        currentGroup?.transcendRuns ??
-        gameplayCharForm.value?.transcendRuns ??
-        0
-      );
+      return currentGroup?.transcendRuns ?? gameplayCharForm.value?.transcendRuns ?? 0;
     }
     return 0;
   },
   set(val) {
-    const groupId =
-      gameplayCharForm.value?.group ?? gameplayCharForm.value?.groupId;
+    const groupId = gameplayCharForm.value?.group ?? gameplayCharForm.value?.groupId;
     const groups = props.gameData?.groups || [];
 
     if (groupId === null || groupId === undefined) return;
@@ -762,7 +973,7 @@ watch(
   () => consumeForm.value.selectedDungeonIndex,
   () => {
     consumeForm.value.selectedDiffIndex = 0;
-  },
+  }
 );
 // 当前选中的难度对象
 const currentSelectedDiff = computed(() => {
@@ -776,8 +987,7 @@ const currentSelectedDiff = computed(() => {
 // 根据当前类型和挑战次数获取对应衰减阶梯
 const currentDecayRule = computed(() => {
   const rules =
-    dungeonDecayRules[consumeForm.value.dungeonType] ||
-    dungeonDecayRules.expedition;
+    dungeonDecayRules[consumeForm.value.dungeonType] || dungeonDecayRules.expedition;
   const count = currentActiveRuns.value;
   for (const rule of rules) {
     if (count <= rule.maxCount) {
@@ -802,24 +1012,18 @@ const getRewardMultiplier = computed(() => {
 const calculatedKinaGain = computed(() => {
   if (!currentSelectedDiff.value) return 0;
   const base = currentSelectedDiff.value.kina || 0;
-  return Number(
-    (base * getRewardMultiplier.value * currentDecayRate.value).toFixed(2),
-  );
+  return Number((base * getRewardMultiplier.value * currentDecayRate.value).toFixed(2));
 });
 // 计算绑定基纳增益
 const calculatedBoundKinaGain = computed(() => {
   if (!currentSelectedDiff.value) return 0;
   const base = currentSelectedDiff.value.boundKina || 0;
-  return Number(
-    (base * getRewardMultiplier.value * currentDecayRate.value).toFixed(2),
-  );
+  return Number((base * getRewardMultiplier.value * currentDecayRate.value).toFixed(2));
 });
 
 // 计算吉纳总收益
 const calculatedTotalGain = computed(() => {
-  return Number(
-    (calculatedKinaGain.value + calculatedBoundKinaGain.value).toFixed(2),
-  );
+  return Number((calculatedKinaGain.value + calculatedBoundKinaGain.value).toFixed(2));
 });
 // 智能判断当前是否应该按双倍消耗计算
 const isEffectiveDoubleEnergy = computed(() => {
@@ -840,24 +1044,24 @@ watch(
       consumeForm.value.useDoubleEnergy = false;
     }
   },
-  { immediate: true }, // 初始化时立即执行一次
+  { immediate: true } // 初始化时立即执行一次
 );
 // 6. 自动持久化记忆到 localStorage
 watch(
   () => consumeForm.value.dungeonType,
-  (val) => localStorage.setItem("aion2_last_dungeon_type", val),
+  (val) => localStorage.setItem("aion2_last_dungeon_type", val)
 );
 watch(
   () => consumeForm.value.selectedDungeonIndex,
-  (val) => localStorage.setItem("aion2_last_dungeon_idx", val),
+  (val) => localStorage.setItem("aion2_last_dungeon_idx", val)
 );
 watch(
   () => consumeForm.value.selectedDiffIndex,
-  (val) => localStorage.setItem("aion2_last_diff_idx", val),
+  (val) => localStorage.setItem("aion2_last_diff_idx", val)
 );
 watch(
   () => consumeForm.value.multiplier,
-  (val) => localStorage.setItem("aion2_last_multiplier", val),
+  (val) => localStorage.setItem("aion2_last_multiplier", val)
 );
 
 // 7. 执行扣除奥德逻辑（全面支持 远征、超越、圣域 的衰减阶梯与每日收益流水记录）
@@ -895,26 +1099,18 @@ const handleExecuteConsume = async () => {
   if (dungeonType === "expedition") {
     // 远征：基于分组共享的 runs 次数计算衰减
     const groupId = gameplayCharForm.value?.group;
-    const targetGroup = (props.gameData?.groups || []).find(
-      (g) => g.id === groupId,
-    );
+    const targetGroup = (props.gameData?.groups || []).find((g) => g.id === groupId);
     const currentRuns = targetGroup?.runs || 0;
 
-    const rule = dungeonDecayRules.expedition.find(
-      (r) => currentRuns < r.maxCount,
-    );
+    const rule = dungeonDecayRules.expedition.find((r) => currentRuns < r.maxCount);
     currentDecayRate = rule ? rule.rate : 1.0;
   } else if (dungeonType === "surpass") {
     // 超越：基于分组共享的 transcendRuns 次数计算衰减
     const groupId = gameplayCharForm.value?.group;
-    const targetGroup = (props.gameData?.groups || []).find(
-      (g) => g.id === groupId,
-    );
+    const targetGroup = (props.gameData?.groups || []).find((g) => g.id === groupId);
     const currentTranscendRuns = targetGroup?.transcendRuns || 0;
 
-    const rule = dungeonDecayRules.surpass.find(
-      (r) => currentTranscendRuns < r.maxCount,
-    );
+    const rule = dungeonDecayRules.surpass.find((r) => currentTranscendRuns < r.maxCount);
     currentDecayRate = rule ? rule.rate : 1.0;
   } else if (dungeonType === "sanctuary") {
     // 圣域：无衰减 (1.0)，或者如果你有圣域的独立衰减阶梯可以在这里加
@@ -934,10 +1130,10 @@ const handleExecuteConsume = async () => {
       : consumeForm.value.baseBoundKina || 50;
 
   const totalKinaThisTime = Number(
-    (baseKina * currentDecayRate * addRunsCount).toFixed(2),
+    (baseKina * currentDecayRate * addRunsCount).toFixed(2)
   );
   const totalBoundKinaThisTime = Number(
-    (baseBoundKina * currentDecayRate * addRunsCount).toFixed(2),
+    (baseBoundKina * currentDecayRate * addRunsCount).toFixed(2)
   );
 
   // ==================== B. 处理分组数据更新（远征与超越共享次数和日志） ====================
@@ -958,7 +1154,7 @@ const handleExecuteConsume = async () => {
       // 分组的每日日志流水 (runLogs)
       let groupLogs = Array.isArray(g.runLogs) ? [...g.runLogs] : [];
       const existingLogIndex = groupLogs.findIndex(
-        (log) => log.date === currentDateStr && log.type === dungeonType,
+        (log) => log.date === currentDateStr && log.type === dungeonType
       );
 
       if (existingLogIndex !== -1) {
@@ -966,14 +1162,12 @@ const handleExecuteConsume = async () => {
           ...groupLogs[existingLogIndex],
           count: groupLogs[existingLogIndex].count + addRunsCount,
           kinaGain: Number(
-            (groupLogs[existingLogIndex].kinaGain + totalKinaThisTime).toFixed(
-              2,
-            ),
+            (groupLogs[existingLogIndex].kinaGain + totalKinaThisTime).toFixed(2)
           ),
           boundKinaGain: Number(
-            (
-              groupLogs[existingLogIndex].boundKinaGain + totalBoundKinaThisTime
-            ).toFixed(2),
+            (groupLogs[existingLogIndex].boundKinaGain + totalBoundKinaThisTime).toFixed(
+              2
+            )
           ),
           updatedAt: nowStr,
         };
@@ -1002,8 +1196,7 @@ const handleExecuteConsume = async () => {
 
   // ==================== C. 处理单角色数据更新（总次数、圣域及角色日志） ====================
   let updatedTotalRuns = gameplayCharForm.value?.totalRuns || 0;
-  let updatedTotalTranscendRuns =
-    gameplayCharForm.value?.totalTranscendRuns || 0;
+  let updatedTotalTranscendRuns = gameplayCharForm.value?.totalTranscendRuns || 0;
 
   if (dungeonType === "expedition") {
     updatedTotalRuns += addRunsCount;
@@ -1034,7 +1227,7 @@ const handleExecuteConsume = async () => {
     ? [...gameplayCharForm.value.runLogs]
     : [];
   const charExistingLogIndex = charLogs.findIndex(
-    (log) => log.date === currentDateStr && log.type === dungeonType,
+    (log) => log.date === currentDateStr && log.type === dungeonType
   );
 
   if (charExistingLogIndex !== -1) {
@@ -1042,14 +1235,10 @@ const handleExecuteConsume = async () => {
       ...charLogs[charExistingLogIndex],
       count: charLogs[charExistingLogIndex].count + addRunsCount,
       kinaGain: Number(
-        (charLogs[charExistingLogIndex].kinaGain + totalKinaThisTime).toFixed(
-          2,
-        ),
+        (charLogs[charExistingLogIndex].kinaGain + totalKinaThisTime).toFixed(2)
       ),
       boundKinaGain: Number(
-        (
-          charLogs[charExistingLogIndex].boundKinaGain + totalBoundKinaThisTime
-        ).toFixed(2),
+        (charLogs[charExistingLogIndex].boundKinaGain + totalBoundKinaThisTime).toFixed(2)
       ),
       updatedAt: nowStr,
     };
@@ -1089,7 +1278,7 @@ const handleExecuteConsume = async () => {
       totalKinaThisTime,
       updatedCharacter,
       newGroups,
-    },
+    }
   );
 
   // 触发父组件更新事件
@@ -1129,12 +1318,12 @@ const filteredDungeonList = computed(() => {
   console.log(
     `🔍 [GroupCharacterPanel:674] %c newList: `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-    newList,
+    newList
   );
   console.log(
     `🔍 [GroupCharacterPanel:674] %c list: `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-    list,
+    list
   );
 
   return newList;
@@ -1147,7 +1336,7 @@ watch(
     consumeForm.value.selectedDungeonIndex =
       filteredDungeonList.value.length > 0 ? 0 : null;
     consumeForm.value.selectedDiffIndex = 0;
-  },
+  }
 );
 
 // 监听 filteredDungeonList 变化，如果当前选中的副本已经打完了，自动帮用户切换到第一个没打完的副本
@@ -1158,88 +1347,127 @@ watch(
       const currentSelected = newList[consumeForm.value.selectedDungeonIndex];
       // 如果当前选中的项不存在或者已经打完了，就自动寻找第一个没打完的
       if (!currentSelected || currentSelected.isFinished) {
-        const firstUnfinishedIndex = newList.findIndex(
-          (item) => !item.isFinished,
-        );
+        const firstUnfinishedIndex = newList.findIndex((item) => !item.isFinished);
         if (firstUnfinishedIndex !== -1) {
           consumeForm.value.selectedDungeonIndex = firstUnfinishedIndex;
         }
       }
     }
   },
-  { immediate: true, deep: true },
+  { immediate: true, deep: true }
 );
 // ========================================副本消耗与吉纳收益计算开始========================================
 
 //========================游玩消耗/补充弹框结束========================
 
-//实时校验
+// 1. 定义一个通用的字段校验监听工厂函数
+const watchFieldLimit = (sourceGetter, fieldName, maxLimit, extraCondition) => {
+  watch(sourceGetter, (val) => {
+    // 满足超限且满足额外条件（比如补充值大于0）
+    if (val > maxLimit && extraCondition()) {
+      const currentResult = validateCharacterForm({
+        [fieldName]: val,
+      });
+      validationResult.value = {
+        ...validationResult.value,
+        isValid: currentResult.isValid && validationResult.value.isValid,
+        errors: {
+          ...validationResult.value.errors,
+          ...currentResult.errors,
+        },
+        invalidFields: Array.from(
+          new Set([...validationResult.value.invalidFields, fieldName])
+        ),
+      };
+    } else {
+      // 移除当前字段的错误，保留其他字段
+      const newErrors = { ...validationResult.value.errors };
+      delete newErrors[fieldName];
+
+      const newInvalidFields = validationResult.value.invalidFields.filter(
+        (field) => field !== fieldName
+      );
+
+      validationResult.value = {
+        ...validationResult.value,
+        isValid: Object.keys(newErrors).length === 0,
+        errors: newErrors,
+        invalidFields: newInvalidFields,
+      };
+    }
+  });
+};
+
+// ==================== 2. 表单整体变动的实时校验 ====================
 watch(
   () => gameplayCharForm.value,
   (newVal) => {
     console.log(
       `🔍 [UsersAdmin:1250] %c 监听gameplayCharForm--校验触发: `,
       "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-      newVal,
+      newVal
     );
 
     if (newVal && Object.keys(newVal).length > 0) {
       const overrideForm = { ...newVal };
 
-      // 每日副本组内同一账号下不同角色共享道具）校验
       if (totalGroupStoredDailyRuns.value > 30) {
         overrideForm.storedDailyRuns = totalGroupStoredDailyRuns.value;
       }
-      //古树庆典小游戏组内（同一账号下不同角色共享道具）校验
       if (totalGroupStoredMinigameCount.value > 30) {
         overrideForm.storedMinigameCount = totalGroupStoredMinigameCount.value;
       }
-      console.log(
-        `🔍 [UsersAdmin:1250] %c 监听gameplayCharForm--校验触发:overrideForm `,
-        "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-        overrideForm,
-      );
 
-      // 3. 统一将完整带覆盖值的表单和上下文传给验证函数
       validationResult.value = validateCharacterForm(overrideForm, {
         allCharacters: props.gameData?.characters || [],
         groups: props.gameData?.groups || [],
       });
     } else {
-      validationResult.value = { isValid: true, errors: {}, invalidFields: [] };
+      validationResult.value = {
+        isValid: true,
+        errors: {},
+        invalidFields: [],
+      };
     }
   },
-  { deep: true, immediate: true },
+  { deep: true, immediate: true }
 );
 
-// 监听古树庆典小游戏实时校验
-watch(
-  () => totalGroupStoredMinigameCount.value,
-  (val) => {
-    if (val > 30 && supplementFormValues.value.storedMinigameCount > 0) {
-      validationResult.value = validateCharacterForm({
-        storedMinigameCount: val,
-      });
-    }else {
-      validationResult.value = { isValid: true, errors: {}, invalidFields: [] };
-    }
-  },
-);
+// ==================== 3. 独立字段的实时校验（一句话复用） ====================
 
-// 监听每日副本实时校验
-watch(
+// 奥德补充校验 (> 2000)
+watchFieldLimit(() => totalsStoredEnergyCount.value, "storedEnergy", 2000);
+
+// 每日副本校验 (> 30 且 补充值 > 0)
+watchFieldLimit(
   () => totalGroupStoredDailyRuns.value,
-  (val) => {
-    if (val > 30 && supplementFormValues.value.storedDailyRuns > 0) {
-      validationResult.value = validateCharacterForm({
-        storedDailyRuns: val,
-      });
-    }else {
-      validationResult.value = { isValid: true, errors: {}, invalidFields: [] };
-    }
-  },
+  "storedDailyRuns",
+  30,
+  () => supplementFormValues.value.storedDailyRuns > 0
 );
 
+// 古树庆典小游戏校验 (> 30 且 补充值 > 0)
+watchFieldLimit(
+  () => totalGroupStoredMinigameCount.value,
+  "storedMinigameCount",
+  30,
+  () => supplementFormValues.value.storedMinigameCount > 0
+);
+
+// 噩梦校验 (> 30 且 补充值 > 0)
+watchFieldLimit(
+  () => totalsToredNightmareCountRuns.value,
+  "storedNightmareCount",
+  30,
+  () => supplementFormValues.value.storedNightmareCount > 0
+);
+// 觉醒战校验 (> 30 且 补充值 > 0)
+watchFieldLimit(
+  () => totalStoredAwakeningRuns.value,
+  "storedAwakening",
+  30,
+  () => supplementFormValues.value.storedAwakening > 0
+);
 watch(
   () => gameplayCharForm.value,
   (val) => {
@@ -1247,10 +1475,22 @@ watch(
       console.log(
         `🔍 [GroupCharacterPanel:530] %c gameplayCharForm当前角色数据: `,
         "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-        val,
+        val
       );
     }
-  },
+  }
+);
+watch(
+  () => validationResult.value,
+  (val) => {
+    if (val) {
+      console.log(
+        `🔍 [GroupCharacterPanel:530] %c validationResult校验: `,
+        "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+        val
+      );
+    }
+  }
 );
 </script>
 
@@ -1329,9 +1569,7 @@ watch(
               }}</span>
             </div>
             <div>
-              <div
-                class="text-sm font-black text-slate-800 flex items-center gap-2"
-              >
+              <div class="text-sm font-black text-slate-800 flex items-center gap-2">
                 <span>{{ char.characterName || "未命名角色" }}</span>
                 <span
                   class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600"
@@ -1355,9 +1593,7 @@ watch(
           <div
             class="bg-white/80 p-3 rounded-2xl border-2 border-yellow-100 shadow-sm flex flex-col justify-between space-y-1"
           >
-            <div
-              class="text-[10px] text-slate-400 font-black uppercase leading-none"
-            >
+            <div class="text-[10px] text-slate-400 font-black uppercase leading-none">
               装等
             </div>
             <div class="text-yellow-600 font-black text-xs">
@@ -1368,9 +1604,7 @@ watch(
           <div
             class="bg-white/80 p-3 rounded-2xl border-2 border-emerald-100 shadow-sm flex flex-col justify-between space-y-1"
           >
-            <div
-              class="text-[10px] text-slate-400 font-black uppercase leading-none"
-            >
+            <div class="text-[10px] text-slate-400 font-black uppercase leading-none">
               战斗力
             </div>
             <div class="text-emerald-700 font-black text-xs">
@@ -1435,9 +1669,7 @@ watch(
               奥德能量
             </span>
             <div class="flex items-center gap-1.5 font-black text-xs">
-              <span class="text-[#45a6d5]" title="基础奥德">{{
-                char.energy || 0
-              }}</span>
+              <span class="text-[#45a6d5]" title="基础奥德">{{ char.energy || 0 }}</span>
               （
               <span class="text-slate-300">+</span>
               <span class="text-amber-600" title="存储奥德">{{
@@ -1458,7 +1690,13 @@ watch(
             <div
               class="bg-[#45a6d5] h-full rounded-l-full transition-all duration-500 relative"
               :style="{
-                width: `${Math.min(100, Math.max(0, ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100))}%`,
+                width: `${Math.min(
+                  100,
+                  Math.max(
+                    0,
+                    ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100
+                  )
+                )}%`,
               }"
               title="基础奥德"
             ></div>
@@ -1466,7 +1704,14 @@ watch(
             <div
               class="bg-amber-500 h-full rounded-r-full transition-all duration-500 relative opacity-90"
               :style="{
-                width: `${Math.min(100 - Math.min(100, ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100), ((char.storedEnergy || 0) / (char.premiumMember ? 840 : 560)) * 100)}%`,
+                width: `${Math.min(
+                  100 -
+                    Math.min(
+                      100,
+                      ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100
+                    ),
+                  ((char.storedEnergy || 0) / (char.premiumMember ? 840 : 560)) * 100
+                )}%`,
               }"
               title="存储奥德"
             ></div>
@@ -1477,7 +1722,8 @@ watch(
             class="flex items-center justify-between text-[10px] font-bold text-slate-400 pt-0.5"
           >
             <span class="flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-[#45a6d5]"></span> 基础
+              <span class="w-1.5 h-1.5 rounded-full bg-[#45a6d5]"></span>
+              基础
               <span class="w-1.5 h-1.5 rounded-full bg-amber-500 ml-1"></span>
               存储
             </span>
@@ -1572,9 +1818,7 @@ watch(
               "
               :disabled="char.locked"
               @click="handleDelete(char)"
-              :title="
-                char.locked ? '角色已锁定，无法删除（需先解锁）' : '删除角色'
-              "
+              :title="char.locked ? '角色已锁定，无法删除（需先解锁）' : '删除角色'"
             >
               删除
             </button>
@@ -1665,11 +1909,7 @@ watch(
               <span
                 class="px-1.5 py-0.5 rounded bg-[#45a6d5]/10 text-[#45a6d5] font-bold text-[10px]"
               >
-                {{
-                  gameplayCharForm?.className ||
-                  gameplayCharForm?.class ||
-                  "未知"
-                }}
+                {{ gameplayCharForm?.className || gameplayCharForm?.class || "未知" }}
               </span>
               <span class="text-slate-300">|</span>
               <span class="text-slate-500 font-bold"
@@ -1697,9 +1937,7 @@ watch(
               class="flex items-center gap-3 bg-white border border-sky-200/80 px-3.5 py-1.5 rounded-xl shadow-2xs"
             >
               <div class="flex items-center gap-1.5">
-                <div
-                  class="w-2 h-2 rounded-full bg-[#45a6d5] animate-pulse"
-                ></div>
+                <div class="w-2 h-2 rounded-full bg-[#45a6d5] animate-pulse"></div>
                 <span class="text-[11px] font-black text-slate-400">奥德</span>
               </div>
 
@@ -1710,9 +1948,7 @@ watch(
                   <strong class="text-sm font-black text-[#45a6d5]">{{
                     gameplayCharForm?.energy || 0
                   }}</strong>
-                  <span class="text-[10px] text-slate-400"
-                    >/{{ energyLimit }}</span
-                  >
+                  <span class="text-[10px] text-slate-400">/{{ energyLimit }}</span>
                 </div>
 
                 <div class="h-3 w-px bg-slate-200"></div>
@@ -1728,16 +1964,11 @@ watch(
             </div>
           </div>
           <!-- 弹窗表单主体 (卡片式布局) -->
-          <div
-            class="p-8 space-y-6 overflow-y-auto custom-scroll flex-1 bg-slate-50/50"
-          >
+          <div class="p-8 space-y-6 overflow-y-auto custom-scroll flex-1 bg-slate-50/50">
             <!-- 第一个分组：消耗奥德分组内容 -->
             <div v-if="activeTab === 'consume'" class="space-y-6">
               <template
-                v-if="
-                  gameplayCharForm?.energy > 0 ||
-                  gameplayCharForm?.storedEnergy > 0
-                "
+                v-if="gameplayCharForm?.energy > 0 || gameplayCharForm?.storedEnergy > 0"
               >
                 <!-- 副本类型与吉纳收益联动配置卡片 -->
                 <div
@@ -1772,9 +2003,7 @@ watch(
 
                   <!-- 1. 选择副本大类 -->
                   <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-500"
-                      >选择副本类型</label
-                    >
+                    <label class="text-xs font-bold text-slate-500">选择副本类型</label>
                     <div class="grid grid-cols-3 gap-2">
                       <button
                         type="button"
@@ -1818,8 +2047,7 @@ watch(
                     v-if="
                       !(
                         consumeForm.dungeonType === 'sanctuary' &&
-                        filteredDungeonList[consumeForm.selectedDungeonIndex]
-                          ?.isFinished
+                        filteredDungeonList[consumeForm.selectedDungeonIndex]?.isFinished
                       )
                     "
                   >
@@ -1852,7 +2080,8 @@ watch(
                               : 'bg-emerald-100 text-emerald-700'
                           "
                         >
-                          当前收益率: {{ currentDecayRate * 100 }}%
+                          当前收益率:
+                          {{ currentDecayRate * 100 }}%
                         </span>
                       </div>
 
@@ -1875,9 +2104,7 @@ watch(
 
                     <!-- 3. 选择具体副本 -->
                     <div class="space-y-2">
-                      <label class="text-xs font-bold text-slate-500"
-                        >选择具体副本</label
-                      >
+                      <label class="text-xs font-bold text-slate-500">选择具体副本</label>
                       <select
                         v-model="consumeForm.selectedDungeonIndex"
                         class="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#45a6d5] outline-none font-bold text-xs text-slate-800 transition-all"
@@ -1896,10 +2123,13 @@ watch(
                           :value="index"
                           :disabled="item.isFinished"
                         >
-                          {{ "⭐".repeat(item.stars) }} - {{ item.name }}
+                          {{ "⭐".repeat(item.stars) }}
+                          - {{ item.name }}
                           {{
                             consumeForm.value?.dungeonType === "sanctuary"
-                              ? `(已消耗: ${item.currentRuns}/${item.maxLimit})${item.isFinished ? " 【已打完】" : ""}`
+                              ? `(已消耗: ${item.currentRuns}/${item.maxLimit})${
+                                  item.isFinished ? " 【已打完】" : ""
+                                }`
                               : ""
                           }}
                         </option>
@@ -1935,7 +2165,8 @@ watch(
                         >
                           <span>{{ diff.mode }}</span>
                           <span class="text-[10px] opacity-80">
-                            (基础耗能: {{ diff.energy }})
+                            (基础耗能:
+                            {{ diff.energy }})
                           </span>
                         </button>
                       </div>
@@ -1948,7 +2179,9 @@ watch(
                           >消耗与奖励档位</span
                         >
                         <span class="text-xs font-black text-amber-600">
-                          最终消耗奥德: {{ calculatedEnergyCost }} 点
+                          最终消耗奥德:
+                          {{ calculatedEnergyCost }}
+                          点
                         </span>
                       </div>
 
@@ -1967,7 +2200,8 @@ watch(
                         >
                           <span>标准单倍消耗</span>
                           <span class="text-[10px] opacity-80">
-                            耗能 {{ currentSelectedDiff?.energy || 0 }}
+                            耗能
+                            {{ currentSelectedDiff?.energy || 0 }}
                           </span>
                         </button>
 
@@ -1980,12 +2214,12 @@ watch(
                             !gameplayCharForm?.premiumMember
                               ? 'opacity-40 bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
                               : consumeForm.useDoubleEnergy !== false
-                                ? 'bg-amber-500 text-white border-amber-500 shadow-sm cursor-pointer'
-                                : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 cursor-pointer',
+                              ? 'bg-amber-500 text-white border-amber-500 shadow-sm cursor-pointer'
+                              : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 cursor-pointer',
                           ]"
                           @click="
                             gameplayCharForm?.premiumMember &&
-                            (consumeForm.useDoubleEnergy = true)
+                              (consumeForm.useDoubleEnergy = true)
                           "
                         >
                           <span>
@@ -1997,7 +2231,8 @@ watch(
                             >
                           </span>
                           <span class="text-[10px] opacity-80">
-                            耗能 {{ (currentSelectedDiff?.energy || 0) * 2 }}
+                            耗能
+                            {{ (currentSelectedDiff?.energy || 0) * 2 }}
                           </span>
                         </button>
                       </div>
@@ -2079,9 +2314,7 @@ watch(
               </template>
             </div>
             <!-- 第二个分组：补充内容 -->
-            <template
-              v-if="activeTab === 'supplement' && gameplayCharForm?.characterId"
-            >
+            <template v-if="activeTab === 'supplement' && gameplayCharForm?.characterId">
               <!-- 奥德存储补充配置卡片 -->
               <div
                 class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all"
@@ -2099,11 +2332,28 @@ watch(
                       class="text-sm font-black uppercase tracking-wider text-slate-700"
                     >
                       奥德存储补充
+                      <span
+                        class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
+                        :class="{
+                          'bg-[#45a6d5]/10 text-[#45a6d5]':
+                            30 - totalGroupStoredDailyRuns > 5,
+                          'bg-amber-500/10 text-amber-600':
+                            30 - totalGroupStoredDailyRuns <= 5 &&
+                            30 - totalGroupStoredDailyRuns > 0,
+                          'bg-rose-500/10 text-rose-600 animate-pulse':
+                            30 - totalGroupStoredDailyRuns <= 0,
+                        }"
+                      >
+                        {{
+                          2000 - totalsStoredEnergyCount > 0
+                            ? `可补充 ${2000 - totalsStoredEnergyCount} 点`
+                            : "已经满了不可补充"
+                        }}
+                      </span>
                     </div>
+
                     <span
-                      v-if="
-                        validationResult.invalidFields.includes('storedEnergy')
-                      "
+                      v-if="validationResult.invalidFields.includes('storedEnergy')"
                       class="text-[10px] text-red-500 font-bold"
                     >
                       {{ validationResult.errors.storedEnergy }}
@@ -2120,9 +2370,7 @@ watch(
                   class="grid grid-cols-2 gap-3 p-4 bg-gradient-to-br from-slate-50 to-indigo-50/30 border border-slate-200/70 rounded-2xl"
                 >
                   <div class="flex flex-col">
-                    <span class="text-[10px] font-bold text-slate-400"
-                      >当前基础奥德</span
-                    >
+                    <span class="text-[10px] font-bold text-slate-400">当前基础奥德</span>
                     <span class="text-lg font-black text-slate-800 mt-0.5">
                       {{ gameplayCharForm.energy || 0 }}
                       <span class="text-xs font-bold text-slate-400">点</span>
@@ -2130,7 +2378,7 @@ watch(
                   </div>
                   <div class="flex flex-col border-l border-slate-200/80 pl-3">
                     <span class="text-[10px] font-bold text-slate-400"
-                      >当前已补充存储奥德</span
+                      >当前已补充奥德</span
                     >
                     <span class="text-lg font-black text-indigo-600 mt-0.5">
                       {{ gameplayCharForm.storedEnergy || 0 }}
@@ -2167,6 +2415,7 @@ watch(
                         <input
                           v-model.number="supplementFormValues.bigOdCount"
                           type="number"
+                          :disabled="totalsStoredEnergyCount > 2000"
                           min="0"
                           class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
                         />
@@ -2174,6 +2423,7 @@ watch(
                           type="button"
                           class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-black flex items-center justify-center transition-all cursor-pointer"
                           @click="handleUpdateOdCount('big', 1)"
+                          :disabled="totalsStoredEnergyCount > 2000"
                         >
                           +
                         </button>
@@ -2203,6 +2453,7 @@ watch(
                         <input
                           v-model.number="supplementFormValues.smallOdCount"
                           type="number"
+                          :disabled="totalsStoredEnergyCount > 2000"
                           min="0"
                           class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
                         />
@@ -2210,6 +2461,7 @@ watch(
                           type="button"
                           class="w-8 h-8 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 font-black flex items-center justify-center transition-all cursor-pointer"
                           @click="handleUpdateOdCount('small', 1)"
+                          :disabled="totalsStoredEnergyCount > 2000"
                         >
                           +
                         </button>
@@ -2236,27 +2488,268 @@ watch(
                       >
                     </span>
                     <span class="font-bold text-slate-500">
-                      补充后存储总计:
+                      奥德补充总计:
                       <strong
                         class="text-sm font-black"
                         :class="
-                          (gameplayCharForm.storedEnergy || 0) +
-                            totalSupplementPoints >
+                          (gameplayCharForm.storedEnergy || 0) + totalSupplementPoints >
                           2000
                             ? 'text-rose-600'
                             : 'text-amber-600'
                         "
                       >
-                        {{
-                          (gameplayCharForm.storedEnergy || 0) +
-                          totalSupplementPoints
-                        }}
-                        点
+                        <!-- {{ (gameplayCharForm.storedEnergy || 0) + totalSupplementPoints }} -->
+                        {{ totalsStoredEnergyCount }} / 2000 点
                       </strong>
                     </span>
                   </div>
                 </div>
               </div>
+              <!-- 噩梦补充卡片 -->
+              <div
+                class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all"
+                :class="
+                  validationResult.invalidFields.includes('storedNightmareCount')
+                    ? 'border-red-500 bg-red-50/20'
+                    : 'border-slate-200/80'
+                "
+              >
+                <!-- 顶栏标题 -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
+
+                    <div class="flex items-center justify-between">
+                      <!-- 标题与动态提示 -->
+                      <div
+                        class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
+                      >
+                        <span>噩梦补充</span>
+                        <span
+                          class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
+                          :class="{
+                            'bg-[#45a6d5]/10 text-[#45a6d5]':
+                              30 - totalsToredNightmareCountRuns > 5,
+                            'bg-amber-500/10 text-amber-600':
+                              30 - totalsToredNightmareCountRuns <= 5 &&
+                              30 - totalsToredNightmareCountRuns > 0,
+                            'bg-rose-500/10 text-rose-600 animate-pulse':
+                              30 - totalsToredNightmareCountRuns <= 0,
+                          }"
+                        >
+                          {{
+                            30 - totalsToredNightmareCountRuns > 0
+                              ? `可补充 ${30 - totalsToredNightmareCountRuns} 次`
+                              : "不可补充"
+                          }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <span
+                      v-if="
+                        validationResult.invalidFields.includes('storedNightmareCount')
+                      "
+                      class="text-[10px] text-red-500 font-bold"
+                    >
+                      {{ validationResult.errors.storedNightmareCount }}
+                    </span>
+                  </div>
+                  <!-- 提示标签 -->
+                  <span class="text-[10px] font-bold text-slate-400">
+                    角色总上限：30次
+                  </span>
+                </div>
+
+                <!-- 计数器操作区域 -->
+                <div
+                  class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-4"
+                >
+                  <div
+                    class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2"
+                  >
+                    <div
+                      class="flex items-center justify-between text-xs font-bold text-slate-600"
+                    >
+                      <span>噩梦副本次数补充 (每次增加 1 次)</span>
+                      <span class="text-purple-600 font-black"
+                        >+{{ supplementFormValues.storedNightmareCount || 0 }} 次</span
+                      >
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                        @click="
+                          supplementFormValues.storedNightmareCount = Math.max(
+                            0,
+                            (supplementFormValues.storedNightmareCount || 0) - 1
+                          )
+                        "
+                      >
+                        -
+                      </button>
+                      <input
+                        v-model.number="supplementFormValues.storedNightmareCount"
+                        type="number"
+                        min="0"
+                        class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
+                      />
+                      <button
+                        type="button"
+                        class="w-8 h-8 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                        @click="
+                          supplementFormValues.storedNightmareCount =
+                            (supplementFormValues.storedNightmareCount || 0) + 1
+                        "
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- 🌟 底部结算实时显示：单角色统计 -->
+                  <div
+                    class="pt-3 border-t border-slate-200/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
+                  >
+                    <span class="font-bold text-slate-500">
+                      当前角色噩梦补充:
+                      <strong class="text-purple-600"
+                        >+{{ supplementFormValues.storedNightmareCount || 0 }} 次</strong
+                      >
+                    </span>
+                    <span class="font-bold text-slate-500">
+                      噩梦补充总计:
+                      <strong class="text-sm font-black text-purple-600">
+                        {{ totalsToredNightmareCountRuns }}
+                        / 30 次
+                      </strong>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <!-- 觉醒战补充卡片 -->
+              <div
+                class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all"
+                :class="
+                  validationResult.invalidFields.includes('storedAwakening')
+                    ? 'border-red-500 bg-red-50/20'
+                    : 'border-slate-200/80'
+                "
+              >
+                <!-- 顶栏标题 -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
+
+                    <div class="flex items-center justify-between">
+                      <!-- 标题与动态提示 -->
+                      <div
+                        class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
+                      >
+                        <span>觉醒战补充</span>
+                        <span
+                          class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
+                          :class="{
+                            'bg-[#45a6d5]/10 text-[#45a6d5]':
+                              30 - totalStoredAwakeningRuns > 5,
+                            'bg-amber-500/10 text-amber-600':
+                              30 - totalStoredAwakeningRuns <= 5 &&
+                              30 - totalStoredAwakeningRuns > 0,
+                            'bg-rose-500/10 text-rose-600 animate-pulse':
+                              30 - totalStoredAwakeningRuns <= 0,
+                          }"
+                        >
+                          {{
+                            30 - totalStoredAwakeningRuns > 0
+                              ? `可补充 ${30 - totalStoredAwakeningRuns} 次`
+                              : "不可补充"
+                          }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <span
+                      v-if="validationResult.invalidFields.includes('storedAwakening')"
+                      class="text-[10px] text-red-500 font-bold"
+                    >
+                      {{ validationResult.errors.storedAwakening }}
+                    </span>
+                  </div>
+                  <!-- 提示标签 -->
+                  <span class="text-[10px] font-bold text-slate-400">
+                    角色总上限：30次
+                  </span>
+                </div>
+
+                <!-- 计数器操作区域 -->
+                <div
+                  class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-4"
+                >
+                  <div
+                    class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2"
+                  >
+                    <div
+                      class="flex items-center justify-between text-xs font-bold text-slate-600"
+                    >
+                      <span>觉醒战次数补充 (每次增加 1 次)</span>
+                      <span class="text-purple-600 font-black"
+                        >+{{ supplementFormValues.storedAwakening || 0 }} 次</span
+                      >
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                        @click="
+                          supplementFormValues.storedAwakening = Math.max(
+                            0,
+                            (supplementFormValues.storedAwakening || 0) - 1
+                          )
+                        "
+                      >
+                        -
+                      </button>
+                      <input
+                        v-model.number="supplementFormValues.storedAwakening"
+                        type="number"
+                        min="0"
+                        class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
+                      />
+                      <button
+                        type="button"
+                        class="w-8 h-8 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                        @click="
+                          supplementFormValues.storedAwakening =
+                            (supplementFormValues.storedAwakening || 0) + 1
+                        "
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- 🌟 底部结算实时显示：单角色统计 -->
+                  <div
+                    class="pt-3 border-t border-slate-200/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
+                  >
+                    <span class="font-bold text-slate-500">
+                      当前角色觉醒战补充:
+                      <strong class="text-purple-600"
+                        >+{{ supplementFormValues.storedAwakening || 0 }} 次</strong
+                      >
+                    </span>
+                    <span class="font-bold text-slate-500">
+                      觉醒战补充总计:
+                      <strong class="text-sm font-black text-purple-600">
+                        {{ totalStoredAwakeningRuns }}
+                        / 30 次
+                      </strong>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               <!-- 每日副本补充卡片 -->
               <div
                 class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all"
@@ -2298,11 +2791,7 @@ watch(
                     </div>
 
                     <span
-                      v-if="
-                        validationResult.invalidFields.includes(
-                          'storedDailyRuns',
-                        )
-                      "
+                      v-if="validationResult.invalidFields.includes('storedDailyRuns')"
                       class="text-[10px] text-red-500 font-bold"
                     >
                       {{ validationResult.errors.storedDailyRuns }}
@@ -2327,10 +2816,7 @@ watch(
                     >
                       <span>每日副本卷 (每次增加 1 次)</span>
                       <span class="text-amber-600 font-black"
-                        >+{{
-                          supplementFormValues.storedDailyRuns || 0
-                        }}
-                        次</span
+                        >+{{ supplementFormValues.storedDailyRuns || 0 }} 次</span
                       >
                     </div>
                     <div class="flex items-center gap-2">
@@ -2340,7 +2826,7 @@ watch(
                         @click="
                           supplementFormValues.storedDailyRuns = Math.max(
                             0,
-                            (supplementFormValues.storedDailyRuns || 0) - 1,
+                            (supplementFormValues.storedDailyRuns || 0) - 1
                           )
                         "
                       >
@@ -2372,14 +2858,11 @@ watch(
                     <span class="font-bold text-slate-500">
                       当前角色本次增加:
                       <strong class="text-amber-600"
-                        >+{{
-                          supplementFormValues.storedDailyRuns || 0
-                        }}
-                        次</strong
+                        >+{{ supplementFormValues.storedDailyRuns || 0 }} 次</strong
                       >
                     </span>
                     <span class="font-bold text-slate-500">
-                      组内补充总计:
+                      该账号下每日副本补充总计:
                       <strong
                         class="text-sm font-black"
                         :class="
@@ -2388,7 +2871,8 @@ watch(
                             : 'text-amber-600'
                         "
                       >
-                        {{ totalGroupStoredDailyRuns }} / 30 次
+                        {{ totalGroupStoredDailyRuns }}
+                        / 30 次
                       </strong>
                     </span>
                   </div>
@@ -2437,9 +2921,7 @@ watch(
 
                     <span
                       v-if="
-                        validationResult.invalidFields.includes(
-                          'storedMinigameCount',
-                        )
+                        validationResult.invalidFields.includes('storedMinigameCount')
                       "
                       class="text-[10px] text-red-500 font-bold"
                     >
@@ -2464,10 +2946,7 @@ watch(
                     >
                       <span>古树庆典补充 (每次增加 1 次)</span>
                       <span class="text-amber-600 font-black"
-                        >+{{
-                          supplementFormValues.storedMinigameCount || 0
-                        }}
-                        次</span
+                        >+{{ supplementFormValues.storedMinigameCount || 0 }} 次</span
                       >
                     </div>
                     <div class="flex items-center gap-2">
@@ -2477,16 +2956,14 @@ watch(
                         @click="
                           supplementFormValues.storedMinigameCount = Math.max(
                             0,
-                            (supplementFormValues.storedMinigameCount || 0) - 1,
+                            (supplementFormValues.storedMinigameCount || 0) - 1
                           )
                         "
                       >
                         -
                       </button>
                       <input
-                        v-model.number="
-                          supplementFormValues.storedMinigameCount
-                        "
+                        v-model.number="supplementFormValues.storedMinigameCount"
                         type="number"
                         min="0"
                         class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
@@ -2511,14 +2988,11 @@ watch(
                     <span class="font-bold text-slate-500">
                       当前角色本次增加:
                       <strong class="text-amber-600"
-                        >+{{
-                          supplementFormValues.storedMinigameCount || 0
-                        }}
-                        次</strong
+                        >+{{ supplementFormValues.storedMinigameCount || 0 }} 次</strong
                       >
                     </span>
                     <span class="font-bold text-slate-500">
-                      组内补充总计:
+                      该账号下古树庆典小游戏补充总计:
                       <strong
                         class="text-sm font-black"
                         :class="
@@ -2527,7 +3001,8 @@ watch(
                             : 'text-amber-600'
                         "
                       >
-                        {{ totalGroupStoredMinigameCount }} / 30 次
+                        {{ totalGroupStoredMinigameCount }}
+                        / 30 次
                       </strong>
                     </span>
                   </div>
@@ -2546,15 +3021,13 @@ watch(
               :disabled="
                 calculatedEnergyCost >
                   (gameplayCharForm?.energy || 0) +
-                    (gameplayCharForm?.storedEnergy || 0) ||
-                calculatedEnergyCost <= 0
+                    (gameplayCharForm?.storedEnergy || 0) || calculatedEnergyCost <= 0
               "
               class="px-8 py-3 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2"
               :class="[
                 calculatedEnergyCost >
                   (gameplayCharForm?.energy || 0) +
-                    (gameplayCharForm?.storedEnergy || 0) ||
-                calculatedEnergyCost <= 0
+                    (gameplayCharForm?.storedEnergy || 0) || calculatedEnergyCost <= 0
                   ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                   : 'bg-amber-500 hover:bg-amber-600 text-white shadow-md shadow-amber-500/20 cursor-pointer',
               ]"
@@ -2563,14 +3036,14 @@ watch(
               <span
                 v-if="
                   calculatedEnergyCost >
-                  (gameplayCharForm?.energy || 0) +
-                    (gameplayCharForm?.storedEnergy || 0)
+                  (gameplayCharForm?.energy || 0) + (gameplayCharForm?.storedEnergy || 0)
                 "
               >
                 奥德能量不足无法消耗，请补充后重试。
               </span>
               <span v-else>
-                确认消耗 {{ calculatedEnergyCost }} 点奥德并完成记录
+                确认消耗
+                {{ calculatedEnergyCost }} 点奥德并完成记录
               </span>
             </button>
 
