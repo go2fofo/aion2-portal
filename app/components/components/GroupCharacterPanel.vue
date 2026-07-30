@@ -506,7 +506,32 @@ const characterValidationRules = [
     },
     message: () => "同组账号下古树庆典存储补充次数总和不能超过30次",
   },
-  // // 4. 存储噩梦次数 (storedNightmareCount)
+  // 次元袭击存储补充次数校验（组内共享上限 30）
+  {
+    field: "storedDimensionalCount",
+    label: "次元袭击存储补充次数",
+    validate: (form, context = {}) => {
+      const currentGroupId = form?.group;
+      const allCharacters = context.allCharacters || [];
+      const currentFormId = form?.characterId || form?.id;
+
+      // 计算同组其他角色的存储补充次数总和
+      const otherGroupSum = allCharacters
+        .filter(
+          (char) =>
+            char.group === currentGroupId &&
+            (char.characterId || char.id) !== currentFormId
+        )
+        .reduce((sum, char) => sum + (Number(char?.storedDimensionalCount) || 0), 0);
+
+      // 同组总和 + 当前表单填写的值
+      const total = otherGroupSum + (Number(form?.storedDimensionalCount) || 0);
+
+      return total <= 30;
+    },
+    message: () => "同组账号下次元袭击存储补充次数总和不能超过30次",
+  },
+  // 存储噩梦次数 (storedNightmareCount)
   {
     field: "storedNightmareCount",
     label: "存储噩梦次数",
@@ -735,6 +760,8 @@ const supplementFormValues = ref({
   storedAwakening: 0,
   // 古树庆典小游戏补充次数
   storedMinigameCount: 0,
+  //次元袭击补充次数
+  storedDimensionalCount: 0,
 });
 
 // 计算大奥德提供的总点数 (每个40点)
@@ -786,7 +813,6 @@ const totalGroupStoredDailyRuns = computed(() => {
 });
 
 // 古树庆典小游戏补充次数：组内全员共享统计
-
 const totalGroupStoredMinigameCount = computed(() => {
   const currentGroupId = gameplayCharForm.value?.group;
   if (!currentGroupId) return gameplayCharForm.value?.storedMinigameCount || 0;
@@ -806,6 +832,27 @@ const totalGroupStoredMinigameCount = computed(() => {
 
   console.log("totalGroupStoredMinigameCountNum", totalGroupStoredMinigameCountNum);
   return totalGroupStoredMinigameCountNum;
+});
+// 次元袭击补充次数：组内全员共享统计
+const totalGroupStoredDimensionalCount = computed(() => {
+  const currentGroupId = gameplayCharForm.value?.group;
+  if (!currentGroupId) return gameplayCharForm.value?.storedDimensionalCount || 0;
+
+  // 假设你的所有角色列表存在 characters 或 gameData.characters 里
+  // 请根据你代码实际存放角色的变量名进行调整（比如 props.gameData.characters 或 characters.value）
+  const allCharacters = props.gameData?.characters || [];
+
+  // 筛选出同组的其他角色，并把他们的 storedDimensionalCount 累加
+  const otherCharactersSum = allCharacters
+    .filter((char) => char.group === currentGroupId)
+    .reduce((sum, char) => sum + (Number(char.storedDimensionalCount) || 0), 0);
+
+  // 加上当前表单里输入的数值
+  let totalGroupStoredDimensionalCountNum =
+    otherCharactersSum +
+    (Number(supplementFormValues.value?.storedDimensionalCount) || 0);
+
+  return totalGroupStoredDimensionalCountNum;
 });
 
 // 噩梦战补充次数：角色统计
@@ -841,7 +888,7 @@ const handleUpdateOdCount = (type, delta) => {
     );
   }
 };
-// 执行游玩补充确认（支持奥德、每日副本、古树庆典等多种类型的统一扩展）
+// 执行游玩补充确认（支持奥德、每日副本、古树庆典/次元袭击等多种类型的统一扩展）
 const handleExecuteSupplement = async () => {
   const currentTarget = gameplayCharForm.value;
   if (!currentTarget) return;
@@ -857,6 +904,7 @@ const handleExecuteSupplement = async () => {
     storedDailyRuns,
     storedMinigameCount,
     storedAwakening,
+    storedDimensionalCount,
   } = supplementFormValues.value || {};
 
   // 组装更新后的完整角色对象
@@ -880,6 +928,8 @@ const handleExecuteSupplement = async () => {
 
     // 古树庆典小游戏补充，（账号共享）
     ...(storedMinigameCount ? { storedMinigameCount } : {}),
+    // 次元袭击补充，（账号共享）
+    ...(storedDimensionalCount ? { storedDimensionalCount } : {}),
   };
 
   //  更新本地响应式数据
@@ -1453,6 +1503,13 @@ watchFieldLimit(
   30,
   () => supplementFormValues.value.storedMinigameCount > 0
 );
+// 次元袭击校验 (> 30 且 补充值 > 0)
+watchFieldLimit(
+  () => totalGroupStoredDimensionalCount.value,
+  "storedDimensionalCount",
+  30,
+  () => supplementFormValues.value.storedDimensionalCount > 0
+);
 
 // 噩梦校验 (> 30 且 补充值 > 0)
 watchFieldLimit(
@@ -1942,24 +1999,19 @@ watch(
               </div>
 
               <div class="flex items-center gap-3 text-xs">
-                <!-- 基础奥德（大号高亮） -->
+                <!-- 奥德 -->
                 <div class="flex items-baseline gap-0.5">
-                  <span class="text-[10px] font-bold text-slate-400">基</span>
                   <strong class="text-sm font-black text-[#45a6d5]">{{
                     gameplayCharForm?.energy || 0
                   }}</strong>
-                  <span class="text-[10px] text-slate-400">/{{ energyLimit }}</span>
+                  （
+                  <strong class="text-sm font-black text-amber-600"
+                    >+{{ gameplayCharForm?.storedEnergy || 0 }}</strong
+                  >）
+                  <span class="ext-sm font-black">/ {{ energyLimit }}</span>
                 </div>
 
                 <div class="h-3 w-px bg-slate-200"></div>
-
-                <!-- 存储奥德（大号高亮） -->
-                <div class="flex items-baseline gap-0.5">
-                  <span class="text-[10px] font-bold text-slate-400">存</span>
-                  <strong class="text-sm font-black text-amber-600">{{
-                    gameplayCharForm?.storedEnergy || 0
-                  }}</strong>
-                </div>
               </div>
             </div>
           </div>
@@ -3002,6 +3054,139 @@ watch(
                         "
                       >
                         {{ totalGroupStoredMinigameCount }}
+                        / 30 次
+                      </strong>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <!-- 次元袭击补充卡片 -->
+              <div
+                class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all"
+                :class="
+                  validationResult.invalidFields.includes('storedDimensionalCount')
+                    ? 'border-red-500 bg-red-50/20'
+                    : 'border-slate-200/80'
+                "
+              >
+                <!-- 顶栏标题 -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+
+                    <div class="flex items-center justify-between">
+                      <!-- 标题与动态剩余提示 -->
+                      <div
+                        class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
+                      >
+                        <span>次元袭击补充</span>
+                        <span
+                          class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
+                          :class="{
+                            'bg-[#45a6d5]/10 text-[#45a6d5]':
+                              30 - totalGroupStoredDimensionalCount > 5,
+                            'bg-amber-500/10 text-amber-600':
+                              30 - totalGroupStoredDimensionalCount <= 5 &&
+                              30 - totalGroupStoredDimensionalCount > 0,
+                            'bg-rose-500/10 text-rose-600 animate-pulse':
+                              30 - totalGroupStoredDimensionalCount <= 0,
+                          }"
+                        >
+                          {{
+                            30 - totalGroupStoredDimensionalCount > 0
+                              ? `该账号可补充 ${30 - totalGroupStoredDimensionalCount} 次`
+                              : "已耗尽不可补充"
+                          }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <span
+                      v-if="
+                        validationResult.invalidFields.includes('storedDimensionalCount')
+                      "
+                      class="text-[10px] text-red-500 font-bold"
+                    >
+                      {{ validationResult.errors.storedDimensionalCount }}
+                    </span>
+                  </div>
+                  <!-- 存储上限提示 -->
+                  <span class="text-[10px] font-bold text-slate-400">
+                    组内总上限: 30 次
+                  </span>
+                </div>
+
+                <!-- 计数器操作区域 -->
+                <div
+                  class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-4"
+                >
+                  <div
+                    class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2"
+                  >
+                    <div
+                      class="flex items-center justify-between text-xs font-bold text-slate-600"
+                    >
+                      <span>次元袭击补充 (每次增加 1 次)</span>
+                      <span class="text-amber-600 font-black"
+                        >+{{ supplementFormValues.storedDimensionalCount || 0 }} 次</span
+                      >
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                        @click="
+                          supplementFormValues.storedDimensionalCount = Math.max(
+                            0,
+                            (supplementFormValues.storedDimensionalCount || 0) - 1
+                          )
+                        "
+                      >
+                        -
+                      </button>
+                      <input
+                        v-model.number="supplementFormValues.storedDimensionalCount"
+                        type="number"
+                        min="0"
+                        class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
+                      />
+                      <button
+                        type="button"
+                        class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                        @click="
+                          supplementFormValues.storedDimensionalCount =
+                            (supplementFormValues.storedDimensionalCount || 0) + 1
+                        "
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- 🌟 底部结算实时显示：组内共享统计 -->
+                  <div
+                    class="pt-3 border-t border-slate-200/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
+                  >
+                    <span class="font-bold text-slate-500">
+                      当前角色本次增加:
+                      <strong class="text-amber-600"
+                        >+{{
+                          supplementFormValues.storedDimensionalCount || 0
+                        }}
+                        次</strong
+                      >
+                    </span>
+                    <span class="font-bold text-slate-500">
+                      该账号下次元袭击补充总计:
+                      <strong
+                        class="text-sm font-black"
+                        :class="
+                          totalGroupStoredDimensionalCount > 30
+                            ? 'text-rose-600'
+                            : 'text-amber-600'
+                        "
+                      >
+                        {{ totalGroupStoredDimensionalCount }}
                         / 30 次
                       </strong>
                     </span>

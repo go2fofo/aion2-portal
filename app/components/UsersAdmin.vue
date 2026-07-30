@@ -16,7 +16,7 @@ import {
 } from "~/utils/aionServers";
 import { formatCombatPower } from "~/utils/formatCombatPower";
 import GroupCharacterPanel from "./components/GroupCharacterPanel.vue";
-import cloneDeep from 'lodash/cloneDeep';
+import cloneDeep from "lodash/cloneDeep";
 const client = useSupabaseClient();
 const user = useSupabaseUser();
 
@@ -242,7 +242,7 @@ const characterValidationRules = [
   {
     field: "minigameCount",
     label: "小游戏挑战次数",
-    validate: (form) => (Number(form.dailyRuns) || 0) <= 14,
+    validate: (form) => (Number(form.minigameCount) || 0) <= 14,
     message: () => "小游戏挑战次数不能超过14次",
   },
 
@@ -266,6 +266,34 @@ const characterValidationRules = [
       return total <= 30;
     },
     message: () => "同组账号下小游戏存储补充次数总和不能超过30次",
+  },
+  // 次元袭击挑战次数校验（组内共用）
+  {
+    field: "dimensionalCount",
+    label: "次元袭击挑战次数",
+    validate: (form) => (Number(form.dimensionalCount) || 0) <= 14,
+    message: () => "次元袭击挑战次数不能超过14次",
+  },
+  // 次元袭击存储补充次数校验（组内共享上限 30）
+  {
+    field: "storedDimensionalCount",
+    label: "小游戏存储补充次数",
+    validate: (form, context = {}) => {
+      const currentGroupId = form?.group;
+      const allCharacters = context.allCharacters || [];
+      const currentFormId = form?.id;
+
+      // 计算同组其他角色的存储补充次数总和
+      const otherGroupSum = allCharacters
+        .filter((char) => char.group === currentGroupId && char.id !== currentFormId)
+        .reduce((sum, char) => sum + (Number(char.storedDimensionalCount) || 0), 0);
+
+      // 同组总和 + 当前表单填写的值
+      const total = otherGroupSum + (Number(form.storedDimensionalCount) || 0);
+
+      return total <= 30;
+    },
+    message: () => "同组账号下次元袭击存储补充次数总和不能超过30次",
   },
 ];
 
@@ -352,6 +380,7 @@ const openAddCharModal = () => {
     nightmareCount: 14, //噩梦
 
     minigameCount: 14, //古树庆典小游戏
+    dimensionalCount: 14, //次元袭击
 
     locked: true,
     sanctuary: {
@@ -1207,6 +1236,76 @@ const totalGroupStoredMinigameCount = computed(() => {
   return total;
 });
 
+// ==================== 次元袭击 组内共享配置与统计） ====================
+
+// 1. 判断当前分组内是否已经有其他角色配置过“次元袭击挑战次数”
+const hasGroupDimensionalCount = computed(() => {
+  const currentGroupId = newCharForm.value?.group;
+  if (!currentGroupId) return false;
+
+  const allCharacters = gameData.value?.characters || [];
+  const currentId = newCharForm.value?.characterId || newCharForm.value?.id;
+
+  // 检查同组内是否存在其他角色，其 dimensionalCount 不为 0 或已配置过
+  return allCharacters.some((char) => {
+    const charId = char.characterId || char.id;
+    const isSameGroup = char.group === currentGroupId;
+    const isNotSelf = currentId ? charId !== currentId : true;
+
+    // 如果同组其他角色的 dimensionalCount 大于 0，说明已经配置过了
+    return isSameGroup && isNotSelf && (Number(char.dimensionalCount) || 0) > 0;
+  });
+});
+
+// 2. 获取同组已配置好的“次元袭击挑战次数”数值（用于在页面中显示）
+const getGroupDimensionalCountValue = computed(() => {
+  const currentGroupId = newCharForm.value?.group;
+  if (!currentGroupId) return 0;
+
+  const allCharacters = gameData.value?.characters || [];
+
+  // 查找同组中第一个有配置挑战次数的角色
+  const matchedChar = allCharacters.find(
+    (char) => char.group === currentGroupId && (Number(char.dimensionalCount) || 0) > 0
+  );
+
+  return matchedChar ? Number(matchedChar.dimensionalCount) || 0 : 0;
+});
+
+// 3. 计算“次元袭击存储补充次数”的组内共享总和（包含当前表单实时输入的数值）
+const totalGroupStoredDimensionalCount = computed(() => {
+  const currentGroupId = newCharForm.value?.group;
+  const currentInputVal = Number(newCharForm.value?.storedDimensionalCount) || 0;
+
+  if (!currentGroupId) return currentInputVal;
+
+  const allCharacters = gameData.value?.characters || [];
+  const currentId = newCharForm.value?.characterId || newCharForm.value?.id;
+
+  let total = 0;
+  let hasFoundSelf = false;
+
+  // 遍历所有角色，同组的全员相加（当前角色的旧值用输入框的最新值代替）
+  allCharacters.forEach((char) => {
+    if (char.group === currentGroupId) {
+      const charId = char.characterId || char.id;
+      if (currentId && charId === currentId) {
+        hasFoundSelf = true;
+        total += currentInputVal;
+      } else {
+        total += Number(char.storedDimensionalCount) || 0;
+      }
+    }
+  });
+
+  // 如果当前角色不在列表里（是新创建的角色），加上输入框的值
+  if (!hasFoundSelf) {
+    total += currentInputVal;
+  }
+
+  return total;
+});
+
 //============================组角色卡片列表事件处理/开结束============================
 
 onMounted(async () => {
@@ -1249,6 +1348,10 @@ watch(
       //古树庆典小游戏组内（同一账号下不同角色共享道具）校验
       if (totalGroupStoredMinigameCount.value > 30) {
         overrideForm.storedMinigameCount = totalGroupStoredMinigameCount.value;
+      }
+      //次元袭击组内（同一账号下不同角色共享道具）校验
+      if (totalGroupStoredDimensionalCount.value > 30) {
+        overrideForm.storedDimensionalCount = totalGroupStoredDimensionalCount.value;
       }
 
       // 3. 统一将完整带覆盖值的表单和上下文传给验证函数
@@ -2518,6 +2621,149 @@ watch(
                       </div>
                     </div>
                   </div>
+                  <!-- 次元袭击卡片 -->
+                  <div
+                    class="p-6 bg-white border border-slate-200/80 rounded-3xl space-y-4 shadow-sm"
+                  >
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-3">
+                        <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
+                        <div
+                          class="text-sm font-black uppercase tracking-wider text-slate-700"
+                        >
+                          次元袭击 (组内共享挑战与补充)
+                        </div>
+                      </div>
+                      <span
+                        class="text-[10px] font-bold px-3 py-1 rounded-full"
+                        :class="
+                          hasGroupDimensionalCount
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-sky-50 text-[#45a6d5]'
+                        "
+                      >
+                        {{
+                          hasGroupDimensionalCount
+                            ? "同组已有角色配置过挑战次数 (当前角色已隐藏)"
+                            : "当前分组首次配置挑战次数"
+                        }}
+                      </span>
+                    </div>
+
+                    <p class="text-xs font-bold text-slate-400">
+                      同一分组账号下次元袭击挑战次数与存储补充次数均视为组内共用（挑战上限14，存储补充上限30）。
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                      <!-- 挑战次数卡片 -->
+                      <div
+                        v-if="!hasGroupDimensionalCount"
+                        class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                      >
+                        <div
+                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
+                        >
+                          <span>挑战次数 (组内共用 / 上限14)</span>
+                          <span class="text-xs font-black text-[#45a6d5]">
+                            {{ newCharForm.dimensionalCount || 0 }}
+                            / 14
+                          </span>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4">
+                          <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                              <label class="text-xs font-bold text-slate-500"
+                                >当前次数</label
+                              >
+                            </div>
+                            <input
+                              v-model.number="newCharForm.dimensionalCount"
+                              type="number"
+                              max="14"
+                              min="0"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              :class="
+                                validationResult.invalidFields.includes(
+                                  'dimensionalCount'
+                                )
+                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                                  : 'border-slate-200/80 focus:border-[#45a6d5]'
+                              "
+                            />
+                            <span
+                              v-if="validationResult.errors.dimensionalCount"
+                              class="text-[10px] text-red-500 font-bold mt-1 block"
+                            >
+                              {{ validationResult.errors.dimensionalCount }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- 同组已配置占位 -->
+                      <div
+                        v-else
+                        class="p-4 bg-amber-50/50 border border-amber-200/60 rounded-2xl flex flex-col justify-center space-y-2"
+                      >
+                        <div class="text-xs font-bold text-amber-800">
+                          挑战次数已由同组角色共享设定
+                        </div>
+                        <div class="text-xs font-medium text-amber-600">
+                          当前分组共享挑战次数为：<span class="font-black text-amber-700"
+                            >{{ getGroupDimensionalCountValue }} / 14</span
+                          >。当前角色无需重复配置。
+                        </div>
+                      </div>
+
+                      <!-- 存储补充次数卡片 (组内共享计算) -->
+                      <div
+                        class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                      >
+                        <div
+                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
+                        >
+                          <span>存储补充次数 (组内共用 / 上限30)</span>
+                          <span class="text-xs font-black text-amber-600">
+                            {{ totalGroupStoredDimensionalCount }}
+                            / 30
+                          </span>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4">
+                          <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                              <label class="text-xs font-bold text-slate-500"
+                                >存储次数</label
+                              >
+                              <span class="text-[10px] font-black text-amber-600">
+                                组内剩余可补充:
+                                {{ Math.max(0, 30 - totalGroupStoredDimensionalCount) }}
+                              </span>
+                            </div>
+                            <input
+                              v-model.number="newCharForm.storedDimensionalCount"
+                              type="number"
+                              max="30"
+                              min="0"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              :class="
+                                validationResult.invalidFields.includes(
+                                  'storedDimensionalCount'
+                                )
+                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                                  : 'border-slate-200/80 focus:border-[#45a6d5]'
+                              "
+                            />
+                            <span
+                              v-if="validationResult.errors.storedDimensionalCount"
+                              class="text-[10px] text-red-500 font-bold mt-1 block"
+                            >
+                              {{ validationResult.errors.storedDimensionalCount }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <!-- 圣域系列次数分组 -->
                   <div
                     class="p-5 bg-emerald-50/40 border border-emerald-100/80 rounded-2xl space-y-3"
@@ -2653,8 +2899,9 @@ watch(
               <button
                 v-if="newCharForm.characterId"
                 @click="handleSaveCharacter"
+                
                 :disabled="saving || !validationResult.isValid"
-                class="px-8 py-3 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-all shadow-md shadow-sky-500/25"
+              class="px-8 py-3 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-all shadow-md shadow-sky-500/25 disabled:opacity-50"
               >
                 {{ saving ? "保存中..." : "确认添加角色" }}
               </button>
