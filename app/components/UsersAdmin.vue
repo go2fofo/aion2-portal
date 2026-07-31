@@ -183,9 +183,9 @@ const characterValidationRules = [
     label: "圣域副本 s1",
     validate: (form) => {
       const s1 = form.sanctuary?.s1 ?? 0;
-      return Number(s1) <= 1;
+      return Number(s1) <= 10;
     },
-    message: () => "圣域 s1 次数不能超过1次",
+    message: () => "圣域 s1 次数不能超过10次",
   },
   // 8. 圣域副本 s2
   {
@@ -193,9 +193,9 @@ const characterValidationRules = [
     label: "圣域副本 s2",
     validate: (form) => {
       const s2 = form.sanctuary?.s2 ?? 0;
-      return Number(s2) <= 1;
+      return Number(s2) <= 10;
     },
-    message: () => "圣域 s2 次数不能超过1次",
+    message: () => "圣域 s2 次数不能超过10次",
   },
   // 9. 圣域副本 s3
   {
@@ -203,9 +203,9 @@ const characterValidationRules = [
     label: "圣域副本 s3",
     validate: (form) => {
       const s3 = form.sanctuary?.s3 ?? 0;
-      return Number(s3) <= 1;
+      return Number(s3) <= 10;
     },
-    message: () => "圣域 s3 次数不能超过1次",
+    message: () => "圣域 s3 次数不能超过10次",
   },
   // 10. 特级会员剩余天数（前置条件：开启了特级会员 且 非同组共享）
   {
@@ -295,6 +295,13 @@ const characterValidationRules = [
     },
     message: () => "同组账号下次元袭击存储补充次数总和不能超过30次",
   },
+  //  战场 (battlefield)
+  {
+    field: "battlefield",
+    label: "战场次数",
+    validate: (form) => (Number(form.battlefield) || 0) <= 3,
+    message: () => "战场次数不能超过3次",
+  },
 ];
 
 // 新增角色的表单数据一角色的默认数据
@@ -381,6 +388,8 @@ const openAddCharModal = () => {
 
     minigameCount: 14, //古树庆典小游戏
     dimensionalCount: 14, //次元袭击
+
+    battlefield: 3, //战场
 
     locked: true,
     sanctuary: {
@@ -888,6 +897,11 @@ const handleSaveCharacter = async () => {
     storedAwakening: 0,
     /** 觉醒战最后更新时间 */
     lastAwakeningUpdate: nowIso,
+
+    /** 战场玩法的次数 */
+    battlefield: 0,
+    /** 补充次元袭击次数最后更新时间 */
+    battlefieldDate: nowIso,
 
     // 圣域、小游戏及日常状态
     sanctuary: { s1: 1, s2: 1, s3: 1 },
@@ -2105,7 +2119,65 @@ watch(
                       次数进度配置
                     </div>
                   </div>
+                  <!-- 战场卡片 -->
+                  <div
+                    class="p-6 bg-white border border-slate-200/80 rounded-3xl space-y-4 shadow-sm"
+                  >
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-3">
+                        <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
+                        <div
+                          class="text-sm font-black uppercase tracking-wider text-slate-700"
+                        >
+                          战场 (角色独立配置)
+                        </div>
+                      </div>
+                    </div>
 
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                      <!-- 挑战次数卡片 -->
+                      <div
+                        class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                      >
+                        <div
+                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
+                        >
+                          <span>挑战次数 (角色独立 / 上限3)</span>
+                          <span class="text-xs font-black text-[#45a6d5]">
+                            {{ newCharForm.battlefield || 0 }}
+                            / 3
+                          </span>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4">
+                          <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                              <label class="text-xs font-bold text-slate-500"
+                                >当前次数</label
+                              >
+                            </div>
+                            <input
+                              v-model.number="newCharForm.battlefield"
+                              type="number"
+                              max="14"
+                              min="0"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              :class="
+                                validationResult.invalidFields.includes('battlefield')
+                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                                  : 'border-slate-200/80 focus:border-[#45a6d5]'
+                              "
+                            />
+                            <span
+                              v-if="validationResult.errors.battlefield"
+                              class="text-[10px] text-red-500 font-bold mt-1 block"
+                            >
+                              {{ validationResult.errors.battlefield }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <!-- 噩梦副本卡片 -->
                   <div
                     class="p-6 bg-white border border-slate-200/80 rounded-3xl space-y-4 shadow-sm"
@@ -2771,7 +2843,7 @@ watch(
                     <div
                       class="text-[11px] font-extrabold text-emerald-600 uppercase tracking-wider"
                     >
-                      圣域副本次数 (每项上限1次)
+                      圣域副本次数 (每项上限10次)
                     </div>
                     <div class="grid grid-cols-3 gap-4">
                       <!-- S1 -->
@@ -2899,9 +2971,8 @@ watch(
               <button
                 v-if="newCharForm.characterId"
                 @click="handleSaveCharacter"
-                
                 :disabled="saving || !validationResult.isValid"
-              class="px-8 py-3 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-all shadow-md shadow-sky-500/25 disabled:opacity-50"
+                class="px-8 py-3 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-all shadow-md shadow-sky-500/25 disabled:opacity-50"
               >
                 {{ saving ? "保存中..." : "确认添加角色" }}
               </button>

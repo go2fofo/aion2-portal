@@ -714,8 +714,18 @@ const handleClickGameplay = (char) => {
   //清空重置默认字段
   //补充奥德
   supplementFormValues.value = {
-    bigOdCount: 0,
-    smallOdCount: 0,
+    bigOdCount: 0, //大奥德数量
+    smallOdCount: 0, //小奥德数量
+    // 每日副本补充
+    storedDailyRuns: 0,
+    //噩梦补充
+    storedNightmareCount: 0,
+    //觉醒战补充
+    storedAwakening: 0,
+    // 古树庆典小游戏补充次数
+    storedMinigameCount: 0,
+    //次元袭击补充次数
+    storedDimensionalCount: 0,
   };
 };
 
@@ -763,6 +773,52 @@ const supplementFormValues = ref({
   //次元袭击补充次数
   storedDimensionalCount: 0,
 });
+// 游玩补充概览卡片配置数据
+const summaryItems = [
+  {
+    key: "energy",
+    label: "奥德能量",
+    getValue: (form) => form?.energy || 0,
+    getStoredValue: () => gameplayCharForm.value?.storedEnergy || 0,
+    colorClass: "text-amber-600",
+    limit: energyLimit.value, // 如果 energyLimit 是响应式变量
+  },
+  {
+    key: "dailyRuns",
+    label: "每日副本", // (若原先写错成噩梦副本，此处已修正为每日副本)
+    getValue: (form) => form?.dailyRuns || 0,
+    getStoredValue: () => totalGroupStoredDailyRuns.value || 0,
+    colorClass: "text-purple-600",
+  },
+  {
+    key: "nightmare",
+    label: "噩梦副本",
+    getValue: (form) => form?.nightmareCount || 0,
+    getStoredValue: () => gameplayCharForm.value?.storedNightmareCount || 0,
+    colorClass: "text-purple-600",
+  },
+  {
+    key: "awakening",
+    label: "觉醒战",
+    getValue: (form) => form?.awakening || 0,
+    getStoredValue: () => gameplayCharForm.value?.storedAwakening || 0,
+    colorClass: "text-emerald-600",
+  },
+  {
+    key: "minigame",
+    label: "古树庆典小游戏",
+    getValue: (form) => totalGroupStoredMinigameCount.value || 0,
+    getStoredValue: () => totalGroupStoredMinigameCount.value || 0,
+    colorClass: "text-amber-600",
+  },
+  {
+    key: "dimensional",
+    label: "次元袭击",
+    getValue: (form) => totalGroupStoredDimensionalCount.value || 0,
+    getStoredValue: () => totalGroupStoredDimensionalCount.value || 0,
+    colorClass: "text-sky-600",
+  },
+];
 
 // 计算大奥德提供的总点数 (每个40点)
 const bigOdTotalPoints = computed(() => {
@@ -850,7 +906,7 @@ const totalGroupStoredDimensionalCount = computed(() => {
   // 加上当前表单里输入的数值
   let totalGroupStoredDimensionalCountNum =
     otherCharactersSum +
-    (Number(supplementFormValues.value?.storedDimensionalCount) || 0);
+    (Number(supplementFormValues.value?.storedDimensionalCount || 0) || 0);
 
   return totalGroupStoredDimensionalCountNum;
 });
@@ -866,10 +922,10 @@ const totalsToredNightmareCountRuns = computed(() => {
 });
 // 觉醒战补充次数：角色统计
 const totalStoredAwakeningRuns = computed(() => {
-  const otherSum = gameplayCharForm.value?.storedAwakening;
+  const otherSum = gameplayCharForm.value?.storedAwakening || 0;
   // 加上当前表单里输入的数值
   let totalstoredAwakeningCountNum =
-    otherSum + (Number(supplementFormValues.value?.storedAwakening) || 0);
+    otherSum + (Number(supplementFormValues.value?.storedAwakening || 0) || 0);
 
   return totalstoredAwakeningCountNum;
 });
@@ -1549,6 +1605,10 @@ watch(
     }
   }
 );
+// 判断补充表单内是否有任意一个值大于 0
+const hasSupplementValues = computed(() => {
+  return Object.values(supplementFormValues.value).some((val) => Number(val) > 0);
+});
 </script>
 
 <template>
@@ -1922,7 +1982,7 @@ watch(
               >
                 <button
                   type="button"
-                  class="flex-1 px-4 py-2 rounded-xl text-xs font-black transition-all shadow-2xs"
+                  class="flex-1 px-2 py-2 rounded-xl text-xs font-black transition-all shadow-2xs whitespace-nowrap"
                   :class="
                     activeTab === 'consume'
                       ? 'bg-[#45a6d5] text-white shadow-md shadow-[#45a6d5]/30'
@@ -1934,7 +1994,7 @@ watch(
                 </button>
                 <button
                   type="button"
-                  class="flex-1 px-4 py-2 rounded-xl text-xs font-black transition-all shadow-2xs"
+                  class="flex-1 px-2 py-2 rounded-xl text-xs font-black transition-all shadow-2xs whitespace-nowrap"
                   :class="
                     activeTab === 'supplement'
                       ? 'bg-[#45a6d5] text-white shadow-md shadow-[#45a6d5]/30'
@@ -1943,6 +2003,18 @@ watch(
                   @click="activeTab = 'supplement'"
                 >
                   游玩补充
+                </button>
+                <button
+                  type="button"
+                  class="flex-1 px-2 py-2 rounded-xl text-xs font-black transition-all shadow-2xs whitespace-nowrap"
+                  :class="
+                    activeTab === 'weeklydaily'
+                      ? 'bg-[#45a6d5] text-white shadow-md shadow-[#45a6d5]/30'
+                      : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'
+                  "
+                  @click="activeTab = 'weeklydaily'"
+                >
+                  日常/周常
                 </button>
               </div>
             </div>
@@ -1953,9 +2025,9 @@ watch(
               关闭
             </button>
           </div>
-          <!-- 卡片：以奥德为核心的极简状态栏 -->
+          <!-- 卡片：consume -->
           <div
-            v-if="gameplayCharForm?.characterId"
+            v-if="gameplayCharForm?.characterId && activeTab == 'consume'"
             class="bg-gradient-to-r from-sky-50 via-white to-sky-50/60 border border-sky-200/80 px-4 py-3 flex items-center justify-between flex-wrap gap-4 shadow-2xs"
           >
             <!-- 左侧：角色基础身份（小号紧凑显示，不抢戏） -->
@@ -2015,6 +2087,48 @@ watch(
               </div>
             </div>
           </div>
+          <!-- 卡片：supplement (精简重构版) -->
+          <div
+            v-if="gameplayCharForm?.characterId && activeTab === 'supplement'"
+            class="bg-gradient-to-r from-sky-50 via-white to-sky-50/60 border border-sky-200/80 px-4 py-3.5 shadow-2xs space-y-3"
+          >
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+              <div
+                v-for="item in summaryItems"
+                :key="item.key"
+                class="flex flex-col bg-white border border-sky-100/80 p-2.5 rounded-xl shadow-2xs transition-all hover:border-sky-300"
+              >
+                <!-- 标题 -->
+                <span class="text-[10px] font-bold text-slate-400 mb-1">{{
+                  item.label
+                }}</span>
+
+                <!-- 数值区 -->
+                <div class="flex items-baseline gap-1 text-xs">
+                  <!-- 基础值 -->
+                  <span class="font-black text-slate-800">
+                    {{ item.getValue(gameplayCharForm) }}
+                  </span>
+
+                  <!-- 补充值 -->
+                  <span :class="['font-black', item.colorClass]">
+                    +{{ item.getStoredValue() }}
+                  </span>
+
+                  <!-- 额度上限（如果有） -->
+                  <span v-if="item.limit" class="text-[10px] text-slate-400 font-medium">
+                    /{{ item.limit }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 卡片：weeklydaily -->
+          <div
+            v-if="gameplayCharForm?.characterId && activeTab == 'weeklydaily'"
+            class="bg-gradient-to-r from-sky-50 via-white to-sky-50/60 border border-sky-200/80 px-4 py-3 flex items-center justify-between flex-wrap gap-4 shadow-2xs"
+          ></div>
+
           <!-- 弹窗表单主体 (卡片式布局) -->
           <div class="p-8 space-y-6 overflow-y-auto custom-scroll flex-1 bg-slate-50/50">
             <!-- 第一个分组：消耗奥德分组内容 -->
@@ -2381,19 +2495,19 @@ watch(
                   <div class="flex items-center gap-3">
                     <div class="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
                     <div
-                      class="text-sm font-black uppercase tracking-wider text-slate-700"
+                      class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
                     >
                       奥德存储补充
                       <span
                         class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
                         :class="{
                           'bg-[#45a6d5]/10 text-[#45a6d5]':
-                            30 - totalGroupStoredDailyRuns > 5,
+                            2000 - totalsStoredEnergyCount > 200,
                           'bg-amber-500/10 text-amber-600':
-                            30 - totalGroupStoredDailyRuns <= 5 &&
-                            30 - totalGroupStoredDailyRuns > 0,
+                            2000 - totalsStoredEnergyCount <= 200 &&
+                            2000 - totalsStoredEnergyCount > 0,
                           'bg-rose-500/10 text-rose-600 animate-pulse':
-                            30 - totalGroupStoredDailyRuns <= 0,
+                            2000 - totalsStoredEnergyCount <= 0,
                         }"
                       >
                         {{
@@ -3232,16 +3346,16 @@ watch(
               </span>
             </button>
 
-            <!-- 确认补充按钮 (仅在 supplement 标签页且已选角色时显示) -->
             <button
               type="button"
               v-if="gameplayCharForm?.characterId && activeTab === 'supplement'"
               @click="handleExecuteSupplement"
-              :disabled="saving || !validationResult.isValid"
-              class="px-8 py-3 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-all shadow-md shadow-sky-500/25 disabled:opacity-50"
+              :disabled="saving || !validationResult.isValid || !hasSupplementValues"
+              class="px-8 py-3 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-all shadow-md shadow-sky-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ saving ? "补充中..." : "确认补充" }}
-              <!-- {{validationResult}} -->
+              {{
+                saving ? "补充中..." : !hasSupplementValues ? "请填写补充" : "确认补充"
+              }}
             </button>
           </div>
         </div>
