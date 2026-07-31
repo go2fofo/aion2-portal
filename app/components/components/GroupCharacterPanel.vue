@@ -1,6 +1,7 @@
 <script setup>
 import { computed, watch } from "vue";
 import { formatCombatPower } from "~/utils/formatCombatPower";
+import CharacterCard from "./CharacterCard.vue";
 // 远征副本，超越副本，圣域副本获得吉纳数和消耗奥德能量（基础单倍版）
 const KinahOdSate = {
   // 远征副本
@@ -600,7 +601,18 @@ const props = defineProps({
     required: true,
   },
 });
-
+// 配置对象
+const cardConfig = reactive({
+  columns: 3, // 可选: 1, 2, 3, 4 列布局
+  mode: "default", // 可选: 'default'(标准模式) | 'simple'(精简模式) | 'custom'(自定义模式)
+  customFields: {
+    showCombatPower: true,
+    showDungeons: true,
+    showEnergy: true,
+    showTasks: false, // 自定义模式下隐藏任务按钮
+    showNotes: true,
+  },
+});
 const emit = defineEmits([
   "update-character",
   "delete-character",
@@ -1372,24 +1384,33 @@ const handleExecuteConsume = async () => {
     runLogs: charLogs,
   };
 
-  // 更新本地表单状态
-  gameplayCharForm.value = updatedCharacter;
+  try {
+    await $confirm?.(`确定要消耗${calculatedEnergyCost?.value || 0}点奥德吗？`, "提示", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
+    });
+    // 更新本地表单状态
+    gameplayCharForm.value = updatedCharacter;
 
-  console.log(
-    `🔍 [GroupCharacterPanel] %c 消耗奥德与各副本类型收益计算更新: `,
-    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-    {
-      dungeonType,
-      currentDecayRate,
-      totalKinaThisTime,
-      updatedCharacter,
-      newGroups,
-    }
-  );
+    console.log(
+      `🔍 [GroupCharacterPanel] %c 消耗奥德与各副本类型收益计算更新: `,
+      "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+      {
+        dungeonType,
+        currentDecayRate,
+        totalKinaThisTime,
+        updatedCharacter,
+        newGroups,
+      }
+    );
 
-  // 触发父组件更新事件
-  emit("update-character", updatedCharacter);
-  emit("update-groups", newGroups);
+    // 触发父组件更新事件
+    emit("update-character", updatedCharacter);
+    emit("update-groups", newGroups);
+  } catch (error) {
+    //取消
+  }
 };
 // 过滤后的具体副本列表（若圣域对应的 s1/s2/s3 次数用尽则自动隐藏该项）
 const filteredDungeonList = computed(() => {
@@ -1631,318 +1652,19 @@ const hasSupplementValues = computed(() => {
     </div> -->
 
     <!-- 角色卡片列表网格 -->
-    <div
+
+    <CharacterCard
       v-if="filteredCharacters.length > 0"
-      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
-    >
-      <div
-        v-for="char in filteredCharacters"
-        :key="char.characterId || char.id"
-        class="relative bg-white border border-slate-200/80 p-5 rounded-3xl shadow-sm space-y-4 border-[#45a6d5] transition-all flex flex-col overflow-hidden"
-        :class="char.locked ? 'opacity-95 bg-slate-50/50' : ''"
-      >
-        <!-- 右上角“游玩消耗”精致角标按钮 -->
-        <button
-          type="button"
-          class="absolute top-0 right-0 px-3.5 py-1.5 bg-gradient-to-l from-purple-500 to-indigo-500 text-white font-black text-[12px] rounded-bl-2xl shadow-sm hover:from-purple-600 hover:to-indigo-600 transition-all tracking-wider z-10"
-          @click="handleClickGameplay(char)"
-        >
-          点击进行游玩消耗/补充
-        </button>
-
-        <!-- 顶部标题栏 -->
-        <div
-          class="flex items-center justify-between border-b border-slate-100 pb-3 pr-16"
-        >
-          <div class="flex items-center gap-3">
-            <button
-              type="button"
-              class="w-8 h-8 rounded-xl flex items-center justify-center border text-xs font-bold transition-all shadow-sm"
-              :class="
-                char.locked
-                  ? 'bg-amber-50 text-amber-600 border-amber-200'
-                  : 'bg-slate-100 text-slate-600 border-slate-200'
-              "
-              @click="emit('toggle-lock', char)"
-              :title="
-                char.locked
-                  ? '已锁定（点击解锁以允许删除）'
-                  : '未锁定（点击锁定以防止误删）'
-              "
-            >
-              {{ char.locked ? "🔒" : "🔓" }}
-            </button>
-            <div
-              class="w-10 h-10 rounded-2xl bg-sky-50 text-[#45a6d5] font-black flex items-center justify-center border border-sky-100 shadow-sm overflow-hidden"
-            >
-              <img
-                v-if="char.profileImage"
-                :src="char.profileImage"
-                alt="avatar"
-                class="w-full h-full object-cover"
-              />
-              <span v-else>{{
-                char.characterName ? char.characterName.charAt(0) : "角"
-              }}</span>
-            </div>
-            <div>
-              <div class="text-sm font-black text-slate-800 flex items-center gap-2">
-                <span>{{ char.characterName || "未命名角色" }}</span>
-                <span
-                  class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600"
-                >
-                  {{ char.className || "选择职业" }}
-                </span>
-              </div>
-              <div
-                class="text-[10px] font-bold text-slate-400 mt-0.5 flex items-center gap-2"
-              >
-                <span>等级: {{ char.characterLevel || 1 }}</span>
-                <span>{{ char.raceName || "未知种族" }}</span>
-                <span>{{ char.serverName || "未知服务器" }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 基础数值指标卡片区（装等与战斗力） -->
-        <div class="grid grid-cols-2 gap-3">
-          <div
-            class="bg-white/80 p-3 rounded-2xl border-2 border-yellow-100 shadow-sm flex flex-col justify-between space-y-1"
-          >
-            <div class="text-[10px] text-slate-400 font-black uppercase leading-none">
-              装等
-            </div>
-            <div class="text-yellow-600 font-black text-xs">
-              {{ char.itemLevel || char.equipmentScore || "N/A" }}
-            </div>
-          </div>
-
-          <div
-            class="bg-white/80 p-3 rounded-2xl border-2 border-emerald-100 shadow-sm flex flex-col justify-between space-y-1"
-          >
-            <div class="text-[10px] text-slate-400 font-black uppercase leading-none">
-              战斗力
-            </div>
-            <div class="text-emerald-700 font-black text-xs">
-              {{ formatCombatPower(char.combatPower) }}
-            </div>
-          </div>
-        </div>
-
-        <!-- 副本及核心进度区 -->
-        <div class="grid grid-cols-2 gap-2 text-xs">
-          <div
-            class="p-3 bg-slate-50/70 border border-slate-200/60 rounded-2xl space-y-2 flex flex-col justify-between"
-          >
-            <div
-              class="flex items-center justify-between text-[11px] font-bold text-slate-500"
-            >
-              <span>远征副本</span>
-              <span class="font-black text-[#45a6d5]"
-                >{{ char.dailyRuns || 0 }} / 14</span
-              >
-            </div>
-            <div
-              class="flex items-center justify-between text-[11px] font-bold text-slate-500"
-            >
-              <span>存储补充</span>
-              <span class="font-black text-amber-600"
-                >{{ char.storedDailyRuns || 0 }} / 30</span
-              >
-            </div>
-          </div>
-
-          <div
-            class="p-3 bg-slate-50/70 border border-slate-200/60 rounded-2xl space-y-2 flex flex-col justify-between"
-          >
-            <div
-              class="flex items-center justify-between text-[11px] font-bold text-slate-500"
-            >
-              <span>超越副本</span>
-              <span class="font-black text-purple-600"
-                >{{ char.transcendRuns || 0 }} / 14</span
-              >
-            </div>
-            <div
-              class="flex items-center justify-between text-[11px] font-bold text-slate-500"
-            >
-              <span>存储补充</span>
-              <span class="font-black text-amber-600">{{
-                char.storedTranscendRuns || 0
-              }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 奥德能量进度（基础 + 存储复合展示） -->
-        <div
-          class="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl space-y-3 shadow-sm"
-        >
-          <!-- 头部文本与数值 -->
-          <div class="flex items-center justify-between text-xs">
-            <span class="font-black text-slate-700 flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-[#45a6d5]"></span>
-              奥德能量
-            </span>
-            <div class="flex items-center gap-1.5 font-black text-xs">
-              <span class="text-[#45a6d5]" title="基础奥德">{{ char.energy || 0 }}</span>
-              （
-              <span class="text-slate-300">+</span>
-              <span class="text-amber-600" title="存储奥德">{{
-                char.storedEnergy || 0
-              }}</span>
-              ）
-              <span class="text-slate-400 font-medium"
-                >/ {{ char.premiumMember ? 840 : 560 }}</span
-              >
-            </div>
-          </div>
-
-          <!-- 双色复合进度条 -->
-          <div
-            class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden flex p-0.5 bg-slate-100 border border-slate-200/60"
-          >
-            <!-- 基础奥德进度段 -->
-            <div
-              class="bg-[#45a6d5] h-full rounded-l-full transition-all duration-500 relative"
-              :style="{
-                width: `${Math.min(
-                  100,
-                  Math.max(
-                    0,
-                    ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100
-                  )
-                )}%`,
-              }"
-              title="基础奥德"
-            ></div>
-            <!-- 存储奥德叠加段 -->
-            <div
-              class="bg-amber-500 h-full rounded-r-full transition-all duration-500 relative opacity-90"
-              :style="{
-                width: `${Math.min(
-                  100 -
-                    Math.min(
-                      100,
-                      ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100
-                    ),
-                  ((char.storedEnergy || 0) / (char.premiumMember ? 840 : 560)) * 100
-                )}%`,
-              }"
-              title="存储奥德"
-            ></div>
-          </div>
-
-          <!-- 底部小标签提示 -->
-          <div
-            class="flex items-center justify-between text-[10px] font-bold text-slate-400 pt-0.5"
-          >
-            <span class="flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-[#45a6d5]"></span>
-              基础
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 ml-1"></span>
-              存储
-            </span>
-            <span
-              >总计:
-              <strong class="text-slate-700">{{
-                (char.energy || 0) + (char.storedEnergy || 0)
-              }}</strong>
-              点</span
-            >
-          </div>
-        </div>
-
-        <!-- 任务状态按钮组 -->
-        <div class="grid grid-cols-4 gap-2 pt-1">
-          <button
-            type="button"
-            class="px-2 py-1.5 rounded-xl text-[11px] font-black border transition-all shadow-sm"
-            :class="
-              char.dailyMission
-                ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                : 'bg-slate-50 text-slate-400 border-slate-200'
-            "
-            @click="handleToggleTask(char, 'dailyMission')"
-          >
-            日常任务
-          </button>
-          <button
-            type="button"
-            class="px-2 py-1.5 rounded-xl text-[11px] font-black border transition-all shadow-sm"
-            :class="
-              char.dailySignIn
-                ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                : 'bg-slate-50 text-slate-400 border-slate-200'
-            "
-            @click="handleToggleTask(char, 'dailySignIn')"
-          >
-            每日签到
-          </button>
-          <button
-            type="button"
-            class="px-2 py-1.5 rounded-xl text-[11px] font-black border transition-all shadow-sm"
-            :class="
-              char.awakening
-                ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                : 'bg-slate-50 text-slate-400 border-slate-200'
-            "
-            @click="handleToggleTask(char, 'awakening')"
-          >
-            觉醒之战
-          </button>
-          <button
-            type="button"
-            class="px-2 py-1.5 rounded-xl text-[11px] font-black border transition-all shadow-sm"
-            :class="
-              char.weeklyEnergyPurchased
-                ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                : 'bg-slate-50 text-slate-400 border-slate-200'
-            "
-            @click="handleToggleTask(char, 'weeklyEnergyPurchased')"
-          >
-            能量兑换
-          </button>
-        </div>
-
-        <!-- 备注输入框 -->
-        <div>
-          <textarea
-            :value="char.note || ''"
-            :disabled="char.locked"
-            placeholder="点击添加备注信息..."
-            rows="2"
-            @change="(e) => handleTextChange(char, 'note', e.target.value)"
-            class="w-full bg-slate-50/70 border border-slate-200/60 p-2.5 rounded-2xl text-xs font-bold text-slate-700 outline-none focus:border-[#45a6d5] resize-none disabled:bg-slate-100"
-          ></textarea>
-        </div>
-
-        <!-- 底部操作与元信息标签 -->
-        <div
-          class="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] font-bold text-slate-400"
-        >
-          <span>分组: {{ getGroupName(char.group) }}</span>
-
-          <div class="flex items-center gap-2">
-            <button
-              type="button"
-              class="px-3 py-1 rounded-xl transition-all font-black text-[10px]"
-              :class="
-                char.locked
-                  ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
-                  : 'bg-red-50 text-red-600 hover:bg-red-100'
-              "
-              :disabled="char.locked"
-              @click="handleDelete(char)"
-              :title="char.locked ? '角色已锁定，无法删除（需先解锁）' : '删除角色'"
-            >
-              删除
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+      :characters="filteredCharacters"
+      :config="cardConfig"
+      :get-group-name="getGroupName"
+      :format-combat-power="formatCombatPower"
+      @click-gameplay="handleClickGameplay"
+      @toggle-lock="handleToggleLock"
+      @toggle-task="handleToggleTask"
+      @text-change="handleTextChange"
+      @delete="handleDelete"
+    />
 
     <!-- 空状态展示 -->
     <div
