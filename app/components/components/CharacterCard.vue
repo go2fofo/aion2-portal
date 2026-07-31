@@ -107,22 +107,6 @@ const getGroupDecayInfo = (groupId, type) => {
 
   const rules = dungeonDecayRules[type] || [];
 
-  console.log(
-    `🔍 [CharacterCard:110] %c type: `,
-    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-    type
-  );
-  console.log(
-    `🔍 [CharacterCard:110] %c rules: `,
-    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-    rules
-  );
-  console.log(
-    `🔍 [CharacterCard:110] %c totalRuns: `,
-    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-    totalRuns
-  );
-
   let rateLabel = "基纳获得量 20%";
   for (const rule of rules) {
     if (totalRuns <= rule.maxCount) {
@@ -177,6 +161,34 @@ const getSanctuaryStatus = (char, bossKey) => {
   };
 };
 //================ 远征副本剩余卡片 结束 =====================');
+//================ 周常/日常 开始================
+/**
+ * 获取当前角色所在组的共享玩法数据（因为同组共享、同加同减，只需获取组内任一角色的数据即可）
+ * @param {number} groupId 角色所属的分组 ID
+ * @param {string} metricKey 字段名 ('dailyRuns', 'minigameCount', 'dimensionalCount' 等)
+ * @param {string} storedKey 存储字段名 ('storedDailyRuns', 'storedMinigameCount', 'storedDimensionalCount' 等)
+ * @param {number} maxLimit 最大上限 (默认 14)
+ */
+const getGroupSharedTaskData = (groupId, metricKey, storedKey, maxLimit = 14) => {
+  const defaultResult = { current: 0, stored: 0, max: maxLimit };
+
+  // 获取当前组的所有角色
+  const groupCharacters = props.gameData?.characters?.filter((f) => f.group === groupId);
+
+  if (!groupCharacters || groupCharacters.length === 0) {
+    return defaultResult;
+  }
+
+  // 因为是“一体的（同加同减）”，取组内的第一个角色（或者直接用当前传进来的 char）的数据即可
+  const targetChar = groupCharacters[0];
+
+  return {
+    current: Number(targetChar[metricKey]) || 0,
+    stored: Number(targetChar[storedKey]) || 0,
+    max: maxLimit
+  };
+};
+//================ 周常/日常 结束 =====================
 </script>
 
 <template>
@@ -482,61 +494,86 @@ const getSanctuaryStatus = (char, bossKey) => {
           </span>
         </div>
       </div>
+<!-- ================= 共享玩法统一样式区（同一行：每日副本、古树庆典、次元袭击） ================= -->
+<div
+  v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showTasks)"
+  class="grid grid-cols-3 gap-2 pt-1"
+>
+  <!-- 1. 每日副本 (服务器共享，周三5点，固定14次+存储上限) -->
+  <button
+    type="button"
+    class="p-2 bg-slate-50/80 border border-slate-200/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 text-left shadow-sm group"
+    @click="emit('task-click', char, 'dailyRuns', true)"
+  >
+    <div class="w-full flex items-center justify-between">
+      <span class="font-bold text-slate-700 text-[10px] truncate">每日副本</span>
+      <span class="text-[8px] text-cyan-600 bg-cyan-50 px-1 rounded border border-cyan-100">共享</span>
+    </div>
+    <div class="w-full flex items-center justify-between text-[11px] font-black">
+      <span class="text-cyan-600 tracking-tight">
+        <!-- 基础当前次数 -->
+        {{ getGroupSharedTaskData(char.group, 'dailyRuns', 'storedDailyRuns', 14).current }}
+        <!-- 组内存储补充数（例如：(+3)） -->
+        <span 
+          v-if="getGroupSharedTaskData(char.group, 'dailyRuns', 'storedDailyRuns', 14).stored > 0" 
+          class="text-amber-600 font-bold"
+        >
+          （+{{ getGroupSharedTaskData(char.group, 'dailyRuns', 'storedDailyRuns', 14).stored }}）
+        </span>
+        <!-- 上限 -->
+        <span class="text-slate-300 font-normal">/14</span>
+      </span>
+    </div>
+  </button>
 
-      <!-- ================= 模式四：任务状态按钮组 ================= -->
-      <div
-        v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showTasks)"
-        class="grid grid-cols-4 gap-2 pt-1"
-      >
-        <button
-          type="button"
-          class="px-2 py-1.5 rounded-xl text-[11px] font-black border transition-all shadow-sm"
-          :class="
-            char.dailyMission
-              ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-              : 'bg-slate-50 text-slate-400 border-slate-200'
-          "
-          @click="emit('toggle-task', char, 'dailyMission')"
+  <!-- 2. 古树庆典 (服务器共享，每天5点恢复2次，上限14) -->
+  <button
+    type="button"
+    class="p-2 bg-slate-50/80 border border-slate-200/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 text-left shadow-sm group"
+    @click="emit('task-click', char, 'minigameCount', true)"
+  >
+    <div class="w-full flex items-center justify-between">
+      <span class="font-bold text-slate-700 text-[10px] truncate">古树庆典</span>
+      <span class="text-[8px] text-amber-600 bg-amber-50 px-1 rounded border border-amber-100">共享</span>
+    </div>
+    <div class="w-full flex items-center justify-between text-[11px] font-black">
+      <span class="text-amber-600 tracking-tight">
+        {{ getGroupSharedTaskData(char.group, 'minigameCount', 'storedMinigameCount', 14).current }}
+        <span 
+          v-if="getGroupSharedTaskData(char.group, 'minigameCount', 'storedMinigameCount', 14).stored > 0" 
+          class="text-amber-500 font-bold"
         >
-          日常任务
-        </button>
-        <button
-          type="button"
-          class="px-2 py-1.5 rounded-xl text-[11px] font-black border transition-all shadow-sm"
-          :class="
-            char.dailySignIn
-              ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-              : 'bg-slate-50 text-slate-400 border-slate-200'
-          "
-          @click="emit('toggle-task', char, 'dailySignIn')"
+          （+{{ getGroupSharedTaskData(char.group, 'minigameCount', 'storedMinigameCount', 14).stored }}）
+        </span>
+        <span class="text-slate-300 font-normal">/14</span>
+      </span>
+    </div>
+  </button>
+
+  <!-- 3. 次元袭击 (服务器共享，每天5点恢复2次，上限14) -->
+  <button
+    type="button"
+    class="p-2 bg-slate-50/80 border border-slate-200/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 text-left shadow-sm group"
+    @click="emit('task-click', char, 'dimensionalCount', true)"
+  >
+    <div class="w-full flex items-center justify-between">
+      <span class="font-bold text-slate-700 text-[10px] truncate">次元袭击</span>
+      <span class="text-[8px] text-rose-600 bg-rose-50 px-1 rounded border border-rose-100">共享</span>
+    </div>
+    <div class="w-full flex items-center justify-between text-[11px] font-black">
+      <span class="text-rose-600 tracking-tight">
+        {{ getGroupSharedTaskData(char.group, 'dimensionalCount', 'storedDimensionalCount', 14).current }}
+        <span 
+          v-if="getGroupSharedTaskData(char.group, 'dimensionalCount', 'storedDimensionalCount', 14).stored > 0" 
+          class="text-amber-600 font-bold"
         >
-          每日签到
-        </button>
-        <button
-          type="button"
-          class="px-2 py-1.5 rounded-xl text-[11px] font-black border transition-all shadow-sm"
-          :class="
-            char.awakening
-              ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-              : 'bg-slate-50 text-slate-400 border-slate-200'
-          "
-          @click="emit('toggle-task', char, 'awakening')"
-        >
-          觉醒之战
-        </button>
-        <button
-          type="button"
-          class="px-2 py-1.5 rounded-xl text-[11px] font-black border transition-all shadow-sm"
-          :class="
-            char.weeklyEnergyPurchased
-              ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-              : 'bg-slate-50 text-slate-400 border-slate-200'
-          "
-          @click="emit('toggle-task', char, 'weeklyEnergyPurchased')"
-        >
-          能量兑换
-        </button>
-      </div>
+          （+{{ getGroupSharedTaskData(char.group, 'dimensionalCount', 'storedDimensionalCount', 14).stored }}）
+        </span>
+        <span class="text-slate-300 font-normal">/14</span>
+      </span>
+    </div>
+  </button>
+</div>
 
       <!-- ================= 模式五：备注输入框 ================= -->
       <div

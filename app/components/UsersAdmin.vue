@@ -20,7 +20,7 @@ import cloneDeep from "lodash/cloneDeep";
 const client = useSupabaseClient();
 const user = useSupabaseUser();
 
-// 游戏数据结构
+// 游戏数据结构 参考 docs/多角色管理模块相关.md
 const gameData = ref({
   characters: [],
   accounts: [],
@@ -150,34 +150,7 @@ const characterValidationRules = [
     validate: (form) => (Number(form.storedAwakening) || 0) <= 30,
     message: () => "存储觉醒战次数不能超过30次",
   },
-  //  每日副本次数 (dailyRuns)
-  {
-    field: "dailyRuns",
-    label: "每日副本次数",
-    validate: (form) => (Number(form.dailyRuns) || 0) <= 14,
-    message: () => "每日副本次数不能超过14次",
-  },
-  //  存储每日副本次数 (storedDailyRuns) - 组内共享校验
-  {
-    field: "storedDailyRuns",
-    label: "存储每日副本次数",
-    validate: (form, context = {}) => {
-      const currentGroupId = form?.group;
-      const allCharacters = context.allCharacters || [];
-      const currentFormId = form?.id;
 
-      // 计算同组其他角色的总和
-      const otherGroupSum = allCharacters
-        .filter((char) => char.group === currentGroupId && char.id !== currentFormId)
-        .reduce((sum, char) => sum + (Number(char.storedDailyRuns) || 0), 0);
-
-      // 同组总和 + 当前表单填写的值
-      const total = otherGroupSum + (Number(form.storedDailyRuns) || 0);
-
-      return total <= 30;
-    },
-    message: () => "同组账号下存储每日副本次数总和不能超过30次",
-  },
   // 7. 圣域副本 s1
   {
     field: "sanctuary.s1", // 对应表单中的嵌套路径
@@ -214,7 +187,7 @@ const characterValidationRules = [
     label: "特级会员剩余天数",
     validate: (form) => {
       // 前置条件：必须开启了特级会员，且不是同组共享状态
-      const isSelfMember = form.premiumMember && !isGroupHasOtherPremium.value;
+      const isSelfMember = form.premiumMember && !getCharGroup.value?.premiumMember;
       if (!isSelfMember) return true; // 未开启或共享状态无需校验此项
 
       const days = Number(form.premiumMemberDay) || 0;
@@ -238,35 +211,71 @@ const characterValidationRules = [
     },
     message: () => "请选择所属分组",
   },
+
+  //  战场 (battlefield)
+  {
+    field: "battlefield",
+    label: "战场次数",
+    validate: (form) => (Number(form.battlefield) || 0) <= 3,
+    message: () => "战场次数不能超过3次",
+  },
+];
+
+//分组验证规则配置数据
+const groupValidationRules = [
+  {
+    field: "premiumMemberDay",
+    label: "特级会员剩余天数",
+    validate: (form) => {
+      // 前置条件：必须开启了特级会员，且不是同组共享状态
+      const isSelfMember = form.premiumMember && !getCharGroup.value?.premiumMember;
+      if (!isSelfMember) return true; // 未开启或共享状态无需校验此项
+
+      const days = Number(form.premiumMemberDay) || 0;
+      // 必须大于0且不能超过28天
+      return days > 0 && days <= 28;
+    },
+    message: (form) => {
+      const days = Number(form.premiumMemberDay) || 0;
+      if (days <= 0) return "请输入有效的特级会员剩余天数";
+      return "特级会员剩余天数不能超过 28 天";
+    },
+  },
+  //  每日副本次数 (dailyRuns)
+  {
+    field: "dailyRuns",
+    label: "每日副本次数",
+    validate: (form) => (Number(form.dailyRuns) || 0) <= 14,
+    message: () => "每日副本次数不能超过14次",
+  },
+  //  存储每日副本次数 (storedDailyRuns) - 组内共享校验
+  {
+    field: "storedDailyRuns",
+    label: "存储每日副本次数",
+    validate: (form, context = {}) => {
+      const total = totalGroupStoredDailyRuns.value;
+      return total <= 30;
+    },
+    message: () => "同组账号下存储每日副本次数总和不能超过30次",
+  },
   // 古树庆典小游戏挑战次数校验（组内共用）
 
   {
     field: "minigameCount",
-    label: "小游戏挑战次数",
+    label: "古树庆典小游戏挑战次数",
     validate: (form) => (Number(form.minigameCount) || 0) <= 14,
-    message: () => "小游戏挑战次数不能超过14次",
+    message: () => "古树庆典小游戏挑战次数不能超过14次",
   },
 
   // 古树庆典小游戏存储补充次数校验（组内共享上限 30）
   {
     field: "storedMinigameCount",
-    label: "小游戏存储补充次数",
+    label: "古树庆典小游戏存储补充次数",
     validate: (form, context = {}) => {
-      const currentGroupId = form?.group;
-      const allCharacters = context.allCharacters || [];
-      const currentFormId = form?.id;
-
-      // 计算同组其他角色的存储补充次数总和
-      const otherGroupSum = allCharacters
-        .filter((char) => char.group === currentGroupId && char.id !== currentFormId)
-        .reduce((sum, char) => sum + (Number(char.storedMinigameCount) || 0), 0);
-
-      // 同组总和 + 当前表单填写的值
-      const total = otherGroupSum + (Number(form.storedMinigameCount) || 0);
-
+      const total = totalGroupStoredMinigameCount.value;
       return total <= 30;
     },
-    message: () => "同组账号下小游戏存储补充次数总和不能超过30次",
+    message: () => "同组账号下古树庆典小游戏存储补充次数总和不能超过30次",
   },
   // 次元袭击挑战次数校验（组内共用）
   {
@@ -278,30 +287,12 @@ const characterValidationRules = [
   // 次元袭击存储补充次数校验（组内共享上限 30）
   {
     field: "storedDimensionalCount",
-    label: "小游戏存储补充次数",
+    label: "次元袭击存储补充次数",
     validate: (form, context = {}) => {
-      const currentGroupId = form?.group;
-      const allCharacters = context.allCharacters || [];
-      const currentFormId = form?.id;
-
-      // 计算同组其他角色的存储补充次数总和
-      const otherGroupSum = allCharacters
-        .filter((char) => char.group === currentGroupId && char.id !== currentFormId)
-        .reduce((sum, char) => sum + (Number(char.storedDimensionalCount) || 0), 0);
-
-      // 同组总和 + 当前表单填写的值
-      const total = otherGroupSum + (Number(form.storedDimensionalCount) || 0);
-
+      const total = totalGroupStoredDimensionalCount.value;
       return total <= 30;
     },
     message: () => "同组账号下次元袭击存储补充次数总和不能超过30次",
-  },
-  //  战场 (battlefield)
-  {
-    field: "battlefield",
-    label: "战场次数",
-    validate: (form) => (Number(form.battlefield) || 0) <= 3,
-    message: () => "战场次数不能超过3次",
   },
 ];
 
@@ -316,7 +307,41 @@ const newCharForm = ref({
     s3: 1,
   },
 });
+// 新增角色的表单数据组默认数据
+let defGroup = {
+  //每日副本刷新规则：服务器共享（既同一组内共享），每周三5点更新，固定14次
 
+  //输入框占位
+  dailyRunsInput: 0,
+  storedDailyRunsInput: 0,
+  /** 每日副本挑战次数 */
+  dailyRuns: 0,
+  /** 每日副本补充挑战次数 服务器共享（既同一组内共享），30次上限*/
+  storedDailyRuns: 0,
+  /** 每日副本次数最后更新时间 */
+  lastDailyRunsUpdate: "",
+
+  minigameCountInput: 0,
+  storedMinigameCountInput: 0,
+  //古树庆典小游戏刷新规则：服务器共享（既同一组内共享），于每天5点恢复2次 minigameCount ，上限恢复上限14次
+  /** 古树庆典小游戏的次数 */
+  minigameCount: 0,
+  /** 补充古树庆典小游戏副本次数 */
+  storedMinigameCount: 0,
+  /** 补充古树庆典小游戏副本次数最后更新时间 */
+  lastMinigameUpdate: "",
+
+  dimensionalCountInput: 0,
+  storedDimensionalCountInput: 0,
+  //次元袭击刷新规则：服务器共享（既同一组内共享），于每天5点恢复2次 dimensionalCount ，上限恢复上限14次
+  /** 次元袭击的次数 */
+  dimensionalCount: 0,
+  /** 补充次元袭击次数 */
+  storedDimensionalCount: 0,
+  /** 次元袭击次数最后更新时间 */
+  lastDimensionalUpdate: "",
+};
+const newCharGroupForm = ref(cloneDeep(defGroup));
 // 可选职业列表
 const classOptions = [
   "魔道星",
@@ -383,7 +408,6 @@ const openAddCharModal = () => {
   // const defaultAccount = gameData.value.accounts?.[0]?.id || "";
   newCharForm.value = {
     nightmareCount: 14, //噩梦次数
-    dailyRuns: 14, //每日副本次数
     awakening: 3, //觉醒战
     nightmareCount: 14, //噩梦
 
@@ -399,6 +423,7 @@ const openAddCharModal = () => {
       s3: 1,
     },
   };
+  newCharGroupForm.value = cloneDeep(defGroup);
   showAddCharModal.value = true;
 };
 
@@ -671,130 +696,51 @@ const pickFromSearch = async (c) => {
     $loading.hide();
   }
 };
-// 1. 检查同组（排除当前正在编辑的角色自己）是否已经有其他角色配置过每日副本挑战次数
-const hasGroupDailyRuns = computed(() => {
-  const characters = gameData.value?.characters || [];
-  let runs = characters.some(
-    (c) =>
-      c.group === newCharForm.value.group &&
-      c.characterId !== newCharForm.value.characterId &&
-      (c.dailyRuns ?? 0) > 0
-  );
-  return runs;
+
+// 获取当前角色对应的已经的保存分组数据
+const getCharGroup = computed(() => {
+  let groupItem = gameData.value?.groups?.find((f) => f.id == newCharForm.value?.group);
+  return groupItem;
 });
 
-// 2. 获取当前分组共享的挑战次数值（并自动把值同步给当前表单，方便提交）
-const getGroupDailyRunsValue = computed(() => {
-  const characters = gameData.value?.characters || [];
-  const existingChar = characters.find(
-    (c) =>
-      c.group === newCharForm.value.group &&
-      c.characterId !== newCharForm.value.characterId &&
-      (c.dailyRuns ?? 0) > 0
-  );
-  if (existingChar) {
-    newCharForm.value.dailyRuns = existingChar.dailyRuns;
-    return existingChar.dailyRuns;
-  }
-  return newCharForm.value.dailyRuns || 0;
-});
-//  每日副本补充次数：组内全员共享统计
-const totalGroupStoredDailyRuns = computed(() => {
-  const currentGroupId = newCharForm.value?.group;
-  if (!currentGroupId) return newCharForm.value?.storedDailyRuns || 0;
-
-  // 假设你的所有角色列表存在 characters 或 gameData.characters 里
-  // 请根据你代码实际存放角色的变量名进行调整（比如 props.gameData.characters 或 characters.value）
-  const allCharacters = gameData.value?.characters || [];
-
-  // 筛选出同组的其他角色，并把他们的 storedDailyRuns 累加
-  const otherCharactersSum = allCharacters
-    .filter(
-      (char) =>
-        char.group === currentGroupId &&
-        char.characterId !== newCharForm.value?.characterId
-    )
-    .reduce((sum, char) => sum + (Number(char.storedDailyRuns) || 0), 0);
-
-  // 加上当前表单里输入的数值
-  let totalGroupStoredDailyRunsNum =
-    otherCharactersSum + (Number(newCharForm.value?.storedDailyRuns) || 0);
-  //判断是不是有组
-  // if (hasGroupDailyRuns.value) {
-  //   validationResult.value = validateCharacterForm({
-  //     storedDailyRuns: totalGroupStoredDailyRunsNum,
-  //   });
-  // }
-  return totalGroupStoredDailyRunsNum;
-});
-
-// 判断同组中（排除当前正在编辑的角色）是否已经有其他角色开启了特级会员
-const isGroupHasOtherPremium = computed(() => {
-  const characters = gameData.value?.characters || [];
-  return characters.some(
-    (c) =>
-      Number(c.group) === Number(newCharForm.value.group) &&
-      c.characterId !== newCharForm.value.characterId &&
-      c.premiumMember === true
-  );
-});
 // 获取同组其他角色共享的会员剩余天数（并顺便自动同步给当前表单）
 const groupSharedPremiumDays = computed(() => {
-  const characters = gameData.value?.characters || [];
-  const sharedChar = characters.find(
-    (c) =>
-      Number(c.group) === Number(newCharForm.value.group) &&
-      c.characterId !== newCharForm.value.characterId &&
-      c.premiumMember === true
-  );
-  if (sharedChar) {
-    // 自动同步天数，保证同一组天数完全一样
-    newCharForm.value.premiumMemberDay = sharedChar.premiumMemberDay;
-    return sharedChar.premiumMemberDay;
-  }
-  return newCharForm.value.premiumMemberDay || 0;
+  return newCharGroupForm.value?.premiumMemberDay || 0;
 });
 //=========================================添加成员结束=========================================
 
 // 监听分组切换，实时检测该分组下是否已有主账号或特级会员
-const handleGroupChange = () => {
-  const selectedGroup = newCharForm.value.group;
+const handleGroupChange = (e) => {
+  const selectedGroupId = Number(e.target.value);
 
-  // 找出当前分组下已存在的其他角色
-  const groupChars = gameData.value?.characters?.filter(
-    (c) => c.group === selectedGroup && c.characterId !== newCharForm.value.characterId
-  );
-
-  const hasPrimaryInGroup = groupChars.some((c) => c.primaryAccount);
-  const hasPremiumInGroup = groupChars.some((c) => c.premiumMember);
-
-  // 1. 如果该分组已有主账号，给出提示
-  if (hasPrimaryInGroup && newCharForm.value.primaryAccount) {
-    // 假设你有全局提示方法 $alert 或使用 alert
-    if (typeof $alert === "function") {
-      $alert("提示", "当前分组下已经存在主账号，建议取消或更换分组。");
-    } else {
-      alert("当前分组下已经存在主账号！");
-    }
-  }
-
-  // 2. 如果该分组已有特级会员，自动同步并提示
-  if (hasPremiumInGroup) {
-    newCharForm.value.premiumMember = true;
-    // 可以把该分组现有会员的剩余天数同步过来，或者提示已共享
-  }
+  newCharGroupForm.value = {
+    ...cloneDeep(getCharGroup.value),
+    dailyRuns: getCharGroup.value?.dailyRuns || 14, //每日副本次数
+    minigameCount: getCharGroup.value?.minigameCount || 14, //古树庆典小游戏次数
+    dimensionalCount: getCharGroup.value?.dimensionalCount || 14, //次元袭击次数
+  };
 };
 
 /**
- * 校验角色表单数据
- * @param {Object} formData 当前表单对象 (如 newCharForm)
+ * 校验表单数据
+ * @param {Object} formData 验证的数据对象
+ * @param {String} type 验证的类型 character角色，group 分组
  * @returns {Object} { isValid: boolean, invalidFields: string[], errors: Object }
  */
-const validateCharacterForm = (formData, context = {}) => {
+const validateForm = (formData, context = {}, type = "character") => {
   const invalidFields = [];
   const errors = {};
 
-  characterValidationRules.forEach((rule) => {
+  let validateFormRules = [];
+
+  if (type == "character") {
+    validateFormRules = characterValidationRules;
+  }
+  if (type == "group") {
+    validateFormRules = groupValidationRules;
+  }
+
+  validateFormRules.forEach((rule) => {
     try {
       const passes = rule.validate(formData, context);
 
@@ -863,11 +809,6 @@ const handleSaveCharacter = async () => {
     }
   }
 
-  // const validationResult = validateCharacterForm(newCharForm.value);
-
-  // validationResult.value = validationResult;
-  // console.log(`🔍 [UsersAdmin:683] %c validationResult验证结果: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', validationResult);
-
   const nowIso = new Date().toISOString();
   const newChar = {
     id: Date.now(),
@@ -901,20 +842,20 @@ const handleSaveCharacter = async () => {
 
     /** 战场玩法的次数 */
     battlefield: 0,
-    /** 补充次元袭击次数最后更新时间 */
-    battlefieldDate: nowIso,
 
     // 圣域、小游戏及日常状态
     sanctuary: { s1: 1, s2: 1, s3: 1 },
-    minigameCount: 0,
-    storedMinigameCount: 0,
-    lastMinigameUpdate: nowIso,
-    awakening: false,
-    awakeningDate: nowIso,
-    dailyMission: false,
-    dailyMissionDate: nowIso,
-    dailySignIn: false,
-    dailySignInDate: nowIso,
+    dailySignInDate: nowIso, //每日签到状态及时间
+    dailyMissionDate: nowIso, //每日任务完成状态
+    // minigameCount: 0,
+    // storedMinigameCount: 0,
+    // lastMinigameUpdate: nowIso,
+    // awakening: false,
+    // awakeningDate: nowIso,
+    // dailyMission: false,
+    // dailyMissionDate: nowIso,
+    // dailySignIn: false,
+    // dailySignInDate: nowIso,
 
     // 战斗属性
     equipmentScore: 0,
@@ -929,32 +870,22 @@ const handleSaveCharacter = async () => {
     ...newCharForm.value,
   };
 
-  //特级会员日期处理
-  if (newCharForm?.premiumMemberDay && newCharForm.value?.premiumMember) {
-    newChar.premiumStartTime = calculatedStartTime.value;
-    newChar.premiumEndTime = calculatedEndTime.value;
-  }
-  //如果有当前角色有分组并且分组已经设置了每日副本需需清空当前角色的每日副本
-  if (newCharForm?.value?.group && hasGroupDailyRuns.value) {
-    newChar.dailyRuns = 0;
-  }
-
   if (!gameData.value.characters) {
     gameData.value.characters = [];
   }
 
   console.log(
-    `🔍 [UsersAdmin:623] %c newCharForm: `,
+    `🔍 [UsersAdmin:623] %c newCharForm提交: `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     newCharForm.value
   );
   console.log(
-    `🔍 [UsersAdmin:624] %c newChar: `,
+    `🔍 [UsersAdmin:624] %c newChar提交: `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     newChar
   );
   console.log(
-    `🔍 [UsersAdmin:624] %c calculatedStartTime: `,
+    `🔍 [UsersAdmin:624] %c calculatedStartTime提交: `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     calculatedStartTime.value
   );
@@ -964,6 +895,62 @@ const handleSaveCharacter = async () => {
 
   showAddCharModal.value = false;
 
+  // 查找对应索引
+  if (newCharGroupForm.value?.id) {
+    const targetId = newCharGroupForm.value.id;
+    const index = gameData.value.groups.findIndex((g) => g.id === targetId);
+
+    if (gameData.value?.groups && index !== -1) {
+      const originalGroup = gameData.value.groups[index];
+      const form = newCharGroupForm.value || {};
+
+      // 批量解构出所有带有 Input 后缀的临时输入字段，剩下的干净表单数据存入 restForm
+      const {
+        storedDailyRunsInput,
+        storedMinigameCountInput,
+        storedDimensionalCountInput,
+        primaryAccountID,
+        ...formWithoutInput
+      } = form;
+
+      //  依次计算各自的最新存储次数（原有次数 + 本次输入增量）
+      const newStoredDailyRuns =
+        (Number(originalGroup.storedDailyRuns) || 0) +
+        (Number(storedDailyRunsInput) || 0);
+      const newStoredMinigameCount =
+        (Number(originalGroup.storedMinigameCount) || 0) +
+        (Number(storedMinigameCountInput) || 0);
+      const newStoredDimensional =
+        (Number(originalGroup.storedDimensionalCount) || 0) +
+        (Number(storedDimensionalCountInput) || 0);
+
+      gameData.value.groups[index] = {
+        ...originalGroup,
+        ...formWithoutInput,
+
+        /** 每日副本次数最后更新时间 */
+        lastDailyRunsUpdate: nowIso,
+        /** 补充古树庆典小游戏副本次数最后更新时间 */
+        lastMinigameUpdate: nowIso,
+        /** 次元袭击次数最后更新时间 */
+        lastDimensionalUpdate: nowIso,
+
+        storedDailyRuns: newStoredDailyRuns,
+        storedMinigameCount: newStoredMinigameCount,
+        storedDimensionalCount: newStoredDimensional,
+        primaryAccountID:
+          !originalGroup?.primaryAccountID && primaryAccountID
+            ? newChar?.characterId
+            : originalGroup?.primaryAccountID,
+      };
+    }
+  }
+
+  console.log(
+    `🔍 [UsersAdmin:624] %c gameData 提交: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    gameData.value
+  );
   debugger;
   await saveData();
 };
@@ -1191,142 +1178,50 @@ const groupCharacterPanelHandleConsumeEnergy = async (char) => {
   char.energy = 0;
   await groupCharacterPanelHandleUpdateCharacter(char);
 };
+
+//================ 每日副本 开始================
+// 1. 检查同组（排除当前正在编辑的角色自己）是否已经有其他角色配置过每日副本挑战次数
+const hasGroupDailyRuns = computed(() => {
+  return (getCharGroup.value?.dailyRuns ?? 0) > 0;
+});
+
+//  每日副本补充次数：组内全员共享统计
+const totalGroupStoredDailyRuns = computed(() => {
+  // 加上当前表单里输入的数值
+  let total =
+    (Number(getCharGroup.value?.storedDailyRuns) || 0) +
+    (Number(newCharGroupForm.value?.storedDailyRunsInput) || 0);
+  return total;
+});
+//================ 每日副本 结束 =====================
+
 // ==================== 古树庆典小游戏（组内共享配置与统计） ====================
 
-// 1. 判断当前分组内是否已经有其他角色配置过“小游戏挑战次数”
+// 判断当前分组内是否已经有其他角色配置过“小游戏挑战次数”
 const hasGroupMinigameCount = computed(() => {
-  const currentGroupId = newCharForm.value?.group;
-  if (!currentGroupId) return false;
-
-  const allCharacters = gameData.value?.characters || [];
-  const currentId = newCharForm.value?.characterId || newCharForm.value?.id;
-
-  // 检查同组内是否存在其他角色，其 minigameCount 不为 0 或已配置过
-  return allCharacters.some((char) => {
-    const charId = char.characterId || char.id;
-    const isSameGroup = char.group === currentGroupId;
-    const isNotSelf = currentId ? charId !== currentId : true;
-
-    // 如果同组其他角色的 minigameCount 大于 0，说明已经配置过了
-    return isSameGroup && isNotSelf && (Number(char.minigameCount) || 0) > 0;
-  });
+  return (getCharGroup.value?.minigameCount ?? 0) > 0;
 });
-
-// 2. 获取同组已配置好的“小游戏挑战次数”数值（用于在页面中显示）
-const getGroupMinigameCountValue = computed(() => {
-  const currentGroupId = newCharForm.value?.group;
-  if (!currentGroupId) return 0;
-
-  const allCharacters = gameData.value?.characters || [];
-
-  // 查找同组中第一个有配置挑战次数的角色
-  const matchedChar = allCharacters.find(
-    (char) => char.group === currentGroupId && (Number(char.minigameCount) || 0) > 0
-  );
-
-  return matchedChar ? Number(matchedChar.minigameCount) || 0 : 0;
-});
-
-// 3. 计算“古树庆典存储补充次数”的组内共享总和（包含当前表单实时输入的数值）
+// 计算“古树庆典存储补充次数”的组内共享总和（包含当前表单实时输入的数值）
 const totalGroupStoredMinigameCount = computed(() => {
-  const currentGroupId = newCharForm.value?.group;
-  const currentInputVal = Number(newCharForm.value?.storedMinigameCount) || 0;
-
-  if (!currentGroupId) return currentInputVal;
-
-  const allCharacters = gameData.value?.characters || [];
-  const currentId = newCharForm.value?.characterId || newCharForm.value?.id;
-
-  let total = 0;
-  let hasFoundSelf = false;
-
-  // 遍历所有角色，同组的全员相加（当前角色的旧值用输入框的最新值代替）
-  allCharacters.forEach((char) => {
-    if (char.group === currentGroupId) {
-      const charId = char.characterId || char.id;
-      if (currentId && charId === currentId) {
-        hasFoundSelf = true;
-        total += currentInputVal;
-      } else {
-        total += Number(char.storedMinigameCount) || 0;
-      }
-    }
-  });
-
-  // 如果当前角色不在列表里（是新创建的角色），加上输入框的值
-  if (!hasFoundSelf) {
-    total += currentInputVal;
-  }
+  let total =
+    (Number(getCharGroup.value?.storedMinigameCount) || 0) +
+    (Number(newCharGroupForm.value?.storedMinigameCountInput) || 0);
 
   return total;
 });
 
 // ==================== 次元袭击 组内共享配置与统计） ====================
 
-// 1. 判断当前分组内是否已经有其他角色配置过“次元袭击挑战次数”
+// 判断当前分组内是否已经有其他角色配置过“次元袭击挑战次数”
 const hasGroupDimensionalCount = computed(() => {
-  const currentGroupId = newCharForm.value?.group;
-  if (!currentGroupId) return false;
-
-  const allCharacters = gameData.value?.characters || [];
-  const currentId = newCharForm.value?.characterId || newCharForm.value?.id;
-
-  // 检查同组内是否存在其他角色，其 dimensionalCount 不为 0 或已配置过
-  return allCharacters.some((char) => {
-    const charId = char.characterId || char.id;
-    const isSameGroup = char.group === currentGroupId;
-    const isNotSelf = currentId ? charId !== currentId : true;
-
-    // 如果同组其他角色的 dimensionalCount 大于 0，说明已经配置过了
-    return isSameGroup && isNotSelf && (Number(char.dimensionalCount) || 0) > 0;
-  });
+  return (getCharGroup.value?.dimensionalCount ?? 0) > 0;
 });
 
-// 2. 获取同组已配置好的“次元袭击挑战次数”数值（用于在页面中显示）
-const getGroupDimensionalCountValue = computed(() => {
-  const currentGroupId = newCharForm.value?.group;
-  if (!currentGroupId) return 0;
-
-  const allCharacters = gameData.value?.characters || [];
-
-  // 查找同组中第一个有配置挑战次数的角色
-  const matchedChar = allCharacters.find(
-    (char) => char.group === currentGroupId && (Number(char.dimensionalCount) || 0) > 0
-  );
-
-  return matchedChar ? Number(matchedChar.dimensionalCount) || 0 : 0;
-});
-
-// 3. 计算“次元袭击存储补充次数”的组内共享总和（包含当前表单实时输入的数值）
+// 计算“次元袭击存储补充次数”的组内共享总和（包含当前表单实时输入的数值）
 const totalGroupStoredDimensionalCount = computed(() => {
-  const currentGroupId = newCharForm.value?.group;
-  const currentInputVal = Number(newCharForm.value?.storedDimensionalCount) || 0;
-
-  if (!currentGroupId) return currentInputVal;
-
-  const allCharacters = gameData.value?.characters || [];
-  const currentId = newCharForm.value?.characterId || newCharForm.value?.id;
-
-  let total = 0;
-  let hasFoundSelf = false;
-
-  // 遍历所有角色，同组的全员相加（当前角色的旧值用输入框的最新值代替）
-  allCharacters.forEach((char) => {
-    if (char.group === currentGroupId) {
-      const charId = char.characterId || char.id;
-      if (currentId && charId === currentId) {
-        hasFoundSelf = true;
-        total += currentInputVal;
-      } else {
-        total += Number(char.storedDimensionalCount) || 0;
-      }
-    }
-  });
-
-  // 如果当前角色不在列表里（是新创建的角色），加上输入框的值
-  if (!hasFoundSelf) {
-    total += currentInputVal;
-  }
+  let total =
+    (Number(getCharGroup.value?.storedDimensionalCount) || 0) +
+    (Number(newCharGroupForm.value?.storedDimensionalCountInput) || 0);
 
   return total;
 });
@@ -1336,63 +1231,99 @@ const totalGroupStoredDimensionalCount = computed(() => {
 onMounted(async () => {
   await loadData();
 });
-watch(gameData, (newVal) => {
-  if (newVal) {
-    console.log(
-      `🔍 [UsersAdmin:450] %c 数据gameData: `,
-      "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-      gameData.value
-    );
+watch(
+  () => gameData,
+  (newVal) => {
+    if (newVal) {
+      console.log(
+        `🔍 [UsersAdmin:450] %c 数据gameData: `,
+        "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+        gameData.value
+      );
+    }
   }
-});
-// watch(
-//   () => newCharForm.value,
-//   (newVal) => {
-//     if (newVal) {
-//       validationResult.value = validateCharacterForm(newVal);
-//     }
-//   },
-//   { deep: true, immediate: true },
-// );
+);
+
+// 辅助函数：统一执行校验并合并到全局 validationResult
+const updateValidation = (form, context, type) => {
+  const result = validateForm(form, context, type);
+
+  // 核心：基于当前的 validationResult 进行合并，而不是直接整体覆盖
+  const currentErrors = validationResult.value.errors || {};
+  const currentInvalidFields = validationResult.value.invalidFields || [];
+
+  // 获取当前 type 对应的规则里包含的所有字段（用于精准清理该类型旧的错误）
+  const rules = type === "character" ? characterValidationRules : groupValidationRules;
+  const currentTypeFields = rules.map((r) => r.field);
+
+  // 1. 先清除属于当前 type 的旧错误
+  const newErrors = { ...currentErrors };
+  currentTypeFields.forEach((field) => {
+    delete newErrors[field];
+  });
+
+  // 2. 注入当前最新的错误
+  Object.assign(newErrors, result.errors);
+
+  // 3. 处理 invalidFields（保留非当前 type 的错误字段，拼上当前最新的错误字段）
+  const filteredFields = currentInvalidFields.filter(
+    (f) => !currentTypeFields.includes(f)
+  );
+  const newInvalidFields = [...new Set([...filteredFields, ...result.invalidFields])];
+
+  // 4. 更新合并后的结果
+  validationResult.value = {
+    isValid: newInvalidFields.length === 0,
+    errors: newErrors,
+    invalidFields: newInvalidFields,
+  };
+};
+
+// 1. 监听角色表单
 watch(
   () => newCharForm.value,
   (newVal) => {
-    console.log(
-      `🔍 [UsersAdmin:1250] %c 监听newCharForm--校验触发: `,
-      "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-      newVal
-    );
+    if (newVal) {
+      const overrideForm = { ...newVal };
+      updateValidation(
+        overrideForm,
+        {
+          allCharacters: gameData?.characters || [],
+          groups: gameData?.groups || [],
+        },
+        "character"
+      );
+    }
+  },
+  { deep: true, immediate: true }
+);
 
-    if (newVal && Object.keys(newVal).length > 0) {
+// 2. 监听分组表单
+watch(
+  () => newCharGroupForm.value,
+  (newVal) => {
+    if (newVal) {
+      console.log(
+        `🔍 [UsersAdmin:1309] %c 监听分组表单newCharGroupForm: `,
+        "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+        newCharGroupForm
+      );
       const overrideForm = { ...newVal };
 
-      // 每日副本组内同一账号下不同角色共享道具）校验
       if (totalGroupStoredDailyRuns.value > 30) {
         overrideForm.storedDailyRuns = totalGroupStoredDailyRuns.value;
       }
-      //古树庆典小游戏组内（同一账号下不同角色共享道具）校验
       if (totalGroupStoredMinigameCount.value > 30) {
         overrideForm.storedMinigameCount = totalGroupStoredMinigameCount.value;
       }
-      //次元袭击组内（同一账号下不同角色共享道具）校验
       if (totalGroupStoredDimensionalCount.value > 30) {
         overrideForm.storedDimensionalCount = totalGroupStoredDimensionalCount.value;
       }
 
-      // 3. 统一将完整带覆盖值的表单和上下文传给验证函数
-      validationResult.value = validateCharacterForm(overrideForm, {
-        allCharacters: gameData?.characters || [],
-        groups: gameData?.groups || [],
-      });
-    } else {
-      validationResult.value = {
-        isValid: true,
-        errors: {},
-        invalidFields: [],
-      };
+      updateValidation(overrideForm, {}, "group");
     }
   },
-  { deep: true, immediate: true }
+  { deep: true }
 );
 
 watch(
@@ -1796,17 +1727,6 @@ watch(
                           v-model.number="newCharForm.group"
                           @change="
                             (e) => {
-                              const selectedGroupId = Number(e.target.value);
-                              // 检查目标分组下是否存在角色
-                              const groupChars = gameData?.characters?.filter(
-                                (c) => c.group === selectedGroupId
-                              );
-                              if (!groupChars || groupChars.length === 0) {
-                                // 如果该组没有角色，重置主账号和特级会员为关闭状态特级会员天数设置为空
-                                newCharForm.primaryAccount = false;
-                                newCharForm.premiumMember = false;
-                                newCharForm.premiumMemberDay = null;
-                              }
                               // 执行你原有的分组切换回调（如果有的话）
                               if (typeof handleGroupChange === 'function') {
                                 handleGroupChange(e);
@@ -1848,36 +1768,53 @@ watch(
                       <label class="text-xs font-bold text-slate-500 block mb-2"
                         >主账号状态</label
                       >
+
                       <div class="flex-1 flex items-center">
                         <div
-                          class="w-full h-[50px] flex items-center justify-between px-4 rounded-2xl bg-slate-50 border-2 border-slate-200/80 cursor-pointer select-none transition-all hover:border-[#45a6d5] box-border"
+                          class="w-full h-[50px] flex items-center justify-between px-4 rounded-2xl bg-slate-50 border-2 border-slate-200/80 select-none box-border transition-all"
+                          :class="[
+                            getCharGroup?.primaryAccountID
+                              ? 'opacity-60 cursor-not-allowed bg-slate-100/60 border-slate-200'
+                              : 'cursor-pointer hover:border-[#45a6d5]',
+                          ]"
                           @click="
                             () => {
-                              const groupChars = gameData?.characters?.filter(
-                                (c) => c.group === newCharForm.group
+                              // 如果组内已经有主账号了，直接拦截点击，不让修改
+                              if (getCharGroup?.primaryAccountID) return;
+                              newCharGroupForm.primaryAccountID = !Boolean(
+                                newCharGroupForm.primaryAccountID
                               );
-                              const hasPrimary = groupChars?.some(
-                                (c) => c.primaryAccount
-                              );
-                              if (!newCharForm?.primaryAccount && hasPrimary) {
-                                alert('该分组下已经存在主账号，无法重复设置！');
-                                return;
-                              }
-                              newCharForm.primaryAccount = !newCharForm.primaryAccount;
                             }
                           "
                         >
-                          <span class="text-sm font-bold text-slate-700">设为主账号</span>
+                          <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-slate-700"
+                              >设为主账号</span
+                            >
+                            <!-- 提示文案：告知用户为什么被锁定 -->
+                            <span
+                              v-if="getCharGroup?.primaryAccountID"
+                              class="text-[10px] text-amber-600 font-medium bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200"
+                            >
+                              该组已有主账号
+                            </span>
+                          </div>
+
+                          <!-- 开关外观 -->
                           <div
                             class="w-10 h-6 flex items-center rounded-full p-1 transition-colors duration-300"
-                            :class="
-                              newCharForm.primaryAccount ? 'bg-[#45a6d5]' : 'bg-slate-300'
-                            "
+                            :class="[
+                              getCharGroup?.primaryAccountID
+                                ? 'bg-slate-300 cursor-not-allowed'
+                                : newCharGroupForm.primaryAccountID
+                                ? 'bg-[#45a6d5]'
+                                : 'bg-slate-300',
+                            ]"
                           >
                             <div
                               class="bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300"
                               :class="
-                                newCharForm.primaryAccount
+                                newCharGroupForm?.primaryAccountID
                                   ? 'translate-x-4'
                                   : 'translate-x-0'
                               "
@@ -1895,7 +1832,7 @@ watch(
                       <div class="flex-1 flex items-center">
                         <!-- 如果同组有其他角色开启了会员，则直接展示共享状态并隐藏开关 -->
                         <div
-                          v-if="isGroupHasOtherPremium"
+                          v-if="getCharGroup?.premiumMember"
                           class="w-full h-[50px] px-4 rounded-2xl bg-emerald-50 border-2 border-emerald-200 text-emerald-700 text-xs font-bold flex items-center justify-between box-border"
                         >
                           <span>同组已共享特级会员</span>
@@ -1909,7 +1846,9 @@ watch(
                         <div
                           v-else
                           class="w-full h-[50px] flex items-center justify-between px-4 rounded-2xl bg-slate-50 border-2 border-slate-200/80 cursor-pointer select-none transition-all hover:border-[#45a6d5] box-border"
-                          @click="newCharForm.premiumMember = !newCharForm.premiumMember"
+                          @click="
+                            newCharGroupForm.premiumMember = !newCharGroupForm.premiumMember
+                          "
                         >
                           <span class="text-sm font-bold text-slate-700"
                             >开通特级会员</span
@@ -1917,13 +1856,15 @@ watch(
                           <div
                             class="w-10 h-6 flex items-center rounded-full p-1 transition-colors duration-300"
                             :class="
-                              newCharForm.premiumMember ? 'bg-amber-500' : 'bg-slate-300'
+                              newCharGroupForm.premiumMember
+                                ? 'bg-amber-500'
+                                : 'bg-slate-300'
                             "
                           >
                             <div
                               class="bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300"
                               :class="
-                                newCharForm.premiumMember
+                                newCharGroupForm.premiumMember
                                   ? 'translate-x-4'
                                   : 'translate-x-0'
                               "
@@ -1937,7 +1878,7 @@ watch(
                   <!-- 如果开启了特级会员，动态展开剩余天数输入或展示共享天数 -->
                   <Transition name="fade">
                     <div
-                      v-if="newCharForm.premiumMember || isGroupHasOtherPremium"
+                      v-if="newCharGroupForm.premiumMember || getCharGroup?.premiumMember"
                       class="pt-2"
                     >
                       <div
@@ -1948,7 +1889,7 @@ watch(
                         >
 
                         <!-- 情况 A：同组已有其他角色开启了会员（只展示共享天数，自动同步） -->
-                        <div v-if="isGroupHasOtherPremium" class="space-y-1 py-1">
+                        <div v-if="getCharGroup?.premiumMember" class="space-y-1 py-1">
                           <div class="flex items-center justify-between">
                             <span class="text-sm font-black text-amber-900">
                               同组共享天数：<span class="text-base text-amber-600">{{
@@ -1974,7 +1915,7 @@ watch(
                         <!-- 情况 B：当前角色自己是组内第一个开启会员的（允许输入天数） -->
                         <div v-else class="space-y-2">
                           <input
-                            v-model.number="newCharForm.premiumMemberDay"
+                            v-model.number="newCharGroupForm.premiumMemberDay"
                             type="number"
                             min="1"
                             max="28"
@@ -1997,7 +1938,7 @@ watch(
                           <!-- 实时计算并展示：开通时间 与 结束时间（基于总时长28天倒推与顺延） -->
                           <div
                             v-if="
-                              newCharForm.premiumMemberDay &&
+                              newCharGroupForm.premiumMemberDay &&
                               !validationResult.errors.premiumMemberDay
                             "
                             class="text-xs font-bold text-amber-800 bg-amber-100/60 px-3 py-2 rounded-xl flex flex-wrap items-center gap-x-4 gap-y-1"
@@ -2018,129 +1959,118 @@ watch(
                     </div>
                   </Transition>
                 </div>
-                <!-- 卡片三：能量与资源 (合并优化版) -->
                 <!-- 奥德能量组合卡片 (当前 + 存储补充) -->
                 <div
-                  class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                  class="bg-white border border-slate-200/80 p-6 rounded-3xl space-y-6 shadow-sm"
                 >
                   <div
-                    class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
+                    class="flex items-center justify-between pb-2 border-b border-slate-100"
                   >
-                    <!-- 在大标题后面实时显示：当前能量 / 上限 -->
-                    <div class="flex items-center gap-2">
-                      <span>奥德能量</span>
-                      <span class="text-xs font-black text-[#45a6d5]">
-                        {{ newCharForm?.energy || 0 }}
-                        （+{{ newCharForm?.storedEnergy || 0 }}） /
-                        {{
-                          newCharForm?.premiumMember ||
-                          gameData?.characters?.some(
-                            (c) => c.group === newCharForm.group && c.premiumMember
-                          )
-                            ? 840
-                            : 560
-                        }}
-                      </span>
-                    </div>
-
-                    <!-- 右侧动态计算并显示上限提示 -->
-                    <span
-                      class="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                      :class="
-                        newCharForm?.premiumMember ||
-                        gameData?.characters?.some(
-                          (c) => c.group === newCharForm.group && c.premiumMember
-                        )
-                          ? 'bg-amber-100 text-amber-700'
-                          : 'bg-slate-200 text-slate-600'
-                      "
-                    >
-                      上限:
-                      {{
-                        newCharForm?.premiumMember ||
-                        gameData?.characters?.some(
-                          (c) => c.group === newCharForm.group && c.premiumMember
-                        )
-                          ? 840
-                          : 560
-                      }}
-                    </span>
-                  </div>
-
-                  <div class="grid grid-cols-2 gap-4">
-                    <!-- 基础奥德能量 -->
-                    <div>
-                      <div class="flex items-center justify-between mb-1.5">
-                        <label class="text-xs font-bold text-slate-500">当前能量</label>
-                        <span class="text-[10px] font-black text-[#45a6d5]">
+                    <!-- 左侧：图标、名称与核心数值 -->
+                    <div class="flex items-center gap-2.5">
+                      <div
+                        class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"
+                      ></div>
+                      <div class="flex items-center gap-2">
+                        <span
+                          class="text-sm font-black uppercase tracking-wider text-slate-700"
+                          >奥德能量</span
+                        >
+                        <span
+                          class="text-xs font-black text-[#45a6d5] bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-100"
+                        >
                           {{ newCharForm?.energy || 0 }}
-                          ({{
-                            Math.max(
-                              0,
-                              (newCharForm?.premiumMember ||
-                              gameData?.characters?.some(
-                                (c) => c.group === newCharForm.group && c.premiumMember
-                              )
-                                ? 840
-                                : 560) - (newCharForm?.energy || 0)
-                            )
-                          }}) /
-                          {{
-                            newCharForm?.premiumMember ||
-                            gameData?.characters?.some(
-                              (c) => c.group === newCharForm.group && c.premiumMember
-                            )
+                          <span class="text-amber-600 font-bold"
+                            >（+{{ newCharForm?.storedEnergy || 0 }}）</span
+                          >
+                          <span class="text-slate-400 font-bold">/ </span>
+                          <span class="text-slate-700">{{
+                            newCharGroupForm?.premiumMember || getCharGroup?.premiumMember
                               ? 840
                               : 560
-                          }}
+                          }}</span>
                         </span>
                       </div>
-                      <input
-                        v-model.number="newCharForm.energy"
-                        type="number"
-                        class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
-                        :class="
-                          validationResult.invalidFields.includes('energy')
-                            ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                            : 'border-slate-200/80 focus:border-[#45a6d5]'
-                        "
-                      />
-                      <span
-                        v-if="validationResult.errors.energy"
-                        class="text-[10px] text-red-500 font-bold mt-1 block"
-                      >
-                        {{ validationResult.errors.energy }}
-                      </span>
                     </div>
+                  </div>
+                  <div
+                    class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                  >
+                    <div
+                      class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
+                    ></div>
 
-                    <!-- 存储补充能量 -->
-                    <div>
-                      <div class="flex items-center justify-between mb-1.5">
-                        <label class="text-xs font-bold text-slate-500"
-                          >存储补充能量</label
+                    <div class="grid grid-cols-2 gap-4">
+                      <!-- 基础奥德能量 -->
+                      <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                          <label class="text-xs font-bold text-slate-500">当前能量</label>
+                          <span class="text-[10px] font-black text-[#45a6d5]">
+                            {{ newCharForm?.energy || 0 }}
+                            ({{
+                              Math.max(
+                                0,
+                                (newCharGroupForm?.premiumMember ||
+                                getCharGroup?.premiumMember
+                                  ? 840
+                                  : 560) - (newCharForm?.energy || 0)
+                              )
+                            }}) /
+                            {{
+                              newCharGroupForm?.premiumMember ||
+                              getCharGroup?.premiumMember
+                                ? 840
+                                : 560
+                            }}
+                          </span>
+                        </div>
+                        <input
+                          v-model.number="newCharForm.energy"
+                          type="number"
+                          class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                          :class="
+                            validationResult.invalidFields.includes('energy')
+                              ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                              : 'border-slate-200/80 focus:border-[#45a6d5]'
+                          "
+                        />
+                        <span
+                          v-if="validationResult.errors.energy"
+                          class="text-[10px] text-red-500 font-bold mt-1 block"
                         >
-                        <span class="text-[10px] font-black text-amber-600">
-                          {{ newCharForm.storedEnergy || 0 }}
-                          ({{ Math.max(0, 2000 - (newCharForm.storedEnergy || 0)) }}) /
-                          2000
+                          {{ validationResult.errors.energy }}
                         </span>
                       </div>
-                      <input
-                        v-model.number="newCharForm.storedEnergy"
-                        type="number"
-                        class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
-                        :class="
-                          validationResult.invalidFields.includes('storedEnergy')
-                            ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                            : 'border-slate-200/80 focus:border-[#45a6d5]'
-                        "
-                      />
-                      <span
-                        v-if="validationResult.errors.storedEnergy"
-                        class="text-[10px] text-red-500 font-bold mt-1 block"
-                      >
-                        {{ validationResult.errors.storedEnergy }}
-                      </span>
+
+                      <!-- 存储补充能量 -->
+                      <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                          <label class="text-xs font-bold text-slate-500"
+                            >存储补充能量</label
+                          >
+                          <span class="text-[10px] font-black text-amber-600">
+                            {{ newCharForm.storedEnergy || 0 }}
+                            ({{ Math.max(0, 2000 - (newCharForm.storedEnergy || 0)) }}) /
+                            2000
+                          </span>
+                        </div>
+                        <input
+                          v-model.number="newCharForm.storedEnergy"
+                          type="number"
+                          class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                          :class="
+                            validationResult.invalidFields.includes('storedEnergy')
+                              ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                              : 'border-slate-200/80 focus:border-[#45a6d5]'
+                          "
+                        />
+                        <span
+                          v-if="validationResult.errors.storedEnergy"
+                          class="text-[10px] text-red-500 font-bold mt-1 block"
+                        >
+                          {{ validationResult.errors.storedEnergy }}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2454,6 +2384,7 @@ watch(
                   <!-- 每日副本卡片 -->
                   <div
                     class="p-6 bg-white border border-slate-200/80 rounded-3xl space-y-4 shadow-sm"
+                    v-if="newCharGroupForm?.id"
                   >
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-3">
@@ -2495,7 +2426,7 @@ watch(
                         >
                           <span>挑战次数 (组内共用 / 上限14)</span>
                           <span class="text-xs font-black text-[#45a6d5]">
-                            {{ newCharForm.dailyRuns || 0 }}
+                            {{ newCharGroupForm.dailyRuns || 0 }}
                             / 14
                           </span>
                         </div>
@@ -2507,7 +2438,7 @@ watch(
                               >
                             </div>
                             <input
-                              v-model.number="newCharForm.dailyRuns"
+                              v-model.number="newCharGroupForm.dailyRuns"
                               type="number"
                               max="14"
                               min="0"
@@ -2538,7 +2469,7 @@ watch(
                         </div>
                         <div class="text-xs font-medium text-amber-600">
                           当前分组共享挑战次数为：<span class="font-black text-amber-700"
-                            >{{ getGroupDailyRunsValue }} / 14</span
+                            >{{ getCharGroup?.dailyRuns || 0 }} / 14</span
                           >。当前角色无需重复配置。
                         </div>
                       </div>
@@ -2568,7 +2499,7 @@ watch(
                               </span>
                             </div>
                             <input
-                              v-model.number="newCharForm.storedDailyRuns"
+                              v-model.number="newCharGroupForm.storedDailyRunsInput"
                               type="number"
                               max="30"
                               min="0"
@@ -2634,7 +2565,7 @@ watch(
                         >
                           <span>挑战次数 (组内共用 / 上限14)</span>
                           <span class="text-xs font-black text-[#45a6d5]">
-                            {{ newCharForm.minigameCount || 0 }}
+                            {{ newCharGroupForm.minigameCount || 0 }}
                             / 14
                           </span>
                         </div>
@@ -2646,7 +2577,7 @@ watch(
                               >
                             </div>
                             <input
-                              v-model.number="newCharForm.minigameCount"
+                              v-model.number="newCharGroupForm.minigameCount"
                               type="number"
                               max="14"
                               min="0"
@@ -2677,7 +2608,7 @@ watch(
                         </div>
                         <div class="text-xs font-medium text-amber-600">
                           当前分组共享挑战次数为：<span class="font-black text-amber-700"
-                            >{{ getGroupMinigameCountValue }} / 14</span
+                            >{{ getCharGroup?.minigameCount || 0 }} / 14</span
                           >。当前角色无需重复配置。
                         </div>
                       </div>
@@ -2707,7 +2638,7 @@ watch(
                               </span>
                             </div>
                             <input
-                              v-model.number="newCharForm.storedMinigameCount"
+                              v-model.number="newCharGroupForm.storedMinigameCountInput"
                               type="number"
                               max="30"
                               min="0"
@@ -2775,7 +2706,7 @@ watch(
                         >
                           <span>挑战次数 (组内共用 / 上限14)</span>
                           <span class="text-xs font-black text-[#45a6d5]">
-                            {{ newCharForm.dimensionalCount || 0 }}
+                            {{ newCharGroupForm.dimensionalCount || 0 }}
                             / 14
                           </span>
                         </div>
@@ -2787,7 +2718,7 @@ watch(
                               >
                             </div>
                             <input
-                              v-model.number="newCharForm.dimensionalCount"
+                              v-model.number="newCharGroupForm.dimensionalCount"
                               type="number"
                               max="14"
                               min="0"
@@ -2820,7 +2751,7 @@ watch(
                         </div>
                         <div class="text-xs font-medium text-amber-600">
                           当前分组共享挑战次数为：<span class="font-black text-amber-700"
-                            >{{ getGroupDimensionalCountValue }} / 14</span
+                            >{{ getCharGroup?.dimensionalCount || 0 }} / 14</span
                           >。当前角色无需重复配置。
                         </div>
                       </div>
@@ -2850,7 +2781,9 @@ watch(
                               </span>
                             </div>
                             <input
-                              v-model.number="newCharForm.storedDimensionalCount"
+                              v-model.number="
+                                newCharGroupForm.storedDimensionalCountInput
+                              "
                               type="number"
                               max="30"
                               min="0"
