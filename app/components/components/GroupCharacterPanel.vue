@@ -603,7 +603,7 @@ const props = defineProps({
 });
 // 配置对象
 const cardConfig = reactive({
-  columns: 3, // 可选: 1, 2, 3, 4 列布局
+  columns: 3, // 可选: 1, 2, 3, 4 ，5列布局
   mode: "default", // 可选: 'default'(标准模式) | 'simple'(精简模式) | 'custom'(自定义模式)
   customFields: {
     showCombatPower: true,
@@ -1660,10 +1660,12 @@ const hasSupplementValues = computed(() => {
       :get-group-name="getGroupName"
       :format-combat-power="formatCombatPower"
       @click-gameplay="handleClickGameplay"
-      @toggle-lock="handleToggleLock"
+      @toggle-lock="(char)=>emit('toggle-lock', char)"
       @toggle-task="handleToggleTask"
       @text-change="handleTextChange"
       @delete="handleDelete"
+      :groups="gameData.group"
+      :gameData="gameData"
     />
 
     <!-- 空状态展示 -->

@@ -1,8 +1,14 @@
 <script setup>
 import { computed } from "vue";
+import { dungeonDecayRules } from "../config/userAdmin";
 
 // 1. 定义 Props
 const props = defineProps({
+  // 完整数据
+  gameData: {
+    type: Object,
+    default: () => {},
+  },
   // 角色列表数据
   characters: {
     type: Array,
@@ -22,14 +28,15 @@ const props = defineProps({
   config: {
     type: Object,
     default: () => ({
-      columns: 3,                 // 列数: 1, 2, 3, 4
-      mode: "default",            // 显示模式: "simple"(简单模式) | "default"(列表/标准模式) | "custom"(自定义模式)
-      customFields: {             // 自定义模式下控制显隐的开关
-        showCombatPower: true,    // 是否显示装等/战力
-        showDungeons: true,       // 是否显示副本进度 (远征/超越)
-        showEnergy: true,         // 是否显示奥德能量
-        showTasks: true,          // 是否显示任务状态按钮
-        showNotes: true,          // 是否显示备注框
+      columns: 3, // 列数: 1, 2, 3, 4
+      mode: "default", // 显示模式: "simple"(简单模式) | "default"(列表/标准模式) | "custom"(自定义模式)
+      customFields: {
+        // 自定义模式下控制显隐的开关
+        showCombatPower: true, // 是否显示装等/战力
+        showDungeons: true, // 是否显示副本进度 (远征/超越)
+        showEnergy: true, // 是否显示奥德能量
+        showTasks: true, // 是否显示任务状态按钮
+        showNotes: true, // 是否显示备注框
       },
     }),
   },
@@ -48,9 +55,14 @@ const emit = defineEmits([
 const gridColsClass = computed(() => {
   const cols = props.config?.columns || 3;
   switch (cols) {
-    case 1: return "grid-cols-1";
-    case 2: return "grid-cols-1 md:grid-cols-2";
-    case 4: return "grid-cols-1 md:grid-cols-2 lg:grid-cols-4";
+    case 1:
+      return "grid-cols-1";
+    case 2:
+      return "grid-cols-1 md:grid-cols-2";
+    case 4:
+      return "grid-cols-1 md:grid-cols-2 lg:grid-cols-4";
+    case 5:
+      return "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5";
     case 3:
     default:
       return "grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
@@ -60,14 +72,115 @@ const gridColsClass = computed(() => {
 // 4. 当前模式判断辅助
 const currentMode = computed(() => props.config?.mode || "default");
 const fields = computed(() => props.config?.customFields || {});
+
+//================ 远征副本剩余卡片 开始================
+//计算指定组内的总通关次数
+const getGroupTotalRuns = (groupId, charactersList, type) => {
+  if (!charactersList) return 0;
+  const groupChars = charactersList.filter((c) => c.group === groupId);
+  return groupChars.reduce((sum, c) => {
+    if (type === "expedition") return sum + (c.runs || 0);
+    if (type === "surpass") return sum + (c.transcendRuns || 0);
+    return sum;
+  }, 0);
+};
+
+/**
+ * 根据组ID和类型（远征/超越），直接从 groups 数据中获取当前组的总次数与收益率文案
+ * @param {number} groupId 角色所属的分组ID (char.group)
+ * @param {string} type 'expedition' (远征) 或 'surpass' (超越)
+ */
+const getGroupDecayInfo = (groupId, type) => {
+  const groupsList = props.gameData?.groups;
+
+  if (!groupsList || !Array.isArray(groupsList)) {
+    return "已刷 0次，基纳获得量 100%";
+  }
+
+  const group = groupsList.find((g) => g.id === groupId);
+  if (!group) {
+    return "已刷 0次，基纳获得量 100%";
+  }
+
+  // 严格区分类型：远征取 group.runs，超越取 group.transcendRuns
+  const totalRuns = type === "expedition" ? group.runs || 0 : group.transcendRuns || 0;
+
+  const rules = dungeonDecayRules[type] || [];
+
+  console.log(
+    `🔍 [CharacterCard:110] %c type: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    type
+  );
+  console.log(
+    `🔍 [CharacterCard:110] %c rules: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    rules
+  );
+  console.log(
+    `🔍 [CharacterCard:110] %c totalRuns: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    totalRuns
+  );
+
+  let rateLabel = "基纳获得量 20%";
+  for (const rule of rules) {
+    if (totalRuns <= rule.maxCount) {
+      rateLabel = rule.label;
+      break;
+    }
+  }
+
+  return `已刷 ${totalRuns}次，${rateLabel}`;
+};
+
+/**
+ * 获取角色今天某个类型的副本已刷次数（通过 runLogs 累加计算）
+ * @param {Object} char 角色对象
+ * @param {string} type 'expedition' 或 'surpass'
+ */
+const getTodayRunCount = (char, type) => {
+  if (!char.runLogs || !Array.isArray(char.runLogs)) return 0;
+
+  // 获取当前日期的标准字符串 (格式: YYYY-MM-DD)
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  // 筛选出今天且类型匹配的日志，累加 count
+  return char.runLogs
+    .filter((log) => log.date === todayStr && log.type === type)
+    .reduce((sum, log) => sum + (log.count || 0), 0);
+};
+//  计算当前角色奥德能刷多少次 (基于基础能量 + 存储能量)
+const calcRunsByEnergy = (char, type) => {
+  const totalEnergy = (char.energy || 0) + (char.storedEnergy || 0);
+  const baseCost = 40; // 单次基准消耗
+  return Math.floor(totalEnergy / baseCost);
+};
+/**
+ * 获取圣域指定 Boss 的当前状态（已刷次数与上限）
+ * @param {Object} char 角色对象
+ * @param {string} bossKey 圣域 Boss 的 key (例如 's1', 's2', 's3')
+ */
+const getSanctuaryStatus = (char, bossKey) => {
+  // 1. 获取最大上限（默认给 1）
+  const maxLimit = char.sanctuary?.[bossKey] || 1;
+  // 2. 获取已消耗次数（默认 0）
+  const usedCount = char.sanctuaryRuns?.[bossKey] || 0;
+
+  // 3. 计算剩余可刷次数（确保不小于 0）
+  const remaining = Math.max(0, maxLimit - usedCount);
+
+  return {
+    maxLimit,
+    usedCount,
+    remaining,
+  };
+};
+//================ 远征副本剩余卡片 结束 =====================');
 </script>
 
 <template>
-  <div
-    v-if="characters.length > 0"
-    class="grid gap-5"
-    :class="gridColsClass"
-  >
+  <div v-if="characters.length > 0" class="grid gap-5" :class="gridColsClass">
     <div
       v-for="char in characters"
       :key="char.characterId || char.id"
@@ -84,9 +197,7 @@ const fields = computed(() => props.config?.customFields || {});
       </button>
 
       <!-- 顶部标题栏（所有模式均展示） -->
-      <div
-        class="flex items-center justify-between border-b border-slate-100 pb-3 pr-16"
-      >
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 pr-16">
         <div class="flex items-center gap-3">
           <button
             type="button"
@@ -140,7 +251,9 @@ const fields = computed(() => props.config?.customFields || {});
 
       <!-- ================= 模式一：基础数值指标（非 simple 模式或 custom 模式下显示） ================= -->
       <div
-        v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showCombatPower)"
+        v-if="
+          currentMode !== 'simple' && (currentMode !== 'custom' || fields.showCombatPower)
+        "
         class="grid grid-cols-2 gap-3"
       >
         <div
@@ -168,48 +281,117 @@ const fields = computed(() => props.config?.customFields || {});
 
       <!-- ================= 模式二：副本及核心进度区 ================= -->
       <div
-        v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showDungeons)"
-        class="grid grid-cols-2 gap-2 text-xs"
+        v-if="
+          currentMode !== 'simple' && (currentMode !== 'custom' || fields.showDungeons)
+        "
+        class="space-y-2 text-xs"
       >
+        <!-- 1. 远征副本 -->
         <div
-          class="p-3 bg-slate-50/70 border border-slate-200/60 rounded-2xl space-y-2 flex flex-col justify-between"
+          class="p-3 bg-slate-50/70 border border-slate-200/60 rounded-2xl flex flex-col gap-2 transition-all hover:bg-slate-50"
         >
           <div
             class="flex items-center justify-between text-[11px] font-bold text-slate-500"
           >
-            <span>远征副本</span>
-            <span class="font-black text-[#45a6d5]"
-              >{{ char.dailyRuns || 0 }} / 14</span
-            >
+            <span class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#45a6d5]"></span> 远征副本
+              <!-- (角色独立) -->
+            </span>
+            <!-- 调用方法获取今日远征次数 -->
+            <span class="font-black text-[#45a6d5]">
+              今日已刷: {{ getTodayRunCount(char, "expedition") }} 次
+            </span>
           </div>
           <div
-            class="flex items-center justify-between text-[11px] font-bold text-slate-500"
+            class="flex items-center justify-between text-[10px] text-slate-400 font-medium px-2"
           >
-            <span>存储补充</span>
-            <span class="font-black text-amber-600"
-              >{{ char.storedDailyRuns || 0 }} / 30</span
+            <span
+              >奥德可刷:
+              <strong class="text-[#45a6d5] text-[11px]">{{
+                calcRunsByEnergy(char, "expedition")
+              }}</strong>
+              次</span
             >
+          </div>
+          <!-- 组内收益（读取 groups） -->
+          <div
+            class="bg-white/80 border border-slate-200/50 rounded-xl px-2 py-1 text-[10px] font-bold text-amber-600 flex items-center justify-between"
+          >
+            <span>组内收益:</span>
+            <span class="truncate">{{
+              getGroupDecayInfo(char.group, "expedition")
+            }}</span>
           </div>
         </div>
 
+        <!-- 2. 超越副本 -->
         <div
-          class="p-3 bg-slate-50/70 border border-slate-200/60 rounded-2xl space-y-2 flex flex-col justify-between"
+          class="p-3 bg-slate-50/70 border border-slate-200/60 rounded-2xl flex flex-col gap-2 transition-all hover:bg-slate-50"
         >
           <div
             class="flex items-center justify-between text-[11px] font-bold text-slate-500"
           >
-            <span>超越副本</span>
-            <span class="font-black text-purple-600"
-              >{{ char.transcendRuns || 0 }} / 14</span
+            <span class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> 超越副本
+              <!-- (角色独立) -->
+            </span>
+            <!-- 调用方法获取今日超越次数 -->
+            <span class="font-black text-purple-600">
+              今日已刷: {{ getTodayRunCount(char, "surpass") }} 次
+            </span>
+          </div>
+          <div
+            class="flex items-center justify-between text-[10px] text-slate-400 font-medium px-2"
+          >
+            <span
+              >奥德可刷:
+              <strong class="text-purple-500 text-[11px]">{{
+                calcRunsByEnergy(char, "surpass")
+              }}</strong>
+              次</span
             >
           </div>
+          <!-- 组内收益（读取 groups） -->
+          <div
+            class="bg-white/80 border border-slate-200/50 rounded-xl px-2 py-1 text-[10px] font-bold text-amber-600 flex items-center justify-between"
+          >
+            <span>组内收益:</span>
+            <span class="truncate">{{ getGroupDecayInfo(char.group, "surpass") }}</span>
+          </div>
+        </div>
+        <!-- ================= 3. 圣域副本 (角色独立，每周三5点重置) ================= -->
+        <div
+          v-if="
+            currentMode !== 'simple' && (currentMode !== 'custom' || fields.showSanctuary)
+          "
+          class="p-3 bg-slate-50/70 border border-slate-200/60 rounded-2xl flex flex-col gap-2 transition-all hover:bg-slate-50 text-xs"
+        >
           <div
             class="flex items-center justify-between text-[11px] font-bold text-slate-500"
           >
-            <span>存储补充</span>
-            <span class="font-black text-amber-600">{{
-              char.storedTranscendRuns || 0
-            }}</span>
+            <span class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> 圣域副本
+            </span>
+            <!-- <span class="font-black text-amber-600"> 独立周常 </span> -->
+          </div>
+
+          <!-- 遍历 sanctuary 中的所有 Boss 配置 -->
+          <div class="grid grid-cols-3 gap-1.5 pt-1">
+            <div
+              v-for="(maxLimit, bossKey) in char.sanctuary || { s1: 1, s2: 1, s3: 1 }"
+              :key="bossKey"
+              class="bg-white/80 border border-slate-200/50 rounded-xl px-2 py-1.5 flex flex-col items-center justify-center gap-0.5"
+            >
+              <span class="text-[10px] text-slate-400 font-semibold uppercase">{{
+                bossKey
+              }}</span>
+              <span class="text-[11px] font-bold text-slate-700">
+                <!-- 核心：用已消耗次数 / 上限 -->
+                <!-- 已刷: {{ char.sanctuaryRuns?.[bossKey] || 0 }} / {{ maxLimit }} -->
+                剩余次数:
+                {{ char.sanctuary?.[bossKey] - (char.sanctuaryRuns?.[bossKey] || 0) }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -217,45 +399,52 @@ const fields = computed(() => props.config?.customFields || {});
       <!-- ================= 模式三：奥德能量进度 ================= -->
       <div
         v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showEnergy)"
-        class="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl space-y-3 shadow-sm"
+        class="p-3.5 bg-gradient-to-br from-slate-50/90 to-slate-100/60 border border-slate-200/80 rounded-2xl space-y-2.5 shadow-sm transition-all hover:shadow"
       >
+        <!-- 头部：标题与数值概览 -->
         <div class="flex items-center justify-between text-xs">
-          <span class="font-black text-slate-700 flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-[#45a6d5]"></span>
+          <span class="font-bold text-slate-700 flex items-center gap-1.5">
+            <span
+              class="w-2 h-2 rounded-full bg-gradient-to-r from-[#45a6d5] to-amber-500 shadow-sm"
+            ></span>
             奥德能量
           </span>
-          <div class="flex items-center gap-1.5 font-black text-xs">
-            <span class="text-[#45a6d5]" title="基础奥德">{{ char.energy || 0 }}</span>
-            （
-            <span class="text-slate-300">+</span>
-            <span class="text-amber-600" title="存储奥德">{{
-              char.storedEnergy || 0
-            }}</span>
-            ）
-            <span class="text-slate-400 font-medium"
+          <div class="flex items-center gap-1 text-xs font-black">
+            <span
+              class="text-[#45a6d5] bg-sky-50 px-1.5 py-0.5 rounded-md border border-sky-100"
+              title="基础奥德"
+              >{{ char.energy || 0 }}</span
+            >
+            <span class="text-slate-300 font-normal">+</span>
+            <span
+              class="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-100"
+              title="存储奥德"
+              >{{ char.storedEnergy || 0 }}</span
+            >
+            <span class="text-slate-400 font-medium ml-0.5"
               >/ {{ char.premiumMember ? 840 : 560 }}</span
             >
           </div>
         </div>
 
+        <!-- 组合进度条主体 -->
         <div
-          class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden flex p-0.5 bg-slate-100 border border-slate-200/60"
+          class="w-full bg-slate-200/70 h-2.5 rounded-full overflow-hidden flex p-0.5 border border-slate-200/80 shadow-inner"
         >
+          <!-- 基础奥德进度条 -->
           <div
-            class="bg-[#45a6d5] h-full rounded-l-full transition-all duration-500 relative"
+            class="bg-gradient-to-r from-[#3998c7] to-[#45a6d5] h-full rounded-l-full transition-all duration-500 relative"
             :style="{
               width: `${Math.min(
                 100,
-                Math.max(
-                  0,
-                  ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100
-                )
+                Math.max(0, ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100)
               )}%`,
             }"
-            title="基础奥德"
+            :title="`基础奥德: ${char.energy || 0}`"
           ></div>
+          <!-- 存储奥德进度条 -->
           <div
-            class="bg-amber-500 h-full rounded-r-full transition-all duration-500 relative opacity-90"
+            class="bg-gradient-to-r from-amber-400 to-amber-500 h-full rounded-r-full transition-all duration-500 relative opacity-95"
             :style="{
               width: `${Math.min(
                 100 -
@@ -266,26 +455,31 @@ const fields = computed(() => props.config?.customFields || {});
                 ((char.storedEnergy || 0) / (char.premiumMember ? 840 : 560)) * 100
               )}%`,
             }"
-            title="存储奥德"
+            :title="`存储奥德: ${char.storedEnergy || 0}`"
           ></div>
         </div>
 
+        <!-- 底部：图例与总计 -->
         <div
-          class="flex items-center justify-between text-[10px] font-bold text-slate-400 pt-0.5"
+          class="flex items-center justify-between text-[10px] font-semibold text-slate-400 pt-0.5 px-0.5"
         >
-          <span class="flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-[#45a6d5]"></span>
-            基础
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 ml-1"></span>
-            存储
-          </span>
-          <span
-            >总计:
-            <strong class="text-slate-700">{{
+          <div class="flex items-center gap-2.5">
+            <span class="flex items-center gap-1 text-slate-500">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#45a6d5]"></span>
+              基础
+            </span>
+            <span class="flex items-center gap-1 text-slate-500">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+              存储
+            </span>
+          </div>
+          <span class="text-slate-500">
+            总计:
+            <strong class="text-slate-700 font-bold">{{
               (char.energy || 0) + (char.storedEnergy || 0)
             }}</strong>
-            点</span
-          >
+            点
+          </span>
         </div>
       </div>
 
@@ -345,7 +539,9 @@ const fields = computed(() => props.config?.customFields || {});
       </div>
 
       <!-- ================= 模式五：备注输入框 ================= -->
-      <div v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showNotes)">
+      <div
+        v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showNotes)"
+      >
         <textarea
           :value="char.note || ''"
           :disabled="char.locked"

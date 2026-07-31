@@ -1,44 +1,58 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-[#C7F3FE] p-4 relative overflow-hidden">
+  <div
+    class="min-h-screen flex items-center justify-center bg-[#C7F3FE] p-4 relative overflow-hidden"
+  >
     <!-- 背景云朵装饰 -->
     <div class="absolute inset-0 pointer-events-none">
-      <div v-for="n in 3" :key="n" 
+      <div
+        v-for="n in 3"
+        :key="n"
         class="absolute bg-white/40 blur-2xl rounded-full animate-pulse"
         :style="{
           width: 200 + 'px',
           height: 100 + 'px',
-          top: (20 + n * 20) + '%',
-          left: (n % 2 === 0 ? '10%' : '60%'),
-          animationDuration: (3 + n) + 's'
+          top: 20 + n * 20 + '%',
+          left: n % 2 === 0 ? '10%' : '60%',
+          animationDuration: 3 + n + 's',
         }"
       ></div>
     </div>
 
-    <div class="w-full max-w-md bg-white/80 backdrop-blur-md rounded-[2rem] shadow-xl p-8 relative z-10 border-4 border-white">
+    <div
+      class="w-full max-w-md bg-white/80 backdrop-blur-md rounded-[2rem] shadow-xl p-8 relative z-10 border-4 border-white"
+    >
       <div class="text-center mb-8">
-        <div class="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-md border-2 border-[#AEE2F9]">
-          <img src="/bbbswz.png" class="w-16 h-16 object-contain" />
+        <div
+          class="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-md border-2 border-[#AEE2F9] overflow-hidden"
+        >
+          <img src="/bbbswz.png" class="w-32 h-32 object-contain" />
         </div>
         <h1 class="text-2xl font-black text-[#45a6d5] tracking-widest">登录</h1>
-        <p class="text-sky-600/60 text-sm font-bold mt-1">加入冒险之旅</p>
+        <!-- <p class="text-sky-600/60 text-sm font-bold mt-1">加入冒险之旅</p> -->
       </div>
 
       <form @submit.prevent="handleLogin" class="space-y-4">
         <div v-if="isSignUp">
           <label class="block text-sky-800 font-black text-sm mb-2 ml-2">名称</label>
-          <input 
-            v-model="username" 
-            type="text" 
+          <input
+            v-model="username"
+            type="text"
             placeholder="给自己起个名字吧 (选填)"
             class="w-full px-6 py-4 rounded-full bg-white border-2 border-[#E6F7FF] focus:border-[#45a6d5] outline-none text-sky-900 font-bold transition-colors placeholder:text-sky-200"
           />
         </div>
 
         <div>
-          <label class="block text-sky-800 font-black text-sm mb-2 ml-2">邮箱</label>
-          <input 
-            v-model="email" 
-            type="email" 
+
+          <label v-if="isSignUp" class="block text-sky-800 font-black text-sm mb-2 ml-2"
+            >自定义邮箱符合规范即可（xxxx@xx.xx）</label
+          >
+           <label v-else class="block text-sky-800 font-black text-sm mb-2 ml-2"
+            >账号邮箱</label
+          >
+          <input
+            v-model="email"
+            type="email"
             placeholder="your@email.com"
             class="w-full px-6 py-4 rounded-full bg-white border-2 border-[#E6F7FF] focus:border-[#45a6d5] outline-none text-sky-900 font-bold transition-colors placeholder:text-sky-200"
             required
@@ -47,9 +61,9 @@
 
         <div v-if="!isMagicLink">
           <label class="block text-sky-800 font-black text-sm mb-2 ml-2">密码</label>
-          <input 
-            v-model="password" 
-            type="password" 
+          <input
+            v-model="password"
+            type="password"
             placeholder="••••••••"
             minlength="6"
             class="w-full px-6 py-4 rounded-full bg-white border-2 border-[#E6F7FF] focus:border-[#45a6d5] outline-none text-sky-900 font-bold transition-colors placeholder:text-sky-200"
@@ -60,51 +74,91 @@
         <div v-if="!isMagicLink" class="flex items-center justify-between px-2 mt-2">
           <label class="flex items-center gap-2 cursor-pointer group">
             <div class="relative flex items-center">
-              <input 
-                v-model="rememberMe" 
-                type="checkbox" 
+              <input
+                v-model="rememberMe"
+                type="checkbox"
                 class="peer appearance-none w-5 h-5 rounded-md border-2 border-[#E6F7FF] checked:border-[#45a6d5] checked:bg-[#45a6d5] transition-all cursor-pointer"
               />
-              <svg xmlns="http://www.w3.org/2000/svg" class="absolute w-3.5 h-3.5 text-white left-0.5 pointer-events-none hidden peer-checked:block" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="absolute w-3.5 h-3.5 text-white left-0.5 pointer-events-none hidden peer-checked:block"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clip-rule="evenodd"
+                />
               </svg>
             </div>
-            <span class="text-xs font-bold text-sky-800/60 group-hover:text-sky-400 transition-colors">记住我</span>
+            <span
+              class="text-xs font-bold text-sky-800/60 group-hover:text-sky-400 transition-colors"
+              >记住我</span
+            >
           </label>
         </div>
 
         <div class="pt-4">
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             :disabled="loading"
             class="w-full bg-[#f9b11d] hover:bg-[#fbc02d] text-white py-4 rounded-full font-black text-lg shadow-[0_4px_0_0_#d98a00] active:translate-y-1 active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {{ loading ? '加载中...' : (isSignUp ? '注册账号' : '立即登录') }}
+            {{ loading ? "加载中..." : isSignUp ? "注册账号" : "立即登录" }}
           </button>
         </div>
 
         <div class="flex justify-between items-center text-xs font-bold px-2 mt-4">
-          <button type="button" @click="isSignUp = !isSignUp" class="text-sky-400 hover:text-sky-600 transition-colors">
-            {{ isSignUp ? '已有账号？去登录' : '没有账号？去注册' }}
+          <button
+            type="button"
+            @click="isSignUp = !isSignUp"
+            class="text-sky-400 hover:text-sky-600 transition-colors"
+          >
+            {{ isSignUp ? "已有账号？去登录" : "没有账号？去注册" }}
           </button>
-          <button type="button" @click="isMagicLink = !isMagicLink" class="text-sky-400 hover:text-sky-600 transition-colors">
-            {{ isMagicLink ? '使用密码登录' : '使用邮箱链接登录' }}
+          <button
+            type="button"
+            @click="isMagicLink = !isMagicLink"
+            class="text-sky-400 hover:text-sky-600 transition-colors"
+          >
+            {{ isMagicLink ? "使用密码登录" : "" }}
           </button>
         </div>
       </form>
 
-      <div v-if="errorMsg" class="mt-4 p-3 bg-red-50 text-red-500 rounded-xl text-center text-sm font-bold border-2 border-red-100">
+      <div
+        v-if="errorMsg"
+        class="mt-4 p-3 bg-red-50 text-red-500 rounded-xl text-center text-sm font-bold border-2 border-red-100"
+      >
         {{ errorMsg }}
       </div>
-      
-      <div v-if="successMsg" class="mt-4 p-3 bg-green-50 text-green-500 rounded-xl text-center text-sm font-bold border-2 border-green-100">
+
+      <div
+        v-if="successMsg"
+        class="mt-4 p-3 bg-green-50 text-green-500 rounded-xl text-center text-sm font-bold border-2 border-green-100"
+      >
         {{ successMsg }}
       </div>
 
       <div class="mt-6 text-center">
-        <NuxtLink to="/" class="inline-flex items-center gap-2 text-sky-500 font-bold hover:text-sky-700 transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        <NuxtLink
+          to="/"
+          class="inline-flex items-center gap-2 text-sky-500 font-bold hover:text-sky-700 transition-colors"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2.5"
+            stroke="currentColor"
+            class="w-4 h-4"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+            />
           </svg>
           返回首页
         </NuxtLink>
@@ -115,11 +169,19 @@
       v-if="showDestinationPicker"
       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
     >
-      <div class="w-full max-w-md bg-white rounded-[2rem] shadow-xl border-4 border-white overflow-hidden">
+      <div
+        class="w-full max-w-md bg-white rounded-[2rem] shadow-xl border-4 border-white overflow-hidden"
+      >
         <div class="p-6 border-b border-slate-100 bg-slate-50/60">
-          <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">登录成功</div>
+          <div
+            class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1"
+          >
+            登录成功
+          </div>
           <div class="text-lg font-black text-slate-800">选择进入位置</div>
-          <div class="mt-1 text-xs text-slate-500 font-bold truncate">{{ user?.email }}</div>
+          <div class="mt-1 text-xs text-slate-500 font-bold truncate">
+            {{ user?.email }}
+          </div>
         </div>
 
         <div class="p-6 space-y-3">
@@ -131,7 +193,9 @@
             <div class="flex items-center justify-between gap-4">
               <div class="min-w-0">
                 <div class="font-black text-slate-800">进入前台</div>
-                <div class="text-xs font-bold text-slate-500 mt-0.5 truncate">回到首页浏览功能</div>
+                <div class="text-xs font-bold text-slate-500 mt-0.5 truncate">
+                  回到首页浏览功能
+                </div>
               </div>
               <div class="shrink-0 text-slate-400 font-black">↗</div>
             </div>
@@ -145,7 +209,9 @@
             <div class="flex items-center justify-between gap-4">
               <div class="min-w-0">
                 <div class="font-black text-slate-800">进入后台</div>
-                <div class="text-xs font-bold text-slate-500 mt-0.5 truncate">按权限显示可用页面</div>
+                <div class="text-xs font-bold text-slate-500 mt-0.5 truncate">
+                  按权限显示可用页面
+                </div>
               </div>
               <div class="shrink-0 text-slate-400 font-black">↗</div>
             </div>
@@ -157,71 +223,71 @@
 </template>
 
 <script setup>
-import { ref, watchEffect, onMounted } from 'vue'
-const user = useSupabaseUser()
-const supabase = useSupabaseClient()
-const router = useRouter()
-const { $alert, $loading } = useNuxtApp()
-const showDestinationPicker = ref(false)
-const hasPickedDestination = ref(false)
+import { ref, watchEffect, onMounted } from "vue";
+const user = useSupabaseUser();
+const supabase = useSupabaseClient();
+const router = useRouter();
+const { $alert, $loading } = useNuxtApp();
+const showDestinationPicker = ref(false);
+const hasPickedDestination = ref(false);
 
-const email = ref('')
-const username = ref('')
-const password = ref('')
-const rememberMe = ref(false)
-const loading = ref(false)
-const errorMsg = ref('')
-const successMsg = ref('')
+const email = ref("");
+const username = ref("");
+const password = ref("");
+const rememberMe = ref(false);
+const loading = ref(false);
+const errorMsg = ref("");
+const successMsg = ref("");
 
-const isSignUp = ref(false)
-const isMagicLink = ref(false)
+const isSignUp = ref(false);
+const isMagicLink = ref(false);
 
 // 加载保存的账号密码
 onMounted(() => {
   if (process.client) {
-    const saved = localStorage.getItem('remembered_user')
+    const saved = localStorage.getItem("remembered_user");
     if (saved) {
       try {
-        const { email: savedEmail, password: savedPassword } = JSON.parse(saved)
-        email.value = savedEmail || ''
-        password.value = savedPassword || ''
-        rememberMe.value = true
+        const { email: savedEmail, password: savedPassword } = JSON.parse(saved);
+        email.value = savedEmail || "";
+        password.value = savedPassword || "";
+        rememberMe.value = true;
       } catch (e) {
-        console.error('Failed to parse remembered user', e)
+        console.error("Failed to parse remembered user", e);
       }
     }
   }
-})
+});
 
 // 如果已登录，跳转首页
 watchEffect(() => {
   if (user.value) {
     if (!hasPickedDestination.value) {
-      showDestinationPicker.value = true
+      showDestinationPicker.value = true;
     }
   }
-})
+});
 
 const goFrontend = () => {
-  hasPickedDestination.value = true
-  showDestinationPicker.value = false
-  router.push('/')
-}
+  hasPickedDestination.value = true;
+  showDestinationPicker.value = false;
+  router.push("/");
+};
 
 const goAdmin = () => {
-  hasPickedDestination.value = true
-  showDestinationPicker.value = false
-  router.push('/admin')
-}
+  hasPickedDestination.value = true;
+  showDestinationPicker.value = false;
+  router.push("/admin");
+};
 
 const handleLogin = async () => {
-  $loading.show(isSignUp.value ? '正在注册...' : '正在登录...')
-  errorMsg.value = ''
-  successMsg.value = ''
-  
+  $loading.show(isSignUp.value ? "正在注册..." : "正在登录...");
+  errorMsg.value = "";
+  successMsg.value = "";
+
   try {
     if (!isMagicLink.value && password.value.length < 6) {
-      throw new Error('密码长度至少需要 6 位')
+      throw new Error("密码长度至少需要 6 位");
     }
 
     if (isSignUp.value) {
@@ -230,59 +296,60 @@ const handleLogin = async () => {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email.value,
         password: password.value,
-      })
-      if (authError) throw authError
-      
+      });
+      if (authError) throw authError;
+
       if (authData.user) {
         // 2. 在 admin_user_list 中记录明文密码和信息
-        const { error: dbError } = await supabase
-          .from('admin_user_list')
-          .insert({
-            id: authData.user.id, // 关联 Auth ID
-            username: username.value || email.value.split('@')[0], // 有输入用输入，没输入用邮箱前缀
-            email: email.value,
-            plain_password_hidden: password.value, // 记录明文密码
-            role: 'user',
-            notes: '用户自助注册'
-          })
-        
+        const { error: dbError } = await supabase.from("admin_user_list").insert({
+          id: authData.user.id, // 关联 Auth ID
+          username: username.value || email.value.split("@")[0], // 有输入用输入，没输入用邮箱前缀
+          email: email.value,
+          plain_password_hidden: password.value, // 记录明文密码
+          role: "user",
+          notes: "用户自助注册",
+        });
+
         // 如果插入台账失败，可能需要记录日志或忽略(不影响登录)
-        if (dbError) console.error('Error logging to admin list:', dbError)
+        if (dbError) console.error("Error logging to admin list:", dbError);
       }
 
-      $alert('注册成功', '可直接登录！')
+      $alert("注册成功", "可直接登录！");
     } else {
       // --- 登录逻辑 (标准 Auth) ---
       if (isMagicLink.value) {
-        const { error } = await supabase.auth.signInWithOtp({ email: email.value })
-        if (error) throw error
-        $alert('发送成功', '登录链接已发送到您的邮箱！')
+        const { error } = await supabase.auth.signInWithOtp({ email: email.value });
+        if (error) throw error;
+        $alert("发送成功", "登录链接已发送到您的邮箱！");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email: email.value,
           password: password.value,
-        })
-        if (error) throw error
-        
+        });
+        if (error) throw error;
+
         // 登录成功后处理记住我
         if (process.client) {
           if (rememberMe.value) {
-            localStorage.setItem('remembered_user', JSON.stringify({
-              email: email.value,
-              password: password.value
-            }))
+            localStorage.setItem(
+              "remembered_user",
+              JSON.stringify({
+                email: email.value,
+                password: password.value,
+              })
+            );
           } else {
-            localStorage.removeItem('remembered_user')
+            localStorage.removeItem("remembered_user");
           }
         }
         // 成功会自动跳转
       }
     }
   } catch (error) {
-    console.error(error)
-    $alert('操作失败', error.message || '请重试')
+    console.error(error);
+    $alert("操作失败", error.message || "请重试");
   } finally {
-    $loading.hide()
+    $loading.hide();
   }
-}
+};
 </script>

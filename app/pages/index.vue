@@ -185,10 +185,6 @@
             class="text-[#45a6d5] font-black text-xl tracking-tighter group-hover:text-sky-600 transition-colors"
             >BBBS</span
           >
-          <span
-            class="text-[10px] font-bold text-sky-300 uppercase tracking-widest scale-75 origin-left"
-            >Portal</span
-          >
         </div>
       </NuxtLink>
       <div class="flex-1 text-center">
