@@ -692,11 +692,13 @@ const handleTextChange = (char, field, value) => {
 const handleDelete = async (char) => {
   if (char.locked) return;
   try {
-    await $confirm?.("确定要删除该角色吗？删除后不可恢复", "提示", {
+    const confirmed = await $confirm?.("确定要删除该角色吗？删除后不可恢复", "提示", {
       confirmButtonText: "确定",
       cancelButtonText: "取消",
       type: "warning",
     });
+    if (!confirmed) return;
+
     emit("delete-character", char);
   } catch {
     // 取消删除
@@ -721,7 +723,16 @@ const saving = ref(false);
 
 // 点击游玩消耗触发
 const handleClickGameplay = (char) => {
-  console.log(`🔍 [GroupCharacterPanel:724] %c 点击游玩消耗触发 char: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', char);
+  console.log(
+    `🔍 [GroupCharacterPanel:724] %c 点击游玩消耗触发 char: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    char
+  );
+   console.log(
+    `🔍 [GroupCharacterPanel:724] %c 点击游玩消耗触发 gameData: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    props.gameData
+  );
   gameplayCharForm.value = char;
   openGameplay.value = true;
   //清空重置默认字段
@@ -742,20 +753,6 @@ const handleClickGameplay = (char) => {
   };
 };
 
-// 检查同组是否有角色已配置过每日副本挑战次数
-const hasGroupDailyRuns = computed(() => {
-  const currentGroup = props.gameplayCharForm?.group;
-  const currentCharId = props.gameplayCharForm?.characterId;
-  const characters = props.gameData?.characters || [];
-
-  return characters.some((c) => {
-    const cId = c.id ?? c.characterId;
-    const isSameGroup =
-      (!c.group && !currentGroup) || Number(c.group) === Number(currentGroup);
-    return isSameGroup && cId !== currentCharId && (c.dailyRuns || 0) > 0;
-  });
-});
-
 // 奥德能量上限计算（高级会员840，普通560）
 const energyLimit = computed(() => {
   const isPremium =
@@ -764,11 +761,6 @@ const energyLimit = computed(() => {
       (c) => Number(c.group) === Number(props.gameplayCharForm?.group) && c.premiumMember
     );
   return isPremium ? 840 : 560;
-});
-
-// 补充奥德能量上限计算（2000）
-const storedEnergyLimit = computed(() => {
-  return 2000;
 });
 
 // 获取当前角色对应的已经的保存分组数据
@@ -999,6 +991,21 @@ const handleExecuteSupplement = async () => {
   // 6. 触发持久化保存事件
   emit("update-character", updatedCharacter);
   emit("update-groups", newGroups);
+  //清空
+  supplementFormValues.value = {
+    bigOdCount: 0, //大奥德数量
+    smallOdCount: 0, //小奥德数量
+    // 每日副本补充
+    storedDailyRuns: 0,
+    //噩梦补充
+    storedNightmareCount: 0,
+    //觉醒战补充
+    storedAwakening: 0,
+    // 古树庆典小游戏补充次数
+    storedMinigameCount: 0,
+    //次元袭击补充次数
+    storedDimensionalCount: 0,
+  };
   $alert(`成功完成补充`);
 };
 
@@ -1014,11 +1021,11 @@ const consumeForm = ref({
 // 动态绑定当前角色所属分组的远征或超越通关次数
 const currentActiveRuns = computed({
   get() {
-    const groupId = gameplayCharForm.value?.group ?? gameplayCharForm.value?.groupId;
+    const groupId = gameplayCharForm.value?.group;
     const groups = props.gameData?.groups || [];
 
     // 如果没有绑定分组，直接返回 0
-    if (groupId === null || groupId === undefined) return 0;
+    if (groupId === null) return 0;
 
     const currentGroup = groups.find((g) => g.id === groupId);
 
@@ -1030,10 +1037,10 @@ const currentActiveRuns = computed({
     return 0;
   },
   set(val) {
-    const groupId = gameplayCharForm.value?.group ?? gameplayCharForm.value?.groupId;
+    const groupId = gameplayCharForm.value?.group;
     const groups = props.gameData?.groups || [];
 
-    if (groupId === null || groupId === undefined) return;
+    if (groupId === null) return;
 
     // 生成更新后的 groups 数组
     const newGroups = groups.map((g) => {
@@ -1192,54 +1199,10 @@ const handleExecuteConsume = async () => {
   }
 
   // 2. 基础参数准备
-  const addRunsCount = consumeForm.value.multiplier || 1;
+  const addRunsCount = 1;
   const dungeonType = consumeForm.value.dungeonType; // 'expedition' | 'surpass' | 'sanctuary'
   const currentDateStr = new Date().toISOString().split("T")[0];
   const nowStr = new Date().toLocaleString();
-
-  // ==================== A. 核心：根据不同副本类型计算当前的衰减率 ====================
-  let currentDecayRate = 1.0;
-
-  if (dungeonType === "expedition") {
-    // 远征：基于分组共享的 runs 次数计算衰减
-    const groupId = gameplayCharForm.value?.group;
-    const targetGroup = (props.gameData?.groups || []).find((g) => g.id === groupId);
-    const currentRuns = targetGroup?.runs || 0;
-
-    const rule = dungeonDecayRules.expedition.find((r) => currentRuns < r.maxCount);
-    currentDecayRate = rule ? rule.rate : 1.0;
-  } else if (dungeonType === "surpass") {
-    // 超越：基于分组共享的 transcendRuns 次数计算衰减
-    const groupId = gameplayCharForm.value?.group;
-    const targetGroup = (props.gameData?.groups || []).find((g) => g.id === groupId);
-    const currentTranscendRuns = targetGroup?.transcendRuns || 0;
-
-    const rule = dungeonDecayRules.surpass.find((r) => currentTranscendRuns < r.maxCount);
-    currentDecayRate = rule ? rule.rate : 1.0;
-  } else if (dungeonType === "sanctuary") {
-    // 圣域：无衰减 (1.0)，或者如果你有圣域的独立衰减阶梯可以在这里加
-    const rule = dungeonDecayRules.sanctuary.find((r) => true);
-    currentDecayRate = rule ? rule.rate : 1.0;
-  }
-
-  // 计算本次实际获取的基纳/绑定基纳（基础单价 * 衰减率 * 倍率）
-  // 假设你的页面中有计算单次基础收益的 computed，如 baseSingleKina, baseSingleBoundKina
-  const baseKina =
-    typeof baseSingleKina !== "undefined"
-      ? baseSingleKina.value
-      : consumeForm.value.baseKina || 100;
-  const baseBoundKina =
-    typeof baseSingleBoundKina !== "undefined"
-      ? baseSingleBoundKina.value
-      : consumeForm.value.baseBoundKina || 50;
-
-  const totalKinaThisTime = Number(
-    (baseKina * currentDecayRate * addRunsCount).toFixed(2)
-  );
-  const totalBoundKinaThisTime = Number(
-    (baseBoundKina * currentDecayRate * addRunsCount).toFixed(2)
-  );
-
   // ==================== B. 处理分组数据更新（远征与超越共享次数和日志） ====================
   const groupId = gameplayCharForm.value?.group;
   const groups = props.gameData?.groups || [];
@@ -1266,10 +1229,10 @@ const handleExecuteConsume = async () => {
           ...groupLogs[existingLogIndex],
           count: groupLogs[existingLogIndex].count + addRunsCount,
           kinaGain: Number(
-            (groupLogs[existingLogIndex].kinaGain + totalKinaThisTime).toFixed(2)
+            (groupLogs[existingLogIndex].kinaGain + calculatedTotalGain.value).toFixed(2)
           ),
           boundKinaGain: Number(
-            (groupLogs[existingLogIndex].boundKinaGain + totalBoundKinaThisTime).toFixed(
+            (groupLogs[existingLogIndex].boundKinaGain + calculatedBoundKinaGain.value).toFixed(
               2
             )
           ),
@@ -1280,8 +1243,8 @@ const handleExecuteConsume = async () => {
           date: currentDateStr,
           type: dungeonType,
           count: addRunsCount,
-          kinaGain: totalKinaThisTime,
-          boundKinaGain: totalBoundKinaThisTime,
+          kinaGain: calculatedTotalGain.value,
+          boundKinaGain: calculatedBoundKinaGain.value,
           createdAt: nowStr,
           updatedAt: nowStr,
         });
@@ -1339,10 +1302,10 @@ const handleExecuteConsume = async () => {
       ...charLogs[charExistingLogIndex],
       count: charLogs[charExistingLogIndex].count + addRunsCount,
       kinaGain: Number(
-        (charLogs[charExistingLogIndex].kinaGain + totalKinaThisTime).toFixed(2)
+        (charLogs[charExistingLogIndex].kinaGain + calculatedTotalGain.value).toFixed(2)
       ),
       boundKinaGain: Number(
-        (charLogs[charExistingLogIndex].boundKinaGain + totalBoundKinaThisTime).toFixed(2)
+        (charLogs[charExistingLogIndex].boundKinaGain + calculatedBoundKinaGain.value).toFixed(2)
       ),
       updatedAt: nowStr,
     };
@@ -1351,8 +1314,8 @@ const handleExecuteConsume = async () => {
       date: currentDateStr,
       type: dungeonType,
       count: addRunsCount,
-      kinaGain: totalKinaThisTime,
-      boundKinaGain: totalBoundKinaThisTime,
+      kinaGain: calculatedTotalGain.value,
+      boundKinaGain: calculatedBoundKinaGain.value,
       createdAt: nowStr,
       updatedAt: nowStr,
     });
@@ -1370,12 +1333,17 @@ const handleExecuteConsume = async () => {
     runLogs: charLogs,
   };
 
-  try {
-    await $confirm?.(`确定要消耗${calculatedEnergyCost?.value || 0}点奥德吗？`, "提示", {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      type: "warning",
-    });
+    const confirmed = await $confirm?.(
+      `确定要消耗${calculatedEnergyCost?.value || 0}点奥德吗？`,
+      "提示",
+      {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      }
+    );
+    console.log(`🔍 [GroupCharacterPanel:1340] %c 消耗---confirmed: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', confirmed);
+    if (!confirmed) return;
     // 更新本地表单状态
     gameplayCharForm.value = updatedCharacter;
 
@@ -1383,9 +1351,6 @@ const handleExecuteConsume = async () => {
       `🔍 [GroupCharacterPanel] %c 消耗奥德与各副本类型收益计算更新: `,
       "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
       {
-        dungeonType,
-        currentDecayRate,
-        totalKinaThisTime,
         updatedCharacter,
         newGroups,
       }
@@ -1394,9 +1359,6 @@ const handleExecuteConsume = async () => {
     // 触发父组件更新事件
     emit("update-character", updatedCharacter);
     emit("update-groups", newGroups);
-  } catch (error) {
-    //取消
-  }
 };
 // 过滤后的具体副本列表（若圣域对应的 s1/s2/s3 次数用尽则自动隐藏该项）
 const filteredDungeonList = computed(() => {

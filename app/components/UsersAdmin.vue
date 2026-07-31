@@ -820,16 +820,14 @@ const handleSaveCharacter = async () => {
     breezeEnergyPurchasedDate: nowIso,
 
     // 次数进度
+    /** 每周远征副本通关次数 */
     runs: 0,
-    lastRunsUpdate: nowIso,
+    /** 每周超越副本通关次数 */
     transcendRuns: 0,
-    lastTranscendRunsUpdate: nowIso,
+
     nightmareCount: 0,
     storedNightmareCount: 0,
     lastNightmareUpdate: nowIso,
-    dailyRuns: 0,
-    storedDailyRuns: 0,
-    lastDailyRunsUpdate: nowIso,
     /** 角色觉醒战次数，当前角色每周三5点更新，固定3次，上限30*/
     awakening: 0,
     /** 觉醒战补充次数 角色独立，30次上限*/
@@ -849,16 +847,8 @@ const handleSaveCharacter = async () => {
     dailyMission: false,
     dailyMissionDate: nowIso, //每日任务完成状态
 
-    // 战斗属性
-    equipmentScore: 0,
-    combatPower: 0,
-    transcendNote: "",
-    teamId: null,
-    lastEnergyUpdate: nowIso,
-    abyssOrderCompleted: false,
-    abyssOrderDate: nowIso,
-    localOrderCompleted: false,
-    localOrderDate: nowIso,
+    createDate: nowIso,
+
     ...newCharForm.value,
   };
 
@@ -1908,7 +1898,6 @@ watch(
                         <div v-else class="space-y-2">
                           <input
                             v-model.number="newCharGroupForm.premiumMemberDay"
-                            type="number"
                             min="1"
                             max="28"
                             placeholder="请输入剩余天数（最多28天）..."
@@ -2018,7 +2007,6 @@ watch(
                         </div>
                         <input
                           v-model.number="newCharForm.energy"
-                          type="number"
                           class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                           :class="
                             validationResult.invalidFields.includes('energy')
@@ -2048,7 +2036,6 @@ watch(
                         </div>
                         <input
                           v-model.number="newCharForm.storedEnergy"
-                          type="number"
                           class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                           :class="
                             validationResult.invalidFields.includes('storedEnergy')
@@ -2117,7 +2104,6 @@ watch(
                             </div>
                             <input
                               v-model.number="newCharForm.battlefield"
-                              type="number"
                               max="14"
                               min="0"
                               class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
@@ -2185,7 +2171,6 @@ watch(
                             </div>
                             <input
                               v-model.number="newCharForm.nightmareCount"
-                              type="number"
                               max="14"
                               min="0"
                               class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
@@ -2236,7 +2221,6 @@ watch(
                             </div>
                             <input
                               v-model.number="newCharForm.storedNightmareCount"
-                              type="number"
                               max="30"
                               min="0"
                               class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
@@ -2306,7 +2290,6 @@ watch(
                             </div>
                             <input
                               v-model.number="newCharForm.awakening"
-                              type="number"
                               max="3"
                               min="0"
                               class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
@@ -2352,7 +2335,6 @@ watch(
                             </div>
                             <input
                               v-model.number="newCharForm.storedAwakening"
-                              type="number"
                               max="30"
                               min="0"
                               class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
@@ -2431,7 +2413,6 @@ watch(
                             </div>
                             <input
                               v-model.number="newCharGroupForm.dailyRuns"
-                              type="number"
                               max="14"
                               min="0"
                               class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
@@ -2492,7 +2473,6 @@ watch(
                             </div>
                             <input
                               v-model.number="newCharGroupForm.storedDailyRunsInput"
-                              type="number"
                               max="30"
                               min="0"
                               class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
@@ -2570,7 +2550,6 @@ watch(
                             </div>
                             <input
                               v-model.number="newCharGroupForm.minigameCount"
-                              type="number"
                               max="14"
                               min="0"
                               class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
@@ -2631,7 +2610,6 @@ watch(
                             </div>
                             <input
                               v-model.number="newCharGroupForm.storedMinigameCountInput"
-                              type="number"
                               max="30"
                               min="0"
                               class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
@@ -2711,7 +2689,6 @@ watch(
                             </div>
                             <input
                               v-model.number="newCharGroupForm.dimensionalCount"
-                              type="number"
                               max="14"
                               min="0"
                               class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
@@ -2776,7 +2753,6 @@ watch(
                               v-model.number="
                                 newCharGroupForm.storedDimensionalCountInput
                               "
-                              type="number"
                               max="30"
                               min="0"
                               class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
@@ -2816,7 +2792,6 @@ watch(
                         >
                         <input
                           v-model.number="newCharForm.sanctuary.s1"
-                          type="number"
                           max="1"
                           min="0"
                           class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
@@ -2840,7 +2815,6 @@ watch(
                         >
                         <input
                           v-model.number="newCharForm.sanctuary.s2"
-                          type="number"
                           max="1"
                           min="0"
                           class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
@@ -2864,7 +2838,6 @@ watch(
                         >
                         <input
                           v-model.number="newCharForm.sanctuary.s3"
-                          type="number"
                           max="1"
                           min="0"
                           class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"

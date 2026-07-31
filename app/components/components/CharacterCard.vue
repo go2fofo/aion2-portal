@@ -42,7 +42,7 @@ const props = defineProps({
   },
 });
 
-// 2. 定义 Emits（向父组件抛出所有交互事件）
+// 定义 Emits（向父组件抛出所有交互事件）
 const emit = defineEmits([
   "click-gameplay",
   "toggle-lock",
@@ -69,9 +69,12 @@ const gridColsClass = computed(() => {
   }
 });
 
-// 4. 当前模式判断辅助
+
+//  当前模式判断辅助
 const currentMode = computed(() => props.config?.mode || "default");
 const fields = computed(() => props.config?.customFields || {});
+
+
 
 //================ 远征副本剩余卡片 开始================
 //计算指定组内的总通关次数
@@ -171,20 +174,16 @@ const getSanctuaryStatus = (char, bossKey) => {
  */
 const getGroupSharedTaskData = (groupId, metricKey, storedKey, maxLimit = 14) => {
   const defaultResult = { current: 0, stored: 0, max: maxLimit };
-
   // 获取当前组的所有角色
-  const groupCharacters = props.gameData?.characters?.filter((f) => f.group === groupId);
+  const groupTarget = props?.gameData?.groups?.find((f) => f.id === groupId);
 
-  if (!groupCharacters || groupCharacters.length === 0) {
+  if (!groupTarget) {
     return defaultResult;
   }
 
-  // 因为是“一体的（同加同减）”，取组内的第一个角色（或者直接用当前传进来的 char）的数据即可
-  const targetChar = groupCharacters[0];
-
   return {
-    current: Number(targetChar[metricKey]) || 0,
-    stored: Number(targetChar[storedKey]) || 0,
+    current: Number(groupTarget[metricKey]) || 0,
+    stored: Number(groupTarget[storedKey]) || 0,
     max: maxLimit
   };
 };
