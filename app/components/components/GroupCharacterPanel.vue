@@ -721,6 +721,7 @@ const saving = ref(false);
 
 // 点击游玩消耗触发
 const handleClickGameplay = (char) => {
+  console.log(`🔍 [GroupCharacterPanel:724] %c 点击游玩消耗触发 char: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', char);
   gameplayCharForm.value = char;
   openGameplay.value = true;
   //清空重置默认字段
@@ -758,7 +759,7 @@ const hasGroupDailyRuns = computed(() => {
 // 奥德能量上限计算（高级会员840，普通560）
 const energyLimit = computed(() => {
   const isPremium =
-    props.gameplayCharForm?.premiumMember ||
+    props.getCharGroup?.premiumMember ||
     (props.gameData?.characters || []).some(
       (c) => Number(c.group) === Number(props.gameplayCharForm?.group) && c.premiumMember
     );
@@ -768,6 +769,14 @@ const energyLimit = computed(() => {
 // 补充奥德能量上限计算（2000）
 const storedEnergyLimit = computed(() => {
   return 2000;
+});
+
+// 获取当前角色对应的已经的保存分组数据
+const getCharGroup = computed(() => {
+  let groupItem = props.gameData?.groups?.find(
+    (f) => f.id == gameplayCharForm.value?.group
+  );
+  return groupItem;
 });
 
 // 游玩补充 表单内的控制
@@ -857,70 +866,28 @@ const totalsStoredEnergyCount = computed(() => {
 
   return total;
 });
-
 //  每日副本补充次数：组内全员共享统计
 const totalGroupStoredDailyRuns = computed(() => {
-  const currentGroupId = gameplayCharForm.value?.group;
-  if (!currentGroupId) return gameplayCharForm.value?.storedDailyRuns || 0;
-
-  // 假设你的所有角色列表存在 characters 或 gameData.characters 里
-  // 请根据你代码实际存放角色的变量名进行调整（比如 props.gameData.characters 或 characters.value）
-  const allCharacters = props.gameData?.characters || [];
-
-  // 筛选出同组的其他角色，并把他们的 storedDailyRuns 累加
-  const otherCharactersSum = allCharacters
-    .filter((char) => char.group === currentGroupId)
-    .reduce((sum, char) => sum + (Number(char.storedDailyRuns) || 0), 0);
-
   // 加上当前表单里输入的数值
-  let totalGroupStoredDailyRunsNum =
-    otherCharactersSum + (Number(supplementFormValues.value?.storedDailyRuns) || 0);
-
-  console.log("totalGroupStoredDailyRunsNum", totalGroupStoredDailyRunsNum);
-  return totalGroupStoredDailyRunsNum;
+  let total =
+    (Number(getCharGroup.value?.storedDailyRuns) || 0) +
+    (Number(supplementFormValues.value?.storedDailyRuns) || 0);
+  return total;
 });
 
 // 古树庆典小游戏补充次数：组内全员共享统计
 const totalGroupStoredMinigameCount = computed(() => {
-  const currentGroupId = gameplayCharForm.value?.group;
-  if (!currentGroupId) return gameplayCharForm.value?.storedMinigameCount || 0;
-
-  // 假设你的所有角色列表存在 characters 或 gameData.characters 里
-  // 请根据你代码实际存放角色的变量名进行调整（比如 props.gameData.characters 或 characters.value）
-  const allCharacters = props.gameData?.characters || [];
-
-  // 筛选出同组的其他角色，并把他们的 storedMinigameCount 累加
-  const otherCharactersSum = allCharacters
-    .filter((char) => char.group === currentGroupId)
-    .reduce((sum, char) => sum + (Number(char.storedMinigameCount) || 0), 0);
-
-  // 加上当前表单里输入的数值
-  let totalGroupStoredMinigameCountNum =
-    otherCharactersSum + (Number(supplementFormValues.value?.storedMinigameCount) || 0);
-
-  console.log("totalGroupStoredMinigameCountNum", totalGroupStoredMinigameCountNum);
-  return totalGroupStoredMinigameCountNum;
+  let total =
+    (Number(getCharGroup.value?.storedMinigameCount) || 0) +
+    (Number(supplementFormValues.value?.storedMinigameCount) || 0);
+  return total;
 });
 // 次元袭击补充次数：组内全员共享统计
 const totalGroupStoredDimensionalCount = computed(() => {
-  const currentGroupId = gameplayCharForm.value?.group;
-  if (!currentGroupId) return gameplayCharForm.value?.storedDimensionalCount || 0;
-
-  // 假设你的所有角色列表存在 characters 或 gameData.characters 里
-  // 请根据你代码实际存放角色的变量名进行调整（比如 props.gameData.characters 或 characters.value）
-  const allCharacters = props.gameData?.characters || [];
-
-  // 筛选出同组的其他角色，并把他们的 storedDimensionalCount 累加
-  const otherCharactersSum = allCharacters
-    .filter((char) => char.group === currentGroupId)
-    .reduce((sum, char) => sum + (Number(char.storedDimensionalCount) || 0), 0);
-
-  // 加上当前表单里输入的数值
-  let totalGroupStoredDimensionalCountNum =
-    otherCharactersSum +
-    (Number(supplementFormValues.value?.storedDimensionalCount || 0) || 0);
-
-  return totalGroupStoredDimensionalCountNum;
+  let total =
+    (Number(getCharGroup.value?.storedDimensionalCount) || 0) +
+    (Number(supplementFormValues.value?.storedDimensionalCount) || 0);
+  return total;
 });
 
 // 噩梦战补充次数：角色统计
@@ -990,29 +957,48 @@ const handleExecuteSupplement = async () => {
 
     //觉醒战补充（角色）
     ...(storedAwakening ? { storedAwakening: totalStoredAwakeningRuns.value } : {}),
-
-    // 每日副本补充（账号共享）
-    ...(storedDailyRuns ? { storedDailyRuns } : {}),
-
-    // 古树庆典小游戏补充，（账号共享）
-    ...(storedMinigameCount ? { storedMinigameCount } : {}),
-    // 次元袭击补充，（账号共享）
-    ...(storedDimensionalCount ? { storedDimensionalCount } : {}),
   };
+
+  const groupId = getCharGroup.value?.id;
+  const newGroups = props.gameData?.groups?.map((g) => {
+    if (g.id === groupId) {
+      return {
+        ...g,
+        // 每日副本补充（账号共享）
+        ...(storedDailyRuns ? { storedDailyRuns: totalGroupStoredDailyRuns.value } : {}),
+
+        // 古树庆典小游戏补充，（账号共享）
+        ...(storedMinigameCount
+          ? { storedMinigameCount: totalGroupStoredMinigameCount.value }
+          : {}),
+        // 次元袭击补充，（账号共享）
+        ...(storedDimensionalCount
+          ? { storedDimensionalCount: totalGroupStoredDimensionalCount.value }
+          : {}),
+      };
+    }
+    return g;
+  });
 
   //  更新本地响应式数据
   gameplayCharForm.value = updatedCharacter;
 
   console.log(
-    `🔍 [GroupCharacterPanel:928] %c updatedCharacter 补充保存: `,
+    `🔍 [GroupCharacterPanel:928] %c updatedCharacter 角色补充保存: `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     updatedCharacter
+  );
+
+  console.log(
+    `🔍 [GroupCharacterPanel:928] %c newGroups 分组补充保存: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    newGroups
   );
 
   debugger;
   // 6. 触发持久化保存事件
   emit("update-character", updatedCharacter);
-
+  emit("update-groups", newGroups);
   $alert(`成功完成补充`);
 };
 
@@ -1146,13 +1132,13 @@ const calculatedTotalGain = computed(() => {
 // 智能判断当前是否应该按双倍消耗计算
 const isEffectiveDoubleEnergy = computed(() => {
   // 如果不是会员，绝对不允许双倍，强制为单倍
-  if (!gameplayCharForm.value?.premiumMember) return false;
+  if (!getCharGroup.value?.premiumMember) return false;
   // 如果是会员，则看用户的选择（默认情况下未定义或为 true 时即为双倍）
   return consumeForm.value.useDoubleEnergy !== false;
 });
 // 监听会员状态变化，动态校正消耗模式
 watch(
-  () => gameplayCharForm.value?.premiumMember,
+  () => getCharGroup.value?.premiumMember,
   (isPremium) => {
     if (isPremium) {
       // 切换到会员身份时，默认勾选双倍消耗
@@ -1660,7 +1646,7 @@ const hasSupplementValues = computed(() => {
       :get-group-name="getGroupName"
       :format-combat-power="formatCombatPower"
       @click-gameplay="handleClickGameplay"
-      @toggle-lock="(char)=>emit('toggle-lock', char)"
+      @toggle-lock="(char) => emit('toggle-lock', char)"
       @toggle-task="handleToggleTask"
       @text-change="handleTextChange"
       @delete="handleDelete"
@@ -1775,7 +1761,7 @@ const hasSupplementValues = computed(() => {
 
               <!-- 特级会员极简标 -->
               <span
-                v-if="gameplayCharForm?.premiumMember"
+                v-if="getCharGroup?.premiumMember"
                 class="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded"
               >
                 已开通特级会员
@@ -2098,24 +2084,24 @@ const hasSupplementValues = computed(() => {
                         <!-- 档位 2：会员双倍（仅会员可选，非会员置灰加锁提示） -->
                         <button
                           type="button"
-                          :disabled="!gameplayCharForm?.premiumMember"
+                          :disabled="!getCharGroup?.premiumMember"
                           class="py-2.5 px-3 rounded-xl font-bold text-xs transition-all border text-center flex flex-col items-center justify-center gap-0.5"
                           :class="[
-                            !gameplayCharForm?.premiumMember
+                            !getCharGroup?.premiumMember
                               ? 'opacity-40 bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
                               : consumeForm.useDoubleEnergy !== false
                               ? 'bg-amber-500 text-white border-amber-500 shadow-sm cursor-pointer'
                               : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 cursor-pointer',
                           ]"
                           @click="
-                            gameplayCharForm?.premiumMember &&
+                            getCharGroup?.premiumMember &&
                               (consumeForm.useDoubleEnergy = true)
                           "
                         >
                           <span>
                             双倍消耗
                             <span
-                              v-if="!gameplayCharForm?.premiumMember"
+                              v-if="!getCharGroup?.premiumMember"
                               class="text-[9px] font-normal opacity-75"
                               >(需会员)</span
                             >

@@ -411,9 +411,6 @@ const openAddCharModal = () => {
     awakening: 3, //觉醒战
     nightmareCount: 14, //噩梦
 
-    minigameCount: 14, //古树庆典小游戏
-    dimensionalCount: 14, //次元袭击
-
     battlefield: 3, //战场
 
     locked: true,
@@ -845,17 +842,12 @@ const handleSaveCharacter = async () => {
 
     // 圣域、小游戏及日常状态
     sanctuary: { s1: 1, s2: 1, s3: 1 },
+
+    dailySignIn: false,
     dailySignInDate: nowIso, //每日签到状态及时间
+
+    dailyMission: false,
     dailyMissionDate: nowIso, //每日任务完成状态
-    // minigameCount: 0,
-    // storedMinigameCount: 0,
-    // lastMinigameUpdate: nowIso,
-    // awakening: false,
-    // awakeningDate: nowIso,
-    // dailyMission: false,
-    // dailyMissionDate: nowIso,
-    // dailySignIn: false,
-    // dailySignInDate: nowIso,
 
     // 战斗属性
     equipmentScore: 0,
