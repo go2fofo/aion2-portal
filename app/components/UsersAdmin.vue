@@ -85,6 +85,7 @@ const gameData = ref({
 });
 
 const groupOpen = ref(false);
+const settingsOpen = ref(false);
 const pickerOpen = ref(false);
 const pickerOpenOther = ref({
   type: "",
@@ -1106,6 +1107,16 @@ const deleteGroup = async (id) => {
 const activeTabGroup = ref("all"); // 'all' 代表全选，或者存放具体的分组 id
 //============================分组管理结束============================
 
+console.log("================ 设置按钮 开始================");
+
+// 打开分组管理弹窗
+const openSettingsModal = () => {
+  settingsOpen.value = true;
+};
+
+console.log("%c 设置按钮", "color: #28a745; font-weight: bold;");
+console.log("================ 设置按钮 结束 =====================");
+
 //============================组角色卡片列表事件处理/开始============================
 // 分组角色卡片列表删除角色事件处理
 const groupCharacterPanelHandleDelete = async (char) => {
@@ -1489,6 +1500,33 @@ watch(
             />
           </svg>
           分组管理
+        </button>
+        <!-- 设置按钮 -->
+        <button
+          @click="openSettingsModal"
+          class="px-6 py-3 rounded-2xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-black text-sm transition-all active:scale-95 flex items-center gap-2 border border-slate-200/60"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4 text-slate-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+          设置
         </button>
       </div>
 
@@ -3299,6 +3337,40 @@ watch(
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+    <!-- 设置管理 -->
+    <Teleport to="body">
+      <Transition name="modal3">
+        <div
+          v-if="settingsOpen"
+          class="fixed inset-0 z-[60] flex items-center justify-center"
+        >
+          <div
+            class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            @click="settingsOpen = false"
+          ></div>
+          <div
+            class="relative z-10 w-full max-w-3xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden"
+          >
+            <div
+              class="p-6 border-b border-slate-100 flex items-center justify-between gap-4"
+            >
+              <div class="font-black text-slate-800 text-lg flex items-center gap-2">
+                <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
+                显示设置
+              </div>
+              <button
+                class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors"
+                @click="settingsOpen = false"
+              >
+                关闭
+              </button>
+            </div>
+
+            <div class="p-6 space-y-6 max-h-[80vh] overflow-y-auto custom-scroll"></div>
           </div>
         </div>
       </Transition>
