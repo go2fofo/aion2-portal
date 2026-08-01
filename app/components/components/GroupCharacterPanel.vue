@@ -709,6 +709,20 @@ const handleToggleTask = (char, field) => {
   const updatedChar = { ...char, [field]: !char[field] };
   emit("update-character", updatedChar);
 };
+const handleTaskClickk = (char, field) => {
+  console.log(
+    `🔍 [GroupCharacterPanel:713] %c handleTaskClickk--char: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    char
+  );
+  console.log(
+    `🔍 [GroupCharacterPanel:713] %c handleTaskClickk--field: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    field
+  );
+  // const updatedChar = { ...char, [field]: !char[field] };
+  // emit("update-character", updatedChar);
+};
 
 //========================游玩消耗/补充弹框开始========================
 // 打开游玩消耗/补充，弹框
@@ -728,7 +742,7 @@ const handleClickGameplay = (char) => {
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     char
   );
-   console.log(
+  console.log(
     `🔍 [GroupCharacterPanel:724] %c 点击游玩消耗触发 gameData: `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     props.gameData
@@ -1232,9 +1246,9 @@ const handleExecuteConsume = async () => {
             (groupLogs[existingLogIndex].kinaGain + calculatedTotalGain.value).toFixed(2)
           ),
           boundKinaGain: Number(
-            (groupLogs[existingLogIndex].boundKinaGain + calculatedBoundKinaGain.value).toFixed(
-              2
-            )
+            (
+              groupLogs[existingLogIndex].boundKinaGain + calculatedBoundKinaGain.value
+            ).toFixed(2)
           ),
           updatedAt: nowStr,
         };
@@ -1305,7 +1319,9 @@ const handleExecuteConsume = async () => {
         (charLogs[charExistingLogIndex].kinaGain + calculatedTotalGain.value).toFixed(2)
       ),
       boundKinaGain: Number(
-        (charLogs[charExistingLogIndex].boundKinaGain + calculatedBoundKinaGain.value).toFixed(2)
+        (
+          charLogs[charExistingLogIndex].boundKinaGain + calculatedBoundKinaGain.value
+        ).toFixed(2)
       ),
       updatedAt: nowStr,
     };
@@ -1333,32 +1349,36 @@ const handleExecuteConsume = async () => {
     runLogs: charLogs,
   };
 
-    const confirmed = await $confirm?.(
-      `确定要消耗${calculatedEnergyCost?.value || 0}点奥德吗？`,
-      "提示",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-      }
-    );
-    console.log(`🔍 [GroupCharacterPanel:1340] %c 消耗---confirmed: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', confirmed);
-    if (!confirmed) return;
-    // 更新本地表单状态
-    gameplayCharForm.value = updatedCharacter;
+  const confirmed = await $confirm?.(
+    `确定要消耗${calculatedEnergyCost?.value || 0}点奥德吗？`,
+    "提示",
+    {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
+    }
+  );
+  console.log(
+    `🔍 [GroupCharacterPanel:1340] %c 消耗---confirmed: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    confirmed
+  );
+  if (!confirmed) return;
+  // 更新本地表单状态
+  gameplayCharForm.value = updatedCharacter;
 
-    console.log(
-      `🔍 [GroupCharacterPanel] %c 消耗奥德与各副本类型收益计算更新: `,
-      "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-      {
-        updatedCharacter,
-        newGroups,
-      }
-    );
+  console.log(
+    `🔍 [GroupCharacterPanel] %c 消耗奥德与各副本类型收益计算更新: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    {
+      updatedCharacter,
+      newGroups,
+    }
+  );
 
-    // 触发父组件更新事件
-    emit("update-character", updatedCharacter);
-    emit("update-groups", newGroups);
+  // 触发父组件更新事件
+  emit("update-character", updatedCharacter);
+  emit("update-groups", newGroups);
 };
 // 过滤后的具体副本列表（若圣域对应的 s1/s2/s3 次数用尽则自动隐藏该项）
 const filteredDungeonList = computed(() => {
@@ -1431,7 +1451,58 @@ watch(
   },
   { immediate: true, deep: true }
 );
-// ========================================副本消耗与吉纳收益计算开始========================================
+
+const dailyRunsSection = ref(null);
+const energySection = ref(null);
+const minigameSection = ref(null);
+const dimensionalSection = ref(null);
+const awakeningSection = ref(null);
+const nightmareSection = ref(null);
+
+// 点击跳转定位方法
+const scrollToSection = (key) => {
+  let targetElement = null;
+
+  // 根据点击的 key 映射到对应的 DOM 元素
+  switch (key) {
+    case "dailyRuns":
+      targetElement = dailyRunsSection.value;
+      break;
+    case "energy":
+      targetElement = energySection.value;
+      break;
+    case "minigame":
+      targetElement = minigameSection.value;
+      break;
+    case "dimensional":
+      targetElement = dimensionalSection.value;
+      break;
+    case "awakening":
+      targetElement = awakeningSection.value;
+      break;
+    case "nightmare":
+      targetElement = nightmareSection.value;
+      break;
+  }
+
+  if (targetElement) {
+    // 平滑滚动到目标位置，并让其在视口中居中或靠上
+    targetElement.scrollIntoView({
+      behavior: "smooth",
+      block: "center", // 垂直居中展示
+    });
+
+    targetElement.classList.add(
+      "ring-2",
+      "ring-[#45a6d5]",
+      "transition-all",
+      "duration-500"
+    );
+    setTimeout(() => {
+      targetElement.classList.remove("ring-2", "ring-[#45a6d5]");
+    }, 1500);
+  }
+};
 
 //========================游玩消耗/补充弹框结束========================
 
@@ -1610,6 +1681,7 @@ const hasSupplementValues = computed(() => {
       @click-gameplay="handleClickGameplay"
       @toggle-lock="(char) => emit('toggle-lock', char)"
       @toggle-task="handleToggleTask"
+      @task-click="handleTaskClickk"
       @text-change="handleTextChange"
       @delete="handleDelete"
       :groups="gameData.group"
@@ -1697,7 +1769,7 @@ const hasSupplementValues = computed(() => {
               关闭
             </button>
           </div>
-          <!-- 卡片：consume -->
+          <!-- 卡片：consume 消耗奥德-->
           <div
             v-if="gameplayCharForm?.characterId && activeTab == 'consume'"
             class="bg-gradient-to-r from-sky-50 via-white to-sky-50/60 border border-sky-200/80 px-4 py-3 flex items-center justify-between flex-wrap gap-4 shadow-2xs"
@@ -1733,7 +1805,7 @@ const hasSupplementValues = computed(() => {
               </span>
             </div>
 
-            <!-- 右侧：绝对C位 —— 凸显当前奥德状态 -->
+            <!-- 右侧：奥德状态 -->
             <div
               class="flex items-center gap-3 bg-white border border-sky-200/80 px-3.5 py-1.5 rounded-xl shadow-2xs"
             >
@@ -1759,50 +1831,57 @@ const hasSupplementValues = computed(() => {
               </div>
             </div>
           </div>
-          <!-- 卡片：supplement (精简重构版) -->
+          <!-- 卡片：supplement 游玩补充-->
           <div
             v-if="gameplayCharForm?.characterId && activeTab === 'supplement'"
-            class="bg-gradient-to-r from-sky-50 via-white to-sky-50/60 border border-sky-200/80 px-4 py-3.5 shadow-2xs space-y-3"
+            class="bg-gradient-to-r from-sky-50 via-white to-sky-50/60 border border-sky-200/80 px-4 py-3.5 shadow-2xs space-y-3 rounded-2xl"
           >
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
               <div
                 v-for="item in summaryItems"
                 :key="item.key"
-                class="flex flex-col bg-white border border-sky-100/80 p-2.5 rounded-xl shadow-2xs transition-all hover:border-sky-300"
+                @click="scrollToSection && scrollToSection(item.key)"
+                class="flex flex-col bg-white border border-sky-100/80 p-2.5 rounded-xl shadow-2xs transition-all hover:border-sky-400 hover:shadow-sm cursor-pointer select-none group"
               >
                 <!-- 标题 -->
-                <span class="text-[10px] font-bold text-slate-400 mb-1">{{
-                  item.label
-                }}</span>
+                <span
+                  class="text-[10px] font-bold text-slate-400 mb-1 group-hover:text-[#45a6d5] transition-colors"
+                >
+                  {{ item.label }}
+                </span>
 
                 <!-- 数值区 -->
                 <div class="flex items-baseline gap-1 text-xs">
                   <!-- 基础值 -->
                   <span class="font-black text-slate-800">
-                    {{ item.getValue(gameplayCharForm) }}
+                    {{ item.getValue ? item.getValue(gameplayCharForm) : 0 }}
                   </span>
 
-                  <!-- 补充值 -->
-                  <span :class="['font-black', item.colorClass]">
-                    +{{ item.getStoredValue() }}
+                  <!-- 补充值（仅在有值或大于0时展示，或者安全输出） -->
+                  <span :class="['font-black', item.colorClass || 'text-amber-600']">
+                    +{{ item.getStoredValue ? item.getStoredValue(gameplayCharForm) : 0 }}
                   </span>
 
                   <!-- 额度上限（如果有） -->
                   <span v-if="item.limit" class="text-[10px] text-slate-400 font-medium">
-                    /{{ item.limit }}
+                    /{{
+                      typeof item.limit === "function"
+                        ? item.limit(gameplayCharForm)
+                        : item.limit
+                    }}
                   </span>
                 </div>
               </div>
             </div>
           </div>
-          <!-- 卡片：weeklydaily -->
+          <!-- 卡片：weeklydaily 周常/日常任务-->
           <div
             v-if="gameplayCharForm?.characterId && activeTab == 'weeklydaily'"
             class="bg-gradient-to-r from-sky-50 via-white to-sky-50/60 border border-sky-200/80 px-4 py-3 flex items-center justify-between flex-wrap gap-4 shadow-2xs"
           ></div>
 
-          <!-- 弹窗表单主体 (卡片式布局) -->
-          <div class="p-8 space-y-6 overflow-y-auto custom-scroll flex-1 bg-slate-50/50">
+          <!-- 弹窗表单主体 -->
+          <div class="p-3 space-y-6 overflow-y-auto custom-scroll flex-1 bg-slate-50/50">
             <!-- 第一个分组：消耗奥德分组内容 -->
             <div v-if="activeTab === 'consume'" class="space-y-6">
               <template
@@ -1810,7 +1889,7 @@ const hasSupplementValues = computed(() => {
               >
                 <!-- 副本类型与吉纳收益联动配置卡片 -->
                 <div
-                  class="bg-white border border-slate-200/80 p-6 rounded-3xl space-y-5 shadow-sm"
+                  class="bg-white border border-slate-200/80 p-3 rounded-3xl space-y-5 shadow-sm"
                 >
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
@@ -2155,7 +2234,8 @@ const hasSupplementValues = computed(() => {
             <template v-if="activeTab === 'supplement' && gameplayCharForm?.characterId">
               <!-- 奥德存储补充配置卡片 -->
               <div
-                class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all"
+                class="p-3 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all"
+                ref="energySection"
                 :class="
                   validationResult.invalidFields.includes('storedEnergy')
                     ? 'border-red-500 bg-red-50/20'
@@ -2346,6 +2426,7 @@ const hasSupplementValues = computed(() => {
               <!-- 噩梦补充卡片 -->
               <div
                 class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all"
+                ref="nightmareSection"
                 :class="
                   validationResult.invalidFields.includes('storedNightmareCount')
                     ? 'border-red-500 bg-red-50/20'
@@ -2469,6 +2550,7 @@ const hasSupplementValues = computed(() => {
               <!-- 觉醒战补充卡片 -->
               <div
                 class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all"
+                ref="awakeningSection"
                 :class="
                   validationResult.invalidFields.includes('storedAwakening')
                     ? 'border-red-500 bg-red-50/20'
@@ -2591,6 +2673,7 @@ const hasSupplementValues = computed(() => {
               <!-- 每日副本补充卡片 -->
               <div
                 class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all"
+                ref="dailyRunsSection"
                 :class="
                   validationResult.invalidFields.includes('storedDailyRuns')
                     ? 'border-red-500 bg-red-50/20'
@@ -2719,6 +2802,7 @@ const hasSupplementValues = computed(() => {
               <!-- 古树庆典小游戏补充卡片 -->
               <div
                 class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all"
+                ref="minigameSection"
                 :class="
                   validationResult.invalidFields.includes('storedMinigameCount')
                     ? 'border-red-500 bg-red-50/20'
@@ -2849,6 +2933,7 @@ const hasSupplementValues = computed(() => {
               <!-- 次元袭击补充卡片 -->
               <div
                 class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all"
+                ref="dimensionalSection"
                 :class="
                   validationResult.invalidFields.includes('storedDimensionalCount')
                     ? 'border-red-500 bg-red-50/20'
