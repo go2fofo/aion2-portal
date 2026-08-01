@@ -617,6 +617,7 @@ const emit = defineEmits([
   "update-character",
   "delete-character",
   "toggle-lock",
+  "sign-in-click",
   "toggle-task",
   "play-consumption",
   "open-edit",
@@ -801,51 +802,59 @@ const supplementFormValues = ref({
   storedDimensionalCount: 0,
 });
 // 游玩补充概览卡片配置数据
-const summaryItems = [
-  {
-    key: "energy",
-    label: "奥德能量",
-    getValue: (form) => form?.energy || 0,
-    getStoredValue: () => gameplayCharForm.value?.storedEnergy || 0,
-    colorClass: "text-amber-600",
-    limit: energyLimit.value, // 如果 energyLimit 是响应式变量
-  },
-  {
-    key: "dailyRuns",
-    label: "每日副本", // (若原先写错成噩梦副本，此处已修正为每日副本)
-    getValue: (form) => form?.dailyRuns || 0,
-    getStoredValue: () => totalGroupStoredDailyRuns.value || 0,
-    colorClass: "text-purple-600",
-  },
-  {
-    key: "nightmare",
-    label: "噩梦副本",
-    getValue: (form) => form?.nightmareCount || 0,
-    getStoredValue: () => gameplayCharForm.value?.storedNightmareCount || 0,
-    colorClass: "text-purple-600",
-  },
-  {
-    key: "awakening",
-    label: "觉醒战",
-    getValue: (form) => form?.awakening || 0,
-    getStoredValue: () => gameplayCharForm.value?.storedAwakening || 0,
-    colorClass: "text-emerald-600",
-  },
-  {
-    key: "minigame",
-    label: "古树庆典小游戏",
-    getValue: (form) => totalGroupStoredMinigameCount.value || 0,
-    getStoredValue: () => totalGroupStoredMinigameCount.value || 0,
-    colorClass: "text-amber-600",
-  },
-  {
-    key: "dimensional",
-    label: "次元袭击",
-    getValue: (form) => totalGroupStoredDimensionalCount.value || 0,
-    getStoredValue: () => totalGroupStoredDimensionalCount.value || 0,
-    colorClass: "text-sky-600",
-  },
-];
+
+const summaryItems = computed(() => {
+  let suner = [
+    {
+      key: "dailyRuns",
+      label: "每日副本", // (若原先写错成噩梦副本，此处已修正为每日副本)
+      getValue: (form) => form?.dailyRuns || 0,
+      getStoredValue: () => totalGroupStoredDailyRuns.value || 0,
+      colorClass: "text-purple-600",
+    },
+    {
+      key: "nightmare",
+      label: "噩梦副本",
+      getValue: (form) => form?.nightmareCount || 0,
+      getStoredValue: () => gameplayCharForm.value?.storedNightmareCount || 0,
+      colorClass: "text-purple-600",
+    },
+    {
+      key: "awakening",
+      label: "觉醒战",
+      getValue: (form) => form?.awakening || 0,
+      getStoredValue: () => gameplayCharForm.value?.storedAwakening || 0,
+      colorClass: "text-emerald-600",
+    },
+    {
+      key: "minigame",
+      label: "古树庆典小游戏",
+      getValue: (form) => totalGroupStoredMinigameCount.value || 0,
+      getStoredValue: () => totalGroupStoredMinigameCount.value || 0,
+      colorClass: "text-amber-600",
+    },
+    {
+      key: "dimensional",
+      label: "次元袭击",
+      getValue: (form) => totalGroupStoredDimensionalCount.value || 0,
+      getStoredValue: () => totalGroupStoredDimensionalCount.value || 0,
+      colorClass: "text-sky-600",
+    },
+  ];
+
+  if (activeTab.value === "supplement") {
+    suner.unshift({
+      key: "energy",
+      label: "奥德能量",
+      getValue: (form) => form?.energy || 0,
+      getStoredValue: () => gameplayCharForm.value?.storedEnergy || 0,
+      colorClass: "text-amber-600",
+      limit: energyLimit.value, // 如果 energyLimit 是响应式变量
+    });
+  }
+
+  return suner;
+});
 
 // 计算大奥德提供的总点数 (每个40点)
 const bigOdTotalPoints = computed(() => {
@@ -905,6 +914,7 @@ const totalsToredNightmareCountRuns = computed(() => {
 
   return totalsToredNightmareCountNum;
 });
+
 // 觉醒战补充次数：角色统计
 const totalStoredAwakeningRuns = computed(() => {
   const otherSum = gameplayCharForm.value?.storedAwakening || 0;
@@ -1505,6 +1515,33 @@ const scrollToSection = (key) => {
 };
 
 //========================游玩消耗/补充弹框结束========================
+//================ 日周任务 开始 exchange================
+// 日周任务 表单内的控制
+const exchangeFormValues = ref({
+  // 每日副本补充
+  dailyRuns: 0,
+  //噩梦补充
+  nightmareCount: 0,
+  //觉醒战补充
+  awakening: 0,
+  // 古树庆典小游戏补充次数
+  minigameCount: 0,
+  //次元袭击补充次数
+  dimensionalCount: 0,
+});
+// 噩梦战消耗次数：角色统计
+const totalsConsumedNightmareCountRuns = computed(() => {
+  const storedNightmareCount = gameplayCharForm.value?.storedNightmareCount;
+  const nightmareCount = gameplayCharForm.value?.nightmareCount;
+  // 当前表单里输入的数值
+  const currentNightmareCount = exchangeFormValues.value.nightmareCount;
+
+  let totalsConsumedNightmareCountNum = storedNightmareCount + currentNightmareCountNum;
+
+  return totalsConsumedNightmareCountNum;
+});
+
+//================ 日周任务 结束 =====================
 
 // 1. 定义一个通用的字段校验监听工厂函数
 const watchFieldLimit = (sourceGetter, fieldName, maxLimit, extraCondition) => {
@@ -1717,7 +1754,7 @@ const hasSupplementValues = computed(() => {
         >
           <!-- 弹窗头部 -->
           <div
-            class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white z-10"
+            class="px-8 py-4 border-b border-slate-100 flex items-center justify-between bg-white z-10"
           >
             <div class="flex items-center gap-6">
               <!-- Tab 切换按钮组 -->
@@ -1758,7 +1795,19 @@ const hasSupplementValues = computed(() => {
                   "
                   @click="activeTab = 'weeklydaily'"
                 >
-                  日常/周常
+                  日/周常任务
+                </button>
+                <button
+                  type="button"
+                  class="flex-1 px-2 py-2 rounded-xl text-xs font-black transition-all shadow-2xs whitespace-nowrap"
+                  :class="
+                    activeTab === 'exchange'
+                      ? 'bg-[#45a6d5] text-white shadow-md shadow-[#45a6d5]/30'
+                      : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'
+                  "
+                  @click="activeTab = 'exchange'"
+                >
+                  周兑换
                 </button>
               </div>
             </div>
@@ -1831,9 +1880,12 @@ const hasSupplementValues = computed(() => {
               </div>
             </div>
           </div>
-          <!-- 卡片：supplement 游玩补充-->
+          <!-- 卡片：supplement 游玩补充 || 卡片：weeklydaily 周常/日常任务--->
           <div
-            v-if="gameplayCharForm?.characterId && activeTab === 'supplement'"
+            v-if="
+              (gameplayCharForm?.characterId && activeTab === 'supplement') ||
+              activeTab === 'weeklydaily'
+            "
             class="bg-gradient-to-r from-sky-50 via-white to-sky-50/60 border border-sky-200/80 px-4 py-3.5 shadow-2xs space-y-3 rounded-2xl"
           >
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
@@ -1874,11 +1926,6 @@ const hasSupplementValues = computed(() => {
               </div>
             </div>
           </div>
-          <!-- 卡片：weeklydaily 周常/日常任务-->
-          <div
-            v-if="gameplayCharForm?.characterId && activeTab == 'weeklydaily'"
-            class="bg-gradient-to-r from-sky-50 via-white to-sky-50/60 border border-sky-200/80 px-4 py-3 flex items-center justify-between flex-wrap gap-4 shadow-2xs"
-          ></div>
 
           <!-- 弹窗表单主体 -->
           <div class="p-3 space-y-6 overflow-y-auto custom-scroll flex-1 bg-slate-50/50">
@@ -2332,7 +2379,6 @@ const hasSupplementValues = computed(() => {
                         </button>
                         <input
                           v-model.number="supplementFormValues.bigOdCount"
-                          type="number"
                           :disabled="totalsStoredEnergyCount > 2000"
                           min="0"
                           class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
@@ -2370,7 +2416,6 @@ const hasSupplementValues = computed(() => {
                         </button>
                         <input
                           v-model.number="supplementFormValues.smallOdCount"
-                          type="number"
                           :disabled="totalsStoredEnergyCount > 2000"
                           min="0"
                           class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
@@ -2423,648 +2468,2122 @@ const hasSupplementValues = computed(() => {
                   </div>
                 </div>
               </div>
-              <!-- 噩梦补充卡片 -->
-              <div
-                class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all"
-                ref="nightmareSection"
-                :class="
-                  validationResult.invalidFields.includes('storedNightmareCount')
-                    ? 'border-red-500 bg-red-50/20'
-                    : 'border-slate-200/80'
-                "
-              >
-                <!-- 顶栏标题 -->
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-3">
-                    <div class="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
-
+              <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-stretch">
+                  <!-- 噩梦补充卡片 -->
+                  <div
+                    class="p-4 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all md:col-span-3 h-full flex flex-col"
+                    ref="nightmareSection"
+                    :class="
+                      validationResult.invalidFields.includes('storedNightmareCount')
+                        ? 'border-red-500 bg-red-50/20'
+                        : 'border-slate-200/80'
+                    "
+                  >
+                    <!-- 顶栏标题 -->
                     <div class="flex items-center justify-between">
-                      <!-- 标题与动态提示 -->
-                      <div
-                        class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
-                      >
-                        <span>噩梦补充</span>
+                      <div class="flex items-center gap-3">
+                        <div class="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
+
+                        <div class="flex items-center justify-between">
+                          <!-- 标题与动态提示 -->
+                          <div
+                            class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
+                          >
+                            <span>噩梦补充</span>
+                            <span
+                              class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
+                              :class="{
+                                'bg-[#45a6d5]/10 text-[#45a6d5]':
+                                  30 - totalsToredNightmareCountRuns > 5,
+                                'bg-amber-500/10 text-amber-600':
+                                  30 - totalsToredNightmareCountRuns <= 5 &&
+                                  30 - totalsToredNightmareCountRuns > 0,
+                                'bg-rose-500/10 text-rose-600 animate-pulse':
+                                  30 - totalsToredNightmareCountRuns <= 0,
+                              }"
+                            >
+                              {{
+                                30 - totalsToredNightmareCountRuns > 0
+                                  ? `可补充 ${30 - totalsToredNightmareCountRuns} 次`
+                                  : "不可补充"
+                              }}
+                            </span>
+                          </div>
+                        </div>
+
                         <span
-                          class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
-                          :class="{
-                            'bg-[#45a6d5]/10 text-[#45a6d5]':
-                              30 - totalsToredNightmareCountRuns > 5,
-                            'bg-amber-500/10 text-amber-600':
-                              30 - totalsToredNightmareCountRuns <= 5 &&
-                              30 - totalsToredNightmareCountRuns > 0,
-                            'bg-rose-500/10 text-rose-600 animate-pulse':
-                              30 - totalsToredNightmareCountRuns <= 0,
-                          }"
+                          v-if="
+                            validationResult.invalidFields.includes(
+                              'storedNightmareCount'
+                            )
+                          "
+                          class="text-[10px] text-red-500 font-bold"
                         >
-                          {{
-                            30 - totalsToredNightmareCountRuns > 0
-                              ? `可补充 ${30 - totalsToredNightmareCountRuns} 次`
-                              : "不可补充"
-                          }}
+                          {{ validationResult.errors.storedNightmareCount }}
+                        </span>
+                      </div>
+                      <!-- 提示标签 -->
+                      <span class="text-[10px] font-bold text-slate-400">
+                        角色总上限：30次
+                      </span>
+                    </div>
+
+                    <!-- 计数器操作区域 -->
+                    <div
+                      class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-4"
+                    >
+                      <div
+                        class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2"
+                      >
+                        <div
+                          class="flex items-center justify-between text-xs font-bold text-slate-600"
+                        >
+                          <span>噩梦副本次数补充 (每次增加 1 次)</span>
+                          <span class="text-purple-600 font-black"
+                            >+{{
+                              supplementFormValues.storedNightmareCount || 0
+                            }}
+                            次</span
+                          >
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <button
+                            type="button"
+                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                            @click="
+                              supplementFormValues.storedNightmareCount = Math.max(
+                                0,
+                                (supplementFormValues.storedNightmareCount || 0) - 1
+                              )
+                            "
+                          >
+                            -
+                          </button>
+                          <input
+                            v-model.number="supplementFormValues.storedNightmareCount"
+                            min="0"
+                            class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
+                          />
+                          <button
+                            type="button"
+                            class="w-8 h-8 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                            @click="
+                              supplementFormValues.storedNightmareCount =
+                                (supplementFormValues.storedNightmareCount || 0) + 1
+                            "
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- 🌟 底部结算实时显示：单角色统计 -->
+                      <div
+                        class="pt-3 border-t border-slate-200/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
+                      >
+                        <span class="font-bold text-slate-500">
+                          当前角色噩梦补充:
+                          <strong class="text-purple-600"
+                            >+{{
+                              supplementFormValues.storedNightmareCount || 0
+                            }}
+                            次</strong
+                          >
+                        </span>
+                        <span class="font-bold text-slate-500">
+                          噩梦补充总计:
+                          <strong class="text-sm font-black text-purple-600">
+                            {{ totalsToredNightmareCountRuns }}
+                            / 30 次
+                          </strong>
                         </span>
                       </div>
                     </div>
-
-                    <span
-                      v-if="
-                        validationResult.invalidFields.includes('storedNightmareCount')
-                      "
-                      class="text-[10px] text-red-500 font-bold"
-                    >
-                      {{ validationResult.errors.storedNightmareCount }}
-                    </span>
                   </div>
-                  <!-- 提示标签 -->
-                  <span class="text-[10px] font-bold text-slate-400">
-                    角色总上限：30次
-                  </span>
-                </div>
-
-                <!-- 计数器操作区域 -->
-                <div
-                  class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-4"
-                >
+                  <!-- 觉醒战补充卡片 -->
                   <div
-                    class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2"
+                    class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all md:col-span-3 h-full flex flex-col"
+                    ref="awakeningSection"
+                    :class="
+                      validationResult.invalidFields.includes('storedAwakening')
+                        ? 'border-red-500 bg-red-50/20'
+                        : 'border-slate-200/80'
+                    "
                   >
-                    <div
-                      class="flex items-center justify-between text-xs font-bold text-slate-600"
-                    >
-                      <span>噩梦副本次数补充 (每次增加 1 次)</span>
-                      <span class="text-purple-600 font-black"
-                        >+{{ supplementFormValues.storedNightmareCount || 0 }} 次</span
-                      >
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <button
-                        type="button"
-                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
-                        @click="
-                          supplementFormValues.storedNightmareCount = Math.max(
-                            0,
-                            (supplementFormValues.storedNightmareCount || 0) - 1
-                          )
-                        "
-                      >
-                        -
-                      </button>
-                      <input
-                        v-model.number="supplementFormValues.storedNightmareCount"
-                        type="number"
-                        min="0"
-                        class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
-                      />
-                      <button
-                        type="button"
-                        class="w-8 h-8 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-black flex items-center justify-center transition-all cursor-pointer"
-                        @click="
-                          supplementFormValues.storedNightmareCount =
-                            (supplementFormValues.storedNightmareCount || 0) + 1
-                        "
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- 🌟 底部结算实时显示：单角色统计 -->
-                  <div
-                    class="pt-3 border-t border-slate-200/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
-                  >
-                    <span class="font-bold text-slate-500">
-                      当前角色噩梦补充:
-                      <strong class="text-purple-600"
-                        >+{{ supplementFormValues.storedNightmareCount || 0 }} 次</strong
-                      >
-                    </span>
-                    <span class="font-bold text-slate-500">
-                      噩梦补充总计:
-                      <strong class="text-sm font-black text-purple-600">
-                        {{ totalsToredNightmareCountRuns }}
-                        / 30 次
-                      </strong>
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <!-- 觉醒战补充卡片 -->
-              <div
-                class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all"
-                ref="awakeningSection"
-                :class="
-                  validationResult.invalidFields.includes('storedAwakening')
-                    ? 'border-red-500 bg-red-50/20'
-                    : 'border-slate-200/80'
-                "
-              >
-                <!-- 顶栏标题 -->
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-3">
-                    <div class="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
-
+                    <!-- 顶栏标题 -->
                     <div class="flex items-center justify-between">
-                      <!-- 标题与动态提示 -->
-                      <div
-                        class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
-                      >
-                        <span>觉醒战补充</span>
+                      <div class="flex items-center gap-3">
+                        <div class="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
+
+                        <div class="flex items-center justify-between">
+                          <!-- 标题与动态提示 -->
+                          <div
+                            class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
+                          >
+                            <span>觉醒战补充</span>
+                            <span
+                              class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
+                              :class="{
+                                'bg-[#45a6d5]/10 text-[#45a6d5]':
+                                  30 - totalStoredAwakeningRuns > 5,
+                                'bg-amber-500/10 text-amber-600':
+                                  30 - totalStoredAwakeningRuns <= 5 &&
+                                  30 - totalStoredAwakeningRuns > 0,
+                                'bg-rose-500/10 text-rose-600 animate-pulse':
+                                  30 - totalStoredAwakeningRuns <= 0,
+                              }"
+                            >
+                              {{
+                                30 - totalStoredAwakeningRuns > 0
+                                  ? `可补充 ${30 - totalStoredAwakeningRuns} 次`
+                                  : "不可补充"
+                              }}
+                            </span>
+                          </div>
+                        </div>
+
                         <span
-                          class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
-                          :class="{
-                            'bg-[#45a6d5]/10 text-[#45a6d5]':
-                              30 - totalStoredAwakeningRuns > 5,
-                            'bg-amber-500/10 text-amber-600':
-                              30 - totalStoredAwakeningRuns <= 5 &&
-                              30 - totalStoredAwakeningRuns > 0,
-                            'bg-rose-500/10 text-rose-600 animate-pulse':
-                              30 - totalStoredAwakeningRuns <= 0,
-                          }"
+                          v-if="
+                            validationResult.invalidFields.includes('storedAwakening')
+                          "
+                          class="text-[10px] text-red-500 font-bold"
                         >
-                          {{
-                            30 - totalStoredAwakeningRuns > 0
-                              ? `可补充 ${30 - totalStoredAwakeningRuns} 次`
-                              : "不可补充"
-                          }}
+                          {{ validationResult.errors.storedAwakening }}
+                        </span>
+                      </div>
+                      <!-- 提示标签 -->
+                      <span class="text-[10px] font-bold text-slate-400">
+                        角色总上限：30次
+                      </span>
+                    </div>
+
+                    <!-- 计数器操作区域 -->
+                    <div
+                      class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-4"
+                    >
+                      <div
+                        class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2"
+                      >
+                        <div
+                          class="flex items-center justify-between text-xs font-bold text-slate-600"
+                        >
+                          <span>觉醒战次数补充 (每次增加 1 次)</span>
+                          <span class="text-purple-600 font-black"
+                            >+{{ supplementFormValues.storedAwakening || 0 }} 次</span
+                          >
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <button
+                            type="button"
+                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                            @click="
+                              supplementFormValues.storedAwakening = Math.max(
+                                0,
+                                (supplementFormValues.storedAwakening || 0) - 1
+                              )
+                            "
+                          >
+                            -
+                          </button>
+                          <input
+                            v-model.number="supplementFormValues.storedAwakening"
+                            min="0"
+                            class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
+                          />
+                          <button
+                            type="button"
+                            class="w-8 h-8 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                            @click="
+                              supplementFormValues.storedAwakening =
+                                (supplementFormValues.storedAwakening || 0) + 1
+                            "
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- 🌟 底部结算实时显示：单角色统计 -->
+                      <div
+                        class="pt-3 border-t border-slate-200/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
+                      >
+                        <span class="font-bold text-slate-500">
+                          当前角色觉醒战补充:
+                          <strong class="text-purple-600"
+                            >+{{ supplementFormValues.storedAwakening || 0 }} 次</strong
+                          >
+                        </span>
+                        <span class="font-bold text-slate-500">
+                          觉醒战补充总计:
+                          <strong class="text-sm font-black text-purple-600">
+                            {{ totalStoredAwakeningRuns }}
+                            / 30 次
+                          </strong>
                         </span>
                       </div>
                     </div>
-
-                    <span
-                      v-if="validationResult.invalidFields.includes('storedAwakening')"
-                      class="text-[10px] text-red-500 font-bold"
-                    >
-                      {{ validationResult.errors.storedAwakening }}
-                    </span>
                   </div>
-                  <!-- 提示标签 -->
-                  <span class="text-[10px] font-bold text-slate-400">
-                    角色总上限：30次
-                  </span>
-                </div>
-
-                <!-- 计数器操作区域 -->
-                <div
-                  class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-4"
-                >
+                
+                  <!-- 每日副本补充卡片 -->
                   <div
-                    class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2"
+                    class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all md:col-span-3 h-full flex flex-col"
+                    ref="dailyRunsSection"
+                    :class="
+                      validationResult.invalidFields.includes('storedDailyRuns')
+                        ? 'border-red-500 bg-red-50/20'
+                        : 'border-slate-200/80'
+                    "
                   >
-                    <div
-                      class="flex items-center justify-between text-xs font-bold text-slate-600"
-                    >
-                      <span>觉醒战次数补充 (每次增加 1 次)</span>
-                      <span class="text-purple-600 font-black"
-                        >+{{ supplementFormValues.storedAwakening || 0 }} 次</span
-                      >
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <button
-                        type="button"
-                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
-                        @click="
-                          supplementFormValues.storedAwakening = Math.max(
-                            0,
-                            (supplementFormValues.storedAwakening || 0) - 1
-                          )
-                        "
-                      >
-                        -
-                      </button>
-                      <input
-                        v-model.number="supplementFormValues.storedAwakening"
-                        type="number"
-                        min="0"
-                        class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
-                      />
-                      <button
-                        type="button"
-                        class="w-8 h-8 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-black flex items-center justify-center transition-all cursor-pointer"
-                        @click="
-                          supplementFormValues.storedAwakening =
-                            (supplementFormValues.storedAwakening || 0) + 1
-                        "
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- 🌟 底部结算实时显示：单角色统计 -->
-                  <div
-                    class="pt-3 border-t border-slate-200/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
-                  >
-                    <span class="font-bold text-slate-500">
-                      当前角色觉醒战补充:
-                      <strong class="text-purple-600"
-                        >+{{ supplementFormValues.storedAwakening || 0 }} 次</strong
-                      >
-                    </span>
-                    <span class="font-bold text-slate-500">
-                      觉醒战补充总计:
-                      <strong class="text-sm font-black text-purple-600">
-                        {{ totalStoredAwakeningRuns }}
-                        / 30 次
-                      </strong>
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 每日副本补充卡片 -->
-              <div
-                class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all"
-                ref="dailyRunsSection"
-                :class="
-                  validationResult.invalidFields.includes('storedDailyRuns')
-                    ? 'border-red-500 bg-red-50/20'
-                    : 'border-slate-200/80'
-                "
-              >
-                <!-- 顶栏标题 -->
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-3">
-                    <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                    <!-- 顶栏标题 -->
                     <div class="flex items-center justify-between">
-                      <!-- 标题与动态剩余提示 -->
-                      <div
-                        class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
-                      >
-                        <span>每日副本补充</span>
+                      <div class="flex items-center gap-3">
+                        <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                        <div class="flex items-center justify-between">
+                          <!-- 标题与动态剩余提示 -->
+                          <div
+                            class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
+                          >
+                            <span>每日副本补充</span>
+                            <span
+                              class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
+                              :class="{
+                                'bg-[#45a6d5]/10 text-[#45a6d5]':
+                                  30 - totalGroupStoredDailyRuns > 5,
+                                'bg-amber-500/10 text-amber-600':
+                                  30 - totalGroupStoredDailyRuns <= 5 &&
+                                  30 - totalGroupStoredDailyRuns > 0,
+                                'bg-rose-500/10 text-rose-600 animate-pulse':
+                                  30 - totalGroupStoredDailyRuns <= 0,
+                              }"
+                            >
+                              {{
+                                30 - totalGroupStoredDailyRuns > 0
+                                  ? `该账号可补充 ${30 - totalGroupStoredDailyRuns} 次`
+                                  : "已耗尽不可补充"
+                              }}
+                            </span>
+                          </div>
+                        </div>
+
                         <span
-                          class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
-                          :class="{
-                            'bg-[#45a6d5]/10 text-[#45a6d5]':
-                              30 - totalGroupStoredDailyRuns > 5,
-                            'bg-amber-500/10 text-amber-600':
-                              30 - totalGroupStoredDailyRuns <= 5 &&
-                              30 - totalGroupStoredDailyRuns > 0,
-                            'bg-rose-500/10 text-rose-600 animate-pulse':
-                              30 - totalGroupStoredDailyRuns <= 0,
-                          }"
+                          v-if="
+                            validationResult.invalidFields.includes('storedDailyRuns')
+                          "
+                          class="text-[10px] text-red-500 font-bold"
                         >
-                          {{
-                            30 - totalGroupStoredDailyRuns > 0
-                              ? `该账号可补充 ${30 - totalGroupStoredDailyRuns} 次`
-                              : "已耗尽不可补充"
-                          }}
+                          {{ validationResult.errors.storedDailyRuns }}
+                        </span>
+                      </div>
+                      <!-- 存储上限提示 -->
+
+                      <span class="text-[10px] font-bold text-slate-400">
+                        组内总上限: 30 次
+                      </span>
+                    </div>
+
+                    <!-- 计数器操作区域 -->
+                    <div
+                      class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-4"
+                    >
+                      <div
+                        class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2"
+                      >
+                        <div
+                          class="flex items-center justify-between text-xs font-bold text-slate-600"
+                        >
+                          <span>每日副本卷 (每次增加 1 次)</span>
+                          <span class="text-amber-600 font-black"
+                            >+{{ supplementFormValues.storedDailyRuns || 0 }} 次</span
+                          >
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <button
+                            type="button"
+                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                            @click="
+                              supplementFormValues.storedDailyRuns = Math.max(
+                                0,
+                                (supplementFormValues.storedDailyRuns || 0) - 1
+                              )
+                            "
+                          >
+                            -
+                          </button>
+                          <input
+                            v-model.number="supplementFormValues.storedDailyRuns"
+                            min="0"
+                            class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
+                          />
+                          <button
+                            type="button"
+                            class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                            @click="
+                              supplementFormValues.storedDailyRuns =
+                                (supplementFormValues.storedDailyRuns || 0) + 1
+                            "
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- 🌟 底部结算实时显示：组内共享统计 -->
+                      <div
+                        class="pt-3 border-t border-slate-200/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
+                      >
+                        <span class="font-bold text-slate-500">
+                          当前角色本次增加:
+                          <strong class="text-amber-600"
+                            >+{{ supplementFormValues.storedDailyRuns || 0 }} 次</strong
+                          >
+                        </span>
+                        <span class="font-bold text-slate-500">
+                          该账号下每日副本补充总计:
+                          <strong
+                            class="text-sm font-black"
+                            :class="
+                              totalGroupStoredDailyRuns > 30
+                                ? 'text-rose-600'
+                                : 'text-amber-600'
+                            "
+                          >
+                            {{ totalGroupStoredDailyRuns }}
+                            / 30 次
+                          </strong>
                         </span>
                       </div>
                     </div>
-
-                    <span
-                      v-if="validationResult.invalidFields.includes('storedDailyRuns')"
-                      class="text-[10px] text-red-500 font-bold"
-                    >
-                      {{ validationResult.errors.storedDailyRuns }}
-                    </span>
                   </div>
-                  <!-- 存储上限提示 -->
-
-                  <span class="text-[10px] font-bold text-slate-400">
-                    组内总上限: 30 次
-                  </span>
-                </div>
-
-                <!-- 计数器操作区域 -->
-                <div
-                  class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-4"
-                >
+                  <!-- 古树庆典小游戏补充卡片 -->
                   <div
-                    class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2"
+                    class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all md:col-span-3 h-full flex flex-col"
+                    ref="minigameSection"
+                    :class="
+                      validationResult.invalidFields.includes('storedMinigameCount')
+                        ? 'border-red-500 bg-red-50/20'
+                        : 'border-slate-200/80'
+                    "
                   >
-                    <div
-                      class="flex items-center justify-between text-xs font-bold text-slate-600"
-                    >
-                      <span>每日副本卷 (每次增加 1 次)</span>
-                      <span class="text-amber-600 font-black"
-                        >+{{ supplementFormValues.storedDailyRuns || 0 }} 次</span
-                      >
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <button
-                        type="button"
-                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
-                        @click="
-                          supplementFormValues.storedDailyRuns = Math.max(
-                            0,
-                            (supplementFormValues.storedDailyRuns || 0) - 1
-                          )
-                        "
-                      >
-                        -
-                      </button>
-                      <input
-                        v-model.number="supplementFormValues.storedDailyRuns"
-                        type="number"
-                        min="0"
-                        class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
-                      />
-                      <button
-                        type="button"
-                        class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-black flex items-center justify-center transition-all cursor-pointer"
-                        @click="
-                          supplementFormValues.storedDailyRuns =
-                            (supplementFormValues.storedDailyRuns || 0) + 1
-                        "
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- 🌟 底部结算实时显示：组内共享统计 -->
-                  <div
-                    class="pt-3 border-t border-slate-200/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
-                  >
-                    <span class="font-bold text-slate-500">
-                      当前角色本次增加:
-                      <strong class="text-amber-600"
-                        >+{{ supplementFormValues.storedDailyRuns || 0 }} 次</strong
-                      >
-                    </span>
-                    <span class="font-bold text-slate-500">
-                      该账号下每日副本补充总计:
-                      <strong
-                        class="text-sm font-black"
-                        :class="
-                          totalGroupStoredDailyRuns > 30
-                            ? 'text-rose-600'
-                            : 'text-amber-600'
-                        "
-                      >
-                        {{ totalGroupStoredDailyRuns }}
-                        / 30 次
-                      </strong>
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <!-- 古树庆典小游戏补充卡片 -->
-              <div
-                class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all"
-                ref="minigameSection"
-                :class="
-                  validationResult.invalidFields.includes('storedMinigameCount')
-                    ? 'border-red-500 bg-red-50/20'
-                    : 'border-slate-200/80'
-                "
-              >
-                <!-- 顶栏标题 -->
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-3">
-                    <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
-
+                    <!-- 顶栏标题 -->
                     <div class="flex items-center justify-between">
-                      <!-- 标题与动态剩余提示 -->
-                      <div
-                        class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
-                      >
-                        <span>古树庆典补充</span>
+                      <div class="flex items-center gap-3">
+                        <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+
+                        <div class="flex items-center justify-between">
+                          <!-- 标题与动态剩余提示 -->
+                          <div
+                            class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
+                          >
+                            <span>古树庆典补充</span>
+                            <span
+                              class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
+                              :class="{
+                                'bg-[#45a6d5]/10 text-[#45a6d5]':
+                                  30 - totalGroupStoredMinigameCount > 5,
+                                'bg-amber-500/10 text-amber-600':
+                                  30 - totalGroupStoredMinigameCount <= 5 &&
+                                  30 - totalGroupStoredMinigameCount > 0,
+                                'bg-rose-500/10 text-rose-600 animate-pulse':
+                                  30 - totalGroupStoredMinigameCount <= 0,
+                              }"
+                            >
+                              {{
+                                30 - totalGroupStoredMinigameCount > 0
+                                  ? `该账号可补充 ${
+                                      30 - totalGroupStoredMinigameCount
+                                    } 次`
+                                  : "已耗尽不可补充"
+                              }}
+                            </span>
+                          </div>
+                        </div>
+
                         <span
-                          class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
-                          :class="{
-                            'bg-[#45a6d5]/10 text-[#45a6d5]':
-                              30 - totalGroupStoredMinigameCount > 5,
-                            'bg-amber-500/10 text-amber-600':
-                              30 - totalGroupStoredMinigameCount <= 5 &&
-                              30 - totalGroupStoredMinigameCount > 0,
-                            'bg-rose-500/10 text-rose-600 animate-pulse':
-                              30 - totalGroupStoredMinigameCount <= 0,
-                          }"
+                          v-if="
+                            validationResult.invalidFields.includes('storedMinigameCount')
+                          "
+                          class="text-[10px] text-red-500 font-bold"
                         >
-                          {{
-                            30 - totalGroupStoredMinigameCount > 0
-                              ? `该账号可补充 ${30 - totalGroupStoredMinigameCount} 次`
-                              : "已耗尽不可补充"
-                          }}
+                          {{ validationResult.errors.storedMinigameCount }}
+                        </span>
+                      </div>
+                      <!-- 存储上限提示 -->
+                      <span class="text-[10px] font-bold text-slate-400">
+                        组内总上限: 30 次
+                      </span>
+                    </div>
+
+                    <!-- 计数器操作区域 -->
+                    <div
+                      class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-4"
+                    >
+                      <div
+                        class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2"
+                      >
+                        <div
+                          class="flex items-center justify-between text-xs font-bold text-slate-600"
+                        >
+                          <span>古树庆典补充 (每次增加 1 次)</span>
+                          <span class="text-amber-600 font-black"
+                            >+{{ supplementFormValues.storedMinigameCount || 0 }} 次</span
+                          >
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <button
+                            type="button"
+                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                            @click="
+                              supplementFormValues.storedMinigameCount = Math.max(
+                                0,
+                                (supplementFormValues.storedMinigameCount || 0) - 1
+                              )
+                            "
+                          >
+                            -
+                          </button>
+                          <input
+                            v-model.number="supplementFormValues.storedMinigameCount"
+                            min="0"
+                            class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
+                          />
+                          <button
+                            type="button"
+                            class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                            @click="
+                              supplementFormValues.storedMinigameCount =
+                                (supplementFormValues.storedMinigameCount || 0) + 1
+                            "
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- 🌟 底部结算实时显示：组内共享统计 -->
+                      <div
+                        class="pt-3 border-t border-slate-200/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
+                      >
+                        <span class="font-bold text-slate-500">
+                          当前角色本次增加:
+                          <strong class="text-amber-600"
+                            >+{{
+                              supplementFormValues.storedMinigameCount || 0
+                            }}
+                            次</strong
+                          >
+                        </span>
+                        <span class="font-bold text-slate-500">
+                          该账号下古树庆典小游戏补充总计:
+                          <strong
+                            class="text-sm font-black"
+                            :class="
+                              totalGroupStoredMinigameCount > 30
+                                ? 'text-rose-600'
+                                : 'text-amber-600'
+                            "
+                          >
+                            {{ totalGroupStoredMinigameCount }}
+                            / 30 次
+                          </strong>
                         </span>
                       </div>
                     </div>
-
-                    <span
-                      v-if="
-                        validationResult.invalidFields.includes('storedMinigameCount')
-                      "
-                      class="text-[10px] text-red-500 font-bold"
-                    >
-                      {{ validationResult.errors.storedMinigameCount }}
-                    </span>
                   </div>
-                  <!-- 存储上限提示 -->
-                  <span class="text-[10px] font-bold text-slate-400">
-                    组内总上限: 30 次
-                  </span>
-                </div>
-
-                <!-- 计数器操作区域 -->
-                <div
-                  class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-4"
-                >
+                  <!-- 次元袭击补充卡片 -->
                   <div
-                    class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2"
+                    class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all md:col-span-3 h-full flex flex-col"
+                    ref="dimensionalSection"
+                    :class="
+                      validationResult.invalidFields.includes('storedDimensionalCount')
+                        ? 'border-red-500 bg-red-50/20'
+                        : 'border-slate-200/80'
+                    "
                   >
-                    <div
-                      class="flex items-center justify-between text-xs font-bold text-slate-600"
-                    >
-                      <span>古树庆典补充 (每次增加 1 次)</span>
-                      <span class="text-amber-600 font-black"
-                        >+{{ supplementFormValues.storedMinigameCount || 0 }} 次</span
-                      >
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <button
-                        type="button"
-                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
-                        @click="
-                          supplementFormValues.storedMinigameCount = Math.max(
-                            0,
-                            (supplementFormValues.storedMinigameCount || 0) - 1
-                          )
-                        "
-                      >
-                        -
-                      </button>
-                      <input
-                        v-model.number="supplementFormValues.storedMinigameCount"
-                        type="number"
-                        min="0"
-                        class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
-                      />
-                      <button
-                        type="button"
-                        class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-black flex items-center justify-center transition-all cursor-pointer"
-                        @click="
-                          supplementFormValues.storedMinigameCount =
-                            (supplementFormValues.storedMinigameCount || 0) + 1
-                        "
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- 🌟 底部结算实时显示：组内共享统计 -->
-                  <div
-                    class="pt-3 border-t border-slate-200/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
-                  >
-                    <span class="font-bold text-slate-500">
-                      当前角色本次增加:
-                      <strong class="text-amber-600"
-                        >+{{ supplementFormValues.storedMinigameCount || 0 }} 次</strong
-                      >
-                    </span>
-                    <span class="font-bold text-slate-500">
-                      该账号下古树庆典小游戏补充总计:
-                      <strong
-                        class="text-sm font-black"
-                        :class="
-                          totalGroupStoredMinigameCount > 30
-                            ? 'text-rose-600'
-                            : 'text-amber-600'
-                        "
-                      >
-                        {{ totalGroupStoredMinigameCount }}
-                        / 30 次
-                      </strong>
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <!-- 次元袭击补充卡片 -->
-              <div
-                class="p-6 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all"
-                ref="dimensionalSection"
-                :class="
-                  validationResult.invalidFields.includes('storedDimensionalCount')
-                    ? 'border-red-500 bg-red-50/20'
-                    : 'border-slate-200/80'
-                "
-              >
-                <!-- 顶栏标题 -->
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-3">
-                    <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
-
+                    <!-- 顶栏标题 -->
                     <div class="flex items-center justify-between">
-                      <!-- 标题与动态剩余提示 -->
-                      <div
-                        class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
-                      >
-                        <span>次元袭击补充</span>
+                      <div class="flex items-center gap-3">
+                        <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+
+                        <div class="flex items-center justify-between">
+                          <!-- 标题与动态剩余提示 -->
+                          <div
+                            class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
+                          >
+                            <span>次元袭击补充</span>
+                            <span
+                              class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
+                              :class="{
+                                'bg-[#45a6d5]/10 text-[#45a6d5]':
+                                  30 - totalGroupStoredDimensionalCount > 5,
+                                'bg-amber-500/10 text-amber-600':
+                                  30 - totalGroupStoredDimensionalCount <= 5 &&
+                                  30 - totalGroupStoredDimensionalCount > 0,
+                                'bg-rose-500/10 text-rose-600 animate-pulse':
+                                  30 - totalGroupStoredDimensionalCount <= 0,
+                              }"
+                            >
+                              {{
+                                30 - totalGroupStoredDimensionalCount > 0
+                                  ? `该账号可补充 ${
+                                      30 - totalGroupStoredDimensionalCount
+                                    } 次`
+                                  : "已耗尽不可补充"
+                              }}
+                            </span>
+                          </div>
+                        </div>
+
                         <span
-                          class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
-                          :class="{
-                            'bg-[#45a6d5]/10 text-[#45a6d5]':
-                              30 - totalGroupStoredDimensionalCount > 5,
-                            'bg-amber-500/10 text-amber-600':
-                              30 - totalGroupStoredDimensionalCount <= 5 &&
-                              30 - totalGroupStoredDimensionalCount > 0,
-                            'bg-rose-500/10 text-rose-600 animate-pulse':
-                              30 - totalGroupStoredDimensionalCount <= 0,
-                          }"
+                          v-if="
+                            validationResult.invalidFields.includes(
+                              'storedDimensionalCount'
+                            )
+                          "
+                          class="text-[10px] text-red-500 font-bold"
                         >
-                          {{
-                            30 - totalGroupStoredDimensionalCount > 0
-                              ? `该账号可补充 ${30 - totalGroupStoredDimensionalCount} 次`
-                              : "已耗尽不可补充"
-                          }}
+                          {{ validationResult.errors.storedDimensionalCount }}
+                        </span>
+                      </div>
+                      <!-- 存储上限提示 -->
+                      <span class="text-[10px] font-bold text-slate-400">
+                        组内总上限: 30 次
+                      </span>
+                    </div>
+
+                    <!-- 计数器操作区域 -->
+                    <div
+                      class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-4"
+                    >
+                      <div
+                        class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2"
+                      >
+                        <div
+                          class="flex items-center justify-between text-xs font-bold text-slate-600"
+                        >
+                          <span>次元袭击补充 (每次增加 1 次)</span>
+                          <span class="text-amber-600 font-black"
+                            >+{{
+                              supplementFormValues.storedDimensionalCount || 0
+                            }}
+                            次</span
+                          >
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <button
+                            type="button"
+                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                            @click="
+                              supplementFormValues.storedDimensionalCount = Math.max(
+                                0,
+                                (supplementFormValues.storedDimensionalCount || 0) - 1
+                              )
+                            "
+                          >
+                            -
+                          </button>
+                          <input
+                            v-model.number="supplementFormValues.storedDimensionalCount"
+                            min="0"
+                            class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
+                          />
+                          <button
+                            type="button"
+                            class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                            @click="
+                              supplementFormValues.storedDimensionalCount =
+                                (supplementFormValues.storedDimensionalCount || 0) + 1
+                            "
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- 🌟 底部结算实时显示：组内共享统计 -->
+                      <div
+                        class="pt-3 border-t border-slate-200/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
+                      >
+                        <span class="font-bold text-slate-500">
+                          当前角色本次增加:
+                          <strong class="text-amber-600"
+                            >+{{
+                              supplementFormValues.storedDimensionalCount || 0
+                            }}
+                            次</strong
+                          >
+                        </span>
+                        <span class="font-bold text-slate-500">
+                          该账号下次元袭击补充总计:
+                          <strong
+                            class="text-sm font-black"
+                            :class="
+                              totalGroupStoredDimensionalCount > 30
+                                ? 'text-rose-600'
+                                : 'text-amber-600'
+                            "
+                          >
+                            {{ totalGroupStoredDimensionalCount }}
+                            / 30 次
+                          </strong>
                         </span>
                       </div>
                     </div>
-
-                    <span
-                      v-if="
-                        validationResult.invalidFields.includes('storedDimensionalCount')
-                      "
-                      class="text-[10px] text-red-500 font-bold"
-                    >
-                      {{ validationResult.errors.storedDimensionalCount }}
-                    </span>
                   </div>
-                  <!-- 存储上限提示 -->
-                  <span class="text-[10px] font-bold text-slate-400">
-                    组内总上限: 30 次
-                  </span>
-                </div>
-
-                <!-- 计数器操作区域 -->
-                <div
-                  class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-4"
-                >
-                  <div
-                    class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2"
-                  >
-                    <div
-                      class="flex items-center justify-between text-xs font-bold text-slate-600"
-                    >
-                      <span>次元袭击补充 (每次增加 1 次)</span>
-                      <span class="text-amber-600 font-black"
-                        >+{{ supplementFormValues.storedDimensionalCount || 0 }} 次</span
-                      >
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <button
-                        type="button"
-                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
-                        @click="
-                          supplementFormValues.storedDimensionalCount = Math.max(
-                            0,
-                            (supplementFormValues.storedDimensionalCount || 0) - 1
-                          )
-                        "
-                      >
-                        -
-                      </button>
-                      <input
-                        v-model.number="supplementFormValues.storedDimensionalCount"
-                        type="number"
-                        min="0"
-                        class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-center font-black text-sm text-slate-800 outline-none"
-                      />
-                      <button
-                        type="button"
-                        class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-black flex items-center justify-center transition-all cursor-pointer"
-                        @click="
-                          supplementFormValues.storedDimensionalCount =
-                            (supplementFormValues.storedDimensionalCount || 0) + 1
-                        "
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- 🌟 底部结算实时显示：组内共享统计 -->
-                  <div
-                    class="pt-3 border-t border-slate-200/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
-                  >
-                    <span class="font-bold text-slate-500">
-                      当前角色本次增加:
-                      <strong class="text-amber-600"
-                        >+{{
-                          supplementFormValues.storedDimensionalCount || 0
-                        }}
-                        次</strong
-                      >
-                    </span>
-                    <span class="font-bold text-slate-500">
-                      该账号下次元袭击补充总计:
-                      <strong
-                        class="text-sm font-black"
-                        :class="
-                          totalGroupStoredDimensionalCount > 30
-                            ? 'text-rose-600'
-                            : 'text-amber-600'
-                        "
-                      >
-                        {{ totalGroupStoredDimensionalCount }}
-                        / 30 次
-                      </strong>
-                    </span>
-                  </div>
-                </div>
               </div>
             </template>
+            <!-- 卡片：weeklydaily 日/周常任务 -->
+            <div
+              v-if="gameplayCharForm?.characterId && activeTab == 'weeklydaily'"
+              class="space-y-6"
+            >
+              <!-- ================= 独立高频每日任务中心 ================= -->
+              <div
+                class="w-full group relative overflow-hidden p-5 bg-gradient-to-br from-sky-500/10 via-sky-500/5 to-transparent border border-sky-500/20 hover:border-sky-500/40 rounded-3xl transition-all duration-300 shadow-xs"
+              >
+                <!-- 背景装饰光晕 -->
+                <div
+                  class="absolute -right-10 -bottom-10 w-32 h-32 bg-sky-500/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500 pointer-events-none"
+                ></div>
+
+                <div
+                  class="relative flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap"
+                >
+                  <!-- 左侧：图标与文本说明 -->
+                  <div class="flex items-center gap-4 min-w-0 flex-1">
+                    <div
+                      class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-sky-400 flex items-center justify-center text-white shadow-md shadow-sky-500/30 shrink-0 transform group-hover:-rotate-6 transition-transform duration-300"
+                    >
+                      <svg
+                        class="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2.5"
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+
+                    <div class="space-y-1 min-w-0 flex-1">
+                      <div class="flex items-center gap-2">
+                        <h3
+                          class="text-xs font-black tracking-wide text-slate-800 uppercase truncate"
+                        >
+                          每日任务目标
+                        </h3>
+                        <span
+                          class="px-2 py-0.5 rounded-full text-[10px] font-black bg-sky-500/10 text-sky-700 border border-sky-500/20 shrink-0"
+                          >上限 5 次</span
+                        >
+                      </div>
+                      <p class="text-[11px] font-medium text-slate-500 truncate">
+                        完成今日日常活跃目标，稳定获取核心经验与奖励
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- 右侧：高频计数控制区（Stepper 步进器风格） -->
+                  <div class="flex items-center gap-3 shrink-0 ml-auto sm:ml-0">
+                    <!-- 进度文字提示 -->
+                    <div
+                      class="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/80 border border-sky-500/20 text-[11px] font-bold text-sky-700 shadow-2xs"
+                    >
+                      <span class="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
+                      <span
+                        >已完成 {{ supplementFormValues.dailyTaskCount || 0 }} / 5</span
+                      >
+                    </div>
+
+                    <!-- 步进器按钮组 -->
+                    <div
+                      class="flex items-center gap-1.5 bg-white/90 p-1.5 border border-sky-500/20 rounded-2xl shadow-2xs"
+                    >
+                      <button
+                        type="button"
+                        class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-black text-xs flex items-center justify-center transition-all cursor-pointer"
+                        @click="
+                          supplementFormValues.dailyTaskCount = Math.max(
+                            0,
+                            (supplementFormValues.dailyTaskCount || 0) - 1
+                          )
+                        "
+                      >
+                        -
+                      </button>
+
+                      <input
+                        v-model.number="supplementFormValues.dailyTaskCount"
+                        min="0"
+                        max="5"
+                        class="w-9 text-center font-black text-xs text-sky-700 bg-transparent outline-none"
+                      />
+
+                      <button
+                        type="button"
+                        class="w-7 h-7 rounded-xl bg-sky-50 hover:bg-sky-100 active:scale-95 text-sky-700 font-black text-xs flex items-center justify-center transition-all cursor-pointer"
+                        @click="
+                          supplementFormValues.dailyTaskCount = Math.min(
+                            5,
+                            (supplementFormValues.dailyTaskCount || 0) + 1
+                          )
+                        "
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    <!-- 一键拉满快捷按钮 -->
+                    <button
+                      type="button"
+                      class="px-4 py-2.5 bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-500 hover:to-sky-400 active:scale-95 text-white font-black text-xs rounded-2xl shadow-md shadow-sky-600/25 transition-all duration-200 cursor-pointer flex items-center gap-1.5"
+                      @click="supplementFormValues.dailyTaskCount = 5"
+                    >
+                      <span>拉满</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ================= 3. 噩梦副本、觉醒战、战场消耗（一行三列布局） ================= -->
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <!-- 噩梦副本消耗管理 -->
+                <div
+                  class="p-4 bg-white border-2 rounded-3xl space-y-3 shadow-sm transition-all"
+                  ref="nightmareSection"
+                  :class="
+                    validationResult.invalidFields.includes('storedNightmareCount')
+                      ? 'border-red-500 bg-red-50/20'
+                      : 'border-slate-200/80'
+                  "
+                >
+                  <div
+                    class="flex items-center justify-between pb-2 border-b border-slate-100"
+                  >
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-purple-500"></div>
+                      <div
+                        class="text-xs font-black uppercase tracking-wider text-slate-700 truncate"
+                      >
+                        <span>噩梦副本消耗</span>
+                      </div>
+                    </div>
+                    <span
+                      class="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-purple-50 text-purple-600 shrink-0"
+                      >已消耗:{{ totalsToredNightmareCountRuns }}</span
+                    >
+                  </div>
+
+                  <div class="space-y-3">
+                    <div
+                      class="p-3 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-2"
+                    >
+                      <div
+                        class="flex items-center justify-between text-[11px] font-bold text-slate-600"
+                      >
+                        <span>角色消耗次数</span>
+                        <span class="text-purple-600 font-black"
+                          >-{{ supplementFormValues.storedNightmareCount || 0 }}</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                          @click="
+                            supplementFormValues.storedNightmareCount = Math.max(
+                              0,
+                              (supplementFormValues.storedNightmareCount || 0) - 1
+                            )
+                          "
+                        >
+                          -
+                        </button>
+                        <input
+                          v-model.number="supplementFormValues.storedNightmareCount"
+                          min="0"
+                          class="flex-1 px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-center font-black text-xs text-slate-800 outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="w-7 h-7 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                          @click="
+                            supplementFormValues.storedNightmareCount =
+                              (supplementFormValues.storedNightmareCount || 0) + 1
+                          "
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                      <div class="flex items-center gap-1">
+                        <button
+                          type="button"
+                          class="flex-1 py-1.5 px-1 bg-slate-50 hover:bg-purple-50 border border-slate-200/80 rounded-xl text-slate-700 hover:text-purple-600 font-bold text-[10px] transition-all cursor-pointer text-center"
+                          @click="
+                            supplementFormValues.storedNightmareCount = Math.floor(30 / 2)
+                          "
+                        >
+                          一半(15)
+                        </button>
+                        <button
+                          type="button"
+                          class="flex-1 py-1.5 px-1 bg-slate-50 hover:bg-purple-50 border border-slate-200/80 rounded-xl text-slate-700 hover:text-purple-600 font-bold text-[10px] transition-all cursor-pointer text-center"
+                          @click="supplementFormValues.storedNightmareCount = 30"
+                        >
+                          全部(30)
+                        </button>
+                      </div>
+                      <div
+                        class="px-2.5 py-1.5 bg-slate-50/70 border border-slate-200/70 rounded-xl flex items-center justify-between text-[11px]"
+                      >
+                        <span class="text-slate-400 font-bold text-[10px]">总进度</span>
+                        <span class="font-black text-purple-600"
+                          >{{ totalsToredNightmareCountRuns
+                          }}<span class="text-[9px] text-slate-400">/30</span></span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 觉醒战消耗 -->
+                <div
+                  class="p-4 bg-white border-2 rounded-3xl space-y-3 shadow-sm transition-all"
+                  ref="awakeningSection"
+                  :class="
+                    validationResult.invalidFields.includes('storedAwakening')
+                      ? 'border-red-500 bg-red-50/20'
+                      : 'border-slate-200/80'
+                  "
+                >
+                  <div
+                    class="flex items-center justify-between pb-2 border-b border-slate-100"
+                  >
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-purple-500"></div>
+                      <div
+                        class="text-xs font-black uppercase tracking-wider text-slate-700 truncate"
+                      >
+                        <span>觉醒战消耗</span>
+                      </div>
+                    </div>
+                    <span
+                      class="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-purple-50 text-purple-600 shrink-0"
+                      >已消耗:{{ totalStoredAwakeningRuns }}</span
+                    >
+                  </div>
+
+                  <div class="space-y-3">
+                    <div
+                      class="p-3 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-2"
+                    >
+                      <div
+                        class="flex items-center justify-between text-[11px] font-bold text-slate-600"
+                      >
+                        <span>角色消耗次数</span>
+                        <span class="text-purple-600 font-black"
+                          >-{{ supplementFormValues.storedAwakening || 0 }}</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                          @click="
+                            supplementFormValues.storedAwakening = Math.max(
+                              0,
+                              (supplementFormValues.storedAwakening || 0) - 1
+                            )
+                          "
+                        >
+                          -
+                        </button>
+                        <input
+                          v-model.number="supplementFormValues.storedAwakening"
+                          min="0"
+                          class="flex-1 px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-center font-black text-xs text-slate-800 outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="w-7 h-7 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                          @click="
+                            supplementFormValues.storedAwakening =
+                              (supplementFormValues.storedAwakening || 0) + 1
+                          "
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                      <div class="flex items-center gap-1">
+                        <button
+                          type="button"
+                          class="flex-1 py-1.5 px-1 bg-slate-50 hover:bg-purple-50 border border-slate-200/80 rounded-xl text-slate-700 hover:text-purple-600 font-bold text-[10px] transition-all cursor-pointer text-center"
+                          @click="
+                            supplementFormValues.storedAwakening = Math.floor(30 / 2)
+                          "
+                        >
+                          一半(15)
+                        </button>
+                        <button
+                          type="button"
+                          class="flex-1 py-1.5 px-1 bg-slate-50 hover:bg-purple-50 border border-slate-200/80 rounded-xl text-slate-700 hover:text-purple-600 font-bold text-[10px] transition-all cursor-pointer text-center"
+                          @click="supplementFormValues.storedAwakening = 30"
+                        >
+                          全部(30)
+                        </button>
+                      </div>
+                      <div
+                        class="px-2.5 py-1.5 bg-slate-50/70 border border-slate-200/70 rounded-xl flex items-center justify-between text-[11px]"
+                      >
+                        <span class="text-slate-400 font-bold text-[10px]">总进度</span>
+                        <span class="font-black text-purple-600"
+                          >{{ totalStoredAwakeningRuns
+                          }}<span class="text-[9px] text-slate-400">/30</span></span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 战场消耗管理 -->
+                <div
+                  class="p-4 bg-white border-2 rounded-3xl space-y-3 shadow-sm transition-all"
+                  ref="battlefieldSection"
+                  :class="
+                    validationResult.invalidFields.includes('storedBattlefieldCount')
+                      ? 'border-red-500 bg-red-50/20'
+                      : 'border-slate-200/80'
+                  "
+                >
+                  <div
+                    class="flex items-center justify-between pb-2 border-b border-slate-100"
+                  >
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-purple-500"></div>
+                      <div
+                        class="text-xs font-black uppercase tracking-wider text-slate-700 truncate"
+                      >
+                        <span>战场消耗管理</span>
+                      </div>
+                    </div>
+                    <span
+                      class="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-purple-50 text-purple-600 shrink-0"
+                      >已消耗:{{ totalStoredBattlefieldRuns || 0 }}</span
+                    >
+                  </div>
+
+                  <div class="space-y-3">
+                    <div
+                      class="p-3 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-2"
+                    >
+                      <div
+                        class="flex items-center justify-between text-[11px] font-bold text-slate-600"
+                      >
+                        <span>角色消耗次数</span>
+                        <span class="text-purple-600 font-black"
+                          >-{{ supplementFormValues.storedBattlefieldCount || 0 }}</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                          @click="
+                            supplementFormValues.storedBattlefieldCount = Math.max(
+                              0,
+                              (supplementFormValues.storedBattlefieldCount || 0) - 1
+                            )
+                          "
+                        >
+                          -
+                        </button>
+                        <input
+                          v-model.number="supplementFormValues.storedBattlefieldCount"
+                          min="0"
+                          class="flex-1 px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-center font-black text-xs text-slate-800 outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="w-7 h-7 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                          @click="
+                            supplementFormValues.storedBattlefieldCount =
+                              (supplementFormValues.storedBattlefieldCount || 0) + 1
+                          "
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                      <div class="flex items-center gap-1">
+                        <button
+                          type="button"
+                          class="flex-1 py-1.5 px-1 bg-slate-50 hover:bg-purple-50 border border-slate-200/80 rounded-xl text-slate-700 hover:text-purple-600 font-bold text-[10px] transition-all cursor-pointer text-center"
+                          @click="
+                            supplementFormValues.storedBattlefieldCount = Math.floor(
+                              30 / 2
+                            )
+                          "
+                        >
+                          一半(15)
+                        </button>
+                        <button
+                          type="button"
+                          class="flex-1 py-1.5 px-1 bg-slate-50 hover:bg-purple-50 border border-slate-200/80 rounded-xl text-slate-700 hover:text-purple-600 font-bold text-[10px] transition-all cursor-pointer text-center"
+                          @click="supplementFormValues.storedBattlefieldCount = 30"
+                        >
+                          全部(30)
+                        </button>
+                      </div>
+                      <div
+                        class="px-2.5 py-1.5 bg-slate-50/70 border border-slate-200/70 rounded-xl flex items-center justify-between text-[11px]"
+                      >
+                        <span class="text-slate-400 font-bold text-[10px]">总进度</span>
+                        <span class="font-black text-purple-600"
+                          >{{ totalStoredBattlefieldRuns || 0
+                          }}<span class="text-[9px] text-slate-400">/30</span></span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ================= 4. 每日副本、古树庆典、次元袭击（一行三列布局） ================= -->
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <!-- 每日副本消耗管理 -->
+                <div
+                  class="p-4 bg-white border-2 rounded-3xl space-y-3 shadow-sm transition-all"
+                  ref="dailyRunsSection"
+                  :class="
+                    validationResult.invalidFields.includes('storedDailyRuns')
+                      ? 'border-red-500 bg-red-50/20'
+                      : 'border-slate-200/80'
+                  "
+                >
+                  <div
+                    class="flex items-center justify-between pb-2 border-b border-slate-100"
+                  >
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-amber-500"></div>
+                      <div
+                        class="text-xs font-black uppercase tracking-wider text-slate-700 truncate"
+                      >
+                        <span>每日副本消耗</span>
+                      </div>
+                    </div>
+                    <span
+                      class="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-amber-50 text-amber-600 shrink-0"
+                      >组:{{ totalGroupStoredDailyRuns }}</span
+                    >
+                  </div>
+
+                  <div class="space-y-3">
+                    <div
+                      class="p-3 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-2"
+                    >
+                      <div
+                        class="flex items-center justify-between text-[11px] font-bold text-slate-600"
+                      >
+                        <span>角色消耗次数</span>
+                        <span class="text-amber-600 font-black"
+                          >-{{ supplementFormValues.storedDailyRuns || 0 }}</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                          @click="
+                            supplementFormValues.storedDailyRuns = Math.max(
+                              0,
+                              (supplementFormValues.storedDailyRuns || 0) - 1
+                            )
+                          "
+                        >
+                          -
+                        </button>
+                        <input
+                          v-model.number="supplementFormValues.storedDailyRuns"
+                          min="0"
+                          class="flex-1 px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-center font-black text-xs text-slate-800 outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="w-7 h-7 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                          @click="
+                            supplementFormValues.storedDailyRuns =
+                              (supplementFormValues.storedDailyRuns || 0) + 1
+                          "
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                      <div class="flex items-center gap-1">
+                        <button
+                          type="button"
+                          class="flex-1 py-1.5 px-1 bg-slate-50 hover:bg-amber-50 border border-slate-200/80 rounded-xl text-slate-700 hover:text-amber-600 font-bold text-[10px] transition-all cursor-pointer text-center"
+                          @click="
+                            supplementFormValues.storedDailyRuns = Math.floor(30 / 2)
+                          "
+                        >
+                          一半(15)
+                        </button>
+                        <button
+                          type="button"
+                          class="flex-1 py-1.5 px-1 bg-slate-50 hover:bg-amber-50 border border-slate-200/80 rounded-xl text-slate-700 hover:text-amber-600 font-bold text-[10px] transition-all cursor-pointer text-center"
+                          @click="supplementFormValues.storedDailyRuns = 30"
+                        >
+                          全部(30)
+                        </button>
+                      </div>
+                      <div
+                        class="px-2.5 py-1.5 bg-slate-50/70 border border-slate-200/70 rounded-xl flex items-center justify-between text-[11px]"
+                      >
+                        <span class="text-slate-400 font-bold text-[10px]">组进度</span>
+                        <span
+                          class="font-black"
+                          :class="
+                            totalGroupStoredDailyRuns > 30
+                              ? 'text-rose-600'
+                              : 'text-amber-600'
+                          "
+                          >{{ totalGroupStoredDailyRuns
+                          }}<span class="text-[9px] text-slate-400">/30</span></span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 古树庆典小游戏消耗管理 -->
+                <div
+                  class="p-4 bg-white border-2 rounded-3xl space-y-3 shadow-sm transition-all"
+                  ref="minigameSection"
+                  :class="
+                    validationResult.invalidFields.includes('storedMinigameCount')
+                      ? 'border-red-500 bg-red-50/20'
+                      : 'border-slate-200/80'
+                  "
+                >
+                  <div
+                    class="flex items-center justify-between pb-2 border-b border-slate-100"
+                  >
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-amber-500"></div>
+                      <div
+                        class="text-xs font-black uppercase tracking-wider text-slate-700 truncate"
+                      >
+                        <span>古树庆典小游戏</span>
+                      </div>
+                    </div>
+                    <span
+                      class="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-amber-50 text-amber-600 shrink-0"
+                      >组:{{ totalGroupStoredMinigameCount }}</span
+                    >
+                  </div>
+
+                  <div class="space-y-3">
+                    <div
+                      class="p-3 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-2"
+                    >
+                      <div
+                        class="flex items-center justify-between text-[11px] font-bold text-slate-600"
+                      >
+                        <span>角色消耗次数</span>
+                        <span class="text-amber-600 font-black"
+                          >-{{ supplementFormValues.storedMinigameCount || 0 }}</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                          @click="
+                            supplementFormValues.storedMinigameCount = Math.max(
+                              0,
+                              (supplementFormValues.storedMinigameCount || 0) - 1
+                            )
+                          "
+                        >
+                          -
+                        </button>
+                        <input
+                          v-model.number="supplementFormValues.storedMinigameCount"
+                          min="0"
+                          class="flex-1 px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-center font-black text-xs text-slate-800 outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="w-7 h-7 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                          @click="
+                            supplementFormValues.storedMinigameCount =
+                              (supplementFormValues.storedMinigameCount || 0) + 1
+                          "
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                      <div class="flex items-center gap-1">
+                        <button
+                          type="button"
+                          class="flex-1 py-1.5 px-1 bg-slate-50 hover:bg-amber-50 border border-slate-200/80 rounded-xl text-slate-700 hover:text-amber-600 font-bold text-[10px] transition-all cursor-pointer text-center"
+                          @click="
+                            supplementFormValues.storedMinigameCount = Math.floor(30 / 2)
+                          "
+                        >
+                          一半(15)
+                        </button>
+                        <button
+                          type="button"
+                          class="flex-1 py-1.5 px-1 bg-slate-50 hover:bg-amber-50 border border-slate-200/80 rounded-xl text-slate-700 hover:text-amber-600 font-bold text-[10px] transition-all cursor-pointer text-center"
+                          @click="supplementFormValues.storedMinigameCount = 30"
+                        >
+                          全部(30)
+                        </button>
+                      </div>
+                      <div
+                        class="px-2.5 py-1.5 bg-slate-50/70 border border-slate-200/70 rounded-xl flex items-center justify-between text-[11px]"
+                      >
+                        <span class="text-slate-400 font-bold text-[10px]">组进度</span>
+                        <span
+                          class="font-black"
+                          :class="
+                            totalGroupStoredMinigameCount > 30
+                              ? 'text-rose-600'
+                              : 'text-amber-600'
+                          "
+                          >{{ totalGroupStoredMinigameCount
+                          }}<span class="text-[9px] text-slate-400">/30</span></span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 次元袭击消耗管理 -->
+                <div
+                  class="p-4 bg-white border-2 rounded-3xl space-y-3 shadow-sm transition-all"
+                  ref="dimensionalSection"
+                  :class="
+                    validationResult.invalidFields.includes('storedDimensionalCount')
+                      ? 'border-red-500 bg-red-50/20'
+                      : 'border-slate-200/80'
+                  "
+                >
+                  <div
+                    class="flex items-center justify-between pb-2 border-b border-slate-100"
+                  >
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-amber-500"></div>
+                      <div
+                        class="text-xs font-black uppercase tracking-wider text-slate-700 truncate"
+                      >
+                        <span>次元袭击消耗</span>
+                      </div>
+                    </div>
+                    <span
+                      class="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-amber-50 text-amber-600 shrink-0"
+                      >组:{{ totalGroupStoredDimensionalCount }}</span
+                    >
+                  </div>
+
+                  <div class="space-y-3">
+                    <div
+                      class="p-3 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-2"
+                    >
+                      <div
+                        class="flex items-center justify-between text-[11px] font-bold text-slate-600"
+                      >
+                        <span>角色消耗次数</span>
+                        <span class="text-amber-600 font-black"
+                          >-{{ supplementFormValues.storedDimensionalCount || 0 }}</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                          @click="
+                            supplementFormValues.storedDimensionalCount = Math.max(
+                              0,
+                              (supplementFormValues.storedDimensionalCount || 0) - 1
+                            )
+                          "
+                        >
+                          -
+                        </button>
+                        <input
+                          v-model.number="supplementFormValues.storedDimensionalCount"
+                          min="0"
+                          class="flex-1 px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-center font-black text-xs text-slate-800 outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="w-7 h-7 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                          @click="
+                            supplementFormValues.storedDimensionalCount =
+                              (supplementFormValues.storedDimensionalCount || 0) + 1
+                          "
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                      <div class="flex items-center gap-1">
+                        <button
+                          type="button"
+                          class="flex-1 py-1.5 px-1 bg-slate-50 hover:bg-amber-50 border border-slate-200/80 rounded-xl text-slate-700 hover:text-amber-600 font-bold text-[10px] transition-all cursor-pointer text-center"
+                          @click="
+                            supplementFormValues.storedDimensionalCount = Math.floor(
+                              30 / 2
+                            )
+                          "
+                        >
+                          一半(15)
+                        </button>
+                        <button
+                          type="button"
+                          class="flex-1 py-1.5 px-1 bg-slate-50 hover:bg-amber-50 border border-slate-200/80 rounded-xl text-slate-700 hover:text-amber-600 font-bold text-[10px] transition-all cursor-pointer text-center"
+                          @click="supplementFormValues.storedDimensionalCount = 30"
+                        >
+                          全部(30)
+                        </button>
+                      </div>
+                      <div
+                        class="px-2.5 py-1.5 bg-slate-50/70 border border-slate-200/70 rounded-xl flex items-center justify-between text-[11px]"
+                      >
+                        <span class="text-slate-400 font-bold text-[10px]">组进度</span>
+                        <span
+                          class="font-black"
+                          :class="
+                            totalGroupStoredDimensionalCount > 30
+                              ? 'text-rose-600'
+                              : 'text-amber-600'
+                          "
+                          >{{ totalGroupStoredDimensionalCount
+                          }}<span class="text-[9px] text-slate-400">/30</span></span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 卡片：exchange 兑换任务 -->
+            <div
+              v-if="
+                (gameplayCharForm?.characterId && activeTab === 'exchange') ||
+                activeTab == 'exchange'
+              "
+              class="space-y-6"
+            >
+              <!-- ================= 1. 物质变换与微风商店兑换管理（交互升级） ================= -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- 物质变换面板 -->
+                <div
+                  class="p-5 bg-white border-2 border-slate-200/80 rounded-3xl space-y-4 shadow-sm"
+                >
+                  <div
+                    class="flex items-center justify-between pb-2.5 border-b border-slate-100"
+                  >
+                    <div class="flex items-center gap-2.5">
+                      <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                      <div
+                        class="text-xs font-black uppercase tracking-wider text-slate-700"
+                      >
+                        物质变换兑换管理
+                      </div>
+                    </div>
+                    <span class="text-[10px] font-bold text-slate-400">核心材料</span>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <!-- 账号奥德 -->
+                    <div
+                      class="p-3.5 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-2"
+                    >
+                      <div
+                        class="flex items-center justify-between text-xs font-bold text-slate-700"
+                      >
+                        <span>账号奥德</span>
+                        <span class="text-amber-600 font-black"
+                          >{{ supplementFormValues.materialAccountOd || 0 }} / 16</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                          @click="
+                            supplementFormValues.materialAccountOd = Math.max(
+                              0,
+                              (supplementFormValues.materialAccountOd || 0) - 1
+                            )
+                          "
+                        >
+                          -
+                        </button>
+                        <input
+                          v-model.number="supplementFormValues.materialAccountOd"
+                          min="0"
+                          max="16"
+                          class="flex-1 px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-center font-black text-xs text-slate-800 outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="w-7 h-7 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                          @click="
+                            supplementFormValues.materialAccountOd = Math.min(
+                              16,
+                              (supplementFormValues.materialAccountOd || 0) + 1
+                            )
+                          "
+                        >
+                          +
+                        </button>
+                      </div>
+                      <div class="flex gap-1 pt-1">
+                        <button
+                          type="button"
+                          class="flex-1 py-1 bg-white hover:bg-amber-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 hover:text-amber-600 transition-all cursor-pointer"
+                          @click="supplementFormValues.materialAccountOd = 0"
+                        >
+                          清空
+                        </button>
+                        <button
+                          type="button"
+                          class="flex-1 py-1 bg-white hover:bg-amber-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 hover:text-amber-600 transition-all cursor-pointer"
+                          @click="supplementFormValues.materialAccountOd = 16"
+                        >
+                          拉满(16)
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- 角色奥德 -->
+                    <div
+                      class="p-3.5 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-2"
+                    >
+                      <div
+                        class="flex items-center justify-between text-xs font-bold text-slate-700"
+                      >
+                        <span>角色奥德</span>
+                        <span class="text-amber-600 font-black"
+                          >{{ supplementFormValues.materialCharOd || 0 }} / 4</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                          @click="
+                            supplementFormValues.materialCharOd = Math.max(
+                              0,
+                              (supplementFormValues.materialCharOd || 0) - 1
+                            )
+                          "
+                        >
+                          -
+                        </button>
+                        <input
+                          v-model.number="supplementFormValues.materialCharOd"
+                          min="0"
+                          max="4"
+                          class="flex-1 px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-center font-black text-xs text-slate-800 outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="w-7 h-7 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                          @click="
+                            supplementFormValues.materialCharOd = Math.min(
+                              4,
+                              (supplementFormValues.materialCharOd || 0) + 1
+                            )
+                          "
+                        >
+                          +
+                        </button>
+                      </div>
+                      <div class="flex gap-1 pt-1">
+                        <button
+                          type="button"
+                          class="flex-1 py-1 bg-white hover:bg-amber-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 hover:text-amber-600 transition-all cursor-pointer"
+                          @click="supplementFormValues.materialCharOd = 0"
+                        >
+                          清空
+                        </button>
+                        <button
+                          type="button"
+                          class="flex-1 py-1 bg-white hover:bg-amber-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 hover:text-amber-600 transition-all cursor-pointer"
+                          @click="supplementFormValues.materialCharOd = 4"
+                        >
+                          拉满(4)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 微风商店模块 -->
+                <div
+                  class="p-5 bg-white border-2 border-slate-200/80 rounded-3xl space-y-4 shadow-sm"
+                >
+                  <div
+                    class="flex items-center justify-between pb-2.5 border-b border-slate-100"
+                  >
+                    <div class="flex items-center gap-2.5">
+                      <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
+                      <div
+                        class="text-xs font-black uppercase tracking-wider text-slate-700"
+                      >
+                        微风商店上限兑换管理
+                      </div>
+                    </div>
+                    <span class="text-[10px] font-bold text-slate-400">商店模块</span>
+                  </div>
+
+                  <div
+                    class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs max-h-[170px] overflow-y-auto pr-1"
+                  >
+                    <!-- 账号奥德 16 -->
+                    <div
+                      class="p-2.5 bg-slate-50/70 border border-slate-200/70 rounded-xl space-y-1"
+                    >
+                      <div
+                        class="flex justify-between text-[10px] font-bold text-slate-500"
+                      >
+                        <span>账号奥德</span>
+                        <span class="text-[#45a6d5]"
+                          >{{ supplementFormValues.breezeAccountOd || 0 }}/16</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <input
+                          v-model.number="supplementFormValues.breezeAccountOd"
+                          min="0"
+                          max="16"
+                          class="w-full px-1.5 py-0.5 bg-white border border-slate-200 rounded text-center font-black text-xs outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#45a6d5]/20 text-[10px] font-bold rounded"
+                          @click="supplementFormValues.breezeAccountOd = 16"
+                        >
+                          最大
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- 角色奥德 4 -->
+                    <div
+                      class="p-2.5 bg-slate-50/70 border border-slate-200/70 rounded-xl space-y-1"
+                    >
+                      <div
+                        class="flex justify-between text-[10px] font-bold text-slate-500"
+                      >
+                        <span>角色奥德</span>
+                        <span class="text-[#45a6d5]"
+                          >{{ supplementFormValues.breezeCharOd || 0 }}/4</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <input
+                          v-model.number="supplementFormValues.breezeCharOd"
+                          min="0"
+                          max="4"
+                          class="w-full px-1.5 py-0.5 bg-white border border-slate-200 rounded text-center font-black text-xs outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#45a6d5]/20 text-[10px] font-bold rounded"
+                          @click="supplementFormValues.breezeCharOd = 4"
+                        >
+                          max
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- 复活石 7 -->
+                    <div
+                      class="p-2.5 bg-slate-50/70 border border-slate-200/70 rounded-xl space-y-1"
+                    >
+                      <div
+                        class="flex justify-between text-[10px] font-bold text-slate-500"
+                      >
+                        <span>复活石</span>
+                        <span class="text-[#45a6d5]"
+                          >{{ supplementFormValues.breezeReviveStone || 0 }}/7</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <input
+                          v-model.number="supplementFormValues.breezeReviveStone"
+                          min="0"
+                          max="7"
+                          class="w-full px-1.5 py-0.5 bg-white border border-slate-200 rounded text-center font-black text-xs outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#45a6d5]/20 text-[10px] font-bold rounded"
+                          @click="supplementFormValues.breezeReviveStone = 7"
+                        >
+                          max
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- 未知缝隙挑战卷 21 -->
+                    <div
+                      class="p-2.5 bg-slate-50/70 border border-slate-200/70 rounded-xl space-y-1"
+                    >
+                      <div
+                        class="flex justify-between text-[10px] font-bold text-slate-500 truncate"
+                      >
+                        <span>未知缝隙卷</span>
+                        <span class="text-[#45a6d5]"
+                          >{{ supplementFormValues.breezeRiftTicket || 0 }}/21</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <input
+                          v-model.number="supplementFormValues.breezeRiftTicket"
+                          min="0"
+                          max="21"
+                          class="w-full px-1.5 py-0.5 bg-white border border-slate-200 rounded text-center font-black text-xs outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#45a6d5]/20 text-[10px] font-bold rounded"
+                          @click="supplementFormValues.breezeRiftTicket = 21"
+                        >
+                          max
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- 立即完成卷：每日副本 21 -->
+                    <div
+                      class="p-2.5 bg-slate-50/70 border border-slate-200/70 rounded-xl space-y-1"
+                    >
+                      <div
+                        class="flex justify-between text-[10px] font-bold text-slate-500 truncate"
+                      >
+                        <span>完成卷(每日)</span>
+                        <span class="text-[#45a6d5]"
+                          >{{ supplementFormValues.breezeDailyTicket || 0 }}/21</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <input
+                          v-model.number="supplementFormValues.breezeDailyTicket"
+                          min="0"
+                          max="21"
+                          class="w-full px-1.5 py-0.5 bg-white border border-slate-200 rounded text-center font-black text-xs outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#45a6d5]/20 text-[10px] font-bold rounded"
+                          @click="supplementFormValues.breezeDailyTicket = 21"
+                        >
+                          max
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- 立即完成卷：噩梦 14 -->
+                    <div
+                      class="p-2.5 bg-slate-50/70 border border-slate-200/70 rounded-xl space-y-1"
+                    >
+                      <div
+                        class="flex justify-between text-[10px] font-bold text-slate-500 truncate"
+                      >
+                        <span>完成卷(噩梦)</span>
+                        <span class="text-[#45a6d5]"
+                          >{{ supplementFormValues.breezeNightmareTicket || 0 }}/14</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <input
+                          v-model.number="supplementFormValues.breezeNightmareTicket"
+                          min="0"
+                          max="14"
+                          class="w-full px-1.5 py-0.5 bg-white border border-slate-200 rounded text-center font-black text-xs outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#45a6d5]/20 text-[10px] font-bold rounded"
+                          @click="supplementFormValues.breezeNightmareTicket = 14"
+                        >
+                          max
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ================= 2. 深渊与地区指令书模块（结构化紧凑交互） ================= -->
+              <div
+                class="p-5 bg-gradient-to-r from-sky-50 via-white to-sky-50/60 border border-sky-200/80 px-4 py-3.5 shadow-2xs space-y-4 rounded-2xl"
+              >
+                <div
+                  class="flex items-center justify-between pb-2 border-b border-sky-100"
+                >
+                  <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-sky-500"></div>
+                    <div
+                      class="text-xs font-black uppercase tracking-wider text-slate-700"
+                    >
+                      深渊与地区指令书管理
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-bold text-slate-400">指令书上限控制</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                  <!-- 下层深渊指令书 (普通5, 熟练5, 精锐5, 特命5) -->
+                  <div
+                    class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2"
+                  >
+                    <div
+                      class="flex justify-between font-black text-slate-700 text-xs pb-1 border-b border-slate-100"
+                    >
+                      <span>下层深渊指令书</span>
+                      <span class="text-sky-600">上限各 5</span>
+                    </div>
+                    <div class="space-y-1.5">
+                      <div
+                        class="flex items-center justify-between text-[11px] text-slate-600"
+                      >
+                        <span
+                          >普通 ({{ supplementFormValues.lowerAbyssNormal || 0 }}/5)</span
+                        >
+                        <div class="flex gap-1">
+                          <button
+                            type="button"
+                            class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-bold"
+                            @click="
+                              supplementFormValues.lowerAbyssNormal = Math.max(
+                                0,
+                                (supplementFormValues.lowerAbyssNormal || 0) - 1
+                              )
+                            "
+                          >
+                            -
+                          </button>
+                          <button
+                            type="button"
+                            class="px-1.5 py-0.5 bg-sky-50 text-sky-600 rounded text-[10px] font-bold"
+                            @click="supplementFormValues.lowerAbyssNormal = 5"
+                          >
+                            5
+                          </button>
+                        </div>
+                      </div>
+                      <div
+                        class="flex items-center justify-between text-[11px] text-slate-600"
+                      >
+                        <span
+                          >熟练 ({{
+                            supplementFormValues.lowerAbyssSkilled || 0
+                          }}/5)</span
+                        >
+                        <div class="flex gap-1">
+                          <button
+                            type="button"
+                            class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-bold"
+                            @click="
+                              supplementFormValues.lowerAbyssSkilled = Math.max(
+                                0,
+                                (supplementFormValues.lowerAbyssSkilled || 0) - 1
+                              )
+                            "
+                          >
+                            -
+                          </button>
+                          <button
+                            type="button"
+                            class="px-1.5 py-0.5 bg-sky-50 text-sky-600 rounded text-[10px] font-bold"
+                            @click="supplementFormValues.lowerAbyssSkilled = 5"
+                          >
+                            5
+                          </button>
+                        </div>
+                      </div>
+                      <div
+                        class="flex items-center justify-between text-[11px] text-slate-600"
+                      >
+                        <span
+                          >精锐 ({{ supplementFormValues.lowerAbyssElite || 0 }}/5)</span
+                        >
+                        <div class="flex gap-1">
+                          <button
+                            type="button"
+                            class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-bold"
+                            @click="
+                              supplementFormValues.lowerAbyssElite = Math.max(
+                                0,
+                                (supplementFormValues.lowerAbyssElite || 0) - 1
+                              )
+                            "
+                          >
+                            -
+                          </button>
+                          <button
+                            type="button"
+                            class="px-1.5 py-0.5 bg-sky-50 text-sky-600 rounded text-[10px] font-bold"
+                            @click="supplementFormValues.lowerAbyssElite = 5"
+                          >
+                            5
+                          </button>
+                        </div>
+                      </div>
+                      <div
+                        class="flex items-center justify-between text-[11px] text-slate-600"
+                      >
+                        <span
+                          >特命 ({{
+                            supplementFormValues.lowerAbyssSpecial || 0
+                          }}/5)</span
+                        >
+                        <div class="flex gap-1">
+                          <button
+                            type="button"
+                            class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-bold"
+                            @click="
+                              supplementFormValues.lowerAbyssSpecial = Math.max(
+                                0,
+                                (supplementFormValues.lowerAbyssSpecial || 0) - 1
+                              )
+                            "
+                          >
+                            -
+                          </button>
+                          <button
+                            type="button"
+                            class="px-1.5 py-0.5 bg-sky-50 text-sky-600 rounded text-[10px] font-bold"
+                            @click="supplementFormValues.lowerAbyssSpecial = 5"
+                          >
+                            5
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 中层深渊指令书 (熟练5, 特命5) -->
+                  <div
+                    class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2"
+                  >
+                    <div
+                      class="flex justify-between font-black text-slate-700 text-xs pb-1 border-b border-slate-100"
+                    >
+                      <span>中层深渊指令书</span>
+                      <span class="text-sky-600">上限各 5</span>
+                    </div>
+                    <div class="space-y-2">
+                      <div
+                        class="flex items-center justify-between text-[11px] text-slate-600"
+                      >
+                        <span
+                          >熟练 ({{ supplementFormValues.midAbyssSkilled || 0 }}/5)</span
+                        >
+                        <div class="flex gap-1">
+                          <button
+                            type="button"
+                            class="px-2 py-0.5 bg-slate-100 rounded text-[10px] font-bold"
+                            @click="
+                              supplementFormValues.midAbyssSkilled = Math.max(
+                                0,
+                                (supplementFormValues.midAbyssSkilled || 0) - 1
+                              )
+                            "
+                          >
+                            -
+                          </button>
+                          <button
+                            type="button"
+                            class="px-2 py-0.5 bg-sky-50 text-sky-600 rounded text-[10px] font-bold"
+                            @click="supplementFormValues.midAbyssSkilled = 5"
+                          >
+                            5
+                          </button>
+                        </div>
+                      </div>
+                      <div
+                        class="flex items-center justify-between text-[11px] text-slate-600"
+                      >
+                        <span
+                          >特命 ({{ supplementFormValues.midAbyssSpecial || 0 }}/5)</span
+                        >
+                        <div class="flex gap-1">
+                          <button
+                            type="button"
+                            class="px-2 py-0.5 bg-slate-100 rounded text-[10px] font-bold"
+                            @click="
+                              supplementFormValues.midAbyssSpecial = Math.max(
+                                0,
+                                (supplementFormValues.midAbyssSpecial || 0) - 1
+                              )
+                            "
+                          >
+                            -
+                          </button>
+                          <button
+                            type="button"
+                            class="px-2 py-0.5 bg-sky-50 text-sky-600 rounded text-[10px] font-bold"
+                            @click="supplementFormValues.midAbyssSpecial = 5"
+                          >
+                            5
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 地区A指令书 (上限12) -->
+                  <div
+                    class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2"
+                  >
+                    <div
+                      class="flex justify-between font-black text-slate-700 text-xs pb-1 border-b border-slate-100"
+                    >
+                      <span>地区A指令书</span>
+                      <span class="text-sky-600">上限 12</span>
+                    </div>
+                    <div class="space-y-3 pt-1">
+                      <div
+                        class="flex items-center justify-between text-[11px] font-bold text-slate-600"
+                      >
+                        <span>当前数量</span>
+                        <span class="text-sky-600 font-black"
+                          >{{ supplementFormValues.regionACount || 0 }} / 12</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          class="w-6 h-6 rounded bg-slate-100 text-slate-700 font-black text-xs flex items-center justify-center"
+                          @click="
+                            supplementFormValues.regionACount = Math.max(
+                              0,
+                              (supplementFormValues.regionACount || 0) - 1
+                            )
+                          "
+                        >
+                          -
+                        </button>
+                        <input
+                          v-model.number="supplementFormValues.regionACount"
+                          min="0"
+                          max="12"
+                          class="flex-1 px-1 py-0.5 bg-slate-50 border border-slate-200 text-center font-black text-xs rounded outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="w-6 h-6 rounded bg-sky-50 text-sky-700 font-black text-xs flex items-center justify-center"
+                          @click="
+                            supplementFormValues.regionACount = Math.min(
+                              12,
+                              (supplementFormValues.regionACount || 0) + 1
+                            )
+                          "
+                        >
+                          +
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        class="w-full py-1 bg-slate-50 hover:bg-sky-50 border border-slate-200 text-slate-600 hover:text-sky-600 font-bold text-[10px] rounded-lg transition-all"
+                        @click="supplementFormValues.regionACount = 12"
+                      >
+                        一键拉满 (12)
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- 地区B指令书 (上限12) -->
+                  <div
+                    class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2"
+                  >
+                    <div
+                      class="flex justify-between font-black text-slate-700 text-xs pb-1 border-b border-slate-100"
+                    >
+                      <span>地区B指令书</span>
+                      <span class="text-sky-600">上限 12</span>
+                    </div>
+                    <div class="space-y-3 pt-1">
+                      <div
+                        class="flex items-center justify-between text-[11px] font-bold text-slate-600"
+                      >
+                        <span>当前数量</span>
+                        <span class="text-sky-600 font-black"
+                          >{{ supplementFormValues.regionBCount || 0 }} / 12</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          class="w-6 h-6 rounded bg-slate-100 text-slate-700 font-black text-xs flex items-center justify-center"
+                          @click="
+                            supplementFormValues.regionBCount = Math.max(
+                              0,
+                              (supplementFormValues.regionBCount || 0) - 1
+                            )
+                          "
+                        >
+                          -
+                        </button>
+                        <input
+                          v-model.number="supplementFormValues.regionBCount"
+                          min="0"
+                          max="12"
+                          class="flex-1 px-1 py-0.5 bg-slate-50 border border-slate-200 text-center font-black text-xs rounded outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="w-6 h-6 rounded bg-sky-50 text-sky-700 font-black text-xs flex items-center justify-center"
+                          @click="
+                            supplementFormValues.regionBCount = Math.min(
+                              12,
+                              (supplementFormValues.regionBCount || 0) + 1
+                            )
+                          "
+                        >
+                          +
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        class="w-full py-1 bg-slate-50 hover:bg-sky-50 border border-slate-200 text-slate-600 hover:text-sky-600 font-bold text-[10px] rounded-lg transition-all"
+                        @click="supplementFormValues.regionBCount = 12"
+                      >
+                        一键拉满 (12)
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <!-- 弹窗底部操作按钮 -->
           <div

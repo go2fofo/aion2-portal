@@ -1102,6 +1102,7 @@ const groupCharacterPanelHandleToggleLock = async (char) => {
   char.locked = !char.locked;
   await groupCharacterPanelHandleUpdateCharacter(char);
 };
+// 分组签到事件处理
 
 // 分组角色卡片列表更新角色事件处理
 const groupCharacterPanelHandleUpdateCharacter = async (char) => {
@@ -1126,7 +1127,7 @@ const groupCharacterPanelHandleUpdateGroup = async (updatedGroupsOrSingleGroup) 
     // 如果子组件传过来的是一整个 groups 数组，直接整体替换
     gameData.value.groups = updatedGroupsOrSingleGroup;
   } else if (updatedGroupsOrSingleGroup && updatedGroupsOrSingleGroup.id) {
-    // 兼容老代码：如果传过来的是单个分组对象
+    // 如果传过来的是单个分组对象
     gameData.value.groups = gameData.value.groups.map((g) => {
       if (g.id === updatedGroupsOrSingleGroup.id) {
         return { ...g, ...updatedGroupsOrSingleGroup };
