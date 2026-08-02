@@ -17,6 +17,7 @@ import {
 import { formatCombatPower } from "~/utils/formatCombatPower";
 import GroupCharacterPanel from "./components/GroupCharacterPanel.vue";
 import cloneDeep from "lodash/cloneDeep";
+import { dungeonDecayRules } from "./config/userAdmin";
 const client = useSupabaseClient();
 const user = useSupabaseUser();
 
@@ -700,6 +701,12 @@ const getCharGroup = computed(() => {
   return groupItem;
 });
 
+// 获取当前分组的组对应的数据
+const getAtvTabGroup = computed(() => {
+  let groupItem = gameData.value?.groups?.find((f) => f.id == activeTabGroup.value);
+  return groupItem;
+});
+
 // 获取同组其他角色共享的会员剩余天数（并顺便自动同步给当前表单）
 const groupSharedPremiumDays = computed(() => {
   return newCharGroupForm.value?.premiumMemberDay || 0;
@@ -1211,6 +1218,14 @@ const totalGroupStoredDimensionalCount = computed(() => {
 
 //============================组角色卡片列表事件处理/开结束============================
 
+// 签到按钮点击事件处理
+const handleSignInSignIn = async () => {
+  let newAtvTabGroup = { ...getAtvTabGroup.value };
+  newAtvTabGroup.dailySignIn = !getAtvTabGroup.value?.dailySignIn;
+  newAtvTabGroup.dailySignInDate = new Date().toISOString().substring(0, 10);
+  await groupCharacterPanelHandleUpdateGroup(newAtvTabGroup);
+};
+
 onMounted(async () => {
   await loadData();
 });
@@ -1261,7 +1276,62 @@ const updateValidation = (form, context, type) => {
     invalidFields: newInvalidFields,
   };
 };
+/**
+ * 获取当前角色所在组的共享玩法数据（因为同组共享、同加同减，只需获取组内任一角色的数据即可）
+ * @param {number} groupId 角色所属的分组 ID
+ * @param {string} metricKey 字段名 ('dailyRuns', 'minigameCount', 'dimensionalCount' 等)
+ * @param {string} storedKey 存储字段名 ('storedDailyRuns', 'storedMinigameCount', 'storedDimensionalCount' 等)
+ * @param {number} maxLimit 最大上限 (默认 14)
+ */
+const getGroupSharedTaskData = (groupId, metricKey, storedKey, maxLimit = 14) => {
+  const defaultResult = { current: 0, stored: 0, max: maxLimit };
+  // 获取当前组的所有角色
+  const groupTarget = gameData.value?.groups?.find((f) => f.id === groupId);
 
+  if (!groupTarget) {
+    return defaultResult;
+  }
+
+  return {
+    current: Number(groupTarget[metricKey]) || 0,
+    stored: Number(groupTarget[storedKey]) || 0,
+    max: maxLimit,
+    total: Number(groupTarget?.[metricKey] || 0) + Number(groupTarget?.[storedKey] || 0),
+  };
+};
+
+/**
+ * 根据组ID和类型（远征/超越），直接从 groups 数据中获取当前组的总次数与收益率文案
+ * @param {number} groupId 当前组ID
+ * @param {string} type 'expedition' (远征) 或 'surpass' (超越)
+ */
+const getGroupDecayInfo = (groupId, type) => {
+  const groupsList = gameData.value?.groups;
+
+  if (!groupsList || !Array.isArray(groupsList)) {
+    return "已刷 0次，基纳获得量 100%";
+  }
+
+  const group = groupsList.find((g) => g.id === groupId);
+  if (!group) {
+    return "已刷 0次，基纳获得量 100%";
+  }
+
+  // 严格区分类型：远征取 group.runs，超越取 group.transcendRuns
+  const totalRuns = type === "expedition" ? group.runs || 0 : group.transcendRuns || 0;
+
+  const rules = dungeonDecayRules[type] || [];
+
+  let rateLabel = "基纳获得量 20%";
+  for (const rule of rules) {
+    if (totalRuns <= rule.maxCount) {
+      rateLabel = rule.label;
+      break;
+    }
+  }
+
+  return `已刷 ${totalRuns}次，${rateLabel}`;
+};
 // 1. 监听角色表单
 watch(
   () => newCharForm.value,
@@ -1324,7 +1394,7 @@ watch(
 
 <template>
   <div
-    class="p-8 bg-slate-50 text-slate-800 rounded-3xl shadow-sm space-y-8 max-w-7xl mx-auto border border-slate-100 min-h-[90vh]"
+    class="p-2 bg-slate-50 text-slate-800 rounded-3xl shadow-sm space-y-8 mx-auto border border-slate-100 min-h-[90vh]"
   >
     <!-- 顶部数据面板 -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -1531,7 +1601,368 @@ watch(
       </button>
     </div>
 
+    <!-- 当前分组数据下通用操作 -->
+    <div
+      v-if="
+        activeTabGroup !== 'all' &&
+        gameData.characters.filter((c) => c.group === activeTabGroup).length
+      "
+      class="mb-4"
+    >
+      <div
+        class="p-4 bg-white border border-slate-200/80 rounded-2xl shadow-xs flex flex-col lg:flex-row gap-3.5 items-stretch"
+      >
+        <!-- ================= 左侧：重新深度设计的签到卡片（层次感与视觉吸睛度拉满） ================= -->
+        <div
+          class="lg:w-80 p-4 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white border border-indigo-200/80 rounded-xl flex flex-col justify-between gap-3.5 shrink-0 shadow-xs relative overflow-hidden"
+        >
+          <!-- 背景装饰微光 -->
+          <div
+            class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl pointer-events-none"
+          ></div>
+
+          <!-- 顶栏：图标与标题 -->
+          <div class="flex items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div
+                class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-black text-xs shadow-md shadow-indigo-500/25 shrink-0"
+              >
+                签
+              </div>
+              <div class="min-w-0">
+                <div class="text-xs font-black text-slate-800 tracking-wide truncate">
+                  每日/每周签到中心
+                </div>
+                <div class="text-[10px] text-slate-400 truncate">
+                  保持出勤，领取活跃奖励
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 底栏：当前状态与交互按钮 -->
+          <div
+            class="flex items-center justify-between gap-3 pt-2 border-t border-indigo-100/60"
+          >
+            <div class="flex items-center gap-1.5 text-xs font-bold">
+              <span class="text-[10px] text-slate-400">状态:</span>
+              <span
+                :class="
+                  getAtvTabGroup?.dailySignIn
+                    ? 'text-emerald-600 font-black'
+                    : 'text-amber-600 font-black'
+                "
+              >
+                {{ getAtvTabGroup?.dailySignIn ? "今日已完成签到" : "待签到" }}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              class="px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-sm active:scale-95 shrink-0"
+              :class="
+                getAtvTabGroup?.dailySignIn
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-emerald-500/5'
+                  : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/25 shadow-md'
+              "
+              :disabled="getAtvTabGroup?.dailySignIn"
+              @click="handleSignInSignIn"
+            >
+              {{ getAtvTabGroup?.dailySignIn ? "✓ 已签到" : "立即签到" }}
+            </button>
+          </div>
+        </div>
+
+        <!-- ================= 右侧：核心数据呈现区 ================= -->
+        <div class="flex-1 flex flex-col justify-between space-y-3">
+          <!-- 【极度凸显区】远征与超越副本当前收益 -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <!-- 1. 远征副本收益（高亮琥珀金渐变面板） -->
+            <div
+              class="relative overflow-hidden p-3 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-white border-2 border-amber-400/40 rounded-xl flex items-center justify-between shadow-xs"
+            >
+              <div class="flex items-center gap-2 min-w-0">
+                <div
+                  class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-xs"
+                >
+                  远
+                </div>
+                <span class="text-xs font-black text-slate-800 tracking-wide truncate"
+                  >远征副本当前收益</span
+                >
+              </div>
+              <span
+                class="text-xs font-black text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-md border border-amber-200 shrink-0"
+              >
+                {{ getGroupDecayInfo(activeTabGroup, "expedition") }}
+              </span>
+            </div>
+
+            <!-- 2. 超越副本收益（高亮琥珀金渐变面板） -->
+            <div
+              class="relative overflow-hidden p-3 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-white border-2 border-amber-400/40 rounded-xl flex items-center justify-between shadow-xs"
+            >
+              <div class="flex items-center gap-2 min-w-0">
+                <div
+                  class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-xs"
+                >
+                  超
+                </div>
+                <span class="text-xs font-black text-slate-800 tracking-wide truncate"
+                  >超越副本当前收益</span
+                >
+              </div>
+              <span
+                class="text-xs font-black text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-md border border-amber-200 shrink-0"
+              >
+                {{ getGroupDecayInfo(activeTabGroup, "surpass") }}
+              </span>
+            </div>
+          </div>
+
+          <!-- 第二部分：指标网格（高密度排列8项兑换与周常） -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+            <!-- 1. 账号奥德 (上限16) -->
+            <div
+              class="p-2 bg-slate-50/80 border border-slate-200/60 rounded-xl flex items-center justify-between"
+            >
+              <span class="text-[10px] text-slate-500 font-bold truncate">账号奥德</span>
+              <div class="flex items-center gap-1 font-black text-xs">
+                <span
+                  :class="
+                    (getAtvTabGroup?.breezeAccountOd || 0) >= 16
+                      ? 'text-emerald-600'
+                      : 'text-slate-800'
+                  "
+                >
+                  {{ getAtvTabGroup?.breezeAccountOd || 0 }}
+                </span>
+                <span class="text-slate-300 font-normal">/16</span>
+                <span
+                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
+                  :class="
+                    (getAtvTabGroup?.breezeAccountOd || 0) >= 16
+                      ? 'bg-emerald-50 text-emerald-600'
+                      : 'bg-slate-200/70 text-slate-400'
+                  "
+                >
+                  {{ (getAtvTabGroup?.breezeAccountOd || 0) >= 16 ? "✓" : "-" }}
+                </span>
+              </div>
+            </div>
+
+            <!-- 2. 商店奥德 (上限16) -->
+            <div
+              class="p-2 bg-slate-50/80 border border-slate-200/60 rounded-xl flex items-center justify-between"
+            >
+              <span class="text-[10px] text-slate-500 font-bold truncate">商店奥德</span>
+              <div class="flex items-center gap-1 font-black text-xs">
+                <span
+                  :class="
+                    (getAtvTabGroup?.materialAccountOd || 0) >= 16
+                      ? 'text-emerald-600'
+                      : 'text-slate-800'
+                  "
+                >
+                  {{ getAtvTabGroup?.materialAccountOd || 0 }}
+                </span>
+                <span class="text-slate-300 font-normal">/16</span>
+                <span
+                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
+                  :class="
+                    (getAtvTabGroup?.materialAccountOd || 0) >= 16
+                      ? 'bg-emerald-50 text-emerald-600'
+                      : 'bg-slate-200/70 text-slate-400'
+                  "
+                >
+                  {{ (getAtvTabGroup?.materialAccountOd || 0) >= 16 ? "✓" : "-" }}
+                </span>
+              </div>
+            </div>
+
+            <!-- 3. 周复活石 (上限7) -->
+            <div
+              class="p-2 bg-slate-50/80 border border-slate-200/60 rounded-xl flex items-center justify-between"
+            >
+              <span class="text-[10px] text-slate-500 font-bold truncate">周复活石</span>
+              <div class="flex items-center gap-1 font-black text-xs">
+                <span
+                  :class="
+                    (getAtvTabGroup?.breezeReviveStone || 0) >= 7
+                      ? 'text-emerald-600'
+                      : 'text-slate-800'
+                  "
+                >
+                  {{ getAtvTabGroup?.breezeReviveStone || 0 }}
+                </span>
+                <span class="text-slate-300 font-normal">/7</span>
+                <span
+                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
+                  :class="
+                    (getAtvTabGroup?.breezeReviveStone || 0) >= 7
+                      ? 'bg-emerald-50 text-emerald-600'
+                      : 'bg-slate-200/70 text-slate-400'
+                  "
+                >
+                  {{ (getAtvTabGroup?.breezeReviveStone || 0) >= 7 ? "✓" : "-" }}
+                </span>
+              </div>
+            </div>
+
+            <!-- 4. 未知缝隙 (上限21) -->
+            <div
+              class="p-2 bg-slate-50/80 border border-slate-200/60 rounded-xl flex items-center justify-between"
+            >
+              <span class="text-[10px] text-slate-500 font-bold truncate">未知缝隙</span>
+              <div class="flex items-center gap-1 font-black text-xs">
+                <span
+                  :class="
+                    (getAtvTabGroup?.breezeRiftTicket || 0) >= 21
+                      ? 'text-emerald-600'
+                      : 'text-slate-800'
+                  "
+                >
+                  {{ getAtvTabGroup?.breezeRiftTicket || 0 }}
+                </span>
+                <span class="text-slate-300 font-normal">/21</span>
+                <span
+                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
+                  :class="
+                    (getAtvTabGroup?.breezeRiftTicket || 0) >= 21
+                      ? 'bg-emerald-50 text-emerald-600'
+                      : 'bg-slate-200/70 text-slate-400'
+                  "
+                >
+                  {{ (getAtvTabGroup?.breezeRiftTicket || 0) >= 21 ? "✓" : "-" }}
+                </span>
+              </div>
+            </div>
+
+            <!-- 5. 完成卷(每日) (上限21) -->
+            <div
+              class="p-2 bg-slate-50/80 border border-slate-200/60 rounded-xl flex items-center justify-between"
+            >
+              <span class="text-[10px] text-slate-500 font-bold truncate"
+                >完成卷(每日)</span
+              >
+              <div class="flex items-center gap-1 font-black text-xs">
+                <span
+                  :class="
+                    (getAtvTabGroup?.breezeDailyTicket || 0) >= 21
+                      ? 'text-emerald-600'
+                      : 'text-slate-800'
+                  "
+                >
+                  {{ getAtvTabGroup?.breezeDailyTicket || 0 }}
+                </span>
+                <span class="text-slate-300 font-normal">/21</span>
+                <span
+                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
+                  :class="
+                    (getAtvTabGroup?.breezeDailyTicket || 0) >= 21
+                      ? 'bg-emerald-50 text-emerald-600'
+                      : 'bg-slate-200/70 text-slate-400'
+                  "
+                >
+                  {{ (getAtvTabGroup?.breezeDailyTicket || 0) >= 21 ? "✓" : "-" }}
+                </span>
+              </div>
+            </div>
+
+            <!-- 6. 完成卷(噩梦) (上限14) -->
+            <div
+              class="p-2 bg-slate-50/80 border border-slate-200/60 rounded-xl flex items-center justify-between"
+            >
+              <span class="text-[10px] text-slate-500 font-bold truncate"
+                >完成卷(噩梦)</span
+              >
+              <div class="flex items-center gap-1 font-black text-xs">
+                <span
+                  :class="
+                    (getAtvTabGroup?.breezeNightmareTicket || 0) >= 14
+                      ? 'text-emerald-600'
+                      : 'text-slate-800'
+                  "
+                >
+                  {{ getAtvTabGroup?.breezeNightmareTicket || 0 }}
+                </span>
+                <span class="text-slate-300 font-normal">/14</span>
+                <span
+                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
+                  :class="
+                    (getAtvTabGroup?.breezeNightmareTicket || 0) >= 14
+                      ? 'bg-emerald-50 text-emerald-600'
+                      : 'bg-slate-200/70 text-slate-400'
+                  "
+                >
+                  {{ (getAtvTabGroup?.breezeNightmareTicket || 0) >= 14 ? "✓" : "-" }}
+                </span>
+              </div>
+            </div>
+
+            <!-- 7. 地区A指令 (上限12) -->
+            <div
+              class="p-2 bg-slate-50/80 border border-slate-200/60 rounded-xl flex items-center justify-between"
+            >
+              <span class="text-[10px] text-slate-500 font-bold truncate">地区A指令</span>
+              <div class="flex items-center gap-1 font-black text-xs">
+                <span
+                  :class="
+                    (getAtvTabGroup?.regionACount || 0) >= 12
+                      ? 'text-emerald-600'
+                      : 'text-slate-800'
+                  "
+                >
+                  {{ getAtvTabGroup?.regionACount || 0 }}
+                </span>
+                <span class="text-slate-300 font-normal">/12</span>
+                <span
+                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
+                  :class="
+                    (getAtvTabGroup?.regionACount || 0) >= 12
+                      ? 'bg-emerald-50 text-emerald-600'
+                      : 'bg-slate-200/70 text-slate-400'
+                  "
+                >
+                  {{ (getAtvTabGroup?.regionACount || 0) >= 12 ? "✓" : "-" }}
+                </span>
+              </div>
+            </div>
+
+            <!-- 8. 地区B指令 (上限12) -->
+            <div
+              class="p-2 bg-slate-50/80 border border-slate-200/60 rounded-xl flex items-center justify-between"
+            >
+              <span class="text-[10px] text-slate-500 font-bold truncate">地区B指令</span>
+              <div class="flex items-center gap-1 font-black text-xs">
+                <span
+                  :class="
+                    (getAtvTabGroup?.regionBCount || 0) >= 12
+                      ? 'text-emerald-600'
+                      : 'text-slate-800'
+                  "
+                >
+                  {{ getAtvTabGroup?.regionBCount || 0 }}
+                </span>
+                <span class="text-slate-300 font-normal">/12</span>
+                <span
+                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
+                  :class="
+                    (getAtvTabGroup?.regionBCount || 0) >= 12
+                      ? 'bg-emerald-50 text-emerald-600'
+                      : 'bg-slate-200/70 text-slate-400'
+                  "
+                >
+                  {{ (getAtvTabGroup?.regionBCount || 0) >= 12 ? "✓" : "-" }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- 分组角色卡片列表 -->
+
     <GroupCharacterPanel
       :key="activeTabGroup"
       v-if="activeTabGroup"
