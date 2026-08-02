@@ -1,7 +1,7 @@
 /*
  * @Author: fofo
  * @Date: 2026-07-27 16:03:34
- * @LastEditTime: 2026-07-27 16:06:00
+ * @LastEditTime: 2026-08-02 22:27:39
  * @LastEditors: fofo
  * @Description: 
  * @FilePath: /aion2-portal/app/utils/indexedDb.ts
@@ -10,7 +10,13 @@
 
 const DB_NAME = 'aion2_portal_db'
 const STORE_NAME = 'game_data'
-const DB_VERSION = 1
+const DB_VERSION = 2
+
+export const STORES = {
+  GAME_DATA: 'game_data',
+  SETTINGS: 'settings',
+  BACKUP_HISTORY: 'backup_history'
+} as const
 
 /**
  * 打开或初始化 IndexedDB 数据库
@@ -18,7 +24,7 @@ const DB_VERSION = 1
 export const openDB = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
     if (typeof window === 'undefined' || !window.indexedDB) {
-      return reject(new Error('IndexedDB 不支持当前环境环境'))
+      return reject(new Error('IndexedDB 不支持当前环境'))
     }
 
     const request = indexedDB.open(DB_NAME, DB_VERSION)
@@ -28,9 +34,11 @@ export const openDB = (): Promise<IDBDatabase> => {
 
     request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
       const db = (event.target as IDBOpenDBRequest).result
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME)
-      }
+      Object.values(STORES).forEach(storeName => {
+        if (!db.objectStoreNames.contains(storeName)) {
+          db.createObjectStore(storeName)
+        }
+      })
     }
   })
 }
@@ -38,13 +46,13 @@ export const openDB = (): Promise<IDBDatabase> => {
 /**
  * 获取本地存储的游戏 JSON 数据
  */
-export const getLocalGameData = async <T = any>(): Promise<T | null> => {
+export const getLocalGameData = async <T = any>(key: string = 'current_data'): Promise<T | null> => {
   try {
     const db = await openDB()
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(STORE_NAME, 'readonly')
       const store = transaction.objectStore(STORE_NAME)
-      const request = store.get('current_data')
+      const request = store.get(key)
 
       request.onerror = () => reject(request.error)
       request.onsuccess = () => resolve((request.result as T) || null)
@@ -58,13 +66,13 @@ export const getLocalGameData = async <T = any>(): Promise<T | null> => {
 /**
  * 保存游戏 JSON 数据到本地
  */
-export const saveLocalGameData = async <T = any>(data: T): Promise<IDBValidKey | void> => {
+export const saveLocalGameData = async <T = any>(data: T, key: string = 'current_data'): Promise<IDBValidKey | void> => {
   try {
     const db = await openDB()
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(STORE_NAME, 'readwrite')
       const store = transaction.objectStore(STORE_NAME)
-      const request = store.put(data, 'current_data')
+      const request = store.put(data, key)
 
       request.onerror = () => reject(request.error)
       request.onsuccess = () => resolve(request.result)
@@ -77,13 +85,13 @@ export const saveLocalGameData = async <T = any>(data: T): Promise<IDBValidKey |
 /**
  * 清除本地游戏数据
  */
-export const clearLocalGameData = async (): Promise<void> => {
+export const clearLocalGameData = async (key: string = 'current_data'): Promise<void> => {
   try {
     const db = await openDB()
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(STORE_NAME, 'readwrite')
       const store = transaction.objectStore(STORE_NAME)
-      const request = store.delete('current_data')
+      const request = store.delete(key)
 
       request.onerror = () => reject(request.error)
       request.onsuccess = () => resolve()
@@ -91,4 +99,22 @@ export const clearLocalGameData = async (): Promise<void> => {
   } catch (error) {
     console.log('清除本地游戏数据失败 IndexedDB:', error)
   }
+}
+
+// ==================== 卡片布局配置专用持久化方法 ====================
+
+const CARD_CONFIG_KEY = 'card_layout_config'
+
+/**
+ * 获取持久化的卡片布局配置
+ */
+export const getLocalCardConfig = async <T = any>(): Promise<T | null> => {
+  return getLocalGameData<T>(CARD_CONFIG_KEY)
+}
+
+/**
+ * 保存卡片布局配置到本地
+ */
+export const saveLocalCardConfig = async <T = any>(config: T): Promise<IDBValidKey | void> => {
+  return saveLocalGameData<T>(config, CARD_CONFIG_KEY)
 }

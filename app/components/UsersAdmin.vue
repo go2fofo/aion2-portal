@@ -5,6 +5,8 @@ import {
   getLocalGameData,
   saveLocalGameData,
   clearLocalGameData,
+  getLocalCardConfig,
+  saveLocalCardConfig,
 } from "~/utils/indexedDb";
 import {
   formatServerDisplay,
@@ -355,6 +357,7 @@ const classOptions = [
   "拳星",
 ];
 
+//顶部统计面板开始
 // 计算基纳收益比例
 const calculateKinaEarned = (runs, type) => {
   let rate = 1.0;
@@ -372,9 +375,45 @@ const calculateKinaEarned = (runs, type) => {
   return rate;
 };
 
-// 统计面板计算属性
+// 获取当前系统日期的标准字符串格式 (例如: "2026-08-02")
+const getTodayDateStr = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+// 1. 总角色数计算
 const totalCharacters = computed(() => gameData.value.characters?.length || 0);
 
+// 2. 获取所有分组及其签到状态（自动过滤掉角色数量为 0 的空分组）
+const allGroups = computed(() => {
+  const characters = gameData.value.characters || [];
+  const groups = gameData.value.groups || [];
+  const groupMap = new Map();
+
+  // 统计每个分组下的角色数，并收集分组签到状态
+  characters.forEach((char) => {
+    if (char.group) {
+      if (!groupMap.has(char.group)) {
+        let targetGroup = groups.find((g) => g.id === char.group);
+        groupMap.set(char.group, {
+          name: targetGroup?.name,
+          groupId: char.group,
+          dailySignIn: !!targetGroup?.dailySignIn, // 根据您的实际签到数据结构调整
+          count: 0,
+        });
+      }
+      groupMap.get(char.group).count++;
+    }
+  });
+
+  // 转换为数组并过滤掉没有角色的组
+  return Array.from(groupMap.values()).filter((group) => group.count > 0);
+});
+
+// 3. 总奥德能量计算
 const totalEnergy = computed(() => {
   if (!gameData.value?.characters) return 0;
   return gameData.value?.characters?.reduce((acc, char) => {
@@ -382,27 +421,46 @@ const totalEnergy = computed(() => {
   }, 0);
 });
 
-const totalKinaStats = computed(() => {
-  let possible = 0;
-  let earned = 0;
+// 4. 今日收益吉纳数（从 runLogs 过滤当日并根据 activeTabGroup 归属分组计算）
+const activeGroupKinaStats = computed(() => {
+  const today = getTodayDateStr();
+  let targetLogs = [];
 
-  if (!gameData.value.characters) return { possible: 0, earned: 0 };
+  const chars =
+    activeTabGroup.value === "all"
+      ? gameData.value.characters || []
+      : (gameData.value.characters || []).filter((c) => c.group === activeTabGroup.value);
 
-  gameData.value?.characters?.forEach((char) => {
-    const r = char.runs || 0;
-    const tr = char.transcendRuns || 0;
-    possible += (r + tr) * 100;
-    earned +=
-      (r * calculateKinaEarned(r, "runs") +
-        tr * calculateKinaEarned(tr, "transcend") * 1.5) *
-      100;
+  // 收集目标角色下的 runLogs
+  chars.forEach((char) => {
+    if (char.runLogs && Array.isArray(char.runLogs)) {
+      targetLogs.push(...char.runLogs);
+    }
+  });
+
+  if (gameData.value.runLogs && Array.isArray(gameData.value.runLogs)) {
+    targetLogs = gameData.value.runLogs;
+  }
+
+  // 筛选出属于今天的日志
+  const todayLogs = targetLogs.filter((log) => log.date === today);
+
+  let totalGain = 0;
+  let totalBound = 0;
+
+  todayLogs.forEach((log) => {
+    totalGain += Number(log.kinaGain || 0);
+    totalBound += Number(log.boundKinaGain || 0);
   });
 
   return {
-    possible: (possible / 10000).toFixed(2),
-    earned: (earned / 10000).toFixed(2),
+    kinaGain: totalGain.toFixed(1),
+    boundKinaGain: totalBound.toFixed(1),
+    total: (totalGain + totalBound).toFixed(1),
   };
 });
+
+// 顶部统计面板结束
 
 // 打开新增角色弹窗
 const openAddCharModal = () => {
@@ -1083,15 +1141,75 @@ const deleteGroup = async (id) => {
 const activeTabGroup = ref("all"); // 'all' 代表全选，或者存放具体的分组 id
 //============================分组管理结束============================
 
-console.log("================ 设置按钮 开始================");
+//================ 设置按钮 开始================");
+// 用户界面偏好设置
+const settings = reactive({
+  compactMode: false,
+  showToast: true,
+});
 
+// 卡片布局与显示配置
+const cardConfig = reactive({
+  columns: 4, // 可选: 1, 2, 3, 4, 5列布局
+  mode: "default", // 可选: 'default'(标准模式) | 'simple'(精简模式) | 'custom'(自定义模式)
+  customFields: {
+    showCombatPower: true,
+    showDungeons: true,
+    showEnergy: true,
+    showTasks: false,
+    showNotes: true,
+  },
+});
 // 打开分组管理弹窗
 const openSettingsModal = () => {
   settingsOpen.value = true;
 };
 
-console.log("%c 设置按钮", "color: #28a745; font-weight: bold;");
-console.log("================ 设置按钮 结束 =====================");
+// ==================== 5. 设置与数据管理方法 ====================
+
+// 导出游戏数据备份为 JSON 文件
+const exportGameData = () => {
+  try {
+    const dataStr = JSON.stringify(gameData.value, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `aion2_backup_${getTodayDateStr()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("导出数据失败:", error);
+  }
+};
+
+// 导入游戏数据备份并存入 IndexedDB
+const importGameData = (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const parsedData = JSON.parse(e.target.result);
+      if (parsedData && typeof parsedData === "object") {
+        gameData.value = parsedData;
+        await saveData();
+        alert("数据导入并持久化成功！");
+      } else {
+        alert("导入的文件格式不正确！");
+      }
+    } catch (error) {
+      console.error("解析 JSON 文件失败:", error);
+      alert("解析文件失败，请确保是有效的 JSON 备份文件。");
+    } finally {
+      event.target.value = "";
+    }
+  };
+  reader.readAsText(file);
+};
+
+//================ 设置按钮 结束 =====================");
 
 //============================组角色卡片列表事件处理/开始============================
 // 分组角色卡片列表删除角色事件处理
@@ -1332,6 +1450,18 @@ const getGroupDecayInfo = (groupId, type) => {
 
   return `已刷 ${totalRuns}次，${rateLabel}`;
 };
+
+/**
+ * 清空所有本地数据
+ */
+const clearGameData = async () => {
+  if ($confirm("确定要清空所有本地数据吗？此操作不可逆！")) {
+    await clearLocalGameData();
+    settingsOpen.value = false;
+    loadData();
+  }
+};
+
 // 1. 监听角色表单
 watch(
   () => newCharForm.value,
@@ -1378,7 +1508,22 @@ watch(
   },
   { deep: true }
 );
+// 页面加载时从 IndexedDB 读取配置与数据
+onMounted(async () => {
+  const savedCardConfig = await getLocalCardConfig();
+  if (savedCardConfig) {
+    Object.assign(cardConfig, savedCardConfig);
+  }
+});
 
+// 监听 cardConfig 任意属性变化，自动同步存入 IndexedDB
+watch(
+  cardConfig,
+  async (newVal) => {
+    await saveLocalCardConfig(JSON.parse(JSON.stringify(newVal)));
+  },
+  { deep: true }
+);
 watch(
   () => validationResult.value,
   (newVal) => {
@@ -1397,45 +1542,125 @@ watch(
     class="p-2 bg-slate-50 text-slate-800 rounded-3xl shadow-sm space-y-8 mx-auto border border-slate-100 min-h-[90vh]"
   >
     <!-- 顶部数据面板 -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+    <!-- ================= 顶部数据面板 ================= -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
       <div
-        class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow"
+        class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between gap-4"
       >
-        <div class="text-slate-400 text-xs font-bold tracking-wider uppercase">
-          总角色数
+        <!-- 左侧：总角色数 -->
+        <div class="shrink-0">
+          <div class="text-slate-400 text-xs font-bold tracking-wider uppercase">
+            总角色数
+          </div>
+          <div class="text-3xl font-black mt-2 tracking-tight text-slate-900">
+            {{ totalCharacters }}
+          </div>
         </div>
-        <div class="text-3xl font-black mt-2 tracking-tight text-slate-900">
-          {{ totalCharacters }}
+
+        <!-- 右侧：分组签到状态（按钮化设计，一眼识别未签到） -->
+        <div class="flex-1 flex flex-col items-end gap-1.5 min-w-0">
+          <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+            分组签到状态 (点击切换)
+          </div>
+          <div
+            class="flex items-center gap-1.5 flex-wrap justify-end max-w-full overflow-x-auto py-0.5"
+          >
+            <template v-for="group in allGroups" :key="group.name">
+              <button
+                type="button"
+                @click="activeTabGroup = group.groupId"
+                class="px-2.5 py-1.5 rounded-xl text-[11px] font-black border flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs shrink-0 active:scale-95"
+                :class="
+                  group.dailySignIn
+                    ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200/80'
+                    : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-300 ring-1 ring-rose-200 shadow-rose-500/10'
+                "
+                :title="
+                  '点击切换至 ' +
+                  group.name +
+                  (group.dailySignIn ? ' (已签到)' : ' (未签到！)')
+                "
+              >
+                <span class="truncate max-w-[70px]">{{ group.name }}</span>
+                <span
+                  class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold"
+                  :class="
+                    group.dailySignIn
+                      ? 'bg-emerald-200/60 text-emerald-700'
+                      : 'bg-rose-500 text-white shadow-xs'
+                  "
+                >
+                  {{ group.dailySignIn ? "✓" : "!" }}
+                </span>
+              </button>
+            </template>
+          </div>
         </div>
       </div>
+
+      <!-- 2. 今日收益吉纳数（基于 runLogs 实时计算当前组或全部的绑定与非绑定） -->
       <div
         class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow"
       >
-        <div class="text-slate-400 text-xs font-bold tracking-wider uppercase">
-          可收益基纳数 (万)
+        <div class="flex items-center justify-between">
+          <div class="text-slate-400 text-xs font-bold tracking-wider uppercase">
+            今日收益吉纳数 (万)
+          </div>
+          <span
+            class="text-[10px] font-black px-2 py-0.5 rounded-md bg-[#45a6d5]/10 text-[#45a6d5] border border-[#45a6d5]/20"
+          >
+            {{ activeTabGroup === "all" ? "全部数据汇总" : activeTabGroup }}
+          </span>
         </div>
-        <div class="text-3xl font-black mt-2 text-emerald-600 tracking-tight">
-          {{ totalKinaStats.possible }}
-        </div>
-      </div>
-      <div
-        class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow"
-      >
-        <div class="text-slate-400 text-xs font-bold tracking-wider uppercase">
-          已收益基纳数 (万)
-        </div>
+
+        <!-- 总收益数字 -->
         <div class="text-3xl font-black mt-2 text-[#45a6d5] tracking-tight">
-          {{ totalKinaStats.earned }}
+          {{ activeGroupKinaStats.total }}
+        </div>
+
+        <!-- 绑定与非绑定细分 -->
+        <div
+          class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs"
+        >
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+            <span class="text-slate-500 font-medium"
+              >非绑定:
+              <strong class="text-slate-800 font-black">{{
+                activeGroupKinaStats.kinaGain
+              }}</strong>
+              万</span
+            >
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+            <span class="text-slate-500 font-medium"
+              >绑定:
+              <strong class="text-slate-800 font-black">{{
+                activeGroupKinaStats.boundKinaGain
+              }}</strong>
+              万</span
+            >
+          </div>
         </div>
       </div>
+
+      <!-- 3. 总奥德能量 (点) -->
       <div
-        class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow"
+        class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
       >
-        <div class="text-slate-400 text-xs font-bold tracking-wider uppercase">
-          总奥德能量 (点)
+        <div>
+          <div class="text-slate-400 text-xs font-bold tracking-wider uppercase">
+            总奥德能量 (点)
+          </div>
+          <div class="text-3xl font-black mt-2 text-amber-600 tracking-tight">
+            {{ totalEnergy }}
+          </div>
         </div>
-        <div class="text-3xl font-black mt-2 text-amber-600 tracking-tight">
-          {{ totalEnergy }}
+        <div
+          class="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-400 font-medium"
+        >
+          包含当前账号下所有角色的实时累积能量
         </div>
       </div>
     </div>
@@ -1968,6 +2193,7 @@ watch(
       v-if="activeTabGroup"
       :activeTabGroup="activeTabGroup"
       :gameData="gameData"
+      :cardConfig="cardConfig"
       @character-delete="groupCharacterPanelHandleDelete"
       @toggle-lock="groupCharacterPanelHandleToggleLock"
       @update-character="groupCharacterPanelHandleUpdateCharacter"
@@ -3672,35 +3898,316 @@ watch(
       </Transition>
     </Teleport>
     <!-- 设置管理 -->
+    <!-- 设置管理 -->
     <Teleport to="body">
       <Transition name="modal3">
         <div
           v-if="settingsOpen"
-          class="fixed inset-0 z-[60] flex items-center justify-center"
+          class="fixed inset-0 z-[60] flex items-center justify-center p-4"
         >
           <div
             class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             @click="settingsOpen = false"
           ></div>
           <div
-            class="relative z-10 w-full max-w-3xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden"
+            class="relative z-10 w-full max-w-3xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[85vh]"
           >
+            <!-- 弹窗头部 -->
             <div
-              class="p-6 border-b border-slate-100 flex items-center justify-between gap-4"
+              class="p-6 border-b border-slate-100 flex items-center justify-between gap-4 shrink-0"
             >
               <div class="font-black text-slate-800 text-lg flex items-center gap-2">
                 <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
-                显示设置
+                系统设置与数据管理
               </div>
               <button
-                class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors"
+                class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors cursor-pointer"
                 @click="settingsOpen = false"
               >
                 关闭
               </button>
             </div>
 
-            <div class="p-6 space-y-6 max-h-[80vh] overflow-y-auto custom-scroll"></div>
+            <!-- 弹窗主体内容 -->
+            <div class="p-6 space-y-6 overflow-y-auto custom-scroll flex-1">
+              <!-- 1. 卡片布局与展示配置 -->
+              <div class="space-y-3">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  卡片布局与展示
+                </h3>
+                <div
+                  class="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-4"
+                >
+                  <!-- 列数选择 -->
+                  <div class="flex items-center justify-between gap-4">
+                    <div>
+                      <div class="text-sm font-black text-slate-800">卡片网格列数</div>
+                      <div class="text-xs text-slate-400 mt-0.5">
+                        调整每行展示的卡片数量
+                      </div>
+                    </div>
+                    <div
+                      class="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs"
+                    >
+                      <button
+                        v-for="col in [1, 2, 3, 4, 5]"
+                        :key="col"
+                        @click="cardConfig.columns = col"
+                        class="w-8 h-8 rounded-lg font-black text-xs transition-all cursor-pointer flex items-center justify-center"
+                        :class="
+                          cardConfig.columns === col
+                            ? 'bg-[#45a6d5] text-white shadow-xs'
+                            : 'text-slate-600 hover:bg-slate-100'
+                        "
+                      >
+                        {{ col }}
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- 展示模式 -->
+                  <div
+                    class="flex items-center justify-between gap-4 pt-3 border-t border-slate-100"
+                  >
+                    <div>
+                      <div class="text-sm font-black text-slate-800">面板显示模式</div>
+                      <div class="text-xs text-slate-400 mt-0.5">
+                        切换卡片的信息精简程度
+                      </div>
+                    </div>
+                    <div
+                      class="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs"
+                    >
+                      <button
+                        @click="cardConfig.mode = 'default'"
+                        class="px-3 py-1.5 rounded-lg font-black text-xs transition-all cursor-pointer"
+                        :class="
+                          cardConfig.mode === 'default'
+                            ? 'bg-[#45a6d5] text-white shadow-xs'
+                            : 'text-slate-600 hover:bg-slate-100'
+                        "
+                      >
+                        标准
+                      </button>
+                      <button
+                        @click="cardConfig.mode = 'simple'"
+                        class="px-3 py-1.5 rounded-lg font-black text-xs transition-all cursor-pointer"
+                        :class="
+                          cardConfig.mode === 'simple'
+                            ? 'bg-[#45a6d5] text-white shadow-xs'
+                            : 'text-slate-600 hover:bg-slate-100'
+                        "
+                      >
+                        精简
+                      </button>
+                      <button
+                        @click="cardConfig.mode = 'custom'"
+                        class="px-3 py-1.5 rounded-lg font-black text-xs transition-all cursor-pointer"
+                        :class="
+                          cardConfig.mode === 'custom'
+                            ? 'bg-[#45a6d5] text-white shadow-xs'
+                            : 'text-slate-600 hover:bg-slate-100'
+                        "
+                      >
+                        自定义
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- 自定义模式下的字段开关 (仅在 mode === 'custom' 时展开) -->
+                  <div
+                    v-if="cardConfig.mode === 'custom'"
+                    class="pt-3 border-t border-slate-100 space-y-3 pl-2"
+                  >
+                    <div class="text-xs font-bold text-slate-500">自定义显示字段项：</div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                      <label
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          v-model="cardConfig.customFields.showCombatPower"
+                          class="rounded border-slate-300 text-[#45a6d5] focus:ring-[#45a6d5]"
+                        />
+                        显示战力
+                      </label>
+                      <label
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          v-model="cardConfig.customFields.showDungeons"
+                          class="rounded border-slate-300 text-[#45a6d5] focus:ring-[#45a6d5]"
+                        />
+                        显示副本
+                      </label>
+                      <label
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          v-model="cardConfig.customFields.showEnergy"
+                          class="rounded border-slate-300 text-[#45a6d5] focus:ring-[#45a6d5]"
+                        />
+                        显示能量
+                      </label>
+                      <label
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          v-model="cardConfig.customFields.showTasks"
+                          class="rounded border-slate-300 text-[#45a6d5] focus:ring-[#45a6d5]"
+                        />
+                        显示任务按钮
+                      </label>
+                      <label
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          v-model="cardConfig.customFields.showNotes"
+                          class="rounded border-slate-300 text-[#45a6d5] focus:ring-[#45a6d5]"
+                        />
+                        显示备注
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. 数据与存储管理 -->
+              <div class="space-y-3">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  数据与存储
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <!-- 导出备份 -->
+                  <div
+                    class="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 flex items-center justify-between gap-3"
+                  >
+                    <div>
+                      <div class="text-sm font-black text-slate-800">导出数据备份</div>
+                      <div class="text-xs text-slate-400 mt-0.5">
+                        将全部游戏数据导出为 JSON 文件
+                      </div>
+                    </div>
+                    <button
+                      @click="exportGameData"
+                      class="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs shadow-2xs transition-all shrink-0 cursor-pointer"
+                    >
+                      导出
+                    </button>
+                  </div>
+
+                  <!-- 导入备份 -->
+                  <div
+                    class="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 flex items-center justify-between gap-3"
+                  >
+                    <div>
+                      <div class="text-sm font-black text-slate-800">导入数据恢复</div>
+                      <div class="text-xs text-slate-400 mt-0.5">
+                        从本地 JSON 备份文件恢复数据
+                      </div>
+                    </div>
+                    <label
+                      class="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs shadow-2xs transition-all shrink-0 cursor-pointer"
+                    >
+                      导入
+                      <input
+                        type="file"
+                        accept=".json"
+                        class="hidden"
+                        @change="importGameData"
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. 界面偏好 -->
+              <div class="space-y-3">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  界面偏好
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <!-- 紧凑模式 -->
+                  <div
+                    class="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 flex items-center justify-between gap-3"
+                  >
+                    <div>
+                      <div class="text-sm font-black text-slate-800">表格紧凑模式</div>
+                      <div class="text-xs text-slate-400 mt-0.5">
+                        减小行高，同屏展示更多角色信息
+                      </div>
+                    </div>
+                    <button
+                      @click="settings.compactMode = !settings?.compactMode"
+                      class="w-12 h-6 rounded-full transition-colors relative p-1 cursor-pointer"
+                      :class="settings?.compactMode ? 'bg-[#45a6d5]' : 'bg-slate-300'"
+                    >
+                      <div
+                        class="w-4 h-4 rounded-full bg-white transition-transform shadow-sm"
+                        :class="settings?.compactMode ? 'translate-x-6' : 'translate-x-0'"
+                      ></div>
+                    </button>
+                  </div>
+
+                  <!-- 自动保存提示 -->
+                  <div
+                    class="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 flex items-center justify-between gap-3"
+                  >
+                    <div>
+                      <div class="text-sm font-black text-slate-800">操作成功轻提示</div>
+                      <div class="text-xs text-slate-400 mt-0.5">
+                        签到或修改数据时弹出 Toast 提示
+                      </div>
+                    </div>
+                    <button
+                      @click="settings.showToast = !settings?.showToast"
+                      class="w-12 h-6 rounded-full transition-colors relative p-1 cursor-pointer"
+                      :class="settings?.showToast ? 'bg-[#45a6d5]' : 'bg-slate-300'"
+                    >
+                      <div
+                        class="w-4 h-4 rounded-full bg-white transition-transform shadow-sm"
+                        :class="settings.showToast ? 'translate-x-6' : 'translate-x-0'"
+                      ></div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4. 数据重置与危险操作 -->
+              <div class="space-y-3 pt-2">
+                <h3 class="text-xs font-bold text-rose-500 uppercase tracking-wider">
+                  危险区域
+                </h3>
+                <div
+                  class="p-4 rounded-2xl border border-rose-200 bg-rose-50/30 flex items-center justify-between gap-4"
+                >
+                  <div>
+                    <div class="text-sm font-black text-rose-700">清空所有本地数据</div>
+                    <div class="text-xs text-rose-400/90 mt-0.5">
+                      该操作将永久删除所有角色、分组、日志及缓存，无法找回。
+                    </div>
+                  </div>
+                  <button
+                    @click="clearGameData"
+                    class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm transition-all shrink-0 cursor-pointer"
+                  >
+                    清空数据
+                  </button>
+                </div>
+              </div>
+
+              <!-- 5. 关于信息 -->
+              <div
+                class="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400"
+              >
+                <div>AION2 Portal 游戏辅助面板</div>
+                <div>Version 1.2.0</div>
+              </div>
+            </div>
           </div>
         </div>
       </Transition>

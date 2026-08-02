@@ -217,7 +217,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
     <div
       v-for="char in characters"
       :key="char.characterId || char.id"
-      class="relative bg-white border border-slate-200/80 p-2 rounded-3xl shadow-sm space-y-4 border-[#45a6d5] transition-all flex flex-col overflow-hidden"
+      class="relative bg-white border border-slate-200/80 p-4 rounded-3xl shadow-sm space-y-4 border-[#45a6d5] transition-all flex flex-col overflow-hidden"
       :class="char.locked ? 'opacity-95 bg-slate-50/50' : ''"
     >
       <!-- 右上角“游玩消耗”精致角标按钮 -->

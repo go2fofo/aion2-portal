@@ -888,19 +888,13 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-});
-// 配置对象
-const cardConfig = reactive({
-  columns: 4, // 可选: 1, 2, 3, 4 ，5列布局
-  mode: "default", // 可选: 'default'(标准模式) | 'simple'(精简模式) | 'custom'(自定义模式)
-  customFields: {
-    showCombatPower: true,
-    showDungeons: true,
-    showEnergy: true,
-    showTasks: false, // 自定义模式下隐藏任务按钮
-    showNotes: true,
+  cardConfig: {
+    type: Object,
+    required: true,
   },
+
 });
+
 const emit = defineEmits([
   "update-character",
   "delete-character",
@@ -1611,7 +1605,7 @@ const handleExecuteConsume = async () => {
           ...groupLogs[existingLogIndex],
           count: groupLogs[existingLogIndex].count + addRunsCount,
           kinaGain: Number(
-            (groupLogs[existingLogIndex].kinaGain + calculatedTotalGain.value).toFixed(2)
+            (groupLogs[existingLogIndex].kinaGain + calculatedKinaGain.value).toFixed(2)
           ),
           boundKinaGain: Number(
             (
@@ -1625,7 +1619,7 @@ const handleExecuteConsume = async () => {
           date: currentDateStr,
           type: dungeonType,
           count: addRunsCount,
-          kinaGain: calculatedTotalGain.value,
+          kinaGain: calculatedKinaGain.value,
           boundKinaGain: calculatedBoundKinaGain.value,
           createdAt: nowStr,
           updatedAt: nowStr,
@@ -1684,7 +1678,7 @@ const handleExecuteConsume = async () => {
       ...charLogs[charExistingLogIndex],
       count: charLogs[charExistingLogIndex].count + addRunsCount,
       kinaGain: Number(
-        (charLogs[charExistingLogIndex].kinaGain + calculatedTotalGain.value).toFixed(2)
+        (charLogs[charExistingLogIndex].kinaGain + calculatedKinaGain.value).toFixed(2)
       ),
       boundKinaGain: Number(
         (
@@ -1698,7 +1692,7 @@ const handleExecuteConsume = async () => {
       date: currentDateStr,
       type: dungeonType,
       count: addRunsCount,
-      kinaGain: calculatedTotalGain.value,
+      kinaGain: calculatedKinaGain.value,
       boundKinaGain: calculatedBoundKinaGain.value,
       createdAt: nowStr,
       updatedAt: nowStr,
@@ -2732,7 +2726,7 @@ watch(
     <CharacterCard
       v-if="filteredCharacters.length > 0"
       :characters="filteredCharacters"
-      :config="cardConfig"
+      :config="props.cardConfig"
       :get-group-name="getGroupName"
       :format-combat-power="formatCombatPower"
       @click-gameplay="handleClickGameplay"
@@ -2741,8 +2735,8 @@ watch(
       @task-click="handleTaskClick"
       @text-change="handleTextChange"
       @delete="handleDelete"
-      :groups="gameData.group"
-      :gameData="gameData"
+      :groups="props.gameData.group"
+      :gameData="props.gameData"
     />
 
     <!-- 空状态展示 -->
