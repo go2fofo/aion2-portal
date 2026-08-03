@@ -1459,29 +1459,43 @@ const getGroupDecayInfo = (groupId, type) => {
 };
 
 /**
- * 清空所有本地数据
+ * 清空所有本地及云端数据
  */
 const clearGameData = async () => {
-  if ($confirm("确定要清空所有本地数据吗？此操作不可逆！")) {
-    // 1. 执行底层存储清空（本地存储 / Supabase）
-    await clearLocalGameData();
+  const confirmed = await $confirm(
+    "删除确认",
+    `确定要清空所有本地及云端数据吗？此操作不可逆！？`
+  );
+  if (!confirmed) return;
+  // 1. 清空底层本地存储
+  await clearLocalGameData();
 
-    // 如果是登录状态，也需要把云端数据清空或重置
-    if (user.value) {
-      await client
-        .from("user_game_data")
-        .update({ data: null })
-        .eq("user_id", user.value.id);
-    }
-    gameData.value = {
-      ...cloneDeep(defGameData),
-      exportDate: new Date().toLocaleString(),
-    };
+  // 2. 将内存中的 gameData.value 重置为干净的默认初始空结构
+  gameData.value = {
+    characters: [],
+    accounts: [],
+    groups: [
+      { id: 1, name: "分组1", sort: 1, runs: 0, transcendRuns: 0, runLogs: [] },
+      { id: 2, name: "分组2", sort: 2, runs: 0, transcendRuns: 0, runLogs: [] },
+      { id: 3, name: "分组3", sort: 3, runs: 0, transcendRuns: 0, runLogs: [] },
+      { id: 4, name: "分组4", sort: 4, runs: 0, transcendRuns: 0, runLogs: [] },
+      { id: 5, name: "分组5", sort: 5, runs: 0, transcendRuns: 0, runLogs: [] },
+    ],
+    groupCount: 5,
+    autoRefreshEnabled: true,
+    teams: [],
+    accountSharedData: {},
+    version: "1.0.0",
+    dataType: "complete",
+    characterCount: 0,
+    exportDate: new Date().toLocaleString(),
+  };
 
-    settingsOpen.value = false;
+  // 3. 直接调用统一的 saveData()：
+  await saveData();
 
-    await loadData();
-  }
+  // 4. 关闭设置弹窗
+  settingsOpen.value = false;
 };
 /**
  * 处理任务点击事件
@@ -1568,8 +1582,44 @@ watch(
 
 <template>
   <div
-    class="p-2 bg-slate-50 text-slate-800 rounded-3xl shadow-sm space-y-8 mx-auto border border-slate-100 min-h-[90vh]"
+    class="p-2 bg-slate-50 text-slate-800 rounded-3xl shadow-sm space-y-4 mx-auto border border-slate-100 min-h-[90vh]"
   >
+    <!-- 顶部介绍 -->
+    <div
+      class="w-full bg-white text-slate-800 px-5 py-3 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+    >
+      <!-- 左侧：项目说明与低调的 GitHub 入口 -->
+      <div class="flex items-center gap-2 overflow-hidden">
+        <span class="text-slate-700 font-bold truncate"> ✨ Aion2 管理系统已开源 </span>
+        <span class="text-slate-300">|</span>
+        <a
+          href="https://github.com/go2fofo/aion2-portal"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-slate-500 hover:text-slate-900 underline underline-offset-2 transition-colors shrink-0 text-[11px] font-medium"
+        >
+          GitHub 源码
+        </a>
+      </div>
+
+      <!-- 右侧：高亮凸显的“意见反馈”核心交互按钮（明亮蓝白主题） -->
+      <div class="flex items-center shrink-0 w-full sm:w-auto justify-end">
+        <a
+          href="https://www.bilibili.com/opus/1232239633532715010"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="group relative inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-black text-xs shadow-md shadow-sky-500/20 transition-all transform active:scale-95 cursor-pointer"
+        >
+          <!-- 气泡反馈图标 -->
+          <svg class="w-4 h-4 fill-current text-white animate-bounce" viewBox="0 0 24 24">
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12c0 2.17.7 4.19 1.91 5.84L2.5 21.5l3.83-.83A9.956 9.956 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.62 0-3.12-.51-4.37-1.38l-.31-.22-2.3.5.5-2.28-.21-.32A7.957 7.957 0 014 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8z"
+            />
+          </svg>
+          <span>有建议想法或是BUG？来评论区反馈一起讨论</span>
+        </a>
+      </div>
+    </div>
     <!-- 顶部数据面板 -->
     <!-- ================= 顶部数据面板 ================= -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -1700,7 +1750,7 @@ watch(
 
     <!-- 操作栏 -->
     <div
-      class="flex items-center justify-between bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm"
+      class="flex items-center justify-between bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm -mt-4"
     >
       <div class="flex items-center gap-3">
         <button
@@ -1779,6 +1829,7 @@ watch(
         <span>{{ user ? "已同步到云端数据库" : "当前为本地存储模式" }}</span>
       </div>
     </div>
+
     <!-- Tab 切换栏 -->
     <div
       class="bg-white p-3 rounded-3xl border border-slate-200/80 shadow-sm flex items-center gap-2 overflow-x-auto custom-scroll select-none"
@@ -3922,6 +3973,7 @@ watch(
                     </button>
                     <button
                       @click="deleteGroup(group.id)"
+                      :disabled="gameData?.groups?.length === 1"
                       class="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs transition-colors"
                     >
                       删除
@@ -4223,16 +4275,19 @@ watch(
                   class="p-4 rounded-2xl border border-rose-200 bg-rose-50/30 flex items-center justify-between gap-4"
                 >
                   <div>
-                    <div class="text-sm font-black text-rose-700">清空所有本地数据</div>
+                    <div class="text-sm font-black text-rose-700">
+                      清空所有本地数据以及云端数据
+                    </div>
                     <div class="text-xs text-rose-400/90 mt-0.5">
                       该操作将永久删除所有角色、分组、日志及缓存，无法找回。
                     </div>
                   </div>
                   <button
                     @click="clearGameData"
-                    class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm transition-all shrink-0 cursor-pointer"
+                    :disabled="!gameData?.groups?.length && !gameData?.characters?.length"
+                    class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm transition-all shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    清空数据
+                    清空数据/重置数据
                   </button>
                 </div>
               </div>

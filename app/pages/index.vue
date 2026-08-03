@@ -376,7 +376,7 @@
         </div>
 
         <!-- 桌面端横向排列 Tab -->
-        <div class="hidden md:flex justify-center gap-4 mb-8 flex-wrap">
+        <div class="hidden md:flex md:mb-4 justify-center gap-4 flex-wrap">
           <button
             v-for="tab in visibleTabs"
             :key="tab.id"
@@ -408,7 +408,7 @@
         </div>
 
         <div
-          class="panel-cartoon min-h-[360px] p-4 md:p-8 relative overflow-hidden"
+          class="panel-cartoon min-h-[360px] p-4 relative overflow-hidden"
         >
           <div
             class="absolute -bottom-6 -right-6 text-[8rem] opacity-5 pointer-events-none italic font-black"
