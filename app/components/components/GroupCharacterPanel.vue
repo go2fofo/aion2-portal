@@ -1,5 +1,5 @@
 <script setup>
-import { computed, watch } from "vue";
+import { computed, watch,defineExpose } from "vue";
 import { formatCombatPower } from "~/utils/formatCombatPower";
 import CharacterCard from "./CharacterCard.vue";
 import cloneDeep from "lodash/cloneDeep";
@@ -905,6 +905,7 @@ const emit = defineEmits([
   "open-edit",
   "update-groups",
 ]);
+
 
 const { $confirm, $alert } = useNuxtApp();
 
@@ -2700,6 +2701,9 @@ watch(
     }
   }
 );
+defineExpose({
+  handleTaskClick,
+});
 </script>
 
 <template>

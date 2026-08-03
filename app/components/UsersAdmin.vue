@@ -98,6 +98,7 @@ const { $alert, $confirm, $loading } = useNuxtApp();
 // 控制新增角色弹窗状态
 const showAddCharModal = ref(false);
 const saving = ref(false);
+const groupCharacterPanelRef = ref(null);
 
 //y验证规则放回返
 const validationResult = ref({
@@ -1461,6 +1462,15 @@ const clearGameData = async () => {
     loadData();
   }
 };
+/**
+ * 处理任务点击事件
+ * @param {string} taskType 任务类型
+ */
+const handleTaskClick = (taskType) => {
+//   groupCharacterPanelRef.value?.handleTaskClick(taskType);
+};
+
+
 
 // 1. 监听角色表单
 watch(
@@ -1946,7 +1956,7 @@ watch(
           </div>
 
           <!-- 第二部分：指标网格（高密度排列8项兑换与周常） -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]" @click="handleTaskClick">
             <!-- 1. 账号奥德 (上限16) -->
             <div
               class="p-2 bg-slate-50/80 border border-slate-200/60 rounded-xl flex items-center justify-between"
@@ -2189,6 +2199,7 @@ watch(
     <!-- 分组角色卡片列表 -->
 
     <GroupCharacterPanel
+      ref="groupCharacterPanelRef"
       :key="activeTabGroup"
       v-if="activeTabGroup"
       :activeTabGroup="activeTabGroup"
