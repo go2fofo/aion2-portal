@@ -22,9 +22,7 @@ import cloneDeep from "lodash/cloneDeep";
 import { dungeonDecayRules } from "./config/userAdmin";
 const client = useSupabaseClient();
 const user = useSupabaseUser();
-
-// 游戏数据结构 参考 docs/多角色管理模块相关.md
-const gameData = ref({
+const defGameData = {
   characters: [],
   accounts: [],
   groups: [
@@ -85,7 +83,11 @@ const gameData = ref({
   accountSharedData: {},
   version: "1.0.0",
   dataType: "complete",
-});
+  characterCount: 0,
+  exportDate: new Date().toLocaleString(),
+};
+// 游戏数据结构 参考 docs/多角色管理模块相关.md
+const gameData = ref(cloneDeep(defGameData));
 
 const groupOpen = ref(false);
 const settingsOpen = ref(false);
@@ -828,9 +830,6 @@ const validateForm = (formData, context = {}, type = "character") => {
 
 // 提交保存前的校验逻辑 确认添加角色保存触发 新增角色 新建角色
 const handleSaveCharacter = async () => {
-  // characterId: c.characterId,
-  //     characterName: stripHtml(c.name),
-
   if (!newCharForm.value.characterId) {
     $alert("提示", "请选择角色！");
     return;
@@ -852,21 +851,22 @@ const handleSaveCharacter = async () => {
     return;
   }
 
-  // 校验分组内主账号唯一性
+  // 校验分组内主账号唯一性（适配 group 可能是 id 或 index 的安全查找）
   if (newCharForm.value.primaryAccount) {
+    const targetGroupObj = gameData.value?.groups?.find(
+      (g) => g.id === selectedGroup || g.sort === selectedGroup
+    );
+    const groupName = targetGroupObj?.name || "当前";
+
     const existingPrimary = gameData.value?.characters?.find(
       (c) => c.group === selectedGroup && c.primaryAccount
     );
     if (existingPrimary) {
+      const alertMsg = `当前选择的 "${groupName}" 分组下已经拥有主账号 (${existingPrimary.characterName})！`;
       if (typeof $alert === "function") {
-        $alert(
-          "提示",
-          `当前选择的 "${gameData.value.groups[selectedGroup].name}" 分组下已经拥有主账号 (${existingPrimary.characterName})！`
-        );
+        $alert("提示", alertMsg);
       } else {
-        alert(
-          `当前选择的 "${gameData.value.groups[selectedGroup].name}" 分组下已经拥有主账号 (${existingPrimary.characterName})！`
-        );
+        alert(alertMsg);
       }
       return;
     }
@@ -879,6 +879,10 @@ const handleSaveCharacter = async () => {
     // 能量与资源
     energy: 0,
     storedEnergy: 0,
+    lastEnergyUpdate: nowIso, // 【新增补齐】奥德能量最后更新时间，供解释器时间间隔计算使用
+    isMaterialCharOd: false,
+    materialCharOdDate: nowIso,
+
     kina: 0,
     weeklyEnergyPurchased: false,
     weeklyEnergyPurchasedDate: nowIso,
@@ -894,18 +898,21 @@ const handleSaveCharacter = async () => {
     nightmareCount: 0,
     storedNightmareCount: 0,
     lastNightmareUpdate: nowIso,
-    /** 角色觉醒战次数，当前角色每周三5点更新，固定3次，上限30*/
+
+    /** 角色觉醒战次数，当前角色每周三5点更新，固定3次*/
     awakening: 0,
-    /** 觉醒战补充次数 角色独立，30次上限*/
+    /** 觉醒战补充次数 角色独立*/
     storedAwakening: 0,
     /** 觉醒战最后更新时间 */
     lastAwakeningUpdate: nowIso,
 
     /** 战场玩法的次数 */
     battlefield: 0,
+    lastBattlefieldUpdate: nowIso,
 
     // 圣域、小游戏及日常状态
     sanctuary: { s1: 1, s2: 1, s3: 1 },
+    lastSanctuaryRunsUpdate: nowIso,
 
     dailySignIn: false,
     dailySignInDate: nowIso, //每日签到状态及时间
@@ -943,7 +950,7 @@ const handleSaveCharacter = async () => {
 
   showAddCharModal.value = false;
 
-  // 查找对应索引
+  // 查找对应索引并更新分组附加数据
   if (newCharGroupForm.value?.id) {
     const targetId = newCharGroupForm.value.id;
     const index = gameData.value.groups.findIndex((g) => g.id === targetId);
@@ -999,10 +1006,9 @@ const handleSaveCharacter = async () => {
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     gameData.value
   );
-  debugger;
+
   await saveData();
 };
-
 //============================角色管理开始============================
 
 //会员相关处理
@@ -1457,9 +1463,24 @@ const getGroupDecayInfo = (groupId, type) => {
  */
 const clearGameData = async () => {
   if ($confirm("确定要清空所有本地数据吗？此操作不可逆！")) {
+    // 1. 执行底层存储清空（本地存储 / Supabase）
     await clearLocalGameData();
+
+    // 如果是登录状态，也需要把云端数据清空或重置
+    if (user.value) {
+      await client
+        .from("user_game_data")
+        .update({ data: null })
+        .eq("user_id", user.value.id);
+    }
+    gameData.value = {
+      ...cloneDeep(defGameData),
+      exportDate: new Date().toLocaleString(),
+    };
+
     settingsOpen.value = false;
-    loadData();
+
+    await loadData();
   }
 };
 /**
@@ -1467,10 +1488,8 @@ const clearGameData = async () => {
  * @param {string} taskType 任务类型
  */
 const handleTaskClick = (taskType) => {
-//   groupCharacterPanelRef.value?.handleTaskClick(taskType);
+  //   groupCharacterPanelRef.value?.handleTaskClick(taskType);
 };
-
-
 
 // 1. 监听角色表单
 watch(
@@ -1619,7 +1638,11 @@ watch(
           <span
             class="text-[10px] font-black px-2 py-0.5 rounded-md bg-[#45a6d5]/10 text-[#45a6d5] border border-[#45a6d5]/20"
           >
-            {{ activeTabGroup === "all" ? "全部数据汇总" : gameData?.groups?.find((g) => g?.id === activeTabGroup)?.name }}
+            {{
+              activeTabGroup === "all"
+                ? "全部数据汇总"
+                : gameData?.groups?.find((g) => g?.id === activeTabGroup)?.name
+            }}
           </span>
         </div>
 
@@ -1956,7 +1979,10 @@ watch(
           </div>
 
           <!-- 第二部分：指标网格（高密度排列8项兑换与周常） -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]" @click="handleTaskClick">
+          <div
+            class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]"
+            @click="handleTaskClick"
+          >
             <!-- 1. 账号奥德 (上限16) -->
             <div
               class="p-2 bg-slate-50/80 border border-slate-200/60 rounded-xl flex items-center justify-between"
