@@ -390,7 +390,7 @@ const totalCharacters = computed(() => gameData.value.characters?.length || 0);
 // 2. 获取所有分组及其签到状态（自动过滤掉角色数量为 0 的空分组）
 const allGroups = computed(() => {
   const characters = gameData.value.characters || [];
-  const groups = gameData.value.groups || [];
+  const groups = gameData.value?.groups || [];
   const groupMap = new Map();
 
   // 统计每个分组下的角色数，并收集分组签到状态
@@ -1609,7 +1609,7 @@ watch(
           <span
             class="text-[10px] font-black px-2 py-0.5 rounded-md bg-[#45a6d5]/10 text-[#45a6d5] border border-[#45a6d5]/20"
           >
-            {{ activeTabGroup === "all" ? "全部数据汇总" : activeTabGroup }}
+            {{ activeTabGroup === "all" ? "全部数据汇总" : gameData?.groups?.find((g) => g?.id === activeTabGroup)?.name }}
           </span>
         </div>
 
