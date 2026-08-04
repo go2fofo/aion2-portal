@@ -20,7 +20,7 @@ import { formatCombatPower } from "~/utils/formatCombatPower";
 import GroupCharacterPanel from "./components/GroupCharacterPanel.vue";
 import cloneDeep from "lodash/cloneDeep";
 import { dungeonDecayRules } from "./config/userAdmin";
-import { useGameRefresh } from '@/composables/useGameRefresh';
+import { useGameRefresh } from "@/composables/useGameRefresh";
 const client = useSupabaseClient();
 const user = useSupabaseUser();
 const { executeDataRefresh } = useGameRefresh();
@@ -841,7 +841,7 @@ const handleSaveCharacter = async () => {
 
   const selectedGroup = newCharForm.value.group;
 
-  // 校验重复：检查当前分组或全局是否已存在相同名称/ID的角色
+  // 校验重复：检查当前分组 or 全局是否已存在相同名称/ID的角色
   const isDuplicate = gameData.value?.characters?.some(
     (c) => c.characterId && c.characterId === newCharForm.value.characterId
   );
@@ -880,10 +880,10 @@ const handleSaveCharacter = async () => {
   const newChar = {
     id: Date.now(),
 
-    // 能量与资源
+    // ==================== 1. 能量与物资相关时间戳补齐 ====================
     energy: 0,
     storedEnergy: 0,
-    lastEnergyUpdate: nowIso, // 【新增补齐】奥德能量最后更新时间，供解释器时间间隔计算使用
+    lastEnergyUpdate: nowIso, // 奥德能量最后更新时间，供解释器时间间隔计算使用
     isMaterialCharOd: false,
     materialCharOdDate: nowIso,
 
@@ -893,7 +893,7 @@ const handleSaveCharacter = async () => {
     breezeEnergyPurchased: false,
     breezeEnergyPurchasedDate: nowIso,
 
-    // 次数进度
+    // ==================== 2. 副本与次数进度及时间戳补齐 ====================
     /** 每周远征副本通关次数 */
     runs: 0,
     /** 每周超越副本通关次数 */
@@ -901,7 +901,7 @@ const handleSaveCharacter = async () => {
 
     nightmareCount: 0,
     storedNightmareCount: 0,
-    lastNightmareUpdate: nowIso,
+    lastNightmareUpdate: nowIso, // 噩梦副本最后更新时间
 
     /** 角色觉醒战次数，当前角色每周三5点更新，固定3次*/
     awakening: 0,
@@ -914,15 +914,16 @@ const handleSaveCharacter = async () => {
     battlefield: 0,
     lastBattlefieldUpdate: nowIso,
 
-    // 圣域、小游戏及日常状态
+    // ==================== 3. 圣域及其他日常时间戳补齐 ====================
     sanctuary: { s1: 1, s2: 1, s3: 1 },
-    lastSanctuaryRunsUpdate: nowIso,
+    lastSanctuaryRunsUpdate: nowIso, // 圣域最后更新时间
 
     dailySignIn: false,
-    dailySignInDate: nowIso, //每日签到状态及时间
+    dailySignInDate: nowIso, // 每日签到状态及时间
 
     dailyMission: false,
-    dailyMissionDate: nowIso, //每日任务完成状态
+    dailyMissionDate: nowIso, // 每日任务完成状态及时间
+    lastDailyMissionUpdate: nowIso, // 每日任务最后更新时间
 
     createDate: nowIso,
 
@@ -943,11 +944,6 @@ const handleSaveCharacter = async () => {
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     newChar
   );
-  console.log(
-    `🔍 [UsersAdmin:624] %c calculatedStartTime提交: `,
-    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-    calculatedStartTime.value
-  );
 
   gameData.value?.characters?.unshift(newChar);
   gameData.value.characterCount = gameData.value?.characters?.length || 0;
@@ -963,7 +959,7 @@ const handleSaveCharacter = async () => {
       const originalGroup = gameData.value.groups[index];
       const form = newCharGroupForm.value || {};
 
-      // 批量解构出所有带有 Input 后缀的临时输入字段，剩下的干净表单数据存入 restForm
+      // 批量解构出临时输入字段
       const {
         storedDailyRunsInput,
         storedMinigameCountInput,
@@ -972,36 +968,47 @@ const handleSaveCharacter = async () => {
         ...formWithoutInput
       } = form;
 
-      //  依次计算各自的最新存储次数（原有次数 + 本次输入增量）
-      const newStoredDailyRuns =
-        (Number(originalGroup.storedDailyRuns) || 0) +
-        (Number(storedDailyRunsInput) || 0);
-      const newStoredMinigameCount =
-        (Number(originalGroup.storedMinigameCount) || 0) +
-        (Number(storedMinigameCountInput) || 0);
-      const newStoredDimensional =
-        (Number(originalGroup.storedDimensionalCount) || 0) +
-        (Number(storedDimensionalCountInput) || 0);
+      // 检查该分组是否已经配置过这些核心日常/副本次数（通过检查属性是否存在或是否有时间戳）
+      const hasConfiguredBefore =
+        "dimensionalCount" in originalGroup ||
+        "dailyRuns" in originalGroup ||
+        "minigameCount" in originalGroup ||
+        !!originalGroup.lastUpdatedAt;
 
-      gameData.value.groups[index] = {
-        ...originalGroup,
-        ...formWithoutInput,
+      // 如果分组之前已经配置过了，我们只更新基础表单里允许修改的备注/非核心字段，
+      // 绝不重置或覆盖已有的次数、存储池和时间戳！
+      if (hasConfiguredBefore) {
+        gameData.value.groups[index] = {
+          ...originalGroup,
+          ...formWithoutInput, // 仅合并基础信息（如组名等）
+          // 主账号 ID 保护：如果没有则补上
+          primaryAccountID:
+            !originalGroup?.primaryAccountID && primaryAccountID
+              ? newChar?.characterId
+              : originalGroup?.primaryAccountID,
+        };
+      } else {
+        // 如果是该分组第一次配置，才完整初始化各项初始次数、增量和时间戳
+        const newStoredDailyRuns = Number(storedDailyRunsInput) || 0;
+        const newStoredMinigameCount = Number(storedMinigameCountInput) || 0;
+        const newStoredDimensional = Number(storedDimensionalCountInput) || 0;
 
-        /** 每日副本次数最后更新时间 */
-        lastDailyRunsUpdate: nowIso,
-        /** 补充古树庆典小游戏副本次数最后更新时间 */
-        lastMinigameUpdate: nowIso,
-        /** 次元袭击次数最后更新时间 */
-        lastDimensionalUpdate: nowIso,
+        gameData.value.groups[index] = {
+          ...originalGroup,
+          ...formWithoutInput,
 
-        storedDailyRuns: newStoredDailyRuns,
-        storedMinigameCount: newStoredMinigameCount,
-        storedDimensionalCount: newStoredDimensional,
-        primaryAccountID:
-          !originalGroup?.primaryAccountID && primaryAccountID
-            ? newChar?.characterId
-            : originalGroup?.primaryAccountID,
-      };
+          // 仅在首次配置时赋予初始时间戳
+          lastDailyRunsUpdate: nowIso,
+          lastMinigameUpdate: nowIso,
+          lastDimensionalUpdate: nowIso,
+          lastUpdatedAt: nowIso,
+
+          storedDailyRuns: newStoredDailyRuns,
+          storedMinigameCount: newStoredMinigameCount,
+          storedDimensionalCount: newStoredDimensional,
+          primaryAccountID: primaryAccountID ? newChar?.characterId : undefined,
+        };
+      }
     }
   }
 
@@ -1225,14 +1232,14 @@ const importGameData = (event) => {
 const handleSync = async () => {
   if (isRefreshing.value) return;
   isRefreshing.value = true;
-  
+
   try {
     const updated = await executeDataRefresh();
     if (updated) {
-      console.log('数据已更新并同步');
+      console.log("数据已更新并同步");
       // 可选：配合你的 UI 提示，例如 $alert 或 message 提示
     } else {
-      console.log('当前数据已是最新');
+      console.log("当前数据已是最新");
     }
   } finally {
     // 模拟或等待一小会儿确保转圈动画顺畅展示
@@ -1319,9 +1326,13 @@ const groupCharacterPanelHandleConsumeEnergy = async (char) => {
 };
 
 //================ 每日副本 开始================
-// 1. 检查同组（排除当前正在编辑的角色自己）是否已经有其他角色配置过每日副本挑战次数
+// 2. 检查同组是否已经配置过每日副本挑战次数
+// 对应服务器共享/分组的日常时间字段，通常为 lastUpdatedAt 或专属的 lastDailyUpdate
 const hasGroupDailyRuns = computed(() => {
-  return (getCharGroup.value?.dailyRuns ?? 0) > 0;
+  const group = getCharGroup.value;
+  if (!group) return false;
+  // 如果有专属的时间戳就用专属的，没有则退化检查通用更新时间或属性本身
+  return !!group.lastDailyUpdate || !!group.lastUpdatedAt || "dailyRuns" in group;
 });
 
 //  每日副本补充次数：组内全员共享统计
@@ -1338,7 +1349,12 @@ const totalGroupStoredDailyRuns = computed(() => {
 
 // 判断当前分组内是否已经有其他角色配置过“小游戏挑战次数”
 const hasGroupMinigameCount = computed(() => {
-  return (getCharGroup.value?.minigameCount ?? 0) > 0;
+  const group = getCharGroup.value;
+  if (!group) return false;
+
+  // 只要有更新时间，或者 minigameCount 属性在对象中明确存在，就说明配置过了
+  // 或者直接判断 lastMinigameUpdate 是否存在
+  return !!group.lastMinigameUpdate || group.minigameCount !== undefined;
 });
 // 计算“古树庆典存储补充次数”的组内共享总和（包含当前表单实时输入的数值）
 const totalGroupStoredMinigameCount = computed(() => {
@@ -1352,8 +1368,12 @@ const totalGroupStoredMinigameCount = computed(() => {
 // ==================== 次元袭击 组内共享配置与统计） ====================
 
 // 判断当前分组内是否已经有其他角色配置过“次元袭击挑战次数”
+// 对应字典中的 lastTimeField: "lastDimensionalUpdate"
 const hasGroupDimensionalCount = computed(() => {
-  return (getCharGroup.value?.dimensionalCount ?? 0) > 0;
+  const group = getCharGroup.value;
+  if (!group) return false;
+  // 只要有更新时间戳，或者属性在对象中已定义，就说明已经配置/初始化过
+  return !!group.lastDimensionalUpdate || "dimensionalCount" in group;
 });
 
 // 计算“次元袭击存储补充次数”的组内共享总和（包含当前表单实时输入的数值）
@@ -1846,22 +1866,27 @@ watch(
         </button>
         <!-- 刷新/同步数据 -->
         <button
-    @click="handleSync"
-    :disabled="isRefreshing"
-    class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/80 font-bold text-xs shadow-sm transition-all transform active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-  >
-    <!-- 刷新图标：点击时带有旋转动画 -->
-    <svg 
-      class="w-3.5 h-3.5 text-sky-500 transition-transform duration-500"
-      :class="{ 'animate-spin': isRefreshing }"
-      fill="none" 
-      stroke="currentColor" 
-      viewBox="0 0 24 24"
-    >
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-    </svg>
-    <span>{{ isRefreshing ? '同步中...' : '刷新/同步数据' }}</span>
-  </button>
+          @click="handleSync"
+          :disabled="isRefreshing"
+          class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/80 font-bold text-xs shadow-sm transition-all transform active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+        >
+          <!-- 刷新图标：点击时带有旋转动画 -->
+          <svg
+            class="w-3.5 h-3.5 text-sky-500 transition-transform duration-500"
+            :class="{ 'animate-spin': isRefreshing }"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2.5"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+          <span>{{ isRefreshing ? "同步中..." : "刷新/同步数据" }}</span>
+        </button>
       </div>
 
       <div
