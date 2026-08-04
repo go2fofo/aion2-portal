@@ -1,5 +1,5 @@
 <script setup>
-import { computed, watch,defineExpose } from "vue";
+import { computed, watch, defineExpose } from "vue";
 import { formatCombatPower } from "~/utils/formatCombatPower";
 import CharacterCard from "./CharacterCard.vue";
 import cloneDeep from "lodash/cloneDeep";
@@ -455,6 +455,17 @@ const dungeonDecayRules = {
 };
 // 游玩补充验证规则配置数组
 const supplementValidationRules = [
+  //  奥德能量 (energy)
+  {
+    field: "energy",
+    label: "基础奥德能量",
+    validate: (form) => {
+      const val = Number(form.energy) || 0;
+      const maxLimit = getCharGroup.value.premiumMember ? 840 : 560;
+      return val <= maxLimit;
+    },
+    message: () => "特级会员状态下能量上限为840，未开通上限为560，当前值超出限制",
+  },
   //  存储奥德能量 (storedEnergy)
   {
     field: "storedEnergy",
@@ -745,6 +756,8 @@ const weeklyDailyValidationRules = [
 ];
 // 游玩补充 表单内的控制 默认值
 const defaultSupplementFormValues = {
+  energy: 0, //奥德能量 需要修改时间
+  storedEnergy: 0, //当前修改后补充奥德能量 需要修改时间
   bigOdCount: 0, //大奥德数量
   smallOdCount: 0, //小奥德数量
   // 每日副本补充
@@ -892,7 +905,6 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-
 });
 
 const emit = defineEmits([
@@ -905,7 +917,6 @@ const emit = defineEmits([
   "open-edit",
   "update-groups",
 ]);
-
 
 const { $confirm, $alert } = useNuxtApp();
 
@@ -1020,7 +1031,6 @@ const handleTaskClick = (char, field, tab) => {
   nextTick(() => {
     scrollToSection(field);
   });
-
 };
 
 //========================游玩消耗/补充弹框开始========================
@@ -1036,7 +1046,7 @@ const saving = ref(false);
 
 // 点击游玩消耗触发
 const handleClickGameplay = (char, tab) => {
-  if(tab){
+  if (tab) {
     activeTab.value = tab;
   }
   console.log(
@@ -1060,7 +1070,7 @@ const handleClickGameplay = (char, tab) => {
     getCharGroup.value
   );
 
-  gameplayCharForm.value = char;
+  gameplayCharForm.value = cloneDeep(char);
   openGameplay.value = true;
   //清空重置默认字段
   //补充奥德
@@ -1239,7 +1249,10 @@ const totalSupplementPoints = computed(() => {
 });
 //计算补充奥德和已存奥德之和
 const totalsStoredEnergyCount = computed(() => {
-  let total = (gameplayCharForm.value?.storedEnergy || 0) + totalSupplementPoints.value;
+  let total =
+    (gameplayCharForm.value?.storedEnergy || 0) +
+    (supplementFormValues.value?.storedEnergy || 0) +
+    totalSupplementPoints.value;
 
   return total;
 });
@@ -1315,6 +1328,8 @@ const handleExecuteSupplement = async () => {
 
   // 先解构出需要用到的字段，避免反复写 supplementFormValues.value
   const {
+    energy,
+    storedEnergy,
     bigOdCount,
     smallOdCount,
     storedNightmareCount,
@@ -1327,8 +1342,8 @@ const handleExecuteSupplement = async () => {
   // 组装更新后的完整角色对象
   const updatedCharacter = {
     ...cloneDeep(currentTarget),
-    // 奥德能量：只要有大/小 Od 补充，就更新为计算后的总能量（角色）
-    ...(bigOdCount || smallOdCount
+    // 奥德能量：只要有大/小 ,手动输入 Od 补充，就更新为计算后的总能量（角色）
+    ...(bigOdCount || smallOdCount || storedEnergy
       ? { storedEnergy: totalsStoredEnergyCount.value }
       : {}),
 
@@ -1340,6 +1355,12 @@ const handleExecuteSupplement = async () => {
     //觉醒战补充（角色）
     ...(storedAwakening ? { storedAwakening: totalStoredAwakeningRuns.value } : {}),
   };
+
+  // 修改了角色基础奥德能量，并且更新时间戳为当前时间
+  if (energy) {
+    updatedCharacter.energy = energy;
+    updatedCharacter.lastEnergyUpdate = nowIso;
+  }
 
   const groupId = getCharGroup.value?.id;
   const newGroups = props.gameData?.groups?.map((g) => {
@@ -1825,8 +1846,11 @@ const battlefieldSection = ref(null);
 
 // 点击跳转定位方法
 const scrollToSection = (key) => {
-
-  console.log(`🔍 [GroupCharacterPanel:1829] %c scrollToSection--key: ${key}`,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;',key);
+  console.log(
+    `🔍 [GroupCharacterPanel:1829] %c scrollToSection--key: ${key}`,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    key
+  );
   let targetElement = null;
 
   // 根据点击的 key 映射到对应的 DOM 元素
@@ -1856,7 +1880,11 @@ const scrollToSection = (key) => {
       break;
   }
 
-  console.log(`🔍 [GroupCharacterPanel:1855] %c 当前targetElement: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', targetElement);
+  console.log(
+    `🔍 [GroupCharacterPanel:1855] %c 当前targetElement: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    targetElement
+  );
   if (targetElement) {
     // 平滑滚动到目标位置，并让其在视口中居中或靠上
     targetElement.scrollIntoView({
@@ -2229,8 +2257,6 @@ const handleExecuteExchangeAll = () => {
     regionBCount: 12,
   };
 
-  
-
   Object.keys(maxLimits).forEach((key) => {
     const max = maxLimits[key];
     const currentVal = exchangeFormValues.value[key] || 0;
@@ -2527,7 +2553,11 @@ const isAllExchangesCompleted = computed(() => {
       const val = gameplayCharForm.value?.[item.key] || 0;
       return val >= item.max;
     });
-    console.log(`🔍 [GroupCharacterPanel:2512] %c isAllExchangesCompleted: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', isAllExchangesCompleted);
+  console.log(
+    `🔍 [GroupCharacterPanel:2512] %c isAllExchangesCompleted: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    isAllExchangesCompleted
+  );
   return isAllExchangesCompleted;
 });
 // ==================== 3. 独立字段的实时校验（一句话复用） ====================
@@ -2542,6 +2572,14 @@ watchFieldLimit(
   "storedEnergy",
   (val) => {
     return val > 2000;
+  }
+);
+// 奥德校验
+watchFieldLimit(
+  () => supplementFormValues.value.energy,
+  "energy",
+  (val) => {
+    return val > 0 && val >= (getCharGroup.value?.premiumMember ? 840 : 560);
   }
 );
 
@@ -3428,7 +3466,8 @@ defineExpose({
                 class="p-3 bg-white border-2 rounded-3xl space-y-5 shadow-sm transition-all"
                 ref="energySection"
                 :class="
-                  validationResult.invalidFields.includes('storedEnergy')
+                  validationResult.invalidFields.includes('storedEnergy') ||
+                  validationResult.invalidFields.includes('energy')
                     ? 'border-red-500 bg-red-50/20'
                     : 'border-slate-200/80'
                 "
@@ -3440,7 +3479,7 @@ defineExpose({
                     <div
                       class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
                     >
-                      奥德存储补充
+                      奥德补充
                       <span
                         class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
                         :class="{
@@ -3467,6 +3506,12 @@ defineExpose({
                     >
                       {{ validationResult.errors.storedEnergy }}
                     </span>
+                    <span
+                      v-if="validationResult.invalidFields.includes('energy')"
+                      class="text-[10px] text-red-500 font-bold"
+                    >
+                      {{ validationResult.errors.energy }}
+                    </span>
                   </div>
                   <!-- 存储上限提示 -->
                   <span class="text-[10px] font-bold text-slate-400">
@@ -3476,95 +3521,210 @@ defineExpose({
 
                 <!-- 🌟 核心凸显区：当前基础奥德 & 当前已补充存储奥德 -->
                 <div
-                  class="grid grid-cols-2 gap-3 p-4 bg-gradient-to-br from-slate-50 to-indigo-50/30 border border-slate-200/70 rounded-2xl"
+                  class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gradient-to-br from-slate-50 via-indigo-50/20 to-slate-100/50 border border-slate-200/80 rounded-2xl shadow-inner"
                 >
-                  <div class="flex flex-col">
-                    <span class="text-[10px] font-bold text-slate-400">当前基础奥德</span>
-                    <span class="text-lg font-black text-slate-800 mt-0.5">
-                      {{ gameplayCharForm.energy || 0 }}
-                      <span class="text-xs font-bold text-slate-400">点</span>
-                    </span>
-                  </div>
-                  <div class="flex flex-col border-l border-slate-200/80 pl-3">
-                    <span class="text-[10px] font-bold text-slate-400"
-                      >当前已补充奥德</span
+                  <!-- ==================== 左侧：基础奥德卡片 ==================== -->
+                  <div
+                    class="flex flex-col p-3 rounded-2xl bg-white border-2 border-slate-200/90 shadow-sm hover:border-sky-300 transition-all gap-2.5"
+                  >
+                    <!-- 顶栏：标题说明 -->
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-bold text-slate-500 tracking-wide"
+                        >当前基础奥德</span
+                      >
+                    </div>
+
+                    <!-- 主体：原数值与新修改值对比区 -->
+                    <div
+                      class="flex items-center justify-between gap-2 p-2 bg-slate-50/80 rounded-xl border border-slate-100"
                     >
-                    <span class="text-lg font-black text-indigo-600 mt-0.5">
-                      {{ gameplayCharForm.storedEnergy || 0 }}
-                      <span class="text-xs font-bold text-indigo-400">点</span>
-                    </span>
+                      <!-- 左侧：原数值 -->
+                      <div class="flex flex-col">
+                        <span class="text-[10px] text-slate-400 font-semibold"
+                          >原数值</span
+                        >
+                        <div class="flex items-baseline gap-1 mt-0.5">
+                          <span class="text-xl font-black text-slate-700 tracking-tight">
+                            {{ gameplayCharForm.energy || 0 }}
+                          </span>
+                          <span class="text-xs font-bold text-slate-400">点</span>
+                        </div>
+                      </div>
+
+                      <!-- 中间：醒目箭头指示（仅在有改动时出现） -->
+                      <div
+                        v-if="
+                          supplementFormValues.energy !== undefined &&
+                          supplementFormValues.energy !== '' &&
+                          Number(supplementFormValues.energy) !==
+                            Number(gameplayCharForm.energy || 0)
+                        "
+                        class="flex items-center text-sky-500 font-bold animate-pulse"
+                      >
+                        <svg
+                          class="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="3"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3"
+                          />
+                        </svg>
+                      </div>
+
+                      <!-- 右侧：高亮修改值 -->
+                      <div
+                        v-if="
+                          supplementFormValues.energy !== undefined &&
+                          supplementFormValues.energy !== '' &&
+                          Number(supplementFormValues.energy) !==
+                            Number(gameplayCharForm.energy || 0)
+                        "
+                        class="flex flex-col items-end px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/30 animate-fadeIn"
+                      >
+                        <span class="text-[10px] text-sky-100 font-bold tracking-wider"
+                          >调整为</span
+                        >
+                        <div class="flex items-baseline gap-1 mt-0.5">
+                          <span class="text-xl font-black text-white tracking-tight">
+                            {{ supplementFormValues.energy }}
+                          </span>
+                          <span class="text-xs font-bold text-sky-100">点</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- ==================== 右侧：补充存储奥德卡片 ==================== -->
+                  <div
+                    class="flex flex-col p-3 rounded-2xl bg-white border-2 border-slate-200/90 shadow-sm hover:border-indigo-300 transition-all gap-2.5"
+                  >
+                    <!-- 顶栏：标题说明与上限百分比/状态 -->
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-bold text-slate-500 tracking-wide"
+                        >当前已补充存储奥德</span
+                      >
+                      <!-- 上限红蓝动态告警标签 -->
+                      <span
+                        class="px-2 py-0.5 rounded-md text-[10px] font-bold"
+                        :class="
+                          (gameplayCharForm.storedEnergy || 0) + totalSupplementPoints >
+                          2000
+                            ? 'bg-rose-50 text-rose-600 border border-rose-200 animate-pulse'
+                            : 'bg-indigo-50 text-indigo-600'
+                        "
+                      >
+                        总计: {{ totalsStoredEnergyCount }} / 2000
+                      </span>
+                    </div>
+
+                    <!-- 主体：原存储值与上限进度展示区 -->
+                    <div
+                      class="flex items-center justify-between gap-2 p-2 bg-indigo-50/30 rounded-xl border border-indigo-100/60"
+                    >
+                      <!-- 左侧：原存储数值 -->
+                      <div class="flex flex-col">
+                        <span class="text-[10px] text-indigo-400 font-semibold"
+                          >原补充</span
+                        >
+                        <div class="flex items-baseline gap-1 mt-0.5">
+                          <span class="text-xl font-black text-indigo-900 tracking-tight">
+                            {{ gameplayCharForm.storedEnergy || 0 }}
+                          </span>
+                          <span class="text-xs font-bold text-indigo-400">点</span>
+                        </div>
+                      </div>
+
+                      <!-- 右侧：当前总计状态看板 -->
+                      <div
+                        class="flex flex-col items-end px-3 py-1.5 rounded-xl bg-white border border-indigo-100 shadow-sm"
+                      >
+                        <span class="text-[10px] text-slate-400 font-bold tracking-wider"
+                          >补充上限</span
+                        >
+                        <div class="flex items-baseline gap-1 mt-0.5">
+                          <strong
+                            class="text-base font-black tracking-tight"
+                            :class="
+                              (gameplayCharForm.storedEnergy || 0) +
+                                totalSupplementPoints >
+                              2000
+                                ? 'text-rose-600'
+                                : 'text-indigo-600'
+                            "
+                          >
+                            {{ totalsStoredEnergyCount }}
+                          </strong>
+                          <span class="text-xs font-bold text-slate-400">/ 2000 点</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-        <div class="grid grid-cols-2 gap-4">
-                      <!-- 基础奥德能量 -->
-                      <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                          <label class="text-xs font-bold text-slate-500">当前能量</label>
-                          <span class="text-[10px] font-black text-[#45a6d5]">
-                            {{ gameplayCharForm?.energy || 0 }}
-                            <!-- ({{
-                              Math.max(
-                                0,
-                                (newCharGroupForm?.premiumMember ||
-                                getCharGroup?.premiumMember
-                                  ? 840
-                                  : 560) - (newCharForm?.energy || 0)
-                              )
-                            }}) /
-                            {{
-                              newCharGroupForm?.premiumMember ||
-                              getCharGroup?.premiumMember
-                                ? 840
-                                : 560
-                            }} -->
-                          </span>
-                        </div>
-                        <input
-                          v-model.number="gameplayCharForm.energy"
-                          class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
-                          :class="
-                            validationResult.invalidFields.includes('energy')
-                              ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                              : 'border-slate-200/80 focus:border-[#45a6d5]'
-                          "
-                        />
-                        <!-- <span
+                <div class="grid grid-cols-2 gap-4">
+                  <!-- 基础奥德能量 -->
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-xs font-bold text-slate-500"
+                        >修改当前奥德能量</label
+                      >
+                      <span class="text-[10px] font-black text-[#45a6d5]">
+                        <span class="text-slate-700"></span
+                        >{{
+                          getCharGroup?.premiumMember || getCharGroup?.premiumMember
+                            ? "当前为会员上限840"
+                            : "当前为非会员上限560"
+                        }}
+                      </span>
+                    </div>
+                    <input
+                      v-model.number="supplementFormValues.energy"
+                      class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                      :class="
+                        validationResult.invalidFields.includes('energy')
+                          ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                          : 'border-slate-200/80 focus:border-[#45a6d5]'
+                      "
+                    />
+                    <!-- <span
                           v-if="validationResult.errors.energy"
                           class="text-[10px] text-red-500 font-bold mt-1 block"
                         >
                           {{ validationResult.errors.energy }}
                         </span> -->
-                      </div>
+                  </div>
 
-                      <!-- 存储补充能量 -->
-                      <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                          <label class="text-xs font-bold text-slate-500"
-                            >存储补充能量</label
-                          >
-                          <span class="text-[10px] font-black text-amber-600">
-                            {{ gameplayCharForm.storedEnergy || 0 }}
-                            ({{ Math.max(0, 2000 - (gameplayCharForm.storedEnergy || 0)) }}) /
-                            2000
-                          </span>
-                        </div>
-                        <input
-                          v-model.number="gameplayCharForm.storedEnergy"
-                          class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
-                          :class="
-                            validationResult.invalidFields.includes('storedEnergy')
-                              ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                              : 'border-slate-200/80 focus:border-[#45a6d5]'
-                          "
-                        />
-                        <!-- <span
+                  <!-- 存储补充能量 -->
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-xs font-bold text-slate-500"
+                        >修改当前补充奥德能量</label
+                      >
+                      <!-- <span class="text-[10px] font-black text-[#45a6d5]">
+                        {{ gameplayCharForm?.storedEnergy || 0 }}
+                      </span> -->
+                    </div>
+                    <input
+                      v-model.number="supplementFormValues.storedEnergy"
+                      class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                      :class="
+                        validationResult.invalidFields.includes('storedEnergy')
+                          ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                          : 'border-slate-200/80 focus:border-[#45a6d5]'
+                      "
+                    />
+                    <!-- <span
                           v-if="validationResult.errors.storedEnergy"
                           class="text-[10px] text-red-500 font-bold mt-1 block"
                         >
                           {{ validationResult.errors.storedEnergy }}
                         </span> -->
-                      </div>
-                    </div>
+                  </div>
+                </div>
                 <!-- 计数器操作区域 -->
                 <div
                   class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-4"
@@ -3660,21 +3820,6 @@ defineExpose({
                       <strong class="text-indigo-600"
                         >+{{ totalSupplementPoints }} 点</strong
                       >
-                    </span>
-                    <span class="font-bold text-slate-500">
-                      奥德补充总计:
-                      <strong
-                        class="text-sm font-black"
-                        :class="
-                          (gameplayCharForm.storedEnergy || 0) + totalSupplementPoints >
-                          2000
-                            ? 'text-rose-600'
-                            : 'text-amber-600'
-                        "
-                      >
-                        <!-- {{ (gameplayCharForm.storedEnergy || 0) + totalSupplementPoints }} -->
-                        {{ totalsStoredEnergyCount }} / 2000 点
-                      </strong>
                     </span>
                   </div>
                 </div>
