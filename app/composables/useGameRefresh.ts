@@ -1,7 +1,80 @@
-import { ref } from "vue";
 import { getLocalGameData, saveLocalGameData } from "@/utils/indexedDb";
 import { executeRulesByDictionary } from "@/utils/gameRefreshManager";
 import { useSupabaseClient, useSupabaseUser } from "#imports";
+
+
+
+// 辅助函数：格式化日期为 YYYY-MM-DD HH:mm 或 YYYY-MM-DD
+const formatDate = (date: Date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+};
+
+// 1. 当前角色自主输入剩余天数时，动态计算开通日期
+const calculatedStartTime = (premiumMemberDay: any) => {
+  const remainingDays = Number(premiumMemberDay) || 0;
+  if (remainingDays < 0 || remainingDays > 28) return "剩余天数应在 0~28 之间";
+
+  const totalDays = 28;
+  const passedDays = totalDays - remainingDays; // 已经过去的天数
+
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - passedDays);
+  return formatDate(startDate);
+};
+
+// 2. 当前角色自主输入剩余天数时，动态计算结束（到期）日期
+const calculatedEndTime = (premiumMemberDay: any) => {
+  const remainingDays = Number(premiumMemberDay) || 0;
+  if (remainingDays < 0 || remainingDays > 28) return "无效范围";
+
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + remainingDays);
+  return formatDate(endDate);
+};
+/**
+ * 🛠️ 数据自愈与平滑迁移方法：修复历史版本中超限的“次元袭击”等字段
+ * @param {Object} gameData 原始游戏数据对象
+ * @returns {boolean} 返回是否有数据被修复/变动过
+ */
+const sanitizeGameData = (gameData: any) => {
+  if (!gameData || !gameData.groups || !Array.isArray(gameData.groups)) {
+    return false;
+  }
+
+  let hasModified = false;
+  const nowIso = new Date().toISOString();
+
+  // 遍历所有分组进行清洗
+  gameData.groups.forEach((group: any) => {
+    // 假设次元袭击挑战次数的上限阈值是 7
+    const MAX_DIMENSIONAL_LIMIT = 7;
+
+    // 判断当前分组的 dimensionalCount 是否存在且超过了 7
+    if (
+      group.dimensionalCount !== undefined &&
+      group.dimensionalCount !== null &&
+      Number(group.dimensionalCount) > MAX_DIMENSIONAL_LIMIT
+    ) {
+      console.log(
+        `[DataMigration] 分组 [${group.name || group.id}] 的次元袭击次数 (${group.dimensionalCount}) 超过上限，已自动平滑修正为 ${MAX_DIMENSIONAL_LIMIT}`,
+      );
+
+      group.dimensionalCount = MAX_DIMENSIONAL_LIMIT;
+      group.lastDimensionalUpdate = nowIso; // 同步更新时间戳
+      hasModified = true;
+    }
+    // 会员相关时间赋值
+    if (group.premiumMember) {
+      group.premiumStartTime = calculatedStartTime(group.premiumMemberDay);
+      group.premiumEndTime = calculatedEndTime(group.premiumMemberDay);
+    }
+  });
+
+  return hasModified;
+};
 
 export const useGameRefresh = () => {
   const client: any = useSupabaseClient();
@@ -26,9 +99,9 @@ export const useGameRefresh = () => {
           return data.data;
         }
       }
-      
+
       // 降级读取本地 IndexedDB（注意带上你项目里的数据key，如 'current_data'）
-      const localData = await getLocalGameData('current_data');
+      const localData = await getLocalGameData("current_data");
       if (localData) {
         return localData;
       }
@@ -36,7 +109,7 @@ export const useGameRefresh = () => {
     } catch (error) {
       console.error("[GameRefresh] 加载数据异常:", error);
       // 异常时尝试从本地兜底
-      return await getLocalGameData('current_data');
+      return await getLocalGameData("current_data");
     }
   };
 
@@ -61,7 +134,7 @@ export const useGameRefresh = () => {
       } else {
         const cleanData = JSON.parse(JSON.stringify(gameData));
         if (typeof saveLocalGameData === "function") {
-          await saveLocalGameData(cleanData, 'current_data');
+          await saveLocalGameData(cleanData, "current_data");
         } else {
           localStorage.setItem(
             "aion2_portal_game_data",
@@ -80,11 +153,14 @@ export const useGameRefresh = () => {
   const executeDataRefresh = async () => {
     try {
       // 1. 获取最新数据
-      const gameData = await loadGameData();
+      let gameData = await loadGameData();
       if (!gameData) return false;
+      // 由于结构变化或者更改，需要重新补充或者更改数据所以在此需要处理数据
+      const hasRulesChanged = sanitizeGameData(gameData);
+      if (!hasRulesChanged) return false;
 
       // 2. 丢给规则配置解释器，自动比对并批量刷新
-      const hasChanges = executeRulesByDictionary(gameData);
+      const hasChanges = executeRulesByDictionary(hasRulesChanged);
 
       // 3. 有变动则持久化并同步
       if (hasChanges) {
@@ -94,7 +170,7 @@ export const useGameRefresh = () => {
         );
         return true;
       }
-      
+
       return false;
     } catch (error) {
       console.error("[GameRefresh] 刷新失败:", error);

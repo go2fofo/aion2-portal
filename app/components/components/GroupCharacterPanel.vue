@@ -1157,7 +1157,7 @@ const handleCloseGameplay = () => {
 // 奥德能量上限计算（高级会员840，普通560）
 const energyLimit = computed(() => {
   const isPremium =
-    props.getCharGroup?.premiumMember ||
+    getCharGroup.value?.premiumMember ||
     (props.gameData?.characters || []).some(
       (c) => Number(c.group) === Number(props.gameplayCharForm?.group) && c.premiumMember
     );

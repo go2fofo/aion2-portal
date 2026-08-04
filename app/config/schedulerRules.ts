@@ -131,12 +131,12 @@ export const gameRulesDictionary = [
     targetField: "dimensionalCount",
     storedTargetField: "storedDimensionalCount",
     lastTimeField: "lastDimensionalUpdate",
-    maxCount: 14,
+    maxCount: 7,
     storedMaxCount: 30,
     refreshType: "daily",
     cron: "0 5 * * *",
     incrementCount: 1, // 补全：原规则每天恢复1次
-    description: "服务器共享：次元袭击，于每天5点恢复1次，上限14次，补充上限30次。"
+    description: "服务器共享：次元袭击，于每天5点恢复1次，上限7次，补充上限30次。"
   },
   {
     id: "nightmare",

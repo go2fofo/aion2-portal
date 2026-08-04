@@ -291,8 +291,8 @@ const groupValidationRules = [
   {
     field: "dimensionalCount",
     label: "次元袭击挑战次数",
-    validate: (form) => (Number(form.dimensionalCount) || 0) <= 14,
-    message: () => "次元袭击挑战次数不能超过14次",
+    validate: (form) => (Number(form.dimensionalCount) || 0) <= 7,
+    message: () => "次元袭击挑战次数不能超过7次",
   },
   // 次元袭击存储补充次数校验（组内共享上限 30）
   {
@@ -352,35 +352,8 @@ let defGroup = {
   lastDimensionalUpdate: "",
 };
 const newCharGroupForm = ref(cloneDeep(defGroup));
-// 可选职业列表
-const classOptions = [
-  "魔道星",
-  "治愈星",
-  "护法星",
-  "守护星",
-  "杀星",
-  "弓星",
-  "剑星",
-  "拳星",
-];
 
 //顶部统计面板开始
-// 计算基纳收益比例
-const calculateKinaEarned = (runs, type) => {
-  let rate = 1.0;
-  if (type === "runs") {
-    if (runs > 147) rate = 0.2;
-    else if (runs > 126) rate = 0.4;
-    else if (runs > 105) rate = 0.6;
-    else if (runs > 84) rate = 0.8;
-  } else if (type === "transcend") {
-    if (runs > 98) rate = 0.2;
-    else if (runs > 84) rate = 0.4;
-    else if (runs > 70) rate = 0.6;
-    else if (runs > 56) rate = 0.8;
-  }
-  return rate;
-};
 
 // 获取当前系统日期的标准字符串格式 (例如: "2026-08-02")
 const getTodayDateStr = () => {
@@ -776,6 +749,9 @@ const getAtvTabGroup = computed(() => {
 const groupSharedPremiumDays = computed(() => {
   return newCharGroupForm.value?.premiumMemberDay || 0;
 });
+const groupSharedPremiumDaysAtvTab = computed(() => {
+  return getAtvTabGroup.value?.premiumMemberDay || 0;
+});
 //=========================================添加成员结束=========================================
 
 // 监听分组切换，实时检测该分组下是否已有主账号或特级会员
@@ -786,7 +762,7 @@ const handleGroupChange = (e) => {
     ...cloneDeep(getCharGroup.value),
     dailyRuns: getCharGroup.value?.dailyRuns || 14, //每日副本次数
     minigameCount: getCharGroup.value?.minigameCount || 14, //古树庆典小游戏次数
-    dimensionalCount: getCharGroup.value?.dimensionalCount || 14, //次元袭击次数
+    dimensionalCount: getCharGroup.value?.dimensionalCount || 7, //次元袭击次数
   };
 };
 
@@ -996,6 +972,7 @@ const handleSaveCharacter = async () => {
         gameData.value.groups[index] = {
           ...originalGroup,
           ...formWithoutInput,
+          //会员开通时间赋值
 
           // 仅在首次配置时赋予初始时间戳
           lastDailyRunsUpdate: nowIso,
@@ -1008,6 +985,17 @@ const handleSaveCharacter = async () => {
           storedDimensionalCount: newStoredDimensional,
           primaryAccountID: primaryAccountID ? newChar?.characterId : undefined,
         };
+
+        // 判断有没有开启会员
+        if (form.premiumMember) {
+          gameData.value.groups[index].premiumMemberDay = form.premiumMemberDay;
+          gameData.value.groups[index].premiumStartTime = calculatedStartTime(
+            form.premiumMemberDay
+          );
+          gameData.value.groups[index].premiumEndTime = calculatedEndTime(
+            form.premiumMemberDay
+          );
+        }
       }
     }
   }
@@ -1017,6 +1005,7 @@ const handleSaveCharacter = async () => {
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     gameData.value
   );
+  debugger;
 
   await saveData();
 };
@@ -1032,27 +1021,29 @@ const formatDate = (date) => {
 };
 
 // 1. 当前角色自主输入剩余天数时，动态计算开通日期
-const calculatedStartTime = computed(() => {
-  const remainingDays = Number(newCharForm.value.premiumMemberDay) || 0;
+const calculatedStartTime = (customDays) => {
+  const remainingDays = Number(customDays) || 0;
+
   if (remainingDays < 0 || remainingDays > 28) return "剩余天数应在 0~28 之间";
 
   const totalDays = 28;
-  const passedDays = totalDays - remainingDays; // 已经过去的天数
+  const passedDays = totalDays - remainingDays;
 
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - passedDays);
   return formatDate(startDate);
-});
+};
 
 // 2. 当前角色自主输入剩余天数时，动态计算结束（到期）日期
-const calculatedEndTime = computed(() => {
-  const remainingDays = Number(newCharForm.value.premiumMemberDay) || 0;
+const calculatedEndTime = (customDays) => {
+  const remainingDays = Number(customDays) || 0;
+
   if (remainingDays < 0 || remainingDays > 28) return "无效范围";
 
   const endDate = new Date();
   endDate.setDate(endDate.getDate() + remainingDays);
   return formatDate(endDate);
-});
+};
 
 // 3. 如果是同组共享模式，推导共享角色的开通与结束时间（假设共享数据里存的是对应的剩余天数）
 const groupSharedStartTime = computed(() => {
@@ -1065,6 +1056,21 @@ const groupSharedStartTime = computed(() => {
 
 const groupSharedEndTime = computed(() => {
   const remainingDays = Number(groupSharedPremiumDays.value) || 0;
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + remainingDays);
+  return formatDate(endDate);
+});
+
+const groupSharedStartTimeAtvTab = computed(() => {
+  const remainingDays = Number(groupSharedPremiumDaysAtvTab.value) || 0;
+  const passedDays = 28 - remainingDays;
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - passedDays);
+  return formatDate(startDate);
+});
+
+const groupSharedEndTimeAtvTab = computed(() => {
+  const remainingDays = Number(groupSharedPremiumDaysAtvTab.value) || 0;
   const endDate = new Date();
   endDate.setDate(endDate.getDate() + remainingDays);
   return formatDate(endDate);
@@ -1332,7 +1338,7 @@ const hasGroupDailyRuns = computed(() => {
   const group = getCharGroup.value;
   if (!group) return false;
   // 如果有专属的时间戳就用专属的，没有则退化检查通用更新时间或属性本身
-  return !!group.lastDailyUpdate || !!group.lastUpdatedAt || "dailyRuns" in group;
+  return !!group.lastDailyUpdate || "dailyRuns" in group;
 });
 
 //  每日副本补充次数：组内全员共享统计
@@ -1548,6 +1554,56 @@ const clearGameData = async () => {
 const handleTaskClick = (taskType) => {
   //   groupCharacterPanelRef.value?.handleTaskClick(taskType);
 };
+
+//================ 通用弹框 开始================
+const defaultGlobalPopupOp = {
+  type: "",
+  name: "",
+  data: {},
+};
+const globalPopupOpen = ref(false);
+const globalPopupOp = ref(cloneDeep(defaultGlobalPopupOp));
+
+//打开
+const handleOpenGlobalPopup = (type, name) => {
+  globalPopupOpen.value = true;
+  globalPopupOp.value.type = type;
+  globalPopupOp.value.name = name;
+};
+//按钮完成触发
+const handleGlobalPopupFill = (type) => {
+  switch (type) {
+    case "premiumMember": // 开通会员
+      {
+        if (!globalPopupOp.value.data?.premiumMemberDay) return;
+
+        let group = cloneDeep(getAtvTabGroup.value);
+
+        group.premiumMemberDay = globalPopupOp.value.data?.premiumMemberDay;
+        group.premiumMember = true;
+        // group.premiumMemberDay = globalPopupOp.data?.premiumMemberDay;
+        group.premiumStartTime = calculatedStartTime(
+          globalPopupOp.value.data?.premiumMemberDay
+        );
+        group.premiumEndTime = calculatedEndTime(globalPopupOp.value.data?.premiumMemberDay);       
+        groupCharacterPanelHandleUpdateGroup(group);
+      }
+
+      break;
+
+    default:
+      break;
+  }
+  globalPopupOp.value = cloneDeep(defaultGlobalPopupOp);
+  globalPopupOpen.value = false;
+};
+//关闭
+const handleCloseGlobalPopup = (data) => {
+  globalPopupOpen.value = false;
+  globalPopupOp.value = cloneDeep(defaultGlobalPopupOp);
+};
+
+//================ 通用弹框 结束 =====================
 
 // 1. 监听角色表单
 watch(
@@ -2048,7 +2104,137 @@ watch(
             </button>
           </div>
         </div>
+        <div
+          class="lg:w-80 p-4 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-white border border-amber-200/80 rounded-xl flex flex-col justify-between gap-3.5 shrink-0 shadow-xs relative overflow-hidden"
+        >
+          <!-- 背景装饰微光 -->
+          <div
+            class="absolute -right-6 -bottom-6 w-24 h-24 bg-amber-500/10 rounded-full blur-xl pointer-events-none"
+          ></div>
 
+          <!-- 顶栏：图标与标题 -->
+          <div class="flex items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div
+                class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center font-black text-xs shadow-md shadow-amber-500/25 shrink-0"
+              >
+                特
+              </div>
+              <div class="min-w-0">
+                <div class="text-xs font-black text-slate-800 tracking-wide truncate">
+                  特级会员状态管理
+                </div>
+                <div class="text-[10px] text-slate-400 truncate">
+                  组内特权同步与加成控制
+                </div>
+              </div>
+            </div>
+            <!-- 状态小徽标 -->
+
+            <!-- 动态状态切换：已激活展示徽标，未激活展示“点击去开通”按钮 -->
+            <template v-if="getAtvTabGroup?.premiumMember">
+              <span
+                class="px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 bg-amber-100 text-amber-800 border border-amber-300"
+              >
+                已激活
+              </span>
+            </template>
+            <template v-else>
+              <button
+                type="button"
+                @click="handleOpenGlobalPopup('premiumMember', '开通会员')"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-sm shadow-amber-500/30 transition-all cursor-pointer active:scale-95 shrink-0"
+              >
+                <span>去开通</span>
+              </button>
+            </template>
+          </div>
+
+          <!-- 主体内容：根据是否开启特级会员动态展示 -->
+          <div class="pt-1 border-t border-amber-100/60">
+            <Transition name="fade" mode="out-in">
+              <!-- 情况 A：已开启会员（展示共享或独立详情） -->
+              <div v-if="getAtvTabGroup?.premiumMember" class="space-y-2">
+                <!-- 子情况 A1：同组共享天数 -->
+                <div v-if="getAtvTabGroup?.premiumMember" class="space-y-1.5">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-amber-900">
+                      共享剩余：<span class="text-sm font-black text-amber-600">{{
+                        groupSharedPremiumDaysAtvTab || 0
+                      }}</span>
+                      天
+                    </span>
+                  </div>
+                  <!-- 起止时间展示 -->
+                  <div
+                    class="text-[10px] font-semibold text-slate-500 bg-white/80 px-2.5 py-1.5 rounded-lg border border-amber-100 flex flex-col gap-0.5"
+                  >
+                    <div class="flex justify-between">
+                      <span class="text-slate-400">开通:</span>
+                      <span class="text-slate-700 font-bold">{{
+                        groupSharedStartTimeAtvTab || "未知"
+                      }}</span>
+                      <span class="text-slate-400">到期:</span>
+                      <span class="text-slate-700 font-bold">{{
+                        groupSharedEndTimeAtvTab || "未知"
+                      }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 子情况 A2：当前角色独立输入（组内第一个开启） -->
+                <div v-else class="space-y-2">
+                  <div class="flex items-center gap-2">
+                    <input
+                      v-model.number="getAtvTabGroup.premiumMemberDay"
+                      min="1"
+                      max="28"
+                      placeholder="输入天数(最多28)"
+                      class="w-full px-3 py-1.5 rounded-xl bg-white border-2 outline-none font-black text-xs text-slate-800 transition-all shadow-sm"
+                      :class="
+                        validationResult.invalidFields.includes('premiumMemberDay')
+                          ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                          : 'border-amber-300 focus:border-amber-500'
+                      "
+                    />
+                  </div>
+                  <!-- 错误提示 -->
+                  <span
+                    v-if="validationResult.errors.premiumMemberDay"
+                    class="text-[10px] text-red-500 font-bold block"
+                  >
+                    {{ validationResult.errors.premiumMemberDay }}
+                  </span>
+
+                  <!-- 预计起止时间预览 -->
+                  <div
+                    v-if="
+                      getAtvTabGroup.premiumMemberDay &&
+                      !validationResult.errors.premiumMemberDay
+                    "
+                    class="text-[10px] font-bold text-amber-900 bg-amber-100/70 px-2.5 py-1.5 rounded-lg border border-amber-200/60 flex flex-col gap-0.5"
+                  >
+                    <div class="flex justify-between">
+                      <span class="text-amber-700/80">预计开通:</span>
+                      <span class="font-black">{{ calculatedStartTime }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-amber-700/80">预计到期:</span>
+                      <span class="font-black">{{ calculatedEndTime }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 情况 B：未开启会员时的简洁占位说明 -->
+              <div v-else class="py-2 text-center">
+                <span class="text-[11px] font-bold text-slate-400">
+                  当前分组暂未开通特级会员，开启后可享受多重特权加成。
+                </span>
+              </div>
+            </Transition>
+          </div>
+        </div>
         <!-- ================= 右侧：核心数据呈现区 ================= -->
         <div class="flex-1 flex flex-col justify-between space-y-3">
           <!-- 【极度凸显区】远征与超越副本当前收益 -->
@@ -2739,12 +2925,14 @@ watch(
                           >
                             <span
                               >预计开通时间：<strong class="text-amber-900">{{
-                                calculatedStartTime
+                                calculatedStartTime(newCharGroupForm.premiumMemberDay) ||
+                                "计算中..."
                               }}</strong></span
                             >
                             <span
                               >预计到期时间：<strong class="text-amber-900">{{
-                                calculatedEndTime
+                                calculatedEndTime(newCharGroupForm.premiumMemberDay) ||
+                                "计算中..."
                               }}</strong></span
                             >
                           </div>
@@ -3255,7 +3443,7 @@ watch(
                         </div>
                         <div class="text-xs font-medium text-amber-600">
                           当前分组共享挑战次数为：<span class="font-black text-amber-700"
-                            >{{ getCharGroup?.dailyRuns || 0 }} / 14</span
+                            >{{ getCharGroup?.dailyRuns || 0 }} / 7</span
                           >。当前角色无需重复配置。
                         </div>
                       </div>
@@ -3348,10 +3536,10 @@ watch(
                         <div
                           class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
                         >
-                          <span>挑战次数 (组内共用 / 上限14)</span>
+                          <span>挑战次数 (组内共用 / 上限7)</span>
                           <span class="text-xs font-black text-[#45a6d5]">
                             {{ newCharGroupForm.minigameCount || 0 }}
-                            / 14
+                            / 7
                           </span>
                         </div>
                         <div class="grid grid-cols-1 gap-4">
@@ -3475,7 +3663,7 @@ watch(
                     </div>
 
                     <p class="text-xs font-bold text-slate-400">
-                      同一分组账号下次元袭击挑战次数与存储补充次数均视为组内共用（挑战上限14，存储补充上限30）。
+                      同一分组账号下次元袭击挑战次数与存储补充次数均视为组内共用（挑战上限7，存储补充上限30）。
                     </p>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
@@ -4054,7 +4242,6 @@ watch(
       </Transition>
     </Teleport>
     <!-- 设置管理 -->
-    <!-- 设置管理 -->
     <Teleport to="body">
       <Transition name="modal3">
         <div
@@ -4366,6 +4553,149 @@ watch(
                 <div>AION2 Portal 游戏辅助面板</div>
                 <div>Version 1.2.0</div>
               </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+    <!-- 通用弹框 -->
+    <Teleport to="body">
+      <Transition name="TONGYONG">
+        <div
+          v-if="globalPopupOpen"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 backdrop-blur-sm"
+        >
+          <div
+            class="relative w-full max-w-5xl bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl overflow-hidden text-slate-800 flex flex-col h-[60vh]"
+          >
+            <!-- 弹窗头部 -->
+            <div
+              class="px-8 py-2 border-b border-slate-100 flex items-center justify-between bg-white z-10"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-2.5 h-2.5 rounded-full bg-sky-500"></div>
+                <span
+                  class="text-sm font-black uppercase tracking-wider text-slate-700"
+                  >{{ globalPopupOp?.name }}</span
+                >
+              </div>
+              <button
+                @click="handleCloseGlobalPopup"
+                class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-colors"
+              >
+                关闭
+              </button>
+            </div>
+
+            <!-- 弹窗表单主体 -->
+            <div
+              class="p-6 space-y-6 overflow-y-auto custom-scroll flex-1 bg-slate-50/50"
+            >
+              <!-- 开通会员 -->
+              <div
+                v-if="globalPopupOp.type == 'premiumMember'"
+                class="space-y-6 max-w-2xl mx-auto py-2"
+              >
+                <!-- 顶部门幅提示卡 -->
+                <div
+                  class="flex items-start gap-3.5 p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-white border border-amber-200/80 shadow-sm"
+                >
+                  <div
+                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center font-black text-base shadow-md shadow-amber-500/25 shrink-0"
+                  >
+                    ✨
+                  </div>
+                  <div class="space-y-1">
+                    <div class="text-xs font-black text-amber-900 tracking-wide">
+                      开通特级会员特权
+                    </div>
+                    <div class="text-[11px] font-bold text-slate-500 leading-relaxed">
+                      开通后将为当前分组（<span class="text-amber-700 font-black">{{
+                        getAtvTabGroup?.name || "当前分组"
+                      }}</span
+                      >）的所有角色提供统一的特权加成与共享天数管理。
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 核心表单交互区 -->
+                <div
+                  class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4"
+                >
+                  <div class="flex items-center justify-between">
+                    <label class="text-xs font-black text-slate-700 tracking-wide">
+                      设置会员有效天数
+                    </label>
+                    <span class="text-[10px] text-slate-400 font-semibold">
+                      支持范围: 1 ~ 28 天
+                    </span>
+                  </div>
+
+                  <!-- 输入框 -->
+                  <div class="relative">
+                    <input
+                      v-model.number="globalPopupOp.data.premiumMemberDay"
+                      min="1"
+                      max="28"
+                      placeholder="请输入要开通的天数..."
+                      class="w-full px-4 py-3 rounded-xl bg-slate-50/80 border-2 border-slate-200 outline-none font-black text-sm text-slate-800 transition-all focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10"
+                    />
+                    <div
+                      class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400"
+                    >
+                      天
+                    </div>
+                  </div>
+
+                  <!-- 实时计算的起止时间预览看板 -->
+                  <div
+                    v-if="
+                      globalPopupOp.data?.premiumMemberDay &&
+                      globalPopupOp.data?.premiumMemberDay > 0
+                    "
+                    class="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs font-bold text-amber-900 animate-fadeIn"
+                  >
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-amber-700">预计开通：</span>
+                      <span class="font-black text-slate-800">{{
+                        calculatedStartTime(globalPopupOp.data?.premiumMemberDay) ||
+                        "今天"
+                      }}</span>
+                    </div>
+                    <span class="hidden sm:inline text-amber-300">➔</span>
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-amber-700">预计到期：</span>
+                      <span class="font-black text-amber-900">{{
+                        calculatedEndTime(globalPopupOp.data?.premiumMemberDay) ||
+                        "计算中..."
+                      }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 弹窗底部操作按钮 -->
+            <div
+              class="px-8 py-4 border-t border-slate-100 bg-white flex items-center justify-end gap-3 z-10"
+            >
+              <button
+                type="button"
+                @click="handleCloseGlobalPopup"
+                class="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-colors text-xs"
+              >
+                取消
+              </button>
+
+              <!-- 开通会员确认按钮 -->
+              <button
+                type="button"
+                v-if="globalPopupOp.type === 'premiumMember'"
+                class="px-7 py-2.5 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md shadow-amber-500/25 active:scale-95 cursor-pointer"
+                @click="handleGlobalPopupFill('premiumMember')"
+              >
+                <span>⚡ 确认开通会员</span>
+              </button>
             </div>
           </div>
         </div>
