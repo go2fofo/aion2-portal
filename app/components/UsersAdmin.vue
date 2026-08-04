@@ -366,22 +366,57 @@ const getTodayDateStr = () => {
 
 // 1. 总角色数计算
 const totalCharacters = computed(() => gameData.value.characters?.length || 0);
+/**
+ * 根据会员结束时间（yyyy-MM-dd）动态计算精准剩余天数
+ * @param {string} endTimeStr 会员结束时间字符串
+ * @param {number} [fallbackDays] 如果没有结束时间或解析失败时的备用天数
+ * @returns {number} 剩余天数（最小为 0）
+ */
+const calcPremiumRemainingDays = (endTimeStr, fallbackDays = 0) => {
+  if (!endTimeStr) return Number(fallbackDays) || 0;
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const endDate = new Date(endTimeStr);
+  endDate.setHours(0, 0, 0, 0);
+
+  // 如果日期格式非法，直接返回备用天数
+  if (isNaN(endDate.getTime())) return Number(fallbackDays) || 0;
+
+  // 结束时间减去当前时间，毫秒转换为天数
+  const diffTime = endDate.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  return diffDays > 0 ? diffDays : 0;
+};
 // 2. 获取所有分组及其签到状态（自动过滤掉角色数量为 0 的空分组）
 const allGroups = computed(() => {
   const characters = gameData.value.characters || [];
   const groups = gameData.value?.groups || [];
   const groupMap = new Map();
 
-  // 统计每个分组下的角色数，并收集分组签到状态
+  // 统计每个分组下的角色数，并收集分组签到状态与会员剩余天数
   characters.forEach((char) => {
     if (char.group) {
       if (!groupMap.has(char.group)) {
         let targetGroup = groups.find((g) => g.id === char.group);
+
+        // 调用独立方法计算精准剩余天数
+        let premiumRemainingMemberDay = targetGroup?.premiumMember
+          ? calcPremiumRemainingDays(
+              targetGroup?.premiumEndTime,
+              targetGroup?.premiumMemberDay
+            )
+          : 0;
+
         groupMap.set(char.group, {
-          name: targetGroup?.name,
+          name: targetGroup?.name || "未命名分组",
           groupId: char.group,
-          dailySignIn: !!targetGroup?.dailySignIn, // 根据您的实际签到数据结构调整
+          premiumMember: !!targetGroup?.premiumMember,
+          premiumRemainingMemberDay, // 精准剩余天数
+          premiumMemberDay: targetGroup?.premiumMemberDay,
+          dailySignIn: !!targetGroup?.dailySignIn,
           count: 0,
         });
       }
@@ -392,6 +427,11 @@ const allGroups = computed(() => {
   // 转换为数组并过滤掉没有角色的组
   return Array.from(groupMap.values()).filter((group) => group.count > 0);
 });
+
+// 根据分组id 获取gameData 分组对象
+const getGroupById = (groupId) => {
+  return gameData.value?.groups?.find((g) => g.id === groupId) || defGroup;
+};
 
 // 3. 总奥德能量计算
 const totalEnergy = computed(() => {
@@ -1394,9 +1434,9 @@ const totalGroupStoredDimensionalCount = computed(() => {
 //============================组角色卡片列表事件处理/开结束============================
 
 // 签到按钮点击事件处理
-const handleSignInSignIn = async () => {
-  let newAtvTabGroup = { ...getAtvTabGroup.value };
-  newAtvTabGroup.dailySignIn = !getAtvTabGroup.value?.dailySignIn;
+const handleSignInSignIn = async (group) => {
+  let newAtvTabGroup = group ? { ...group } : { ...getAtvTabGroup.value };
+  newAtvTabGroup.dailySignIn = !newAtvTabGroup?.dailySignIn;
   newAtvTabGroup.dailySignInDate = new Date().toISOString().substring(0, 10);
   await groupCharacterPanelHandleUpdateGroup(newAtvTabGroup);
 };
@@ -1585,7 +1625,9 @@ const handleGlobalPopupFill = (type) => {
         group.premiumStartTime = calculatedStartTime(
           globalPopupOp.value.data?.premiumMemberDay
         );
-        group.premiumEndTime = calculatedEndTime(globalPopupOp.value.data?.premiumMemberDay);       
+        group.premiumEndTime = calculatedEndTime(
+          globalPopupOp.value.data?.premiumMemberDay
+        );
         groupCharacterPanelHandleUpdateGroup(group);
       }
 
@@ -1604,7 +1646,20 @@ const handleCloseGlobalPopup = (data) => {
 };
 
 //================ 通用弹框 结束 =====================
-
+/**
+ * 处理分组点击事件
+ * @param {object} group 点击的分组对象
+ */
+const handleGroupClick = (group) => {
+  activeTabGroup.value = group.groupId;
+  //如果没签到触发签到
+  if (!group.premiumMember) {
+    // 点击非会员分组，触发签到
+    const groupItem = getGroupById(group.groupId);
+    if (!groupItem) return;
+    handleSignInSignIn(groupItem);
+  }
+};
 // 1. 监听角色表单
 watch(
   () => newCharForm.value,
@@ -1723,6 +1778,7 @@ watch(
     <!-- 顶部数据面板 -->
     <!-- ================= 顶部数据面板 ================= -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <!-- 总角色数 -->
       <div
         class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between gap-4"
       >
@@ -1736,41 +1792,71 @@ watch(
           </div>
         </div>
 
-        <!-- 右侧：分组签到状态（按钮化设计，一眼识别未签到） -->
-        <div class="flex-1 flex flex-col items-end gap-1.5 min-w-0">
+        <!-- 右侧：每一项独立成卡的分组签到与会员状态总览区 -->
+        <div class="flex-1 flex flex-col items-end gap-2 min-w-0">
           <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-            分组签到状态 (点击切换)
+            分组账号综合状态与快捷切换 (点击切换并签到)
           </div>
+
+          <!-- 每一项排开的独立卡片列表 -->
           <div
-            class="flex items-center gap-1.5 flex-wrap justify-end max-w-full overflow-x-auto py-0.5"
+            class="flex items-center gap-2 flex-wrap justify-end max-w-full overflow-x-auto py-0.5"
           >
             <template v-for="group in allGroups" :key="group.name">
               <button
                 type="button"
-                @click="activeTabGroup = group.groupId"
-                class="px-2.5 py-1.5 rounded-xl text-[11px] font-black border flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs shrink-0 active:scale-95"
-                :class="
+                @click="handleGroupClick(group)"
+                class="px-3 py-2 rounded-2xl border transition-all cursor-pointer shadow-xs shrink-0 active:scale-95 flex flex-col items-start gap-1.5 text-left min-w-[120px]"
+                :class="[
+                  // 依据签到状态变换底色与边框
                   group.dailySignIn
-                    ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200/80'
-                    : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-300 ring-1 ring-rose-200 shadow-rose-500/10'
-                "
+                    ? 'bg-emerald-50/60 hover:bg-emerald-100/70 border-emerald-200/90 text-emerald-900'
+                    : 'bg-rose-50/60 hover:bg-rose-100/70 border-rose-200/90 text-rose-900',
+                ]"
                 :title="
-                  '点击切换至 ' +
                   group.name +
-                  (group.dailySignIn ? ' (已签到)' : ' (未签到！)')
+                  (group.dailySignIn ? ' | 【已签到】' : ' | 【未签到】') +
+                  (group.premiumMember
+                    ? ` | 特级会员剩余: ${group.premiumRemainingMemberDay || 0}天`
+                    : ' | 未开通会员')
                 "
               >
-                <span class="truncate max-w-[70px]">{{ group.name }}</span>
-                <span
-                  class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold"
-                  :class="
-                    group.dailySignIn
-                      ? 'bg-emerald-200/60 text-emerald-700'
-                      : 'bg-rose-500 text-white shadow-xs'
-                  "
+                <!-- 第一行：分组名称与签到状态文字标签 -->
+                <div class="flex items-center justify-between w-full gap-2">
+                  <span
+                    class="text-xs font-black truncate max-w-[70px]"
+                    :class="group.dailySignIn ? 'text-emerald-900' : 'text-rose-900'"
+                  >
+                    {{ group.name }}
+                  </span>
+                  <span
+                    class="px-1.5 py-0.5 rounded text-[9px] font-black shrink-0 tracking-tighter"
+                    :class="
+                      group.dailySignIn
+                        ? 'bg-emerald-200/80 text-emerald-800'
+                        : 'bg-rose-500 text-white shadow-2xs'
+                    "
+                  >
+                    {{ group.dailySignIn ? "已签到" : "未签到" }}
+                  </span>
+                </div>
+
+                <!-- 第二行：特级会员状态显示 -->
+                <div
+                  class="w-full pt-1 border-t border-slate-200/50 flex items-center justify-between text-[9px] font-bold"
                 >
-                  {{ group.dailySignIn ? "✓" : "!" }}
-                </span>
+                  <template v-if="group.premiumMember">
+                    <span class="text-amber-700 flex items-center gap-1 font-black">
+                      <span>特级会员剩余</span>
+                      <strong class="text-amber-800"
+                        >{{ group.premiumRemainingMemberDay || 0 }}天</strong
+                      >
+                    </span>
+                  </template>
+                  <template v-else>
+                    <span class="text-slate-400 font-medium">未开通会员</span>
+                  </template>
+                </div>
               </button>
             </template>
           </div>
