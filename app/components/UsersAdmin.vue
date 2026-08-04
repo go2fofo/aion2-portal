@@ -4429,7 +4429,7 @@ watch(
                             : 'text-slate-600 hover:bg-slate-100'
                         "
                       >
-                        精简
+                        懒人模式（一键快捷）
                       </button>
                       <button
                         @click="cardConfig.mode = 'custom'"

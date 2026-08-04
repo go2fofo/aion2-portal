@@ -2,8 +2,6 @@ import { getLocalGameData, saveLocalGameData } from "@/utils/indexedDb";
 import { executeRulesByDictionary } from "@/utils/gameRefreshManager";
 import { useSupabaseClient, useSupabaseUser } from "#imports";
 
-
-
 // 辅助函数：格式化日期为 YYYY-MM-DD HH:mm 或 YYYY-MM-DD
 const formatDate = (date: Date) => {
   const y = date.getFullYear();
@@ -68,14 +66,69 @@ const sanitizeGameData = (gameData: any) => {
       hasModified = true;
     }
     // 会员相关时间赋值
-    if (group.premiumMember) {
+    if (
+      group?.premiumMember &&
+      !group.premiumStartTime &&
+      !group.premiumEndTime
+    ) {
       group.premiumStartTime = calculatedStartTime(group.premiumMemberDay);
       group.premiumEndTime = calculatedEndTime(group.premiumMemberDay);
-        console.log(
+      console.log(
         `[DataMigration] 分组 [${group.name || group.id}] 的会员时间已更新`,
       );
       // 标记为有变动
       hasModified = true;
+    }
+    //
+
+    //判断会员是否过期了
+
+    if (
+      group.premiumEndTime &&
+      group.premiumStartTime &&
+      group.premiumEndTime
+    ) {
+      // 1. 获取今天本地日期的 00:00:00 时间戳
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayTimestamp = today.getTime();
+
+      // 2. 将会员结束时间（"2026-08-24"）安全转换为本地 00:00:00 时间戳
+      // 最佳实践：通过分割字符串创建日期，避免 JS 引擎的时区误解
+      let endTimestamp = 0;
+      if (group.premiumEndTime) {
+        const [year, month, day] = group.premiumEndTime.split("-").map(Number);
+        // 注意：month 从 0 开始，所以要 -1
+        const endDate = new Date(year, month - 1, day);
+        endDate.setHours(0, 0, 0, 0);
+        endTimestamp = endDate.getTime();
+      }
+
+      // 3. 判断会员是否过期（结束时间戳小于今天零点时间戳，即为已过期）
+      if (
+        group.premiumMember &&
+        endTimestamp > 0 &&
+        endTimestamp < todayTimestamp
+      ) {
+        group.premiumMember = false;
+        group.premiumStartTime = "";
+        group.premiumEndTime = "";
+        group.premiumMemberDay = 0;
+
+        console.log(
+          `[DataMigration] 分组 [${group.name || group.id}] 的会员已过期，已自动重置`,
+        );
+
+        // 相关组下的角色处理...
+        gameData.characters.forEach((char: any) => {
+          if (char.energy > 560 && char.group == group.id) {
+            char.energy = 560;
+            char.lastEnergyUpdate = new Date().toISOString();
+          }
+        });
+
+        hasModified = true;
+      }
     }
   });
 
@@ -162,10 +215,21 @@ export const useGameRefresh = () => {
       let loadGameDataRes = await loadGameData();
       if (!loadGameDataRes) return false;
       // 由于结构变化或者更改，需要重新补充或者更改数据所以在此需要处理数据
-      const { gameData, hasModified } :any= sanitizeGameData(JSON.parse(JSON.stringify(loadGameDataRes)));
+      const { gameData, hasModified }: any = sanitizeGameData(
+        JSON.parse(JSON.stringify(loadGameDataRes)),
+      );
 
+      //表示有规则变动触发刷新
+      let hasRulesModified = executeRulesByDictionary(gameData);
+      if (hasRulesModified) {
+        console.log(
+          `🔍 [useGameRefresh:170] %c executeRulesByDictionary有规则变动: `,
+          "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+          hasRulesModified,
+        );
+      }
       //  有变动则持久化并同步
-      if (hasModified) {
+      if (hasModified || hasRulesModified) {
         await saveGameData(gameData);
         return true;
       }
