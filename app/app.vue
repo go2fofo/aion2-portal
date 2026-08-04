@@ -1,7 +1,7 @@
 <!--
  * @Author: whq
  * @Date: 2026-02-08 09:11:19
- * @LastEditTime: 2026-08-03 14:07:18
+ * @LastEditTime: 2026-08-04 09:40:33
  * @LastEditors: fofo
  * @Description: 
  * @FilePath: /aion2-portal/app/app.vue
@@ -53,15 +53,4 @@ onMounted(async () => {
 onUnmounted(() => {
   stopAutoRefreshTimer();
 });
-
-// 3. 用户如果点击了页面上的“手动刷新/检查数据”按钮：
-const handleManualRefresh = async () => {
-  const updated = await executeDataRefresh();
-  if (updated) {
-    console.log('手动刷新成功，数据已更新');
-    // 触发你的 UI 重新渲染或状态通知
-  } else {
-    console.log('当前数据已是最新，无需刷新');
-  }
-};
 </script>

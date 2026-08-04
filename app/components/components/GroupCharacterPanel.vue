@@ -3495,7 +3495,76 @@ defineExpose({
                     </span>
                   </div>
                 </div>
+        <div class="grid grid-cols-2 gap-4">
+                      <!-- 基础奥德能量 -->
+                      <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                          <label class="text-xs font-bold text-slate-500">当前能量</label>
+                          <span class="text-[10px] font-black text-[#45a6d5]">
+                            {{ gameplayCharForm?.energy || 0 }}
+                            <!-- ({{
+                              Math.max(
+                                0,
+                                (newCharGroupForm?.premiumMember ||
+                                getCharGroup?.premiumMember
+                                  ? 840
+                                  : 560) - (newCharForm?.energy || 0)
+                              )
+                            }}) /
+                            {{
+                              newCharGroupForm?.premiumMember ||
+                              getCharGroup?.premiumMember
+                                ? 840
+                                : 560
+                            }} -->
+                          </span>
+                        </div>
+                        <input
+                          v-model.number="gameplayCharForm.energy"
+                          class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                          :class="
+                            validationResult.invalidFields.includes('energy')
+                              ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                              : 'border-slate-200/80 focus:border-[#45a6d5]'
+                          "
+                        />
+                        <!-- <span
+                          v-if="validationResult.errors.energy"
+                          class="text-[10px] text-red-500 font-bold mt-1 block"
+                        >
+                          {{ validationResult.errors.energy }}
+                        </span> -->
+                      </div>
 
+                      <!-- 存储补充能量 -->
+                      <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                          <label class="text-xs font-bold text-slate-500"
+                            >存储补充能量</label
+                          >
+                          <span class="text-[10px] font-black text-amber-600">
+                            {{ gameplayCharForm.storedEnergy || 0 }}
+                            ({{ Math.max(0, 2000 - (gameplayCharForm.storedEnergy || 0)) }}) /
+                            2000
+                          </span>
+                        </div>
+                        <input
+                          v-model.number="gameplayCharForm.storedEnergy"
+                          class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                          :class="
+                            validationResult.invalidFields.includes('storedEnergy')
+                              ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                              : 'border-slate-200/80 focus:border-[#45a6d5]'
+                          "
+                        />
+                        <!-- <span
+                          v-if="validationResult.errors.storedEnergy"
+                          class="text-[10px] text-red-500 font-bold mt-1 block"
+                        >
+                          {{ validationResult.errors.storedEnergy }}
+                        </span> -->
+                      </div>
+                    </div>
                 <!-- 计数器操作区域 -->
                 <div
                   class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-4"
