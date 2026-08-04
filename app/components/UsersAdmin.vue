@@ -415,6 +415,7 @@ const allGroups = computed(() => {
           groupId: char.group,
           premiumMember: !!targetGroup?.premiumMember,
           premiumRemainingMemberDay, // 精准剩余天数
+          dailySignIn: !!targetGroup?.dailySignIn,
           premiumMemberDay: targetGroup?.premiumMemberDay,
           dailySignIn: !!targetGroup?.dailySignIn,
           count: 0,
@@ -1651,9 +1652,10 @@ const handleCloseGlobalPopup = (data) => {
  * @param {object} group 点击的分组对象
  */
 const handleGroupClick = (group) => {
+    console.log(`🔍 [UsersAdmin:1654] %c group: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', group);
   activeTabGroup.value = group.groupId;
   //如果没签到触发签到
-  if (!group.premiumMember) {
+  if (!group.dailySignIn) {
     // 点击非会员分组，触发签到
     const groupItem = getGroupById(group.groupId);
     if (!groupItem) return;

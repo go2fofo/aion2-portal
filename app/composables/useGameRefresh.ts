@@ -64,16 +64,22 @@ const sanitizeGameData = (gameData: any) => {
 
       group.dimensionalCount = MAX_DIMENSIONAL_LIMIT;
       group.lastDimensionalUpdate = nowIso; // 同步更新时间戳
+      // 标记为有变动
       hasModified = true;
     }
     // 会员相关时间赋值
     if (group.premiumMember) {
       group.premiumStartTime = calculatedStartTime(group.premiumMemberDay);
       group.premiumEndTime = calculatedEndTime(group.premiumMemberDay);
+        console.log(
+        `[DataMigration] 分组 [${group.name || group.id}] 的会员时间已更新`,
+      );
+      // 标记为有变动
+      hasModified = true;
     }
   });
 
-  return hasModified;
+  return { gameData, hasModified };
 };
 
 export const useGameRefresh = () => {
@@ -153,21 +159,14 @@ export const useGameRefresh = () => {
   const executeDataRefresh = async () => {
     try {
       // 1. 获取最新数据
-      let gameData = await loadGameData();
-      if (!gameData) return false;
+      let loadGameDataRes = await loadGameData();
+      if (!loadGameDataRes) return false;
       // 由于结构变化或者更改，需要重新补充或者更改数据所以在此需要处理数据
-      const hasRulesChanged = sanitizeGameData(gameData);
-      if (!hasRulesChanged) return false;
+      const { gameData, hasModified } :any= sanitizeGameData(JSON.parse(JSON.stringify(loadGameDataRes)));
 
-      // 2. 丢给规则配置解释器，自动比对并批量刷新
-      const hasChanges = executeRulesByDictionary(hasRulesChanged);
-
-      // 3. 有变动则持久化并同步
-      if (hasChanges) {
+      //  有变动则持久化并同步
+      if (hasModified) {
         await saveGameData(gameData);
-        console.log(
-          "[GameRefresh] 配置字典驱动：日常与副本数据已按规则自动刷新",
-        );
         return true;
       }
 
