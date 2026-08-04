@@ -1,7 +1,7 @@
 /*
  * @Author: fofo
  * @Date: 2026-07-27 16:03:34
- * @LastEditTime: 2026-08-02 22:27:39
+ * @LastEditTime: 2026-08-04 09:12:11
  * @LastEditors: fofo
  * @Description: 
  * @FilePath: /aion2-portal/app/utils/indexedDb.ts
@@ -53,7 +53,7 @@ export const getLocalGameData = async <T = any>(key: string = 'current_data'): P
       const transaction = db.transaction(STORE_NAME, 'readonly')
       const store = transaction.objectStore(STORE_NAME)
       const request = store.get(key)
-
+      
       request.onerror = () => reject(request.error)
       request.onsuccess = () => resolve((request.result as T) || null)
     })

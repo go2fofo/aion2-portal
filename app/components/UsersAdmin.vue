@@ -20,8 +20,10 @@ import { formatCombatPower } from "~/utils/formatCombatPower";
 import GroupCharacterPanel from "./components/GroupCharacterPanel.vue";
 import cloneDeep from "lodash/cloneDeep";
 import { dungeonDecayRules } from "./config/userAdmin";
+import { useGameRefresh } from '@/composables/useGameRefresh';
 const client = useSupabaseClient();
 const user = useSupabaseUser();
+const { executeDataRefresh } = useGameRefresh();
 const defGameData = {
   characters: [],
   accounts: [],
@@ -97,6 +99,8 @@ const pickerOpenOther = ref({
 });
 const pickerTab = ref("search");
 const { $alert, $confirm, $loading } = useNuxtApp();
+const isRefreshing = ref(false);
+
 // 控制新增角色弹窗状态
 const showAddCharModal = ref(false);
 const saving = ref(false);
@@ -1217,6 +1221,26 @@ const importGameData = (event) => {
 };
 
 //================ 设置按钮 结束 =====================");
+// 点击刷新按钮的处理逻辑
+const handleSync = async () => {
+  if (isRefreshing.value) return;
+  isRefreshing.value = true;
+  
+  try {
+    const updated = await executeDataRefresh();
+    if (updated) {
+      console.log('数据已更新并同步');
+      // 可选：配合你的 UI 提示，例如 $alert 或 message 提示
+    } else {
+      console.log('当前数据已是最新');
+    }
+  } finally {
+    // 模拟或等待一小会儿确保转圈动画顺畅展示
+    setTimeout(() => {
+      isRefreshing.value = false;
+    }, 500);
+  }
+};
 
 //============================组角色卡片列表事件处理/开始============================
 // 分组角色卡片列表删除角色事件处理
@@ -1820,6 +1844,24 @@ watch(
           </svg>
           设置
         </button>
+        <!-- 刷新/同步数据 -->
+        <button
+    @click="handleSync"
+    :disabled="isRefreshing"
+    class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/80 font-bold text-xs shadow-sm transition-all transform active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+  >
+    <!-- 刷新图标：点击时带有旋转动画 -->
+    <svg 
+      class="w-3.5 h-3.5 text-sky-500 transition-transform duration-500"
+      :class="{ 'animate-spin': isRefreshing }"
+      fill="none" 
+      stroke="currentColor" 
+      viewBox="0 0 24 24"
+    >
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+    </svg>
+    <span>{{ isRefreshing ? '同步中...' : '刷新/同步数据' }}</span>
+  </button>
       </div>
 
       <div
