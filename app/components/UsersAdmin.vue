@@ -21,6 +21,7 @@ import GroupCharacterPanel from "./components/GroupCharacterPanel.vue";
 import cloneDeep from "lodash/cloneDeep";
 import { dungeonDecayRules } from "./config/userAdmin";
 import { useGameRefresh } from "@/composables/useGameRefresh";
+import { characterClasses } from "./config/userAdmin";
 const client = useSupabaseClient();
 const user = useSupabaseUser();
 const { executeDataRefresh } = useGameRefresh();
@@ -570,7 +571,9 @@ const loadData = async () => {
 };
 
 //==========================================添加成员开始=========================================
+
 const searchRaceId = ref(2);
+const customForm = ref({});
 const searchServerId = ref(2018);
 const searchServerOptions = computed(() => getServersByRace(searchRaceId.value));
 const filteredLegionMembers = computed(() => {
@@ -668,6 +671,7 @@ const buildFallbackProfile = ({
     combatPower: null,
     itemLevel: null,
     needsRefresh: true,
+    remark: "",
   };
 };
 //新增的数据
@@ -767,6 +771,77 @@ const pickFromSearch = async (c) => {
       $alert("已添加", "角色详情接口暂时不可用，已先添加占位信息，可稍后点刷新补全");
     }
     addMemberToTeam(profile);
+  } catch (e) {
+    $alert("添加失败", e?.message || String(e));
+  } finally {
+    $loading.hide();
+  }
+};
+
+// 添加自定义角色
+const confirmAddCustomCharacter = async () => {
+  // 校验角色名称
+  if (!customForm.value?.characterName || !customForm.value?.characterName.trim()) {
+    $alert("提示", "请输入角色名称");
+    return;
+  }
+
+  $loading.show("正在添加自定义角色...");
+  try {
+    const nowIso = new Date().toISOString();
+
+    // 严格按照你提供的数据结构进行组装
+    const newCustomCharacter = {
+      /** 角色唯一 ID（时间戳格式） */
+      id: Date.now(),
+      /** 角色系统加密唯一标识符（自定义角色可为空） */
+      characterId: Date.now(),
+      /** 角色游戏昵称 */
+      characterName: customForm.value?.characterName.trim(),
+      /** 角色等级 */
+      characterLevel: Number(customForm.value?.characterLevel) || 1,
+      /** 道具/装备评分等级 */
+      itemLevel: customForm.value?.itemLevel,
+      /** 职业名称 */
+      className: customForm.value?.className || "",
+      /** 性别标识数值 */
+      gender: 0,
+      /** 性别文本名称 */
+      genderName: "",
+      /** 角色战力评分 */
+      combatPower: Number(customForm.value?.combatPower) || 0,
+      /** 装备评分 */
+      equipmentScore: 0,
+      /** 角色是否被锁定（防止误操作，通常为 true） */
+      locked: true,
+      //   /** 角色是否为主账号（布尔值）用于区分归属于哪个大号或小号 */
+      //   primaryAccount: true,
+      // 补充可能需要的扩展字段（如备注、能量、更新时间戳等，方便页面渲染）
+      remark: customForm.value?.remark ? customForm.value?.remark.trim() : "",
+      lastEnergyUpdate: nowIso,
+      needsRefresh: false,
+    };
+
+    console.log(
+      `🔍 [UsersAdmin:825] %c newCustomCharacter11111: `,
+      "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+      newCustomCharacter
+    );
+    console.log(
+      `🔍 [UsersAdmin:825] %c newCustomCharacter11111: `,
+      "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+      customForm.value
+    );
+
+    // 调用你原有的添加队员/角色方法（或者直接 push 到 gameData.characters 中）
+    // 如果你有封装好的 addMemberToTeam 方法，可以传进去；如果没有可以直接用下面注释的逻辑：
+    if (typeof addMemberToTeam === "function") {
+      await addMemberToTeam(newCustomCharacter);
+    }
+    // 清空表单
+    customForm.value = {};
+    // 关闭弹窗
+    pickerOpen.value = false;
   } catch (e) {
     $alert("添加失败", e?.message || String(e));
   } finally {
@@ -962,6 +1037,7 @@ const handleSaveCharacter = async () => {
     newChar
   );
 
+  debugger;
   gameData.value?.characters?.unshift(newChar);
   gameData.value.characterCount = gameData.value?.characters?.length || 0;
 
@@ -1216,7 +1292,7 @@ const settings = reactive({
 // 卡片布局与显示配置
 const cardConfig = reactive({
   columns: 4, // 可选: 1, 2, 3, 4, 5列布局
-  mode: "default", // 可选: 'default'(标准模式) | 'simple'(精简模式) | 'custom'(自定义模式)
+  mode: "default", // 可选: 'default'(标准模式) | 'simple'(精简模式-懒人模式) | 'custom'(自定义模式)
   customFields: {
     showCombatPower: true,
     showDungeons: true,
@@ -1359,6 +1435,35 @@ const groupCharacterPanelHandleUpdateGroup = async (updatedGroupsOrSingleGroup) 
 const groupCharacterPanelHandleToggleTask = async (char, field) => {
   const updatedChar = { ...char, [field]: !char[field] };
   await groupCharacterPanelHandleUpdateCharacter(updatedChar);
+};
+
+//用于通用项 点击触发事件，可随意拓展，目前只做了角色卡片内点击触发
+const groupCharacterPanelHandleClickTask = async (char, gType) => {
+  switch (gType) {
+    case "globalSimpleEnergy": //简化版奥德能量设置补充
+      globalPopupOpen.value = true;
+      globalPopupOp.value = {
+        type: "globalSimpleEnergy",
+        name: "奥德补充",
+        data: {
+          storedEnergy: 0,
+          energy: 0,
+        },
+        targetChar: char,
+        targetGroup: getGroupById(char?.group),
+      };
+      break;
+
+    default:
+      break;
+  }
+
+  console.log(
+    `🔍 [UsersAdmin:1436] %c 用于通用项 点击触发事件:groupCharacterPanelHandleClickTask `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    char,
+    gType
+  );
 };
 
 // 分组角色卡片列表底层保存处理
@@ -1633,6 +1738,28 @@ const handleGlobalPopupFill = (type) => {
       }
 
       break;
+    case "globalSimpleEnergy": // 简易版补充奥德直接替换
+      {
+        if (
+          globalPopupOp.value?.data?.energy ||
+          globalPopupOp.value?.data?.storedEnergy
+        ) {
+          let charItem = cloneDeep(globalPopupOp.value.targetChar);
+
+          if (globalPopupOp.value.data?.energy) {
+            const nowIso = new Date().toISOString();
+            charItem.energy = globalPopupOp.value.data.energy;
+            charItem.lastEnergyUpdate = nowIso;
+          }
+          if (globalPopupOp.value.data?.storedEnergy) {
+            charItem.storedEnergy = globalPopupOp.value.data.storedEnergy;
+          }
+
+          groupCharacterPanelHandleUpdateCharacter(charItem);
+        }
+      }
+
+      break;
 
     default:
       break;
@@ -1652,7 +1779,11 @@ const handleCloseGlobalPopup = (data) => {
  * @param {object} group 点击的分组对象
  */
 const handleGroupClick = (group) => {
-    console.log(`🔍 [UsersAdmin:1654] %c group: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', group);
+  console.log(
+    `🔍 [UsersAdmin:1654] %c group: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    group
+  );
   activeTabGroup.value = group.groupId;
   //如果没签到触发签到
   if (!group.dailySignIn) {
@@ -2628,6 +2759,7 @@ watch(
       @update-character="groupCharacterPanelHandleUpdateCharacter"
       @update-groups="groupCharacterPanelHandleUpdateGroup"
       @toggle-task="groupCharacterPanelHandleToggleTask"
+      @task-click="groupCharacterPanelHandleClickTask"
       @consume-energy="groupCharacterPanelHandleConsumeEnergy"
     />
     <!-- 极宽卡片式新增角色弹窗 (蓝白色调) -->
@@ -2677,7 +2809,11 @@ watch(
                     </div>
                     <button
                       type="button"
-                      @click="(pickerOpen = true), (pickerOpenOther.type = 'add')"
+                      @click="
+                        (pickerOpen = true),
+                          (pickerOpenOther.type = 'add'),
+                          (pickerTab = 'aion2')
+                      "
                       class="px-4 py-2 rounded-xl bg-[#45a6d5] text-white font-bold text-xs hover:bg-[#3b95c0] transition-all shadow-sm shadow-sky-500/20 flex items-center gap-1.5 active:scale-95"
                     >
                       <svg
@@ -3950,7 +4086,11 @@ watch(
               <template v-else>
                 <div
                   class="p-8 bg-slate-50/70 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center text-center space-y-3 transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 group cursor-pointer"
-                  @click="(pickerOpen = true), (pickerOpenOther.type = 'add')"
+                  @click="
+                    (pickerOpen = true),
+                      (pickerOpenOther.type = 'add'),
+                      (pickerTab = 'aion2')
+                  "
                 >
                   <!-- 图标外发光圆圈 -->
                   <div
@@ -4014,8 +4154,9 @@ watch(
           class="fixed inset-0 z-[60] flex items-center justify-center"
         >
           <div
-            class="relative z-10 w-full max-w-3xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden max-h-[90vh"
+            class="relative z-10 w-full max-w-3xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden max-h-[90vh]"
           >
+            <!-- 弹窗头部 -->
             <div
               class="p-6 border-b border-slate-100 flex items-center justify-between gap-4"
             >
@@ -4023,194 +4164,295 @@ watch(
                 {{ pickerOpenOther.type === "add" ? "添加角色" : "选择其他角色" }}
               </div>
               <button
-                class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors"
+                class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors cursor-pointer"
                 @click="pickerOpen = false"
               >
                 关闭
               </button>
             </div>
 
-            <div class="p-6 space-y-4 max-h-[80vh] overflow-y-auto custom-scroll">
-              <!-- 我的角色 -->
-              <div v-if="pickerOpenOther.type == 'myroles'" class="space-y-3">
-                <div class="flex items-center gap-2">
-                  <input
-                    v-model="myKeyword"
-                    class="flex-1 px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
-                    placeholder="搜索我的角色..."
-                  />
-                  <button
-                    class="px-4 py-3 rounded-2xl bg-slate-100 text-slate-700 font-black text-sm hover:bg-slate-200 transition-colors"
-                    :disabled="myLoading"
-                    @click="fetchMyMembers"
-                  >
-                    {{ myLoading ? "刷新中..." : "刷新" }}
-                  </button>
-                </div>
+            <!-- 🌟 新增：Tab 切换栏 -->
+            <div
+              class="px-6 pt-4 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3"
+            >
+              <button
+                type="button"
+                @click="pickerTab = 'aion2'"
+                class="px-5 py-2.5 rounded-xl font-black text-xs transition-all cursor-pointer border"
+                :class="
+                  pickerTab === 'aion2'
+                    ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sm'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                "
+              >
+                永恒之塔2（台服）
+              </button>
+              <button
+                type="button"
+                @click="pickerTab = 'custom'"
+                class="px-5 py-2.5 rounded-xl font-black text-xs transition-all cursor-pointer border"
+                :class="
+                  pickerTab === 'custom'
+                    ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sm'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                "
+              >
+                自定义角色
+              </button>
+            </div>
 
-                <div v-if="myLoading" class="py-10 text-center text-slate-400 font-bold">
-                  加载中...
-                </div>
-                <div v-else class="max-h-[55vh] overflow-y-auto custom-scroll space-y-2">
-                  <div
-                    v-for="m in filteredMyMembers"
-                    :key="m.id"
-                    class="p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3"
-                  >
-                    <div class="min-w-0">
-                      <div class="font-black text-slate-800 truncate">
-                        {{
-                          formatNameWithServerShort({
-                            characterName: m.character_name,
-                            serverId: m.server_id,
-                            serverShortName: m.server_short_name,
-                          })
-                        }}
-                      </div>
-                      <div
-                        class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap"
-                      >
-                        <span>{{ formatServerDisplay(m.server_id) }}</span>
-                        <span>{{ m.class_name || "—" }}</span>
-                        <span v-if="m.character_level">Lv.{{ m.character_level }}</span>
-                        <span>战 {{ formatCombatPower(m.combat_power) }}</span>
-                        <span>评 {{ m.item_level || "-" }}</span>
-                      </div>
-                      <div class="mt-2">
-                        <input
-                          v-model="m.remark"
-                          type="text"
-                          class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 focus:border-[#45a6d5] outline-none font-bold text-xs text-slate-700 transition-all"
-                          placeholder="备注（可选）"
-                        />
-                      </div>
-                    </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                      <button
-                        class="px-3 py-2 rounded-xl bg-[#45a6d5] text-white font-black text-xs hover:bg-[#3b95c0] transition-colors"
-                        @click="pickFromMyMember(m)"
-                      >
-                        选择
-                      </button>
-                      <!-- <button
-                      class="px-3 py-2 rounded-xl bg-slate-100 text-slate-700 font-black text-xs hover:bg-slate-200 transition-colors disabled:opacity-50"
-                      :disabled="mySaving[m.id]"
-                      @click="updateMyMember(m)"
-                    >
-                      {{ mySaving[m.id] ? "保存中..." : "保存备注" }}
-                    </button>
+            <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scroll">
+              <!-- ==================== TAB 1: 永恒之塔2（台服） ==================== -->
+              <template v-if="pickerTab === 'aion2'">
+                <!-- 我的角色 -->
+                <div v-if="pickerOpenOther.type == 'myroles'" class="space-y-3">
+                  <div class="flex items-center gap-2">
+                    <input
+                      v-model="myKeyword"
+                      class="flex-1 px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+                      placeholder="搜索我的角色..."
+                    />
                     <button
-                      class="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 font-black text-xs hover:bg-rose-100 transition-colors disabled:opacity-50"
-                      :disabled="mySaving[m.id]"
-                      @click="deleteMyMember(m)"
+                      class="px-4 py-3 rounded-2xl bg-slate-100 text-slate-700 font-black text-sm hover:bg-slate-200 transition-colors cursor-pointer"
+                      :disabled="myLoading"
+                      @click="fetchMyMembers"
                     >
-                      删除
-                    </button> -->
-                    </div>
+                      {{ myLoading ? "刷新中..." : "刷新" }}
+                    </button>
                   </div>
+
                   <div
-                    v-if="filteredMyMembers.length === 0"
+                    v-if="myLoading"
                     class="py-10 text-center text-slate-400 font-bold"
                   >
-                    暂无队员
+                    加载中...
                   </div>
-                </div>
-              </div>
-              <div v-else-if="pickerOpenOther.type === 'add'" class="space-y-3">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-                  <select
-                    v-model.number="searchRaceId"
-                    class="px-5 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700"
-                  >
-                    <option :value="1">天族</option>
-                    <option :value="2">魔族</option>
-                  </select>
-                  <select
-                    v-model.number="searchServerId"
-                    class="px-5 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700"
-                  >
-                    <option
-                      v-for="s in searchServerOptions"
-                      :key="s.serverId"
-                      :value="s.serverId"
-                    >
-                      {{ formatServerDisplay(s.serverId) }}
-                    </option>
-                  </select>
-                  <!-- <input
-                  v-model="searchKeyword"
-                  class="px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
-                  placeholder="输入角色名关键词..."
-                /> -->
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2">
-                  <input
-                    v-model="searchQuick"
-                    class="px-4 py-3 rounded-2xl bg-white border-2 border-slate-100 focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all"
-                    placeholder="输入角色名关键字或者快捷粘贴：角色名[区服简写]（例如 xxx[xxx]）"
-                    @keyup.enter="applyQuickToSearchAndSearch"
-                  />
-                </div>
-                <div class="flex items-center justify-end">
-                  <button
-                    class="px-5 py-2 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-colors disabled:opacity-50"
-                    :disabled="searchLoading"
-                    @click="applyQuickToSearchAndSearch"
-                  >
-                    {{ searchLoading ? "查询中..." : "查询" }}
-                  </button>
-                </div>
-
-                <div
-                  v-if="searchLoading"
-                  class="py-10 text-center text-slate-400 font-bold"
-                >
-                  查询中...
-                </div>
-                <div v-else class="max-h-[45vh] overflow-y-auto custom-scroll space-y-2">
                   <div
-                    v-for="c in searchResults"
-                    :key="c.characterId"
-                    class="p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer"
+                    v-else
+                    class="max-h-[50vh] overflow-y-auto custom-scroll space-y-2"
                   >
-                    <div class="flex items-center justify-between gap-3">
+                    <div
+                      v-for="m in filteredMyMembers"
+                      :key="m.id"
+                      class="p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3"
+                    >
                       <div class="min-w-0">
-                        <div
-                          class="font-black text-slate-800 truncate"
-                          v-html="c.name"
-                        ></div>
+                        <div class="font-black text-slate-800 truncate">
+                          {{
+                            formatNameWithServerShort({
+                              characterName: m.character_name,
+                              serverId: m.server_id,
+                              serverShortName: m.server_short_name,
+                            })
+                          }}
+                        </div>
                         <div
                           class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap"
                         >
-                          <span>{{ formatServerDisplay(c.serverId) }}</span>
-                          <span>{{ c.race === 1 ? "天族" : "魔族" }}</span>
-                          <span>Lv.{{ c.level }}</span>
+                          <span>{{ formatServerDisplay(m.server_id) }}</span>
+                          <span>{{ m.class_name || "—" }}</span>
+                          <span v-if="m.character_level">Lv.{{ m.character_level }}</span>
+                          <span>战 {{ formatCombatPower(m.combat_power) }}</span>
+                          <span>评 {{ m.item_level || "-" }}</span>
+                        </div>
+                        <div class="mt-2">
+                          <input
+                            v-model="m.remark"
+                            type="text"
+                            class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 focus:border-[#45a6d5] outline-none font-bold text-xs text-slate-700 transition-all"
+                            placeholder="备注（可选）"
+                          />
                         </div>
                       </div>
                       <div class="flex items-center gap-2 shrink-0">
-                        <!-- <button
-                        class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-black text-xs hover:bg-slate-200 transition-colors"
-                        @click.stop="saveMyMemberFromSearch(c)"
-                      >
-                        存为我的
-                      </button> -->
                         <button
-                          class="px-3 py-1.5 rounded-xl bg-[#45a6d5] text-white font-black text-xs hover:bg-[#3b95c0] transition-colors"
-                          @click.stop="pickFromSearch(c)"
+                          class="px-3 py-2 rounded-xl bg-[#45a6d5] text-white font-black text-xs hover:bg-[#3b95c0] transition-colors cursor-pointer"
+                          @click="pickFromMyMember(m)"
                         >
                           选择
                         </button>
                       </div>
                     </div>
-                  </div>
-                  <div
-                    v-if="searchedOnce && searchResults.length === 0"
-                    class="py-8 text-center text-slate-400 font-bold"
-                  >
-                    暂无结果
+                    <div
+                      v-if="filteredMyMembers.length === 0"
+                      class="py-10 text-center text-slate-400 font-bold"
+                    >
+                      暂无队员
+                    </div>
                   </div>
                 </div>
-              </div>
+
+                <!-- 添加角色 / 搜索 -->
+                <div v-else-if="pickerOpenOther.type === 'add'" class="space-y-3">
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <select
+                      v-model.number="searchRaceId"
+                      class="px-5 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700"
+                    >
+                      <option :value="1">天族</option>
+                      <option :value="2">魔族</option>
+                    </select>
+                    <select
+                      v-model.number="searchServerId"
+                      class="px-5 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700"
+                    >
+                      <option
+                        v-for="s in searchServerOptions"
+                        :key="s.serverId"
+                        :value="s.serverId"
+                      >
+                        {{ formatServerDisplay(s.serverId) }}
+                      </option>
+                    </select>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2">
+                    <input
+                      v-model="searchQuick"
+                      class="px-4 py-3 rounded-2xl bg-white border-2 border-slate-100 focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all"
+                      placeholder="输入角色名关键字或者快捷粘贴：角色名[区服简写]（例如 xxx[xxx]）"
+                      @keyup.enter="applyQuickToSearchAndSearch"
+                    />
+                  </div>
+                  <div class="flex items-center justify-end">
+                    <button
+                      class="px-5 py-2 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-colors disabled:opacity-50 cursor-pointer"
+                      :disabled="searchLoading"
+                      @click="applyQuickToSearchAndSearch"
+                    >
+                      {{ searchLoading ? "查询中..." : "查询" }}
+                    </button>
+                  </div>
+
+                  <div
+                    v-if="searchLoading"
+                    class="py-10 text-center text-slate-400 font-bold"
+                  >
+                    查询中...
+                  </div>
+                  <div
+                    v-else
+                    class="max-h-[40vh] overflow-y-auto custom-scroll space-y-2"
+                  >
+                    <div
+                      v-for="c in searchResults"
+                      :key="c.characterId"
+                      class="p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer"
+                    >
+                      <div class="flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                          <div
+                            class="font-black text-slate-800 truncate"
+                            v-html="c.name"
+                          ></div>
+                          <div
+                            class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap"
+                          >
+                            <span>{{ formatServerDisplay(c.serverId) }}</span>
+                            <span>{{ c.race === 1 ? "天族" : "魔族" }}</span>
+                            <span>Lv.{{ c.level }}</span>
+                          </div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                          <button
+                            class="px-3 py-1.5 rounded-xl bg-[#45a6d5] text-white font-black text-xs hover:bg-[#3b95c0] transition-colors cursor-pointer"
+                            @click.stop="pickFromSearch(c)"
+                          >
+                            选择
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      v-if="searchedOnce && searchResults.length === 0"
+                      class="py-8 text-center text-slate-400 font-bold"
+                    >
+                      暂无结果
+                    </div>
+                  </div>
+                </div>
+              </template>
+
+              <!-- ==================== TAB 2: 自定义角色 ==================== -->
+              <template v-else-if="pickerTab === 'custom'">
+                <div class="space-y-4 py-2">
+                  <div class="text-xs font-bold text-slate-400">
+                    手动输入自定义角色信息，可直接添加到当前分组中。
+                  </div>
+
+                  <!-- 输入表单 -->
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                      <label class="text-xs font-black text-slate-700"
+                        >角色名称 <span class="text-rose-500">*</span></label
+                      >
+                      <input
+                        v-model="customForm.characterName"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+                        placeholder="请输入角色名称"
+                      />
+                    </div>
+                    <!-- 职业选择下拉框 -->
+                    <div class="space-y-1.5">
+                      <label class="text-xs font-black text-slate-700">职业</label>
+                      <select
+                        v-model="customForm.className"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all cursor-pointer"
+                      >
+                        <option value="" disabled selected>请选择职业</option>
+                        <option
+                          v-for="job in characterClasses"
+                          :key="job.id"
+                          :value="job.name"
+                        >
+                          {{ job.name }}
+                        </option>
+                      </select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                      <label class="text-xs font-black text-slate-700">等级</label>
+                      <input
+                        v-model.number="customForm.characterLevel"
+                        type="number"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+                        placeholder="例如：55"
+                      />
+                    </div>
+
+                    <div class="space-y-1.5">
+                      <label class="text-xs font-black text-slate-700"
+                        >战斗力 / 装备分</label
+                      >
+                      <input
+                        v-model.number="customForm.itemLevel"
+                        type="number"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+                        placeholder="例如：12500"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-black text-slate-700">备注</label>
+                    <input
+                      v-model="customForm.remark"
+                      class="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+                      placeholder="可选填备注信息"
+                    />
+                  </div>
+
+                  <!-- 确认添加按钮 -->
+                  <div class="flex items-center justify-end pt-2">
+                    <button
+                      type="button"
+                      class="px-6 py-3 rounded-2xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-colors cursor-pointer shadow-sm active:scale-95"
+                      @click="confirmAddCustomCharacter"
+                    >
+                      确认添加自定义角色
+                    </button>
+                  </div>
+                </div>
+              </template>
             </div>
           </div>
         </div>
@@ -4654,7 +4896,7 @@ watch(
           class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 backdrop-blur-sm"
         >
           <div
-            class="relative w-full max-w-5xl bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl overflow-hidden text-slate-800 flex flex-col h-[60vh]"
+            class="relative bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl overflow-hidden text-slate-800 flex flex-col transition-all duration-300 h-[60vh] w-[30vw]"
           >
             <!-- 弹窗头部 -->
             <div
@@ -4682,7 +4924,7 @@ watch(
               <!-- 开通会员 -->
               <div
                 v-if="globalPopupOp.type == 'premiumMember'"
-                class="space-y-6 max-w-2xl mx-auto py-2"
+                class="space-y-2 max-w-2xl mx-auto py-2"
               >
                 <!-- 顶部门幅提示卡 -->
                 <div
@@ -4761,19 +5003,84 @@ watch(
                   </div>
                 </div>
               </div>
+              <!-- 奥德能量设置，可补充可改基础值 -->
+              <div
+                v-if="globalPopupOp.type == 'globalSimpleEnergy'"
+                class="space-y-5 max-w-lg mx-auto py-2"
+              >
+                <!-- 头部：极简状态提示 -->
+                <div
+                  class="flex items-center justify-between py-2 border-b border-slate-100 text-xs"
+                >
+                  <span class="font-bold text-slate-400">当前分组状态</span>
+                  <span class="font-black text-slate-700">
+                    {{
+                      globalPopupOp?.targetGroup?.premiumMember
+                        ? "特级会员 (上限 840)"
+                        : "基础模式 (上限 560)"
+                    }}
+                  </span>
+                </div>
+
+                <!-- 主体：输入参数区 -->
+                <div class="space-y-4">
+                  <!-- 1. 基础上限设置 -->
+                  <div class="space-y-1.5">
+                    <div class="flex items-center justify-between text-xs">
+                      <label class="font-bold text-slate-600">基础能量上限</label>
+                      <span class="text-[11px] text-slate-400"
+                        >默认
+                        {{
+                          globalPopupOp?.targetGroup?.premiumMember ? "840" : "560"
+                        }}</span
+                      >
+                    </div>
+                    <div class="relative">
+                      <input
+                        v-model.number="globalPopupOp.data.energy"
+                        class="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-slate-400 focus:bg-white outline-none font-black text-slate-800 text-sm transition-all"
+                        placeholder="请输入上限"
+                      />
+                      <span
+                        class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400"
+                        >点</span
+                      >
+                    </div>
+                  </div>
+
+                  <!-- 2. 存储/补充上限设置 -->
+                  <div class="space-y-1.5">
+                    <div class="flex items-center justify-between text-xs">
+                      <label class="font-bold text-slate-600">补充存储上限</label>
+                      <span class="text-[11px] text-slate-400">默认 2000</span>
+                    </div>
+                    <div class="relative">
+                      <input
+                        v-model.number="globalPopupOp.data.storedEnergy"
+                        class="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-slate-400 focus:bg-white outline-none font-black text-slate-800 text-sm transition-all"
+                        placeholder="请输入存储上限"
+                      />
+                      <span
+                        class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400"
+                        >点</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- 弹窗底部操作按钮 -->
             <div
               class="px-8 py-4 border-t border-slate-100 bg-white flex items-center justify-end gap-3 z-10"
             >
-              <button
+              <!-- <button
                 type="button"
                 @click="handleCloseGlobalPopup"
-                class="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-colors text-xs"
+                class="py-3 px-4 rounded-xl text-white font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center shadow-sm"
               >
                 取消
-              </button>
+              </button> -->
 
               <!-- 开通会员确认按钮 -->
               <button
@@ -4784,6 +5091,45 @@ watch(
               >
                 <span>⚡ 确认开通会员</span>
               </button>
+              <!-- 奥德补充 -->
+              <div class="border-t border-slate-100 grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  class="py-3 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center truncate"
+                  @click="
+                    () => {
+                      if (globalPopupOp?.targetGroup?.premiumMember) {
+                        globalPopupOp.data.energy = 840;
+                      } else {
+                        globalPopupOp.data.energy = 560;
+                      }
+                      globalPopupOp.data.storedEnergy = 2000;
+                    }
+                  "
+                >
+                  一键补满
+                </button>
+
+                <button
+                  type="button"
+                  class="py-3 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center truncate"
+                  @click="
+                    () => {
+                      globalPopupOp.data = { storedEnergy: 0, energy: 0 };
+                    }
+                  "
+                >
+                  一键清空
+                </button>
+
+                <button
+                  type="button"
+                  class="py-3 px-3 rounded-xl bg-[#45a6d5] hover:bg-[#3b95c0] text-white font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center shadow-sm truncate"
+                  @click="handleGlobalPopupFill('globalSimpleEnergy')"
+                >
+                  确定补充
+                </button>
+              </div>
             </div>
           </div>
         </div>

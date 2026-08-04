@@ -433,6 +433,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
       <div
         v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showEnergy)"
         class="p-3.5 bg-gradient-to-br from-slate-50/90 to-slate-100/60 border border-slate-200/80 rounded-2xl space-y-2.5 shadow-sm transition-all hover:shadow"
+        @click="emit('task-click', char, '', 'globalSimpleEnergy')"
       >
         <!-- 头部：标题与数值概览 -->
         <div class="flex items-center justify-between text-xs">

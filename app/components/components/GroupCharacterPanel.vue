@@ -916,6 +916,7 @@ const emit = defineEmits([
   "play-consumption",
   "open-edit",
   "update-groups",
+  "task-click",
 ]);
 
 const { $confirm, $alert } = useNuxtApp();
@@ -1026,11 +1027,24 @@ const handleTaskClick = (char, field, tab) => {
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     tab
   );
-  // 今入日周tab
-  handleClickGameplay(char, tab);
-  nextTick(() => {
-    scrollToSection(field);
-  });
+
+  switch (tab) {
+    case "weeklydaily":
+      //tab
+      handleClickGameplay(char, tab);
+      nextTick(() => {
+        scrollToSection(field);
+      });
+
+      break;
+    case "globalSimpleEnergy": //通用弹框
+      //发送给父组件
+      emit("task-click", char, "globalSimpleEnergy");
+      break;
+
+    default:
+      break;
+  }
 };
 
 //========================游玩消耗/补充弹框开始========================
@@ -1358,6 +1372,7 @@ const handleExecuteSupplement = async () => {
 
   // 修改了角色基础奥德能量，并且更新时间戳为当前时间
   if (energy) {
+    const nowIso = new Date().toISOString();
     updatedCharacter.energy = energy;
     updatedCharacter.lastEnergyUpdate = nowIso;
   }

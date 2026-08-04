@@ -448,3 +448,15 @@ export const dungeonDecayRules = {
   // 圣域默认不衰减 (100%)
   sanctuary: [{ maxCount: Infinity, rate: 1.0, label: "无衰减 (基纳获得量 100%)" }],
 };
+
+
+// 职业字典数组对象
+export const characterClasses = [
+  { id: 1, name: "剑星" },
+  { id: 2, name: "守护星" },
+  { id: 3, name: "拳星" },
+  { id: 4, name: "护法星" },
+  { id: 5, name: "弓星" },
+  { id: 6, name: "魔道星" },
+  { id: 7, name: "精灵星" },
+];
