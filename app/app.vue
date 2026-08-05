@@ -1,12 +1,13 @@
 <!--
  * @Author: whq
  * @Date: 2026-02-08 09:11:19
- * @LastEditTime: 2026-08-04 09:40:33
+ * @LastEditTime: 2026-08-05 11:04:56
  * @LastEditors: fofo
  * @Description: 
  * @FilePath: /aion2-portal/app/app.vue
 -->
 <template>
+  <!-- 根节点或者通过 bodyAttrs 动态绑定 dark 类 -->
   <NuxtLayout>
     <NuxtPage />
     <GlobalFeedback />
@@ -14,15 +15,40 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted } from 'vue';
-/**
- * 这里可以放置一些全局逻辑，比如：
- * 1. 全局的主题控制
- * 2. 初始化的权限检查
- * 3. 统计脚本
- */
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 
-// 例如：设置全局的 SEO 标题
+// 主题状态：从 localStorage 读取，默认浅色
+const isDark = ref(false);
+
+// 切换主题方法（可以绑定到你的 UI 按钮上，或者导出去给其他组件用）
+const toggleTheme = () => {
+  isDark.value = !isDark.value;
+  updateThemeClass();
+};
+
+// 更新 DOM 的 dark 类
+const updateThemeClass = () => {
+  if (typeof window !== 'undefined') {
+    if (isDark.value) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }
+};
+
+// 初始化检查本地存储
+onMounted(() => {
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    isDark.value = true;
+  }
+  updateThemeClass();
+});
+
+// 动态修改 body 背景色（适配黑夜与白天）
 useHead({
   title: 'AION2 宝宝巴士',
   meta: [
@@ -31,26 +57,24 @@ useHead({
   link: [
     { rel: 'icon', type: 'image/png', href: '/bbbswz.png' }
   ],
-  // 如果你想给整个身体加一个基础背景色，防止切页闪白
   bodyAttrs: {
-    class: 'bg-sky-300'
+    // 白天是 sky-300，黑夜自动变成深灰色/Slate色（配合 tailwind 的 dark: 前缀）
+    class: 'bg-sky-300 dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors duration-300'
   }
-})
-import { useGameRefresh } from '@/composables/useGameRefresh';
+});
 
+import { useGameRefresh } from '@/composables/useGameRefresh';
 const { executeDataRefresh, initAutoRefreshTimer, stopAutoRefreshTimer } = useGameRefresh();
 
-// 1. 页面加载挂载时：启动后台自动定时监测与计算
 onMounted(async () => {
-  // 页面打开瞬间先执行一次手动/即时刷新校验
   await executeDataRefresh();
-  
-  // 开启定时器（每分钟自动检查是否跨天/跨周/能量是否溢出）
   initAutoRefreshTimer();
 });
 
-// 2. 页面卸载时清理定时器
 onUnmounted(() => {
   stopAutoRefreshTimer();
 });
+
+// 可选：将 toggleTheme 暴露给全局（如果其他地方的导航栏按钮要用）
+provide('theme', { isDark, toggleTheme });
 </script>

@@ -1,12 +1,9 @@
 <template>
   <div
-    class="flex flex-col relative min-h-screen w-full relative bg-watercolor font-sans custom-scroll overflow-x-hidden"
+    class="flex flex-col relative min-h-screen w-full relative dark:bg-watercolor font-sans custom-scroll overflow-x-hidden my-scroll-container"
     :class="{ 'h-screen overflow-hidden': showIntro && isClient }"
     ref="scrollContainer"
   >
-
-
-    <!-- 全局背景装饰层 (极致层级与位置优化) -->
     <div
       v-show="!showIntro"
       class="fixed inset-0 w-full h-full z-[15] pointer-events-none transition-opacity duration-1000"
@@ -15,10 +12,7 @@
       <div
         class="absolute top-[2%] -left-32 w-[30rem] md:w-[55rem] h-auto opacity-80 rotate-3"
       >
-        <img
-          src="/bbbscmt.png"
-          class="w-full h-full object-contain -scale-x-100"
-        />
+        <img src="/bbbscmt.png" class="w-full h-full object-contain -scale-x-100" />
       </div>
       <!-- 右侧巴士 (面向左) -->
       <div
@@ -27,14 +21,35 @@
         <img src="/bbbscmt.png" class="w-full h-full object-contain" />
       </div>
     </div>
+    <!-- 全局背景装饰层 -->
+    <div
+      v-show="!showIntro"
+      class="fixed inset-0 w-full h-full z-[15] pointer-events-none transition-opacity duration-1000"
+    >
+      <!-- 左侧巴士 -->
+      <div
+        class="absolute top-[2%] -left-32 w-[30rem] md:w-[55rem] h-auto opacity-80 rotate-3"
+      >
+        <img src="/bbbscmt.png" class="w-full h-full object-contain -scale-x-100" />
+      </div>
+      <!-- 右侧巴士 -->
+      <div
+        class="absolute top-[2%] -right-32 w-[30rem] md:w-[55rem] h-auto opacity-80 -rotate-3"
+      >
+        <img src="/bbbscmt.png" class="w-full h-full object-contain" />
+      </div>
+    </div>
 
-    <nav class="relative z-50 p-6 flex items-center">
+    <nav
+      class="sticky top-0 z-50 p-2 flex items-center justify-between bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-800/50 transition-colors duration-500"
+    >
+      <!-- 左侧 Logo 与名称 -->
       <NuxtLink
         to="/"
         class="flex items-center gap-2 group transition-all active:scale-95"
       >
         <div
-          class="w-12 h-12 bg-white rounded-full p-1 shadow-md border-2 border-[#AEE2F9] group-hover:border-[#45a6d5] group-hover:rotate-12 transition-all duration-500 overflow-hidden"
+          class="w-12 h-12 bg-white dark:bg-slate-800 rounded-full p-1 shadow-md border-2 border-[#AEE2F9] dark:border-slate-700 group-hover:border-[#45a6d5] group-hover:rotate-12 transition-all duration-500 overflow-hidden"
         >
           <img
             src="/bbbswz.png"
@@ -43,53 +58,100 @@
         </div>
         <div class="flex flex-col leading-none">
           <span
-            class="text-[#45a6d5] font-black text-xl tracking-tighter group-hover:text-sky-600 transition-colors"
-            >BBBS</span
+            class="text-[#45a6d5] font-black text-xl tracking-tighter group-hover:text-sky-400 transition-colors"
           >
+            BBBS
+          </span>
         </div>
       </NuxtLink>
-      <div class="flex-1 text-center">
+
+      <!-- 中间标题 -->
+      <div class="absolute left-1/2 -translate-x-1/2 text-center pointer-events-none">
         <span
-          class="text-2xl md:text-3xl font-black text-[#45a6d5] tracking-widest"
-          >AION2</span
+          class="text-2xl md:text-3xl font-black text-[#45a6d5] dark:text-sky-400 tracking-widest"
         >
+          AION2
+        </span>
       </div>
 
-      <!-- 用户状态区 -->
-      <div v-if="user" class="group relative">
-        <div
-          class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-white shadow-sm flex items-center gap-2 cursor-pointer transition-all hover:bg-white"
+      <!-- 右侧操作区：主题切换按钮 + 用户状态/登录按钮 -->
+      <div class="flex items-center gap-3">
+        <!-- 🌙 / ☀️ 主题切换按钮 -->
+        <button
+          @click="toggleTheme"
+          class="relative p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-yellow-400 transition-all duration-200 shadow-sm border border-slate-200/60 dark:border-slate-700/60"
+          title="切换主题"
         >
-          <img src="/bbbswz.png" class="w-6 h-6 rounded-full" />
-          <span class="text-xs font-bold text-sky-800"
-            >@ {{ displayUsername }}</span
+          <!-- 太阳图标（日间显示） -->
+          <svg
+            class="w-5 h-5 transition-transform duration-300 dark:-rotate-90 dark:scale-0"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+            />
+          </svg>
+          <!-- 月亮图标（夜间显示） -->
+          <svg
+            class="absolute inset-2.5 w-5 h-5 transition-transform duration-300 rotate-90 scale-0 dark:rotate-0 dark:scale-100"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+            />
+          </svg>
+        </button>
+
+        <!-- 用户状态区 -->
+        <div v-if="user" class="group relative">
+          <div
+            class="bg-white dark:bg-slate-800 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-2 cursor-pointer transition-all"
+          >
+            <img src="/bbbswz.png" class="w-6 h-6 rounded-full" />
+            <span class="text-xs font-bold text-sky-800 dark:text-sky-300"
+              >@ {{ displayUsername }}</span
+            >
+          </div>
+          <!-- 登出菜单 -->
+          <div
+            class="absolute right-0 top-full mt-2 w-32 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-sky-100 dark:border-slate-700 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top-right scale-95 group-hover:scale-100"
+          >
+            <button
+              @click="handleEnterAdmin"
+              class="w-full text-left px-4 py-3 text-xs font-bold text-[#45a6d5] hover:bg-sky-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              进入后台
+            </button>
+            <button
+              @click="logout"
+              class="w-full text-left px-4 py-3 text-xs font-bold text-red-400 hover:bg-red-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              退出登录
+            </button>
+          </div>
         </div>
-        <!-- 登出菜单 -->
-        <div
-          class="absolute right-0 top-full mt-2 w-32 bg-white rounded-xl shadow-lg border border-sky-100 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top-right scale-95 group-hover:scale-100"
-        >
-          <button
-            @click="handleEnterAdmin"
-            class="w-full text-left px-4 py-3 text-xs font-bold text-[#45a6d5] hover:bg-[#f0f9ff] transition-colors"
+
+        <!-- 未登录按钮 -->
+        <div v-else>
+          <NuxtLink
+            to="/login"
+            class="bg-[#f9b11d] hover:bg-[#fbc02d] text-white px-5 py-2 rounded-full font-black text-sm shadow-[0_3px_0_0_#d98a00] active:translate-y-1 active:shadow-none transition-all inline-block"
           >
-            进入后台
-          </button>
-          <button
-            @click="logout"
-            class="w-full text-left px-4 py-3 text-xs font-bold text-red-400 hover:bg-red-50 transition-colors"
-          >
-            退出登录
-          </button>
+            登录 / 注册
+          </NuxtLink>
         </div>
-      </div>
-      <div v-else>
-        <NuxtLink
-          to="/login"
-          class="bg-[#f9b11d] hover:bg-[#fbc02d] text-white px-5 py-2 rounded-full font-black text-sm shadow-[0_3px_0_0_#d98a00] active:translate-y-1 active:shadow-none transition-all"
-        >
-          登录 / 注册
-        </NuxtLink>
       </div>
     </nav>
 
@@ -115,19 +177,14 @@
         >
           <span
             class="inline-block transform hover:scale-110 transition-transform duration-300 cursor-default text-[#0ea5e9]"
-            style="
-              text-shadow:
-                2px 2px 0px #0284c7,
-                4px 4px 0px #bae6fd;
-            "
+            style="text-shadow: 2px 2px 0px #0284c7, 4px 4px 0px #bae6fd"
             >永恒之塔2</span
           >
           <span
             class="inline-block ml-0 md:ml-4 transform -rotate-3 md:-rotate-6 bg-[#f9b11d] text-white px-3 py-1 md:px- md:py-1 rounded-2xl text-2xl sm:text-4xl md:text-6xl shadow-[3px_3px_0_0_#d98a00] md:shadow-[4px_4px_0_0_#d98a00] hover:rotate-0 hover:scale-110 transition-all duration-300 cursor-pointer border-2 border-white"
           >
             出发喽～
-            <span
-              class="absolute -top-2 -right-2 text-xl md:text-2xl animate-ping"
+            <span class="absolute -top-2 -right-2 text-xl md:text-2xl animate-ping"
               >✨</span
             >
           </span>
@@ -136,9 +193,9 @@
           宝宝巴士，你的每一个本都是宝宝本
         </p> -->
         <div class="mt-1 flex gap-2">
-          <span class="w-2 h-2 rounded-full bg-[#45a6d5]"></span>
-          <span class="w-2 h-2 rounded-full bg-[#AEE2F9]"></span>
-          <span class="w-2 h-2 rounded-full bg-[#45a6d5]"></span>
+          <span class="w-2 h-2 rounded-full dark:bg-[#45a6d5]"></span>
+          <span class="w-2 h-2 rounded-full dark:bg-[#AEE2F9]"></span>
+          <span class="w-2 h-2 rounded-full dark:bg-[#45a6d5]"></span>
         </div>
       </div>
 
@@ -162,7 +219,7 @@
             }"
           >
             <div
-              class="relative w-14 h-14 bg-[#f9b11d] rounded-full shadow-[0_4px_12px_rgba(249,177,29,0.4)] border-2 border-white flex items-center justify-center overflow-hidden group"
+              class="relative w-14 h-14 dark:bg-[#f9b11d] rounded-full shadow-[0_4px_12px_rgba(249,177,29,0.4)] border-2 border-white flex items-center justify-center overflow-hidden group"
             >
               <!-- 闭眼/睁眼动画 -->
               <img
@@ -171,7 +228,7 @@
               />
               <!-- 菜单展开指示器 -->
               <div
-                class="absolute inset-0 bg-white/20 scale-0 rounded-full transition-transform duration-300"
+                class="absolute inset-0 dark:bg-white dark:bg-slate-800/20 scale-0 rounded-full transition-transform duration-300"
                 :class="{ 'scale-100': showMobileMenu }"
               ></div>
             </div>
@@ -186,7 +243,7 @@
           <transition name="fade">
             <div
               v-if="showMobileMenu"
-              class="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 touch-none"
+              class="fixed inset-0 dark:bg-slate-900/20 backdrop-blur-sm z-40 touch-none"
               @click="showMobileMenu = false"
               @touchmove.prevent
             ></div>
@@ -222,8 +279,8 @@
                 class="pointer-events-auto relative flex items-center justify-center px-4 py-2 rounded-xl border-2 shadow-sm font-black text-xs transition-all duration-300 active:scale-95 whitespace-nowrap min-w-[5rem]"
                 :class="
                   activeTab === tab.id
-                    ? 'bg-[#45a6d5] text-white border-white scale-110 shadow-md'
-                    : 'bg-white text-[#45a6d5] border-[#E6F7FF] hover:border-[#45a6d5]'
+                    ? 'dark:bg-[#45a6d5] text-white border-white scale-110 shadow-md'
+                    : 'dark:bg-white dark:bg-slate-800 text-[#45a6d5] border-[#E6F7FF] hover:border-[#45a6d5]'
                 "
                 :style="{
                   '--delay': `${index * 0.06}s`,
@@ -259,8 +316,10 @@
               :class="[
                 'relative px-6 py-2 rounded-full font-black text-lg border-4 transition-all duration-300 flex items-center',
                 activeTab === tab.id
-                  ? 'bg-[#f9b11d] text-white border-white shadow-[0_6px_0_#d98a00] scale-110 rotate-1'
-                  : 'bg-white text-[#45a6d5] border-[#E6F7FF] shadow-[0_4px_0_#AEE2F9] hover:-translate-y-1 hover:shadow-[0_6px_0_#AEE2F9]',
+                  ? /* 选中状态：白天用你原本的醒目色，黑夜用黄色并适配暗黑阴影 */
+                    'bg-[#f9b11d] dark:bg-[#f9b11d] text-white border-white shadow-[0_6px_0_#d98a00] dark:shadow-[0_6px_0_#b36b00] scale-110 rotate-1'
+                  : /* 未选中状态：白天用浅蓝/白色，黑夜用深色卡片背景防刺眼 */
+                    'bg-white dark:bg-slate-800 dark:bg-slate-800 text-[#45a6d5] dark:text-sky-300 border-[#E6F7FF] dark:border-slate-700 shadow-[0_4px_0_#AEE2F9] dark:shadow-[0_4px_0_#1e293b] hover:-translate-y-1 hover:shadow-[0_6px_0_#AEE2F9] dark:hover:shadow-[0_6px_0_#1e293b]',
               ]"
             >
               {{ tab.name }}
@@ -268,9 +327,7 @@
           </button>
         </div>
 
-        <div
-          class="panel-cartoon min-h-[360px] p-4 relative overflow-hidden"
-        >
+        <div class="panel-cartoon min-h-[360px] p-4 relative overflow-hidden">
           <div
             class="absolute -bottom-6 -right-6 text-[8rem] opacity-5 pointer-events-none italic font-black"
           >
@@ -286,7 +343,7 @@
               >
                 <!-- 左侧置顶/重要公告 -->
                 <div
-                  class="p-6 bg-white/70 backdrop-blur-sm rounded-3xl shadow-md flex flex-col h-full"
+                  class="p-6 dark:bg-white dark:bg-slate-800/70 backdrop-blur-sm rounded-3xl shadow-md flex flex-col h-full"
                 >
                   <h3
                     class="text-[#45a6d5] font-black text-xl flex items-center gap-2 mb-4"
@@ -306,19 +363,15 @@
                   >
                     暂无动态
                   </div>
-                  <div
-                    v-else
-                    class="space-y-3 flex-1 overflow-y-auto custom-scroll pr-2"
-                  >
+                  <div v-else class="space-y-3 flex-1 overflow-y-auto custom-scroll pr-2">
                     <div
                       v-for="post in posts"
                       :key="post.id"
-                      class="p-4 bg-white rounded-2xl border-2 border-white flex justify-between items-center hover:scale-[1.02] transition-transform"
+                      class="p-4 dark:bg-white dark:bg-slate-800 rounded-2xl border-2 border-white flex justify-between items-center hover:scale-[1.02] transition-transform"
                     >
-                      <span
-                        class="font-bold text-sky-900 italic truncate flex-1 mr-4"
-                        >{{ post.title }}</span
-                      >
+                      <span class="font-bold text-sky-900 italic truncate flex-1 mr-4">{{
+                        post.title
+                      }}</span>
                       <span class="text-xs text-sky-400 whitespace-nowrap">{{
                         new Date(post.created_at).toLocaleDateString()
                       }}</span>
@@ -331,20 +384,18 @@
                   <div
                     v-for="i in 3"
                     :key="i"
-                    class="flex items-center gap-4 p-3 bg-white/80 backdrop-blur-sm rounded-2xl shadow-md"
+                    class="flex items-center gap-4 p-3 dark:bg-white dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-md"
                   >
                     <div
-                      class="w-12 h-12 flex items-center justify-center bg-[#f9b11d] text-white font-black rounded-xl"
+                      class="w-12 h-12 flex items-center justify-center dark:bg-[#f9b11d] text-white font-black rounded-xl"
                     >
                       #{{ i }}
                     </div>
                     <div class="flex-1">
-                      <span class="font-black text-sky-900"
-                        >{{ i }}</span
-                      >
+                      <span class="font-black text-sky-900">{{ i }}</span>
                     </div>
                     <button
-                      class="w-9 h-9 flex items-center justify-center rounded-full bg-[#AEE2F9] text-white"
+                      class="w-9 h-9 flex items-center justify-center rounded-full dark:bg-[#AEE2F9] text-white"
                     >
                       💙
                     </button>
@@ -405,27 +456,19 @@
                 class="grid grid-cols-1 md:grid-cols-2 gap-4 h-full"
               >
                 <div
-                  class="p-6 bg-white rounded-2xl border-2 border-[#E6F7FF] flex flex-col"
+                  class="p-6 dark:bg-white dark:bg-slate-800 rounded-2xl border-2 border-[#E6F7FF] flex flex-col"
                 >
                   <p class="text-sky-900 font-bold mb-4">战力解析面板</p>
                   <div class="flex-1 min-h-[300px]">
-                    <VChart
-                      class="w-full h-full"
-                      :option="radarOption"
-                      autoresize
-                    />
+                    <VChart class="w-full h-full" :option="radarOption" autoresize />
                   </div>
                 </div>
                 <div
-                  class="p-6 bg-white rounded-2xl border-2 border-[#E6F7FF] flex flex-col"
+                  class="p-6 dark:bg-white dark:bg-slate-800 rounded-2xl border-2 border-[#E6F7FF] flex flex-col"
                 >
                   <p class="text-sky-900 font-bold mb-4">趋势折线</p>
                   <div class="flex-1 min-h-[300px]">
-                    <VChart
-                      class="w-full h-full"
-                      :option="lineOption"
-                      autoresize
-                    />
+                    <VChart class="w-full h-full" :option="lineOption" autoresize />
                   </div>
                 </div>
               </div>
@@ -437,10 +480,10 @@
                 <div
                   v-for="i in 4"
                   :key="i"
-                  class="flex items-center gap-4 p-3 bg-white/80 backdrop-blur-sm rounded-2xl shadow-md"
+                  class="flex items-center gap-4 p-3 dark:bg-white dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-md"
                 >
                   <div
-                    class="w-10 h-10 flex items-center justify-center bg-[#f9b11d] text-white font-black rounded-xl"
+                    class="w-10 h-10 flex items-center justify-center dark:bg-[#f9b11d] text-white font-black rounded-xl"
                   >
                     #{{ i }}
                   </div>
@@ -470,38 +513,32 @@
               </div>
 
               <!-- Tab 5: 军团成员 (Members) -->
-              <div
-                v-else-if="activeTab === 'members'"
-                class="h-full flex flex-col"
-              >
+              <div v-else-if="activeTab === 'members'" class="h-full flex flex-col">
                 <!-- 顶部搜索和筛选栏 -->
                 <div
-                  class="flex flex-col sm:flex-row gap-4 mb-4 items-center justify-between bg-white/50 backdrop-blur-sm p-4 rounded-2xl border-2 border-white"
+                  class="flex flex-col sm:flex-row gap-4 mb-4 items-center justify-between dark:bg-white dark:bg-slate-800/50 backdrop-blur-sm p-4 rounded-2xl border-2 border-white"
                 >
                   <!-- 搜索框 -->
                   <div class="relative w-full sm:w-64">
-                    <span
-                      class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
                       >🔍</span
                     >
                     <input
                       v-model="memberSearchQuery"
                       type="text"
                       placeholder="搜索成员..."
-                      class="w-full pl-9 pr-4 py-2 rounded-xl border-2 border-[#E6F7FF] focus:border-[#45a6d5] outline-none text-slate-700 font-bold bg-white transition-colors"
+                      class="w-full pl-9 pr-4 py-2 rounded-xl border-2 border-[#E6F7FF] focus:border-[#45a6d5] outline-none text-slate-700 font-bold bg-white dark:bg-slate-800 transition-colors"
                     />
                   </div>
 
                   <!-- 职业筛选 (水平滚动) -->
-                  <div
-                    class="flex-1 w-full overflow-x-auto custom-scroll pb-1 sm:pb-0"
-                  >
+                  <div class="flex-1 w-full overflow-x-auto custom-scroll pb-1 sm:pb-0">
                     <div class="flex gap-2">
                       <!-- 排序下拉框 (新增) -->
                       <div class="relative inline-block text-left mr-2">
                         <select
                           v-model="sortOrder"
-                          class="appearance-none bg-white border-2 border-yellow-300 text-yellow-600 px-3 py-1.5 pr-8 rounded-lg text-xs font-black focus:outline-none focus:border-yellow-500 cursor-pointer"
+                          class="appearance-none dark:bg-white dark:bg-slate-800 border-2 border-yellow-300 text-yellow-600 px-3 py-1.5 pr-8 rounded-lg text-xs font-black focus:outline-none focus:border-yellow-500 cursor-pointer"
                         >
                           <option value="role">按职位</option>
                           <option value="item_level">按战力</option>
@@ -527,8 +564,8 @@
                         class="px-3 py-1.5 rounded-lg text-xs font-black whitespace-nowrap transition-all border-2"
                         :class="
                           selectedClass === ''
-                            ? 'bg-[#45a6d5] text-white border-[#45a6d5]'
-                            : 'bg-white text-slate-500 border-white hover:border-[#E6F7FF]'
+                            ? 'dark:bg-[#45a6d5] text-white border-[#45a6d5]'
+                            : 'dark:bg-white dark:bg-slate-800 text-slate-500 border-white hover:border-[#E6F7FF]'
                         "
                       >
                         全部 ({{ members.length }})
@@ -540,8 +577,8 @@
                         class="px-3 py-1.5 rounded-lg text-xs font-black whitespace-nowrap transition-all border-2"
                         :class="
                           selectedClass === cls
-                            ? 'bg-[#45a6d5] text-white border-[#45a6d5]'
-                            : 'bg-white text-slate-500 border-white hover:border-[#E6F7FF]'
+                            ? 'dark:bg-[#45a6d5] text-white border-[#45a6d5]'
+                            : 'dark:bg-white dark:bg-slate-800 text-slate-500 border-white hover:border-[#E6F7FF]'
                         "
                       >
                         {{ cls }} ({{
@@ -569,153 +606,119 @@
                   <span class="font-bold">未找到相关成员</span>
                 </div>
 
-                <div
-                  v-else
-                  class="flex-1 overflow-y-auto custom-scroll p-2 -mx-2"
-                >
+                <div v-else class="flex-1 overflow-y-auto custom-scroll p-2 -mx-2">
                   <!-- 军团统计看板 -->
                   <div class="mb-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div
-                      class="bg-white/70 backdrop-blur-sm p-4 rounded-[2rem] border-2 border-white shadow-sm flex flex-col items-center justify-center group hover:shadow-md transition-all"
+                      class="dark:white/70 backdrop-blur-sm p-4 rounded-[2rem] border-2 border-white shadow-sm flex flex-col items-center justify-center group hover:shadow-md transition-all"
                     >
                       <span
                         class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1"
                         >军团总人数</span
                       >
                       <div class="flex items-end gap-1">
-                        <span
-                          class="text-3xl font-black text-sky-600 leading-none"
-                          >{{ members.length }}</span
-                        >
-                        <span class="text-xs font-bold text-sky-400 mb-1"
-                          >人</span
-                        >
+                        <span class="text-3xl font-black text-sky-600 leading-none">{{
+                          members.length
+                        }}</span>
+                        <span class="text-xs font-bold text-sky-400 mb-1">人</span>
                       </div>
                     </div>
                     <div
-                      class="bg-white/70 backdrop-blur-sm p-4 rounded-[2rem] border-2 border-white shadow-sm flex flex-col items-center justify-center group hover:shadow-md transition-all"
+                      class="dark:bg-white dark:bg-slate-800/70 backdrop-blur-sm p-4 rounded-[2rem] border-2 border-white shadow-sm flex flex-col items-center justify-center group hover:shadow-md transition-all"
                     >
                       <span
                         class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1"
                         >平均等级</span
                       >
                       <div class="flex items-end gap-1">
-                        <span
-                          class="text-3xl font-black text-emerald-500 leading-none"
-                        >
+                        <span class="text-3xl font-black text-emerald-500 leading-none">
                           {{
                             members.length
                               ? Math.round(
-                                  members.reduce(
-                                    (acc, m) => acc + (m.level || 0),
-                                    0,
-                                  ) / members.length,
+                                  members.reduce((acc, m) => acc + (m.level || 0), 0) /
+                                    members.length
                                 )
                               : 0
                           }}
                         </span>
-                        <span class="text-xs font-bold text-emerald-400 mb-1"
-                          >级</span
-                        >
+                        <span class="text-xs font-bold text-emerald-400 mb-1">级</span>
                       </div>
                     </div>
                     <div
-                      class="bg-white/70 backdrop-blur-sm p-4 rounded-[2rem] border-2 border-white shadow-sm flex flex-col items-center justify-center group hover:shadow-md transition-all"
+                      class="dark:bg-white dark:bg-slate-800/70 backdrop-blur-sm p-4 rounded-[2rem] border-2 border-white shadow-sm flex flex-col items-center justify-center group hover:shadow-md transition-all"
                     >
                       <span
                         class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1"
                         >物理职业</span
                       >
                       <div class="flex items-end gap-1">
-                        <span
-                          class="text-3xl font-black text-rose-500 leading-none"
-                        >
+                        <span class="text-3xl font-black text-rose-500 leading-none">
                           {{
                             members.filter((m) =>
-                              [
-                                "劍星",
-                                "守護星",
-                                "殺星",
-                                "弓星",
-                                "機甲星",
-                              ].includes(m.class_name),
+                              ["劍星", "守護星", "殺星", "弓星", "機甲星"].includes(
+                                m.class_name
+                              )
                             ).length
                           }}
                         </span>
-                        <span class="text-xs font-bold text-rose-400 mb-1"
-                          >人</span
-                        >
+                        <span class="text-xs font-bold text-rose-400 mb-1">人</span>
                       </div>
                     </div>
                     <div
-                      class="bg-white/70 backdrop-blur-sm p-4 rounded-[2rem] border-2 border-white shadow-sm flex flex-col items-center justify-center group hover:shadow-md transition-all"
+                      class="dark:bg-white dark:bg-slate-800/70 backdrop-blur-sm p-4 rounded-[2rem] border-2 border-white shadow-sm flex flex-col items-center justify-center group hover:shadow-md transition-all"
                     >
                       <span
                         class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1"
                         >魔法/支援</span
                       >
                       <div class="flex items-end gap-1">
-                        <span
-                          class="text-3xl font-black text-indigo-500 leading-none"
-                        >
+                        <span class="text-3xl font-black text-indigo-500 leading-none">
                           {{
                             members.filter((m) =>
-                              [
-                                "魔道星",
-                                "精靈星",
-                                "治癒星",
-                                "護法星",
-                                "藝人",
-                              ].includes(m.class_name),
+                              ["魔道星", "精靈星", "治癒星", "護法星", "藝人"].includes(
+                                m.class_name
+                              )
                             ).length
                           }}
                         </span>
-                        <span class="text-xs font-bold text-indigo-400 mb-1"
-                          >人</span
-                        >
+                        <span class="text-xs font-bold text-indigo-400 mb-1">人</span>
                       </div>
                     </div>
                   </div>
 
                   <!-- 军团长区域 (仅当未筛选或筛选结果包含军团长时显示) -->
                   <div
-                    v-if="
-                      leaders.length > 0 && !memberSearchQuery && !selectedClass
-                    "
+                    v-if="leaders.length > 0 && !memberSearchQuery && !selectedClass"
                     class="mb-8"
                   >
                     <div class="flex items-center gap-2 mb-4">
                       <span class="text-2xl">👑</span>
-                      <h3 class="font-black text-slate-800 text-lg">
+                      <h3 class="font-black text-slate-800 dark:text-slate-100 text-lg">
                         军团指挥部
                       </h3>
                       <div
-                        class="h-[2px] flex-1 bg-gradient-to-r from-yellow-200 to-transparent"
+                        class="h-[2px] flex-1 dark:bg-gradient-to-r from-yellow-200 to-transparent"
                       ></div>
                     </div>
-                    <div
-                      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-                    >
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       <NuxtLink
                         :to="'/member/' + member.id"
                         v-for="member in leaders"
                         :key="member.id"
-                        class="relative bg-gradient-to-br from-yellow-50 to-white p-4 rounded-2xl border-2 border-yellow-200 shadow-sm flex items-center gap-4 hover:scale-[1.02] transition-transform cursor-pointer"
+                        class="relative dark:bg-gradient-to-br from-yellow-50 to-white p-4 rounded-2xl border-2 border-yellow-200 shadow-sm flex items-center gap-4 hover:scale-[1.02] transition-transform cursor-pointer"
                       >
                         <div class="relative">
                           <img
                             :src="member.profile_url || '/bbbswz.png'"
-                            class="w-16 h-16 rounded-full border-2 border-yellow-400 shadow-md object-cover bg-white"
+                            class="w-16 h-16 rounded-full border-2 border-yellow-400 shadow-md object-cover dark:bg-white dark:bg-slate-800"
                           />
-                          <div
-                            class="absolute -top-2 -right-1 text-xl drop-shadow-md"
-                          >
+                          <div class="absolute -top-2 -right-1 text-xl drop-shadow-md">
                             👑
                           </div>
                         </div>
                         <div class="flex-1 min-w-0">
                           <h4
-                            class="font-black text-slate-800 text-lg truncate flex items-center gap-1"
+                            class="font-black text-slate-800 dark:text-slate-100 text-lg truncate flex items-center gap-1"
                           >
                             {{ member.name }}
                             <span
@@ -731,7 +734,7 @@
                           </h4>
                           <div class="flex items-center gap-2 mt-1 flex-wrap">
                             <span
-                              class="bg-yellow-400 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm"
+                              class="dark:bg-yellow-400 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm"
                               >军团长</span
                             >
                             <span class="text-xs text-slate-500 font-bold"
@@ -739,7 +742,7 @@
                             >
                             <span
                               v-if="member.item_level"
-                              class="text-xs font-bold text-yellow-600 bg-yellow-50 px-1.5 rounded flex items-center gap-0.5"
+                              class="text-xs font-bold text-yellow-600 dark:bg-yellow-50 px-1.5 rounded flex items-center gap-0.5"
                               title="装备分数"
                             >
                               ⚔️ {{ member.item_level }}
@@ -761,7 +764,7 @@
                       :to="'/member/' + member.id"
                       v-for="member in otherMembers"
                       :key="member.id"
-                      class="group relative bg-white/60 backdrop-blur-sm rounded-2xl border-2 border-white hover:border-[#AEE2F9] p-3 flex flex-col items-center transition-all hover:-translate-y-1 hover:shadow-lg will-change-transform cursor-pointer"
+                      class="group relative dark:bg-white dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border-2 border-white hover:border-[#AEE2F9] p-3 flex flex-col items-center transition-all hover:-translate-y-1 hover:shadow-lg will-change-transform cursor-pointer"
                     >
                       <!-- 职位徽章 (精英军官) -->
                       <div
@@ -769,7 +772,7 @@
                         class="absolute -top-2 -right-2 z-10"
                       >
                         <span
-                          class="bg-purple-400 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm"
+                          class="dark:bg-purple-400 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm"
                           >精英军官</span
                         >
                       </div>
@@ -778,10 +781,10 @@
                         <img
                           loading="lazy"
                           :src="member.profile_url || '/bbbswz.png'"
-                          class="w-full h-full rounded-full object-cover border-2 border-white shadow-sm bg-slate-100 group-hover:scale-105 transition-transform duration-300"
+                          class="w-full h-full rounded-full object-cover border-2 border-white shadow-sm dark:bg-slate-100 group-hover:scale-105 transition-transform duration-300"
                         />
                         <div
-                          class="absolute bottom-0 right-0 bg-[#45a6d5] text-white text-[10px] font-bold px-1.5 rounded-full border border-white min-w-[20px] text-center"
+                          class="absolute bottom-0 right-0 dark:bg-[#45a6d5] text-white text-[10px] font-bold px-1.5 rounded-full border border-white min-w-[20px] text-center"
                         >
                           {{ member.level }}
                         </div>
@@ -791,14 +794,14 @@
                           class="absolute -bottom-1 -left-1"
                         >
                           <span
-                            class="bg-slate-400 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-sm border border-white scale-90 origin-left"
+                            class="dark:bg-slate-400 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-sm border border-white scale-90 origin-left"
                             >军团兵</span
                           >
                         </div>
                       </div>
 
                       <h4
-                        class="font-bold text-slate-800 text-xs sm:text-sm truncate w-full text-center px-1"
+                        class="font-bold text-slate-800 dark:text-slate-100 text-xs sm:text-sm truncate w-full text-center px-1"
                         :title="member.name"
                       >
                         {{ member.name }}
@@ -808,17 +811,15 @@
                         >{{ member.class_name || "未知" }}</span
                       >
 
-                      <div
-                        class="flex items-center gap-1 justify-center w-full"
-                      >
+                      <div class="flex items-center gap-1 justify-center w-full">
                         <span
-                          class="text-[10px] text-slate-400 bg-slate-100/80 px-2 py-0.5 rounded-full"
+                          class="text-[10px] text-slate-400 dark:bg-slate-100/80 px-2 py-0.5 rounded-full"
                           >{{ member.class_name || "未知" }}</span
                         >
                         <!-- 装备分数 -->
                         <span
                           v-if="member.item_level"
-                          class="text-[10px] text-yellow-600 bg-yellow-50/80 px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5"
+                          class="text-[10px] text-yellow-600 dark:bg-yellow-50/80 px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5"
                           title="装备分数"
                         >
                           ⚔️{{ member.item_level }}
@@ -839,17 +840,15 @@
                     class="w-full h-auto drop-shadow-xl group-hover:scale-110 transition-transform duration-500 -scale-x-100"
                   />
                   <div
-                    class="absolute -top-4 -right-4 bg-[#f9b11d] text-white text-xs font-black px-3 py-1 rounded-full shadow-md animate-bounce"
+                    class="absolute -top-4 -right-4 dark:bg-[#f9b11d] text-white text-xs font-black px-3 py-1 rounded-full shadow-md animate-bounce"
                   >
                     宝宝巴士
                   </div>
                 </div>
-                <h4 class="text-2xl font-black text-sky-900 mb-2">
-                  准备好上车了吗？
-                </h4>
+                <h4 class="text-2xl font-black text-sky-900 mb-2">准备好上车了吗？</h4>
                 <p class="text-sky-700/60 mb-6 font-medium">！</p>
                 <button
-                  class="bg-[#f9b11d] hover:bg-[#fbc02d] text-white px-12 py-4 rounded-3xl font-black text-xl shadow-[0_8px_0_0_#d98a00] active:translate-y-1 active:shadow-none transition-all"
+                  class="dark:bg-[#f9b11d] dark:hover:bg-[#fbc02d] text-white px-12 py-4 rounded-3xl font-black text-xl shadow-[0_8px_0_0_#d98a00] active:translate-y-1 active:shadow-none transition-all"
                 >
                   提交申请书
                 </button>
@@ -860,13 +859,13 @@
       </div>
     </main>
 
-    <!-- 底部动态草地层 -->
+    <!-- 底部动态草地层 (支持昼夜平滑过渡) -->
     <div
-      class="fixed bottom-0 w-full h-32 md:h-48 pointer-events-none overflow-hidden z-10"
+      class="fixed bottom-0 w-full h-32 md:h-48 pointer-events-none overflow-hidden z-10 transition-colors duration-500"
     >
       <!-- 远景草坡 -->
       <svg
-        class="absolute bottom-0 w-[120%] -left-[10%] h-full text-[#A3D95B]"
+        class="absolute bottom-0 w-[120%] -left-[10%] h-full text-[#A3D95B] dark:text-[#1e3a2f] transition-colors duration-500"
         viewBox="0 0 1200 120"
         preserveAspectRatio="none"
       >
@@ -878,7 +877,7 @@
 
       <!-- 近景草坡 (带波浪动画) -->
       <svg
-        class="absolute -bottom-4 w-[150%] -left-[25%] h-[80%] text-[#B2E455] animate-grass-wave"
+        class="absolute -bottom-4 w-[150%] -left-[25%] h-[80%] text-[#B2E455] dark:text-[#164e3b] animate-grass-wave transition-colors duration-500"
         viewBox="0 0 1200 120"
         preserveAspectRatio="none"
       >
@@ -888,21 +887,29 @@
         />
       </svg>
 
-      <!-- 随机花朵 (SVG 设计) -->
+      <!-- 随机花朵 (夜间自动转为暗色系或微光发光态) -->
       <div
         class="absolute bottom-6 left-[15%] w-8 h-8 animate-sway origin-bottom"
         style="animation-delay: 0.2s"
       >
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="3" fill="#F9B11D" />
+          <circle
+            cx="12"
+            cy="12"
+            r="3"
+            fill="#F9B11D"
+            class="dark:fill-[#facc15] dark:drop-shadow-[0_0_4px_rgba(250,204,21,0.6)]"
+          />
           <path
             d="M12 5C12 5 14 2 16 4C18 6 15 8 15 8M12 19C12 19 10 22 8 20C6 18 9 16 9 16M5 12C5 12 2 10 4 8C6 6 8 9 8 9M19 12C19 12 22 14 20 16C18 18 16 15 16 15M7 17C7 17 4 19 5 21C6 23 9 20 9 20M17 7C17 7 20 5 19 3C18 1 15 4 15 4M17 17C17 17 19 20 21 19C23 18 20 15 20 15M7 7C7 7 5 4 3 5C1 6 4 9 4 9"
             stroke="#FF6B6B"
+            class="dark:stroke-[#f87171]"
             stroke-width="2"
             stroke-linecap="round"
           />
         </svg>
       </div>
+
       <div
         class="absolute bottom-8 left-[45%] w-6 h-6 animate-sway origin-bottom"
         style="animation-delay: 1.5s"
@@ -911,8 +918,10 @@
           <path
             d="M12 21V15M12 15C12 15 16 13 16 9C16 5 12 3 12 3C12 3 8 5 8 9C8 13 12 15 12 15Z"
             stroke="#FF8787"
+            class="dark:stroke-[#f43f5e]"
             stroke-width="2"
             fill="#FFE3E3"
+            class:list="dark:fill-[#881337]"
           />
           <path
             d="M10 11C10 11 9 10 9 8.5C9 7 10 6 10 6"
@@ -922,6 +931,7 @@
           />
         </svg>
       </div>
+
       <div
         class="absolute bottom-5 left-[85%] w-10 h-10 animate-sway origin-bottom"
         style="animation-delay: 0.8s"
@@ -944,6 +954,7 @@
           />
         </svg>
       </div>
+
       <div
         class="absolute bottom-10 left-[65%] w-7 h-7 animate-sway origin-bottom"
         style="animation-delay: 2.1s"
@@ -954,6 +965,7 @@
             fill="#D8F5A2"
             stroke="#B2E455"
             stroke-width="2"
+            class="dark:fill-[#365314] dark:stroke-[#65a30d]"
           />
           <path
             d="M12 15C12 15 15 14 16 16M12 18C12 18 9 17 8 19"
@@ -964,25 +976,26 @@
         </svg>
       </div>
 
-      <!-- 奔跑的小羊 (xiaoyang.png) -->
+      <!-- 奔跑的小羊 (暗夜中自动加一层柔和的反光或微調亮度) -->
       <div
         class="absolute bottom-4 -left-16 animate-walk-across"
         style="animation-duration: 20s"
       >
         <div class="relative w-12 h-10 flex items-center justify-center">
+          <!-- 夜间给小羊图片加上轻微的发光或滤镜，使其在暗色背景下不黑乎乎一片 -->
           <img
             src="/xiaoyang.png"
-            class="w-full h-full object-contain drop-shadow-sm"
+            class="w-full h-full object-contain drop-shadow-sm dark:brightness-90 dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.2)]"
           />
           <div
-            class="absolute -top-6 -right-4 text-[10px] font-black text-sky-500 bg-white/90 px-2 py-1 rounded-full shadow-sm whitespace-nowrap opacity-0 animate-speech-bubble border border-sky-100"
+            class="absolute -top-6 -right-4 text-[10px] font-black text-sky-500 bg-white/90 dark:bg-slate-800 dark:text-sky-300 px-2 py-1 rounded-full shadow-sm whitespace-nowrap opacity-0 animate-speech-bubble border border-sky-100 dark:border-slate-700"
           >
-            咩~
+            咩~ (好安静的夜)
           </div>
         </div>
       </div>
 
-      <!-- 宝宝巴士 (bbbscmt.png) - 正在巡逻的巴士 -->
+      <!-- 宝宝巴士 (夜间巡逻车：车灯高亮发光效果) -->
       <div
         class="absolute bottom-2 -left-32 animate-walk-across z-20 pointer-events-none"
         style="animation-duration: 25s; animation-delay: 5s"
@@ -990,18 +1003,18 @@
         <div class="relative w-24 md:w-32 h-auto flex flex-col items-center">
           <img
             src="/bbbscmt.png"
-            class="w-full h-full object-contain drop-shadow-md -scale-x-100"
+            class="w-full h-full object-contain drop-shadow-md -scale-x-100 dark:brightness-90 dark:drop-shadow-[0_0_8px_rgba(56,189,248,0.4)]"
           />
           <div
-            class="absolute -top-8 bg-white/90 px-3 py-1 rounded-2xl shadow-sm border border-sky-100 text-[10px] font-black text-sky-600 whitespace-nowrap opacity-0 animate-speech-bubble"
+            class="absolute -top-8 bg-white/90 dark:bg-slate-800 px-3 py-1 rounded-2xl shadow-sm border border-sky-100 dark:border-slate-700 text-[10px] font-black text-sky-600 dark:text-sky-300 whitespace-nowrap opacity-0 animate-speech-bubble"
             style="animation-delay: 6s"
           >
-            嘀嘀~ 宝宝巴士出发啦!
+            嘀嘀~ 夜间巡逻中!
           </div>
         </div>
       </div>
 
-      <!-- 追逐的小鸡 (SVG 设计) -->
+      <!-- 追逐的小鸡 -->
       <div
         class="absolute bottom-5 -left-16 animate-walk-across"
         style="animation-duration: 20s; animation-delay: 2s"
@@ -1011,10 +1024,10 @@
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            class="w-full h-full drop-shadow-sm"
+            class="w-full h-full drop-shadow-sm dark:brightness-90"
           >
             <!-- 身体 -->
-            <circle cx="12" cy="14" r="7" fill="#FFD93D" />
+            <circle cx="12" cy="14" r="7" fill="#FFD93D" class="dark:fill-[#eab308]" />
             <!-- 眼睛 -->
             <circle cx="15" cy="12" r="1" fill="#2D3436" />
             <!-- 嘴巴 -->
@@ -1055,11 +1068,13 @@
         </div>
       </div>
     </div>
+    <BackToTop></BackToTop>
   </div>
 </template>
 
 <script setup>
 import UsersAdmin from "../components/UsersAdmin.vue";
+import BackToTop from "../components/BackToTop.vue";
 const user = useSupabaseUser();
 const supabase = useSupabaseClient();
 const router = useRouter();
@@ -1068,6 +1083,8 @@ const isClient = process.client;
 const scrollContainer = ref(null);
 // 用户显示名
 const displayUsername = ref("guest");
+
+const { isDark, toggleTheme } = inject("theme");
 
 // 获取用户信息
 const fetchUserInfo = async () => {
@@ -1220,9 +1237,7 @@ const filteredMembers = computed(() => {
     const matchName = m.name
       .toLowerCase()
       .includes(memberSearchQuery.value.toLowerCase());
-    const matchClass = selectedClass.value
-      ? m.class_name === selectedClass.value
-      : true;
+    const matchClass = selectedClass.value ? m.class_name === selectedClass.value : true;
     return matchName && matchClass;
   });
 
@@ -1248,9 +1263,7 @@ const filteredMembers = computed(() => {
 });
 
 const uniqueClasses = computed(() => {
-  const classes = new Set(
-    members.value.map((m) => m.class_name).filter(Boolean),
-  );
+  const classes = new Set(members.value.map((m) => m.class_name).filter(Boolean));
   return Array.from(classes).sort();
 });
 
@@ -1307,7 +1320,7 @@ const fetchTabs = async () => {
       else if (!Array.isArray(tabsData)) {
         const values = Object.values(tabsData);
         const validItems = values.filter(
-          (v) => v && typeof v === "object" && v.id && v.name,
+          (v) => v && typeof v === "object" && v.id && v.name
         );
         if (validItems.length > 0) {
           tabsData = validItems;
@@ -1322,7 +1335,7 @@ const fetchTabs = async () => {
       }
       // 确保当前选中项有效且可见
       const currentTabVisible = tabs.value.find(
-        (t) => t.id === activeTab.value && !t.hidden,
+        (t) => t.id === activeTab.value && !t.hidden
       );
       if (!currentTabVisible) {
         const firstVisible = tabs.value.find((t) => !t.hidden);
@@ -1403,7 +1416,7 @@ watch(
       // 自身组件内部处理加载
     } else if (val === "updateAIon2") {
     } else if (val === "userAdmin") {
-   showMobileMenu.value = false;
+      showMobileMenu.value = false;
       await nextTick();
 
       if (!scrollContainer.value) return;
@@ -1412,7 +1425,7 @@ watch(
       if (scrollContainer.value.scrollHeight > scrollContainer.value.clientHeight) {
         scrollContainer.value.scrollTo({
           top: scrollContainer.value.scrollHeight,
-          behavior: "smooth"
+          behavior: "smooth",
         });
         return;
       }
@@ -1425,7 +1438,7 @@ watch(
           if (scrollHeight > clientHeight) {
             scrollContainer.value.scrollTo({
               top: scrollHeight,
-              behavior: "smooth"
+              behavior: "smooth",
             });
             observer.disconnect(); // 滚动完成后销毁监听
           }
@@ -1436,7 +1449,7 @@ watch(
       observer.observe(scrollContainer.value, {
         childList: true,
         subtree: true,
-        attributes: true
+        attributes: true,
       });
 
       // 设置一个兜底超时，防止接口卡住无限监听（比如 2 秒后自动断开）
@@ -1447,7 +1460,7 @@ watch(
       fetchPosts();
     }
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 const logout = async () => {
@@ -1572,9 +1585,7 @@ watch([outroVideoRef, outroBgRef], ([video, bg]) => {
 const handleIntroClick = () => {
   // 点击时如果未播放则尝试播放，如果正在播放则触发离场
   if (introVideoRef.value && introVideoRef.value.paused) {
-    introVideoRef.value
-      .play()
-      .catch((e) => console.error("Manual play failed:", e));
+    introVideoRef.value.play().catch((e) => console.error("Manual play failed:", e));
   } else {
     handleIntroScroll({ type: "click", deltaY: 100 });
   }
@@ -1695,10 +1706,7 @@ const overlaps = (a, b) => {
 const inAvoid = (c) =>
   cloudConfig.avoidZones?.some(
     (z) =>
-      c.top >= z.topMin &&
-      c.top <= z.topMax &&
-      c.left >= z.leftMin &&
-      c.left <= z.leftMax,
+      c.top >= z.topMin && c.top <= z.topMax && c.left >= z.leftMin && c.left <= z.leftMax
   );
 
 const spawnCloud = () => {
@@ -1729,10 +1737,7 @@ const spawnCloud = () => {
     };
     if (inAvoid(candidate)) continue;
     if (!clouds.value.some((c) => overlaps(candidate, c))) {
-      if (
-        cloudConfig.hardCleanup &&
-        clouds.value.length >= cloudConfig.maxClouds
-      ) {
+      if (cloudConfig.hardCleanup && clouds.value.length >= cloudConfig.maxClouds) {
         clouds.value.shift();
       }
       clouds.value.push(candidate);
@@ -1749,10 +1754,7 @@ const resetSpawner = () => {
   if (cloudTimer) clearInterval(cloudTimer);
   if (cloudConfig.enable) {
     cloudTimer = setInterval(() => {
-      if (
-        !cloudConfig.hardCleanup &&
-        clouds.value.length >= cloudConfig.maxClouds
-      )
+      if (!cloudConfig.hardCleanup && clouds.value.length >= cloudConfig.maxClouds)
         return;
       spawnCloud();
     }, cloudConfig.spawnMs);
@@ -1828,7 +1830,7 @@ watch(
   () => cloudConfig.maxClouds,
   () => {
     if (clouds.value.length < cloudConfig.maxClouds) spawnCloud();
-  },
+  }
 );
 watch(
   clouds,
@@ -1836,21 +1838,13 @@ watch(
     while (cloudConfig.hardCleanup && arr.length > cloudConfig.maxClouds) {
       arr.shift();
     }
-    if (
-      !cloudConfig.hardCleanup &&
-      arr.length >= cloudConfig.maxClouds &&
-      cloudTimer
-    ) {
+    if (!cloudConfig.hardCleanup && arr.length >= cloudConfig.maxClouds && cloudTimer) {
       clearInterval(cloudTimer);
-    } else if (
-      arr.length < cloudConfig.maxClouds &&
-      !cloudTimer &&
-      cloudConfig.enable
-    ) {
+    } else if (arr.length < cloudConfig.maxClouds && !cloudTimer && cloudConfig.enable) {
       resetSpawner();
     }
   },
-  { deep: true },
+  { deep: true }
 );
 </script>
 
@@ -1945,11 +1939,8 @@ watch(
     )
     rotate(var(--rot)) scale(var(--scale));
   transition: transform 0.2s linear;
-  animation:
-    cloud-bob 8s ease-in-out infinite,
-    cloud-wiggle 15s ease-in-out infinite,
-    cloud-breathe 13s ease-in-out infinite,
-    cloud-sway 17s ease-in-out infinite;
+  animation: cloud-bob 8s ease-in-out infinite, cloud-wiggle 15s ease-in-out infinite,
+    cloud-breathe 13s ease-in-out infinite, cloud-sway 17s ease-in-out infinite;
   filter: drop-shadow(0 4px 0 rgba(255, 255, 255, 0.45));
 }
 .cloud-item.cloud-fade-enter-active,
@@ -1958,10 +1949,8 @@ watch(
 }
 .cloud-fade-enter-active,
 .cloud-fade-leave-active {
-  transition:
-    opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 1.2s cubic-bezier(0.4, 0, 0.2, 1),
-    filter 1.2s ease;
+  transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 1.2s cubic-bezier(0.4, 0, 0.2, 1), filter 1.2s ease;
 }
 .cloud-fade-enter-from {
   opacity: 0;
@@ -1987,7 +1976,7 @@ watch(
   transition: transform 0.6s ease;
 }
 
-.bg-watercolor {
+.dark:bg-watercolor {
   background-color: #c7f3fe;
 }
 
@@ -2012,8 +2001,7 @@ watch(
 
 /* 视频容器发光 */
 .video-glow {
-  box-shadow:
-    0 0 60px -10px rgba(174, 226, 249, 0.4),
+  box-shadow: 0 0 60px -10px rgba(174, 226, 249, 0.4),
     0 20px 40px -10px rgba(69, 166, 213, 0.15);
 }
 

@@ -22,6 +22,7 @@ import cloneDeep from "lodash/cloneDeep";
 import { dungeonDecayRules } from "./config/userAdmin";
 import { useGameRefresh } from "@/composables/useGameRefresh";
 import { characterClasses } from "./config/userAdmin";
+
 const client = useSupabaseClient();
 const user = useSupabaseUser();
 const { executeDataRefresh } = useGameRefresh();
@@ -1915,11 +1916,11 @@ watch(
 
 <template>
   <div
-    class="p-2 bg-slate-50 text-slate-800 rounded-3xl shadow-sm space-y-4 mx-auto border border-slate-100 min-h-[90vh]"
+    class="p-2 bg-slate-50 dark:bg-slate-800 text-slate-800 rounded-3xl shadow-sm space-y-4 mx-auto border border-slate-100 dark:border-slate-700 min-h-[90vh]"
   >
     <!-- 顶部介绍 -->
     <div
-      class="w-full bg-white text-slate-800 px-5 py-3 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+      class="w-full bg-white dark:bg-slate-900 text-slate-800 px-5 py-3 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
     >
       <!-- 左侧：项目说明与低调的 GitHub 入口 -->
       <div class="flex items-center gap-2 overflow-hidden">
@@ -1929,7 +1930,7 @@ watch(
           href="https://github.com/go2fofo/aion2-portal"
           target="_blank"
           rel="noopener noreferrer"
-          class="text-slate-500 hover:text-slate-900 underline underline-offset-2 transition-colors shrink-0 text-[11px] font-medium"
+          class="text-slate-500 hover:text-slate-900 dark:text-slate-100 underline underline-offset-2 transition-colors shrink-0 text-[11px] font-medium"
         >
           GitHub 源码
         </a>
@@ -1958,14 +1959,14 @@ watch(
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
       <!-- 总角色数 -->
       <div
-        class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between gap-4"
+        class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between gap-4"
       >
         <!-- 左侧：总角色数 -->
         <div class="shrink-0">
           <div class="text-slate-400 text-xs font-bold tracking-wider uppercase">
             总角色数
           </div>
-          <div class="text-3xl font-black mt-2 tracking-tight text-slate-900">
+          <div class="text-3xl font-black mt-2 tracking-tight text-slate-900 dark:text-slate-100">
             {{ totalCharacters }}
           </div>
         </div>
@@ -2021,7 +2022,7 @@ watch(
 
                 <!-- 第二行：特级会员状态显示 -->
                 <div
-                  class="w-full pt-1 border-t border-slate-200/50 flex items-center justify-between text-[9px] font-bold"
+                  class="w-full pt-1 border-t border-slate-200 dark:border-slate-700/50 flex items-center justify-between text-[9px] font-bold"
                 >
                   <template v-if="group.premiumMember">
                     <span class="text-amber-700 flex items-center gap-1 font-black">
@@ -2043,7 +2044,7 @@ watch(
 
       <!-- 2. 今日收益吉纳数（基于 runLogs 实时计算当前组或全部的绑定与非绑定） -->
       <div
-        class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow"
+        class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-shadow"
       >
         <div class="flex items-center justify-between">
           <div class="text-slate-400 text-xs font-bold tracking-wider uppercase">
@@ -2067,7 +2068,7 @@ watch(
 
         <!-- 绑定与非绑定细分 -->
         <div
-          class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs"
+          class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs"
         >
           <div class="flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
@@ -2094,7 +2095,7 @@ watch(
 
       <!-- 3. 总奥德能量 (点) -->
       <div
-        class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
+        class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
       >
         <div>
           <div class="text-slate-400 text-xs font-bold tracking-wider uppercase">
@@ -2105,7 +2106,7 @@ watch(
           </div>
         </div>
         <div
-          class="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-400 font-medium"
+          class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 text-[11px] text-slate-400 font-medium"
         >
           包含当前账号下所有角色的实时累积能量
         </div>
@@ -2114,7 +2115,7 @@ watch(
 
     <!-- 操作栏 -->
     <div
-      class="flex items-center justify-between bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm -mt-4"
+      class="flex items-center justify-between bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-700/80 shadow-sm -mt-4"
     >
       <div class="flex items-center gap-3">
         <button
@@ -2139,7 +2140,7 @@ watch(
         </button>
         <button
           @click="openGroupModal"
-          class="px-6 py-3 rounded-2xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-black text-sm transition-all active:scale-95 flex items-center gap-2 border border-slate-200/60"
+          class="px-6 py-3 rounded-2xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-black text-sm transition-all active:scale-95 flex items-center gap-2 border border-slate-200 dark:border-slate-700/60"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -2160,7 +2161,7 @@ watch(
         <!-- 设置按钮 -->
         <button
           @click="openSettingsModal"
-          class="px-6 py-3 rounded-2xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-black text-sm transition-all active:scale-95 flex items-center gap-2 border border-slate-200/60"
+          class="px-6 py-3 rounded-2xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-black text-sm transition-all active:scale-95 flex items-center gap-2 border border-slate-200 dark:border-slate-700/60"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -2188,7 +2189,7 @@ watch(
         <button
           @click="handleSync"
           :disabled="isRefreshing"
-          class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/80 font-bold text-xs shadow-sm transition-all transform active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+          class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-800 text-slate-700 border border-slate-200 dark:border-slate-700/80 font-bold text-xs shadow-sm transition-all transform active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
         >
           <!-- 刷新图标：点击时带有旋转动画 -->
           <svg
@@ -2210,7 +2211,7 @@ watch(
       </div>
 
       <div
-        class="flex items-center gap-2 text-xs font-bold text-slate-400 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100"
+        class="flex items-center gap-2 text-xs font-bold text-slate-400 bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-xl border border-slate-100 dark:border-slate-700"
       >
         <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <span>{{ user ? "已同步到云端数据库" : "当前为本地存储模式" }}</span>
@@ -2219,7 +2220,7 @@ watch(
 
     <!-- Tab 切换栏 -->
     <div
-      class="bg-white p-3 rounded-3xl border border-slate-200/80 shadow-sm flex items-center gap-2 overflow-x-auto custom-scroll select-none"
+      class="bg-white dark:bg-slate-900 p-3 rounded-3xl border border-slate-200 dark:border-slate-700/80 shadow-sm flex items-center gap-2 overflow-x-auto custom-scroll select-none"
     >
       <!-- 全部角色 Tab -->
       <button
@@ -2228,7 +2229,7 @@ watch(
         :class="
           activeTabGroup === 'all'
             ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sm shadow-sky-500/20'
-            : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200/60'
+            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 hover:bg-slate-100 border-slate-200 dark:border-slate-700/60'
         "
       >
         <span>全部角色</span>
@@ -2236,7 +2237,7 @@ watch(
           class="min-w-[18px] text-center px-1.5 py-0.5 rounded-full text-[10px] font-black leading-none"
           :class="
             activeTabGroup === 'all'
-              ? 'bg-white/20 text-white'
+              ? 'bg-white dark:bg-slate-900/20 text-white'
               : 'bg-slate-200/70 text-slate-600'
           "
         >
@@ -2251,7 +2252,7 @@ watch(
         :class="
           activeTabGroup === 'default'
             ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sm shadow-sky-500/20'
-            : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200/60'
+            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 hover:bg-slate-100 border-slate-200 dark:border-slate-700/60'
         "
       >
         <span>默认分组</span>
@@ -2259,7 +2260,7 @@ watch(
           class="min-w-[18px] text-center px-1.5 py-0.5 rounded-full text-[10px] font-black leading-none"
           :class="
             activeTabGroup === 'default'
-              ? 'bg-white/20 text-white'
+              ? 'bg-white dark:bg-slate-900/20 text-white'
               : 'bg-slate-200/70 text-slate-600'
           "
         >
@@ -2280,7 +2281,7 @@ watch(
         :class="
           activeTabGroup === group.id
             ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sm shadow-sky-500/20'
-            : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200/60'
+            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 hover:bg-slate-100 border-slate-200 dark:border-slate-700/60'
         "
       >
         <span>{{ group.name }}</span>
@@ -2288,7 +2289,7 @@ watch(
           class="min-w-[18px] text-center px-1.5 py-0.5 rounded-full text-[10px] font-black leading-none"
           :class="
             activeTabGroup === group.id
-              ? 'bg-white/20 text-white'
+              ? 'bg-white dark:bg-slate-900/20 text-white'
               : 'bg-slate-200/70 text-slate-600'
           "
         >
@@ -2306,7 +2307,7 @@ watch(
       class="mb-4"
     >
       <div
-        class="p-4 bg-white border border-slate-200/80 rounded-2xl shadow-xs flex flex-col lg:flex-row gap-3.5 items-stretch"
+        class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-xs flex flex-col lg:flex-row gap-3.5 items-stretch"
       >
         <!-- ================= 左侧：重新深度设计的签到卡片（层次感与视觉吸睛度拉满） ================= -->
         <div
@@ -2431,7 +2432,7 @@ watch(
                   </div>
                   <!-- 起止时间展示 -->
                   <div
-                    class="text-[10px] font-semibold text-slate-500 bg-white/80 px-2.5 py-1.5 rounded-lg border border-amber-100 flex flex-col gap-0.5"
+                    class="text-[10px] font-semibold text-slate-500 bg-white dark:bg-slate-900/80 px-2.5 py-1.5 rounded-lg border border-amber-100 flex flex-col gap-0.5"
                   >
                     <div class="flex justify-between">
                       <span class="text-slate-400">开通:</span>
@@ -2454,7 +2455,7 @@ watch(
                       min="1"
                       max="28"
                       placeholder="输入天数(最多28)"
-                      class="w-full px-3 py-1.5 rounded-xl bg-white border-2 outline-none font-black text-xs text-slate-800 transition-all shadow-sm"
+                      class="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-black text-xs text-slate-800 transition-all shadow-sm"
                       :class="
                         validationResult.invalidFields.includes('premiumMemberDay')
                           ? 'border-red-500 focus:border-red-600 bg-red-50/20'
@@ -2553,7 +2554,7 @@ watch(
           >
             <!-- 1. 账号奥德 (上限16) -->
             <div
-              class="p-2 bg-slate-50/80 border border-slate-200/60 rounded-xl flex items-center justify-between"
+              class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
             >
               <span class="text-[10px] text-slate-500 font-bold truncate">账号奥德</span>
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2582,7 +2583,7 @@ watch(
 
             <!-- 2. 商店奥德 (上限16) -->
             <div
-              class="p-2 bg-slate-50/80 border border-slate-200/60 rounded-xl flex items-center justify-between"
+              class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
             >
               <span class="text-[10px] text-slate-500 font-bold truncate">商店奥德</span>
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2611,7 +2612,7 @@ watch(
 
             <!-- 3. 周复活石 (上限7) -->
             <div
-              class="p-2 bg-slate-50/80 border border-slate-200/60 rounded-xl flex items-center justify-between"
+              class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
             >
               <span class="text-[10px] text-slate-500 font-bold truncate">周复活石</span>
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2640,7 +2641,7 @@ watch(
 
             <!-- 4. 未知缝隙 (上限21) -->
             <div
-              class="p-2 bg-slate-50/80 border border-slate-200/60 rounded-xl flex items-center justify-between"
+              class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
             >
               <span class="text-[10px] text-slate-500 font-bold truncate">未知缝隙</span>
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2669,7 +2670,7 @@ watch(
 
             <!-- 5. 完成卷(每日) (上限21) -->
             <div
-              class="p-2 bg-slate-50/80 border border-slate-200/60 rounded-xl flex items-center justify-between"
+              class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
             >
               <span class="text-[10px] text-slate-500 font-bold truncate"
                 >完成卷(每日)</span
@@ -2700,7 +2701,7 @@ watch(
 
             <!-- 6. 完成卷(噩梦) (上限14) -->
             <div
-              class="p-2 bg-slate-50/80 border border-slate-200/60 rounded-xl flex items-center justify-between"
+              class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
             >
               <span class="text-[10px] text-slate-500 font-bold truncate"
                 >完成卷(噩梦)</span
@@ -2731,7 +2732,7 @@ watch(
 
             <!-- 7. 地区A指令 (上限12) -->
             <div
-              class="p-2 bg-slate-50/80 border border-slate-200/60 rounded-xl flex items-center justify-between"
+              class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
             >
               <span class="text-[10px] text-slate-500 font-bold truncate">地区A指令</span>
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2760,7 +2761,7 @@ watch(
 
             <!-- 8. 地区B指令 (上限12) -->
             <div
-              class="p-2 bg-slate-50/80 border border-slate-200/60 rounded-xl flex items-center justify-between"
+              class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
             >
               <span class="text-[10px] text-slate-500 font-bold truncate">地区B指令</span>
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2815,14 +2816,14 @@ watch(
           class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 backdrop-blur-sm"
         >
           <div
-            class="relative w-full max-w-5xl bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl overflow-hidden text-slate-800 flex flex-col h-[90vh]"
+            class="relative w-full max-w-5xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-[2.5rem] shadow-2xl overflow-hidden text-slate-800 flex flex-col h-[90vh]"
           >
             <!-- 弹窗头部 -->
             <div
-              class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white z-10"
+              class="px-8 py-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-900 z-10"
             >
               <div>
-                <div class="text-xl font-black tracking-wide text-slate-900">
+                <div class="text-xl font-black tracking-wide text-slate-900 dark:text-slate-100">
                   新增角色
                 </div>
               </div>
@@ -2836,12 +2837,12 @@ watch(
 
             <!-- 弹窗表单主体 (卡片式布局) -->
             <div
-              class="p-8 space-y-6 overflow-y-auto custom-scroll flex-1 bg-slate-50/50"
+              class="p-8 space-y-6 overflow-y-auto custom-scroll flex-1 bg-slate-50 dark:bg-slate-800/50"
             >
               <template v-if="newCharForm.characterId">
                 <!-- 卡片一：基础身份信息 -->
                 <div
-                  class="bg-white border border-slate-200/80 p-6 rounded-3xl space-y-4 shadow-sm"
+                  class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-6 rounded-3xl space-y-4 shadow-sm"
                 >
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
@@ -2936,11 +2937,11 @@ watch(
                 </div>
                 <!-- 卡片二：所属分组配置 (独立卡片) -->
                 <div
-                  class="bg-white border p-6 rounded-3xl space-y-5 shadow-sm transition-all"
+                  class="bg-white dark:bg-slate-900 border p-6 rounded-3xl space-y-5 shadow-sm transition-all"
                   :class="
                     validationResult.errors.group
                       ? 'border-red-500 bg-red-50/20'
-                      : 'border-slate-200/80'
+                      : 'border-slate-200 dark:border-slate-700/80'
                   "
                 >
                   <div class="flex items-center gap-3">
@@ -2983,7 +2984,7 @@ watch(
                               }
                             }
                           "
-                          class="w-full h-[50px] px-4 rounded-2xl bg-slate-50 border-2 border-slate-200/80 focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-sm text-slate-800 transition-all cursor-pointer box-border"
+                          class="w-full h-[50px] px-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5] focus:bg-white dark:bg-slate-900 outline-none font-bold text-sm text-slate-800 transition-all cursor-pointer box-border"
                         >
                           <option :value="null" disabled hidden>请选择所属分组...</option>
                           <option
@@ -3001,7 +3002,7 @@ watch(
 
                 <!-- 卡片三：账号属性配置 (独立卡片：主账号与特级会员) -->
                 <div
-                  class="bg-white border border-slate-200/80 p-6 rounded-3xl space-y-5 shadow-sm"
+                  class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-6 rounded-3xl space-y-5 shadow-sm"
                 >
                   <div class="flex items-center gap-3">
                     <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
@@ -3021,10 +3022,10 @@ watch(
 
                       <div class="flex-1 flex items-center">
                         <div
-                          class="w-full h-[50px] flex items-center justify-between px-4 rounded-2xl bg-slate-50 border-2 border-slate-200/80 select-none box-border transition-all"
+                          class="w-full h-[50px] flex items-center justify-between px-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700/80 select-none box-border transition-all"
                           :class="[
                             getCharGroup?.primaryAccountID
-                              ? 'opacity-60 cursor-not-allowed bg-slate-100/60 border-slate-200'
+                              ? 'opacity-60 cursor-not-allowed bg-slate-100/60 border-slate-200 dark:border-slate-700'
                               : 'cursor-pointer hover:border-[#45a6d5]',
                           ]"
                           @click="
@@ -3062,7 +3063,7 @@ watch(
                             ]"
                           >
                             <div
-                              class="bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300"
+                              class="bg-white dark:bg-slate-900 w-4 h-4 rounded-full shadow-md transform transition-transform duration-300"
                               :class="
                                 newCharGroupForm?.primaryAccountID
                                   ? 'translate-x-4'
@@ -3095,7 +3096,7 @@ watch(
                         <!-- 否则正常显示开通开关 -->
                         <div
                           v-else
-                          class="w-full h-[50px] flex items-center justify-between px-4 rounded-2xl bg-slate-50 border-2 border-slate-200/80 cursor-pointer select-none transition-all hover:border-[#45a6d5] box-border"
+                          class="w-full h-[50px] flex items-center justify-between px-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700/80 cursor-pointer select-none transition-all hover:border-[#45a6d5] box-border"
                           @click="
                             newCharGroupForm.premiumMember = !newCharGroupForm.premiumMember
                           "
@@ -3112,7 +3113,7 @@ watch(
                             "
                           >
                             <div
-                              class="bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300"
+                              class="bg-white dark:bg-slate-900 w-4 h-4 rounded-full shadow-md transform transition-transform duration-300"
                               :class="
                                 newCharGroupForm.premiumMember
                                   ? 'translate-x-4'
@@ -3169,7 +3170,7 @@ watch(
                             min="1"
                             max="28"
                             placeholder="请输入剩余天数（最多28天）..."
-                            class="w-full md:w-1/3 px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                            class="w-full md:w-1/3 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                             :class="
                               validationResult.invalidFields.includes('premiumMemberDay')
                                 ? 'border-red-500 focus:border-red-600 bg-red-50/20'
@@ -3212,10 +3213,10 @@ watch(
                 </div>
                 <!-- 奥德能量组合卡片 (当前 + 存储补充) -->
                 <div
-                  class="bg-white border border-slate-200/80 p-6 rounded-3xl space-y-6 shadow-sm"
+                  class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-6 rounded-3xl space-y-6 shadow-sm"
                 >
                   <div
-                    class="flex items-center justify-between pb-2 border-b border-slate-100"
+                    class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-700"
                   >
                     <!-- 左侧：图标、名称与核心数值 -->
                     <div class="flex items-center gap-2.5">
@@ -3245,7 +3246,7 @@ watch(
                     </div>
                   </div>
                   <div
-                    class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                    class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                   >
                     <div
                       class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
@@ -3277,11 +3278,11 @@ watch(
                         </div>
                         <input
                           v-model.number="newCharForm.energy"
-                          class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                          class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                           :class="
                             validationResult.invalidFields.includes('energy')
                               ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                              : 'border-slate-200/80 focus:border-[#45a6d5]'
+                              : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                           "
                         />
                         <span
@@ -3306,11 +3307,11 @@ watch(
                         </div>
                         <input
                           v-model.number="newCharForm.storedEnergy"
-                          class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                          class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                           :class="
                             validationResult.invalidFields.includes('storedEnergy')
                               ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                              : 'border-slate-200/80 focus:border-[#45a6d5]'
+                              : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                           "
                         />
                         <span
@@ -3326,7 +3327,7 @@ watch(
 
                 <!-- 卡片三：次数进度配置 -->
                 <div
-                  class="bg-white border border-slate-200/80 p-6 rounded-3xl space-y-6 shadow-sm"
+                  class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-6 rounded-3xl space-y-6 shadow-sm"
                 >
                   <div class="flex items-center gap-3">
                     <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
@@ -3338,7 +3339,7 @@ watch(
                   </div>
                   <!-- 战场卡片 -->
                   <div
-                    class="p-6 bg-white border border-slate-200/80 rounded-3xl space-y-4 shadow-sm"
+                    class="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-3xl space-y-4 shadow-sm"
                   >
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-3">
@@ -3354,7 +3355,7 @@ watch(
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                       <!-- 挑战次数卡片 -->
                       <div
-                        class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                        class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
                           class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
@@ -3376,11 +3377,11 @@ watch(
                               v-model.number="newCharForm.battlefield"
                               max="14"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes('battlefield')
                                   ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                                  : 'border-slate-200/80 focus:border-[#45a6d5]'
+                                  : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
@@ -3396,7 +3397,7 @@ watch(
                   </div>
                   <!-- 噩梦副本卡片 -->
                   <div
-                    class="p-6 bg-white border border-slate-200/80 rounded-3xl space-y-4 shadow-sm"
+                    class="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-3xl space-y-4 shadow-sm"
                   >
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-3">
@@ -3421,7 +3422,7 @@ watch(
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                       <!-- 挑战次数卡片 -->
                       <div
-                        class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                        class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
                           class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
@@ -3443,11 +3444,11 @@ watch(
                               v-model.number="newCharForm.nightmareCount"
                               max="14"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes('nightmareCount')
                                   ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                                  : 'border-slate-200/80 focus:border-[#45a6d5]'
+                                  : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
@@ -3462,7 +3463,7 @@ watch(
 
                       <!-- 存储补充次数卡片 -->
                       <div
-                        class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                        class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
                           class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
@@ -3493,13 +3494,13 @@ watch(
                               v-model.number="newCharForm.storedNightmareCount"
                               max="30"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes(
                                   'storedNightmareCount'
                                 )
                                   ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                                  : 'border-slate-200/80 focus:border-[#45a6d5]'
+                                  : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
@@ -3515,7 +3516,7 @@ watch(
                   </div>
                   <!-- 觉醒战卡片 -->
                   <div
-                    class="p-6 bg-white border border-slate-200/80 rounded-3xl space-y-4 shadow-sm"
+                    class="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-3xl space-y-4 shadow-sm"
                   >
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-3">
@@ -3540,7 +3541,7 @@ watch(
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                       <!-- 挑战次数卡片 -->
                       <div
-                        class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                        class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
                           class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
@@ -3562,11 +3563,11 @@ watch(
                               v-model.number="newCharForm.awakening"
                               max="3"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes('awakening')
                                   ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                                  : 'border-slate-200/80 focus:border-[#45a6d5]'
+                                  : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
@@ -3581,7 +3582,7 @@ watch(
 
                       <!-- 存储补充次数卡片 -->
                       <div
-                        class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                        class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
                           class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
@@ -3607,11 +3608,11 @@ watch(
                               v-model.number="newCharForm.storedAwakening"
                               max="30"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes('storedAwakening')
                                   ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                                  : 'border-slate-200/80 focus:border-[#45a6d5]'
+                                  : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
@@ -3627,7 +3628,7 @@ watch(
                   </div>
                   <!-- 每日副本卡片 -->
                   <div
-                    class="p-6 bg-white border border-slate-200/80 rounded-3xl space-y-4 shadow-sm"
+                    class="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-3xl space-y-4 shadow-sm"
                     v-if="newCharGroupForm?.id"
                   >
                     <div class="flex items-center justify-between">
@@ -3663,7 +3664,7 @@ watch(
                       <!-- 挑战次数卡片 -->
                       <div
                         v-if="!hasGroupDailyRuns"
-                        class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                        class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
                           class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
@@ -3685,11 +3686,11 @@ watch(
                               v-model.number="newCharGroupForm.dailyRuns"
                               max="14"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes('dailyRuns')
                                   ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                                  : 'border-slate-200/80 focus:border-[#45a6d5]'
+                                  : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
@@ -3719,7 +3720,7 @@ watch(
 
                       <!-- 存储补充次数卡片 (组内共享计算) -->
                       <div
-                        class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                        class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
                           class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
@@ -3745,11 +3746,11 @@ watch(
                               v-model.number="newCharGroupForm.storedDailyRunsInput"
                               max="30"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes('storedDailyRuns')
                                   ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                                  : 'border-slate-200/80 focus:border-[#45a6d5]'
+                                  : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
@@ -3765,7 +3766,7 @@ watch(
                   </div>
                   <!-- 古树庆典小游戏卡片 -->
                   <div
-                    class="p-6 bg-white border border-slate-200/80 rounded-3xl space-y-4 shadow-sm"
+                    class="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-3xl space-y-4 shadow-sm"
                   >
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-3">
@@ -3800,7 +3801,7 @@ watch(
                       <!-- 挑战次数卡片 -->
                       <div
                         v-if="!hasGroupMinigameCount"
-                        class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                        class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
                           class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
@@ -3822,11 +3823,11 @@ watch(
                               v-model.number="newCharGroupForm.minigameCount"
                               max="14"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes('minigameCount')
                                   ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                                  : 'border-slate-200/80 focus:border-[#45a6d5]'
+                                  : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
@@ -3856,7 +3857,7 @@ watch(
 
                       <!-- 存储补充次数卡片 (组内共享计算) -->
                       <div
-                        class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                        class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
                           class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
@@ -3882,13 +3883,13 @@ watch(
                               v-model.number="newCharGroupForm.storedMinigameCountInput"
                               max="30"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes(
                                   'storedMinigameCount'
                                 )
                                   ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                                  : 'border-slate-200/80 focus:border-[#45a6d5]'
+                                  : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
@@ -3904,7 +3905,7 @@ watch(
                   </div>
                   <!-- 次元袭击卡片 -->
                   <div
-                    class="p-6 bg-white border border-slate-200/80 rounded-3xl space-y-4 shadow-sm"
+                    class="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-3xl space-y-4 shadow-sm"
                   >
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-3">
@@ -3939,7 +3940,7 @@ watch(
                       <!-- 挑战次数卡片 -->
                       <div
                         v-if="!hasGroupDimensionalCount"
-                        class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                        class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
                           class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
@@ -3961,13 +3962,13 @@ watch(
                               v-model.number="newCharGroupForm.dimensionalCount"
                               max="14"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes(
                                   'dimensionalCount'
                                 )
                                   ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                                  : 'border-slate-200/80 focus:border-[#45a6d5]'
+                                  : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
@@ -3997,7 +3998,7 @@ watch(
 
                       <!-- 存储补充次数卡片 (组内共享计算) -->
                       <div
-                        class="p-4 bg-slate-50/70 border border-slate-200/70 rounded-2xl space-y-3"
+                        class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
                           class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
@@ -4025,13 +4026,13 @@ watch(
                               "
                               max="30"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes(
                                   'storedDimensionalCount'
                                 )
                                   ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                                  : 'border-slate-200/80 focus:border-[#45a6d5]'
+                                  : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
@@ -4064,11 +4065,11 @@ watch(
                           v-model.number="newCharForm.sanctuary.s1"
                           max="1"
                           min="0"
-                          class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                          class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                           :class="
                             validationResult.invalidFields.includes('sanctuary.s1')
                               ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                              : 'border-slate-200/80 focus:border-emerald-500'
+                              : 'border-slate-200 dark:border-slate-700/80 focus:border-emerald-500'
                           "
                         />
                         <span
@@ -4087,11 +4088,11 @@ watch(
                           v-model.number="newCharForm.sanctuary.s2"
                           max="1"
                           min="0"
-                          class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                          class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                           :class="
                             validationResult.invalidFields.includes('sanctuary.s2')
                               ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                              : 'border-slate-200/80 focus:border-emerald-500'
+                              : 'border-slate-200 dark:border-slate-700/80 focus:border-emerald-500'
                           "
                         />
                         <span
@@ -4110,11 +4111,11 @@ watch(
                           v-model.number="newCharForm.sanctuary.s3"
                           max="1"
                           min="0"
-                          class="w-full px-4 py-2.5 rounded-xl bg-white border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                          class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                           :class="
                             validationResult.invalidFields.includes('sanctuary.s3')
                               ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                              : 'border-slate-200/80 focus:border-emerald-500'
+                              : 'border-slate-200 dark:border-slate-700/80 focus:border-emerald-500'
                           "
                         />
                         <span
@@ -4130,7 +4131,7 @@ watch(
               </template>
               <template v-else>
                 <div
-                  class="p-8 bg-slate-50/70 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center text-center space-y-3 transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 group cursor-pointer"
+                  class="p-8 bg-slate-50 dark:bg-slate-800/70 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-3xl flex flex-col items-center justify-center text-center space-y-3 transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 group cursor-pointer"
                   @click="
                     (pickerOpen = true),
                       (pickerOpenOther.type = 'add'),
@@ -4139,7 +4140,7 @@ watch(
                 >
                   <!-- 图标外发光圆圈 -->
                   <div
-                    class="w-12 h-12 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex items-center justify-center text-[#45a6d5] group-hover:scale-110 group-hover:border-sky-200 group-hover:shadow-md transition-all duration-300"
+                    class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 shadow-sm flex items-center justify-center text-[#45a6d5] group-hover:scale-110 group-hover:border-sky-200 group-hover:shadow-md transition-all duration-300"
                   >
                     <svg
                       class="w-6 h-6"
@@ -4170,7 +4171,7 @@ watch(
 
             <!-- 弹窗底部操作按钮 -->
             <div
-              class="px-8 py-5 border-t border-slate-100 bg-white flex items-center justify-end gap-4 z-10"
+              class="px-8 py-5 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-end gap-4 z-10"
             >
               <button
                 @click="showAddCharModal = false"
@@ -4199,11 +4200,11 @@ watch(
           class="fixed inset-0 z-[60] flex items-center justify-center"
         >
           <div
-            class="relative z-10 w-full max-w-3xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden max-h-[90vh]"
+            class="relative z-10 w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden max-h-[90vh]"
           >
             <!-- 弹窗头部 -->
             <div
-              class="p-6 border-b border-slate-100 flex items-center justify-between gap-4"
+              class="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between gap-4"
             >
               <div class="font-black text-slate-800 text-lg">
                 {{ pickerOpenOther.type === "add" ? "添加角色" : "选择其他角色" }}
@@ -4218,7 +4219,7 @@ watch(
 
             <!-- 🌟 新增：Tab 切换栏 -->
             <div
-              class="px-6 pt-4 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3"
+              class="px-6 pt-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3"
             >
               <button
                 type="button"
@@ -4227,7 +4228,7 @@ watch(
                 :class="
                   pickerTab === 'aion2'
                     ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sm'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
                 "
               >
                 永恒之塔2（台服）
@@ -4239,7 +4240,7 @@ watch(
                 :class="
                   pickerTab === 'custom'
                     ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sm'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
                 "
               >
                 自定义角色
@@ -4254,7 +4255,7 @@ watch(
                   <div class="flex items-center gap-2">
                     <input
                       v-model="myKeyword"
-                      class="flex-1 px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+                      class="flex-1 px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:bg-slate-900 outline-none font-bold text-slate-700 transition-all"
                       placeholder="搜索我的角色..."
                     />
                     <button
@@ -4279,7 +4280,7 @@ watch(
                     <div
                       v-for="m in filteredMyMembers"
                       :key="m.id"
-                      class="p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3"
+                      class="p-3 rounded-2xl border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-800 transition-colors flex items-center justify-between gap-3"
                     >
                       <div class="min-w-0">
                         <div class="font-black text-slate-800 truncate">
@@ -4304,7 +4305,7 @@ watch(
                           <input
                             v-model="m.remark"
                             type="text"
-                            class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 focus:border-[#45a6d5] outline-none font-bold text-xs text-slate-700 transition-all"
+                            class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-[#45a6d5] outline-none font-bold text-xs text-slate-700 transition-all"
                             placeholder="备注（可选）"
                           />
                         </div>
@@ -4332,14 +4333,14 @@ watch(
                   <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
                     <select
                       v-model.number="searchRaceId"
-                      class="px-5 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700"
+                      class="px-5 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:bg-slate-900 outline-none font-black text-slate-700"
                     >
                       <option :value="1">天族</option>
                       <option :value="2">魔族</option>
                     </select>
                     <select
                       v-model.number="searchServerId"
-                      class="px-5 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700"
+                      class="px-5 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:bg-slate-900 outline-none font-black text-slate-700"
                     >
                       <option
                         v-for="s in searchServerOptions"
@@ -4353,7 +4354,7 @@ watch(
                   <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2">
                     <input
                       v-model="searchQuick"
-                      class="px-4 py-3 rounded-2xl bg-white border-2 border-slate-100 focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all"
+                      class="px-4 py-3 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-700 focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all"
                       placeholder="输入角色名关键字或者快捷粘贴：角色名[区服简写]（例如 xxx[xxx]）"
                       @keyup.enter="applyQuickToSearchAndSearch"
                     />
@@ -4381,7 +4382,7 @@ watch(
                     <div
                       v-for="c in searchResults"
                       :key="c.characterId"
-                      class="p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer"
+                      class="p-3 rounded-2xl border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-800 transition-colors cursor-pointer"
                     >
                       <div class="flex items-center justify-between gap-3">
                         <div class="min-w-0">
@@ -4432,7 +4433,7 @@ watch(
                       >
                       <input
                         v-model="customForm.characterName"
-                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:bg-slate-900 outline-none font-bold text-slate-700 transition-all"
                         placeholder="请输入角色名称"
                       />
                     </div>
@@ -4441,7 +4442,7 @@ watch(
                       <label class="text-xs font-black text-slate-700">职业</label>
                       <select
                         v-model="customForm.className"
-                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all cursor-pointer"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:bg-slate-900 outline-none font-bold text-slate-700 transition-all cursor-pointer"
                       >
                         <option value="" disabled selected>请选择职业</option>
                         <option
@@ -4459,7 +4460,7 @@ watch(
                       <input
                         v-model.number="customForm.characterLevel"
                         type="number"
-                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:bg-slate-900 outline-none font-bold text-slate-700 transition-all"
                         placeholder="例如：55"
                       />
                     </div>
@@ -4471,7 +4472,7 @@ watch(
                       <input
                         v-model.number="customForm.itemLevel"
                         type="number"
-                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:bg-slate-900 outline-none font-bold text-slate-700 transition-all"
                         placeholder="例如：12500"
                       />
                     </div>
@@ -4481,7 +4482,7 @@ watch(
                     <label class="text-xs font-black text-slate-700">备注</label>
                     <input
                       v-model="customForm.remark"
-                      class="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+                      class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:bg-slate-900 outline-none font-bold text-slate-700 transition-all"
                       placeholder="可选填备注信息"
                     />
                   </div>
@@ -4515,10 +4516,10 @@ watch(
             @click="groupOpen = false"
           ></div>
           <div
-            class="relative z-10 w-full max-w-3xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden"
+            class="relative z-10 w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden"
           >
             <div
-              class="p-6 border-b border-slate-100 flex items-center justify-between gap-4"
+              class="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between gap-4"
             >
               <div class="font-black text-slate-800 text-lg flex items-center gap-2">
                 <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
@@ -4535,7 +4536,7 @@ watch(
             <div class="p-6 space-y-6 max-h-[80vh] overflow-y-auto custom-scroll">
               <!-- 增/改 输入面板 -->
               <div
-                class="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-3"
+                class="p-4 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700/80 space-y-3"
               >
                 <div
                   class="text-xs font-extrabold text-slate-500 uppercase tracking-wider"
@@ -4551,7 +4552,7 @@ watch(
                     v-model="groupInputName"
                     type="text"
                     placeholder="请输入分组名称（如：主力账号组）..."
-                    class="flex-1 px-4 py-3 rounded-xl bg-white border-2 border-slate-200/80 focus:border-[#45a6d5] outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                    class="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5] outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
                     @keyup.enter="saveGroup"
                   />
                   <button
@@ -4581,7 +4582,7 @@ watch(
                 <div
                   v-for="group in gameData.groups"
                   :key="group.id"
-                  class="flex items-center justify-between p-4 bg-white border-2 border-slate-200/80 rounded-2xl hover:border-slate-300 transition-all shadow-sm"
+                  class="flex items-center justify-between p-4 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700/80 rounded-2xl hover:border-slate-300 dark:border-slate-700 transition-all shadow-sm"
                 >
                   <div class="flex items-center gap-3">
                     <span
@@ -4628,11 +4629,11 @@ watch(
             @click="settingsOpen = false"
           ></div>
           <div
-            class="relative z-10 w-full max-w-3xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[85vh]"
+            class="relative z-10 w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col max-h-[85vh]"
           >
             <!-- 弹窗头部 -->
             <div
-              class="p-6 border-b border-slate-100 flex items-center justify-between gap-4 shrink-0"
+              class="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between gap-4 shrink-0"
             >
               <div class="font-black text-slate-800 text-lg flex items-center gap-2">
                 <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
@@ -4654,7 +4655,7 @@ watch(
                   卡片布局与展示
                 </h3>
                 <div
-                  class="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-4"
+                  class="p-4 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/50 space-y-4"
                 >
                   <!-- 列数选择 -->
                   <div class="flex items-center justify-between gap-4">
@@ -4665,7 +4666,7 @@ watch(
                       </div>
                     </div>
                     <div
-                      class="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs"
+                      class="flex items-center gap-1.5 bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs"
                     >
                       <button
                         v-for="col in [1, 2, 3, 4, 5]"
@@ -4685,7 +4686,7 @@ watch(
 
                   <!-- 展示模式 -->
                   <div
-                    class="flex items-center justify-between gap-4 pt-3 border-t border-slate-100"
+                    class="flex items-center justify-between gap-4 pt-3 border-t border-slate-100 dark:border-slate-700"
                   >
                     <div>
                       <div class="text-sm font-black text-slate-800">面板显示模式</div>
@@ -4694,7 +4695,7 @@ watch(
                       </div>
                     </div>
                     <div
-                      class="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs"
+                      class="flex items-center gap-1.5 bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs"
                     >
                       <button
                         @click="cardConfig.mode = 'default'"
@@ -4735,7 +4736,7 @@ watch(
                   <!-- 自定义模式下的字段开关 (仅在 mode === 'custom' 时展开) -->
                   <div
                     v-if="cardConfig.mode === 'custom'"
-                    class="pt-3 border-t border-slate-100 space-y-3 pl-2"
+                    class="pt-3 border-t border-slate-100 dark:border-slate-700 space-y-3 pl-2"
                   >
                     <div class="text-xs font-bold text-slate-500">自定义显示字段项：</div>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
@@ -4745,7 +4746,7 @@ watch(
                         <input
                           type="checkbox"
                           v-model="cardConfig.customFields.showCombatPower"
-                          class="rounded border-slate-300 text-[#45a6d5] focus:ring-[#45a6d5]"
+                          class="rounded border-slate-300 dark:border-slate-700 text-[#45a6d5] focus:ring-[#45a6d5]"
                         />
                         显示战力
                       </label>
@@ -4755,7 +4756,7 @@ watch(
                         <input
                           type="checkbox"
                           v-model="cardConfig.customFields.showDungeons"
-                          class="rounded border-slate-300 text-[#45a6d5] focus:ring-[#45a6d5]"
+                          class="rounded border-slate-300 dark:border-slate-700 text-[#45a6d5] focus:ring-[#45a6d5]"
                         />
                         显示副本
                       </label>
@@ -4765,7 +4766,7 @@ watch(
                         <input
                           type="checkbox"
                           v-model="cardConfig.customFields.showEnergy"
-                          class="rounded border-slate-300 text-[#45a6d5] focus:ring-[#45a6d5]"
+                          class="rounded border-slate-300 dark:border-slate-700 text-[#45a6d5] focus:ring-[#45a6d5]"
                         />
                         显示能量
                       </label>
@@ -4775,7 +4776,7 @@ watch(
                         <input
                           type="checkbox"
                           v-model="cardConfig.customFields.showTasks"
-                          class="rounded border-slate-300 text-[#45a6d5] focus:ring-[#45a6d5]"
+                          class="rounded border-slate-300 dark:border-slate-700 text-[#45a6d5] focus:ring-[#45a6d5]"
                         />
                         显示任务按钮
                       </label>
@@ -4785,7 +4786,7 @@ watch(
                         <input
                           type="checkbox"
                           v-model="cardConfig.customFields.showNotes"
-                          class="rounded border-slate-300 text-[#45a6d5] focus:ring-[#45a6d5]"
+                          class="rounded border-slate-300 dark:border-slate-700 text-[#45a6d5] focus:ring-[#45a6d5]"
                         />
                         显示备注
                       </label>
@@ -4802,7 +4803,7 @@ watch(
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <!-- 导出备份 -->
                   <div
-                    class="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 flex items-center justify-between gap-3"
+                    class="p-4 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between gap-3"
                   >
                     <div>
                       <div class="text-sm font-black text-slate-800">导出数据备份</div>
@@ -4812,7 +4813,7 @@ watch(
                     </div>
                     <button
                       @click="exportGameData"
-                      class="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs shadow-2xs transition-all shrink-0 cursor-pointer"
+                      class="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 hover:bg-slate-100 font-bold text-xs shadow-2xs transition-all shrink-0 cursor-pointer"
                     >
                       导出
                     </button>
@@ -4820,7 +4821,7 @@ watch(
 
                   <!-- 导入备份 -->
                   <div
-                    class="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 flex items-center justify-between gap-3"
+                    class="p-4 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between gap-3"
                   >
                     <div>
                       <div class="text-sm font-black text-slate-800">导入数据恢复</div>
@@ -4829,7 +4830,7 @@ watch(
                       </div>
                     </div>
                     <label
-                      class="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-xs shadow-2xs transition-all shrink-0 cursor-pointer"
+                      class="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 hover:bg-slate-100 font-bold text-xs shadow-2xs transition-all shrink-0 cursor-pointer"
                     >
                       导入
                       <input
@@ -4851,7 +4852,7 @@ watch(
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <!-- 紧凑模式 -->
                   <div
-                    class="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 flex items-center justify-between gap-3"
+                    class="p-4 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between gap-3"
                   >
                     <div>
                       <div class="text-sm font-black text-slate-800">表格紧凑模式</div>
@@ -4865,7 +4866,7 @@ watch(
                       :class="settings?.compactMode ? 'bg-[#45a6d5]' : 'bg-slate-300'"
                     >
                       <div
-                        class="w-4 h-4 rounded-full bg-white transition-transform shadow-sm"
+                        class="w-4 h-4 rounded-full bg-white dark:bg-slate-900 transition-transform shadow-sm"
                         :class="settings?.compactMode ? 'translate-x-6' : 'translate-x-0'"
                       ></div>
                     </button>
@@ -4873,7 +4874,7 @@ watch(
 
                   <!-- 自动保存提示 -->
                   <div
-                    class="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 flex items-center justify-between gap-3"
+                    class="p-4 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between gap-3"
                   >
                     <div>
                       <div class="text-sm font-black text-slate-800">操作成功轻提示</div>
@@ -4887,7 +4888,7 @@ watch(
                       :class="settings?.showToast ? 'bg-[#45a6d5]' : 'bg-slate-300'"
                     >
                       <div
-                        class="w-4 h-4 rounded-full bg-white transition-transform shadow-sm"
+                        class="w-4 h-4 rounded-full bg-white dark:bg-slate-900 transition-transform shadow-sm"
                         :class="settings.showToast ? 'translate-x-6' : 'translate-x-0'"
                       ></div>
                     </button>
@@ -4923,7 +4924,7 @@ watch(
 
               <!-- 5. 关于信息 -->
               <div
-                class="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400"
+                class="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs text-slate-400"
               >
                 <div>AION2 Portal 游戏辅助面板</div>
                 <div>Version 1.2.0</div>
@@ -4941,11 +4942,11 @@ watch(
           class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 backdrop-blur-sm"
         >
           <div
-            class="relative bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl overflow-hidden text-slate-800 flex flex-col transition-all duration-300 h-[60vh] w-[30vw]"
+            class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-[2.5rem] shadow-2xl overflow-hidden text-slate-800 flex flex-col transition-all duration-300 h-[60vh] w-[30vw]"
           >
             <!-- 弹窗头部 -->
             <div
-              class="px-8 py-2 border-b border-slate-100 flex items-center justify-between bg-white z-10"
+              class="px-8 py-2 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-900 z-10"
             >
               <div class="flex items-center gap-3">
                 <div class="w-2.5 h-2.5 rounded-full bg-sky-500"></div>
@@ -4964,7 +4965,7 @@ watch(
 
             <!-- 弹窗表单主体 -->
             <div
-              class="p-6 space-y-6 overflow-y-auto custom-scroll flex-1 bg-slate-50/50"
+              class="p-6 space-y-6 overflow-y-auto custom-scroll flex-1 bg-slate-50 dark:bg-slate-800/50"
             >
               <!-- 开通会员 -->
               <div
@@ -4995,7 +4996,7 @@ watch(
 
                 <!-- 核心表单交互区 -->
                 <div
-                  class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4"
+                  class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm space-y-4"
                 >
                   <div class="flex items-center justify-between">
                     <label class="text-xs font-black text-slate-700 tracking-wide">
@@ -5013,7 +5014,7 @@ watch(
                       min="1"
                       max="28"
                       placeholder="请输入要开通的天数..."
-                      class="w-full px-4 py-3 rounded-xl bg-slate-50/80 border-2 border-slate-200 outline-none font-black text-sm text-slate-800 transition-all focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10"
+                      class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border-2 border-slate-200 dark:border-slate-700 outline-none font-black text-sm text-slate-800 transition-all focus:bg-white dark:bg-slate-900 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10"
                     />
                     <div
                       class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400"
@@ -5055,7 +5056,7 @@ watch(
               >
                 <!-- 头部：极简状态提示 -->
                 <div
-                  class="flex items-center justify-between py-2 border-b border-slate-100 text-xs"
+                  class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-700 text-xs"
                 >
                   <span class="font-bold text-slate-400">当前分组状态</span>
                   <span class="font-black text-slate-700">
@@ -5083,7 +5084,7 @@ watch(
                     <div class="relative">
                       <input
                         v-model.number="globalPopupOp.data.energy"
-                        class="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-slate-400 focus:bg-white outline-none font-black text-slate-800 text-sm transition-all"
+                        class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-slate-400 dark:border-slate-700 focus:bg-white dark:bg-slate-900 outline-none font-black text-slate-800 text-sm transition-all"
                         placeholder="请输入上限"
                       />
                       <span
@@ -5102,7 +5103,7 @@ watch(
                     <div class="relative">
                       <input
                         v-model.number="globalPopupOp.data.storedEnergy"
-                        class="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-slate-400 focus:bg-white outline-none font-black text-slate-800 text-sm transition-all"
+                        class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-slate-400 dark:border-slate-700 focus:bg-white dark:bg-slate-900 outline-none font-black text-slate-800 text-sm transition-all"
                         placeholder="请输入存储上限"
                       />
                       <span
@@ -5117,7 +5118,7 @@ watch(
 
             <!-- 弹窗底部操作按钮 -->
             <div
-              class="px-8 py-4 border-t border-slate-100 bg-white flex items-center justify-end gap-3 z-10"
+              class="px-8 py-4 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-end gap-3 z-10"
             >
               <!-- <button
                 type="button"
@@ -5137,7 +5138,7 @@ watch(
                 <span>⚡ 确认开通会员</span>
               </button>
               <!-- 奥德补充 -->
-              <div class="border-t border-slate-100 grid grid-cols-3 gap-2">
+              <div class="border-t border-slate-100 dark:border-slate-700 grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   class="py-3 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center truncate"

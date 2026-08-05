@@ -217,8 +217,8 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
     <div
       v-for="char in characters"
       :key="char.characterId || char.id"
-      class="relative bg-white border border-slate-200/80 p-4 rounded-3xl shadow-sm space-y-4 border-[#45a6d5] transition-all flex flex-col overflow-hidden"
-      :class="char.locked ? 'opacity-95 bg-slate-50/50' : ''"
+      class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-4 rounded-3xl shadow-sm space-y-4 border-[#45a6d5] transition-all flex flex-col overflow-hidden"
+      :class="char.locked ? 'opacity-95 bg-slate-50 dark:bg-slate-800/50' : ''"
     >
       <!-- 右上角“游玩消耗”精致角标按钮 -->
       <button
@@ -230,7 +230,9 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
       </button>
 
       <!-- 顶部标题栏（所有模式均展示） -->
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3 pr-16">
+      <div
+        class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3 pr-16"
+      >
         <div class="flex items-center gap-3">
           <button
             type="button"
@@ -238,7 +240,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
             :class="
               char.locked
                 ? 'bg-amber-50 text-amber-600 border-amber-200'
-                : 'bg-slate-100 text-slate-600 border-slate-200'
+                : 'bg-slate-100 text-slate-600 border-slate-200 dark:border-slate-700'
             "
             @click="emit('toggle-lock', char)"
             :title="
@@ -290,7 +292,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         class="grid grid-cols-2 gap-3"
       >
         <div
-          class="bg-white/80 p-3 rounded-2xl border-2 border-yellow-100 shadow-sm flex flex-col justify-between space-y-1"
+          class="bg-white dark:bg-slate-900/80 p-3 rounded-2xl border-2 border-yellow-100 shadow-sm flex flex-col justify-between space-y-1"
         >
           <div class="text-[10px] text-slate-400 font-black uppercase leading-none">
             装等
@@ -301,7 +303,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         </div>
 
         <div
-          class="bg-white/80 p-3 rounded-2xl border-2 border-emerald-100 shadow-sm flex flex-col justify-between space-y-1"
+          class="bg-white dark:bg-slate-900/80 p-3 rounded-2xl border-2 border-emerald-100 shadow-sm flex flex-col justify-between space-y-1"
         >
           <div class="text-[10px] text-slate-400 font-black uppercase leading-none">
             战斗力
@@ -321,7 +323,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
       >
         <!-- 1. 远征副本 -->
         <div
-          class="p-3 bg-slate-50/70 border border-slate-200/60 rounded-2xl flex flex-col gap-2 transition-all hover:bg-slate-50"
+          class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-2 transition-all hover:bg-slate-50 dark:bg-slate-800"
         >
           <div
             class="flex items-center justify-between text-[11px] font-bold text-slate-500"
@@ -348,7 +350,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           </div>
           <!-- 组内收益（读取 groups） -->
           <div
-            class="bg-white/80 border border-slate-200/50 rounded-xl px-2 py-1 text-[10px] font-bold text-amber-600 flex items-center justify-between"
+            class="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/50 rounded-xl px-2 py-1 text-[10px] font-bold text-amber-600 flex items-center justify-between"
           >
             <span>组内收益:</span>
             <span class="truncate">{{
@@ -359,7 +361,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
 
         <!-- 2. 超越副本 -->
         <div
-          class="p-3 bg-slate-50/70 border border-slate-200/60 rounded-2xl flex flex-col gap-2 transition-all hover:bg-slate-50"
+          class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-2 transition-all hover:bg-slate-50 dark:bg-slate-800"
         >
           <div
             class="flex items-center justify-between text-[11px] font-bold text-slate-500"
@@ -386,7 +388,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           </div>
           <!-- 组内收益（读取 groups） -->
           <div
-            class="bg-white/80 border border-slate-200/50 rounded-xl px-2 py-1 text-[10px] font-bold text-amber-600 flex items-center justify-between"
+            class="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/50 rounded-xl px-2 py-1 text-[10px] font-bold text-amber-600 flex items-center justify-between"
           >
             <span>组内收益:</span>
             <span class="truncate">{{ getGroupDecayInfo(char.group, "surpass") }}</span>
@@ -397,7 +399,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           v-if="
             currentMode !== 'simple' && (currentMode !== 'custom' || fields.showSanctuary)
           "
-          class="p-3 bg-slate-50/70 border border-slate-200/60 rounded-2xl flex flex-col gap-2 transition-all hover:bg-slate-50 text-xs"
+          class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-2 transition-all hover:bg-slate-50 dark:bg-slate-800 text-xs"
         >
           <div
             class="flex items-center justify-between text-[11px] font-bold text-slate-500"
@@ -413,7 +415,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
             <div
               v-for="(maxLimit, bossKey) in char.sanctuary || { s1: 1, s2: 1, s3: 1 }"
               :key="bossKey"
-              class="bg-white/80 border border-slate-200/50 rounded-xl px-2 py-1.5 flex flex-col items-center justify-center gap-0.5"
+              class="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/50 rounded-xl px-2 py-1.5 flex flex-col items-center justify-center gap-0.5"
             >
               <span class="text-[10px] text-slate-400 font-semibold uppercase">{{
                 bossKey
@@ -432,12 +434,14 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
       <!-- ================= 模式三：奥德能量进度 ================= -->
       <div
         v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showEnergy)"
-        class="p-3.5 bg-gradient-to-br from-slate-50/90 to-slate-100/60 border border-slate-200/80 rounded-2xl space-y-2.5 shadow-sm transition-all hover:shadow"
+        class="p-3.5 bg-gradient-to-br from-slate-50/90 to-slate-100/60 dark:from-slate-800/80 dark:to-slate-900/80 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2.5 shadow-sm transition-all hover:shadow dark:hover:border-slate-600"
         @click="emit('task-click', char, '', 'globalSimpleEnergy')"
       >
         <!-- 头部：标题与数值概览 -->
         <div class="flex items-center justify-between text-xs">
-          <span class="font-bold text-slate-700 flex items-center gap-1.5">
+          <span
+            class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5"
+          >
             <span
               class="w-2 h-2 rounded-full bg-gradient-to-r from-[#45a6d5] to-amber-500 shadow-sm"
             ></span>
@@ -445,17 +449,17 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           </span>
           <div class="flex items-center gap-1 text-xs font-black">
             <span
-              class="text-[#45a6d5] bg-sky-50 px-1.5 py-0.5 rounded-md border border-sky-100"
+              class="text-[#45a6d5] dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-1.5 py-0.5 rounded-md border border-sky-100 dark:border-sky-900"
               title="基础奥德"
               >{{ char.energy || 0 }}</span
             >
-            <span class="text-slate-300 font-normal">+</span>
+            <span class="text-slate-300 dark:text-slate-600 font-normal">+</span>
             <span
-              class="text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-100"
+              class="text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded-md border border-amber-100 dark:border-amber-900/60"
               title="存储奥德"
               >{{ char.storedEnergy || 0 }}</span
             >
-            <span class="text-slate-400 font-medium ml-0.5"
+            <span class="text-slate-400 dark:text-slate-500 font-medium ml-0.5"
               >/ {{ char.premiumMember ? 840 : 560 }}</span
             >
           </div>
@@ -463,11 +467,11 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
 
         <!-- 组合进度条主体 -->
         <div
-          class="w-full bg-slate-200/70 h-2.5 rounded-full overflow-hidden flex p-0.5 border border-slate-200/80 shadow-inner"
+          class="w-full bg-slate-200/70 dark:bg-slate-700/80 h-2.5 rounded-full overflow-hidden flex p-0.5 border border-slate-200 dark:border-slate-600 shadow-inner"
         >
           <!-- 基础奥德进度条 -->
           <div
-            class="bg-gradient-to-r from-[#3998c7] to-[#45a6d5] h-full rounded-l-full transition-all duration-500 relative"
+            class="bg-gradient-to-r from-[#3998c7] to-[#45a6d5] dark:from-[#2e82ab] dark:to-[#3894c2] h-full rounded-l-full transition-all duration-500 relative"
             :style="{
               width: `${Math.min(
                 100,
@@ -478,7 +482,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           ></div>
           <!-- 存储奥德进度条 -->
           <div
-            class="bg-gradient-to-r from-amber-400 to-amber-500 h-full rounded-r-full transition-all duration-500 relative opacity-95"
+            class="bg-gradient-to-r from-amber-400 to-amber-500 dark:from-amber-500 dark:to-amber-600 h-full rounded-r-full transition-all duration-500 relative opacity-95"
             :style="{
               width: `${Math.min(
                 100 -
@@ -495,21 +499,21 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
 
         <!-- 底部：图例与总计 -->
         <div
-          class="flex items-center justify-between text-[10px] font-semibold text-slate-400 pt-0.5 px-0.5"
+          class="flex items-center justify-between text-[10px] font-semibold text-slate-400 dark:text-slate-500 pt-0.5 px-0.5"
         >
           <div class="flex items-center gap-2.5">
-            <span class="flex items-center gap-1 text-slate-500">
+            <span class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
               <span class="w-1.5 h-1.5 rounded-full bg-[#45a6d5]"></span>
               基础
             </span>
-            <span class="flex items-center gap-1 text-slate-500">
+            <span class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
               存储
             </span>
           </div>
-          <span class="text-slate-500">
+          <span class="text-slate-500 dark:text-slate-400">
             总计:
-            <strong class="text-slate-700 font-bold">{{
+            <strong class="text-slate-700 dark:text-slate-200 font-bold">{{
               (char.energy || 0) + (char.storedEnergy || 0)
             }}</strong>
             点
@@ -524,7 +528,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         <!-- 1. 每日副本 (服务器共享，周三5点，固定14次+存储上限) -->
         <button
           type="button"
-          class="p-2 bg-slate-50/80 border border-slate-200/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 text-left shadow-sm group"
+          class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 text-left shadow-sm group"
           @click="emit('task-click', char, 'dailyRuns', 'weeklydaily')"
         >
           <div class="w-full flex items-center justify-between">
@@ -568,7 +572,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         <!-- 2. 古树庆典 (服务器共享，每天5点恢复2次，上限14) -->
         <button
           type="button"
-          class="p-2 bg-slate-50/80 border border-slate-200/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 text-left shadow-sm group"
+          class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 text-left shadow-sm group"
           @click="emit('task-click', char, 'minigameCount', 'weeklydaily')"
         >
           <div class="w-full flex items-center justify-between">
@@ -624,7 +628,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         <!-- 3. 次元袭击 (服务器共享，每天5点恢复2次，上限14) -->
         <button
           type="button"
-          class="p-2 bg-slate-50/80 border border-slate-200/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 text-left shadow-sm group"
+          class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 text-left shadow-sm group"
           @click="emit('task-click', char, 'dimensionalCount', 'weeklydaily')"
         >
           <div class="w-full flex items-center justify-between">
@@ -685,7 +689,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         <!-- 1. 噩梦副本 (角色独立，有存储次数) -->
         <button
           type="button"
-          class="p-2 bg-slate-50/80 border border-slate-200/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 text-left shadow-sm group"
+          class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 text-left shadow-sm group"
           @click="emit('task-click', char, 'nightmareCount', 'weeklydaily')"
         >
           <div class="w-full flex items-center justify-between">
@@ -712,7 +716,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         <!-- 2. 觉醒 (角色独立，上限30次或3次，带存储) -->
         <button
           type="button"
-          class="p-2 bg-slate-50/80 border border-slate-200/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 text-left shadow-sm group"
+          class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 text-left shadow-sm group"
           @click="emit('task-click', char, 'awakening', 'weeklydaily')"
         >
           <div class="w-full flex items-center justify-between">
@@ -735,7 +739,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         <!-- 3. 战场 (角色独立，无存储字段) -->
         <button
           type="button"
-          class="p-2 bg-slate-50/80 border border-slate-200/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 text-left shadow-sm group"
+          class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 text-left shadow-sm group"
           @click="emit('task-click', char, 'battlefield', 'weeklydaily')"
         >
           <div class="w-full flex items-center justify-between">
@@ -756,7 +760,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
         <!-- 1. 微风商店 - 角色奥德 -->
         <div
-          class="p-3 bg-white border border-slate-200/80 rounded-xl flex items-center justify-between shadow-xs transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 cursor-pointer"
+          class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between shadow-xs transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 cursor-pointer"
           @click="emit('task-click', char, 'breezeCharOd', 'exchange')"
         >
           <div class="flex items-center gap-2">
@@ -787,7 +791,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
 
         <!-- 2. 物质变换 - 角色奥德 -->
         <div
-          class="p-3 bg-white border border-slate-200/80 rounded-xl flex items-center justify-between shadow-xs transition-all hover:border-amber-400/50 hover:bg-amber-50/30 cursor-pointer"
+          class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between shadow-xs transition-all hover:border-amber-400/50 hover:bg-amber-50/30 cursor-pointer"
           @click="emit('task-click', char, 'materialCharOd', 'exchange')"
         >
           <div class="flex items-center gap-2">
@@ -826,13 +830,13 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           placeholder="点击添加备注信息..."
           rows="2"
           @change="(e) => emit('text-change', char, 'note', e.target.value)"
-          class="w-full bg-slate-50/70 border border-slate-200/60 p-2.5 rounded-2xl text-xs font-bold text-slate-700 outline-none focus:border-[#45a6d5] resize-none disabled:bg-slate-100"
+          class="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 p-2.5 rounded-2xl text-xs font-bold text-slate-700 outline-none focus:border-[#45a6d5] resize-none disabled:bg-slate-100"
         ></textarea>
       </div>
 
       <!-- 底部操作与元信息标签（所有模式均展示） -->
       <div
-        class="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] font-bold text-slate-400"
+        class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700 text-[11px] font-bold text-slate-400"
       >
         <span>分组: {{ getGroupName(char.group) }}</span>
 
