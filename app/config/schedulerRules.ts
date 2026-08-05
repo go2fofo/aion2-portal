@@ -199,7 +199,7 @@ export const gameRulesDictionary = [
     lastTimeField: "lastBattlefieldUpdate",
     refreshType: "weekly",
     cron: "0 5 * * 3",
-    resetValue: 0,
+    resetValue: 3,
     description: "角色单独：战场玩法，于每周三5点重置。",
   },
   {
