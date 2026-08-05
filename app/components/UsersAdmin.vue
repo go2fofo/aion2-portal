@@ -1966,7 +1966,9 @@ watch(
           <div class="text-slate-400 text-xs font-bold tracking-wider uppercase">
             总角色数
           </div>
-          <div class="text-3xl font-black mt-2 tracking-tight text-slate-900 dark:text-slate-100">
+          <div
+            class="text-3xl font-black mt-2 tracking-tight text-slate-900 dark:text-slate-100"
+          >
             {{ totalCharacters }}
           </div>
         </div>
@@ -2311,11 +2313,11 @@ watch(
       >
         <!-- ================= 左侧：重新深度设计的签到卡片（层次感与视觉吸睛度拉满） ================= -->
         <div
-          class="lg:w-80 p-4 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white border border-indigo-200/80 rounded-xl flex flex-col justify-between gap-3.5 shrink-0 shadow-xs relative overflow-hidden"
+          class="lg:w-80 p-4 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white dark:from-indigo-950/40 dark:via-purple-950/20 dark:to-slate-900 border border-indigo-200/80 dark:border-indigo-900/60 rounded-xl flex flex-col justify-between gap-3.5 shrink-0 shadow-xs relative overflow-hidden"
         >
           <!-- 背景装饰微光 -->
           <div
-            class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl pointer-events-none"
+            class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-xl pointer-events-none"
           ></div>
 
           <!-- 顶栏：图标与标题 -->
@@ -2327,10 +2329,12 @@ watch(
                 签
               </div>
               <div class="min-w-0">
-                <div class="text-xs font-black text-slate-800 tracking-wide truncate">
+                <div
+                  class="text-xs font-black text-slate-800 dark:text-slate-100 tracking-wide truncate"
+                >
                   每日/每周签到中心
                 </div>
-                <div class="text-[10px] text-slate-400 truncate">
+                <div class="text-[10px] text-slate-400 dark:text-slate-400 truncate">
                   保持出勤，领取活跃奖励
                 </div>
               </div>
@@ -2339,15 +2343,15 @@ watch(
 
           <!-- 底栏：当前状态与交互按钮 -->
           <div
-            class="flex items-center justify-between gap-3 pt-2 border-t border-indigo-100/60"
+            class="flex items-center justify-between gap-3 pt-2 border-t border-indigo-100/60 dark:border-indigo-900/50"
           >
             <div class="flex items-center gap-1.5 text-xs font-bold">
-              <span class="text-[10px] text-slate-400">状态:</span>
+              <span class="text-[10px] text-slate-400 dark:text-slate-500">状态:</span>
               <span
                 :class="
                   getAtvTabGroup?.dailySignIn
-                    ? 'text-emerald-600 font-black'
-                    : 'text-amber-600 font-black'
+                    ? 'text-emerald-600 dark:text-emerald-400 font-black'
+                    : 'text-amber-600 dark:text-amber-400 font-black'
                 "
               >
                 {{ getAtvTabGroup?.dailySignIn ? "今日已完成签到" : "待签到" }}
@@ -2359,7 +2363,7 @@ watch(
               class="px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-sm active:scale-95 shrink-0"
               :class="
                 getAtvTabGroup?.dailySignIn
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-emerald-500/5'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 shadow-emerald-500/5'
                   : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/25 shadow-md'
               "
               :disabled="getAtvTabGroup?.dailySignIn"
@@ -2369,12 +2373,14 @@ watch(
             </button>
           </div>
         </div>
+
+        <!-- ================= 特级会员状态管理卡片 ================= -->
         <div
-          class="lg:w-80 p-4 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-white border border-amber-200/80 rounded-xl flex flex-col justify-between gap-3.5 shrink-0 shadow-xs relative overflow-hidden"
+          class="lg:w-80 p-4 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-white dark:from-amber-950/40 dark:via-orange-950/20 dark:to-slate-900 border border-amber-200/80 dark:border-amber-900/60 rounded-xl flex flex-col justify-between gap-3.5 shrink-0 shadow-xs relative overflow-hidden"
         >
           <!-- 背景装饰微光 -->
           <div
-            class="absolute -right-6 -bottom-6 w-24 h-24 bg-amber-500/10 rounded-full blur-xl pointer-events-none"
+            class="absolute -right-6 -bottom-6 w-24 h-24 bg-amber-500/10 dark:bg-amber-500/5 rounded-full blur-xl pointer-events-none"
           ></div>
 
           <!-- 顶栏：图标与标题 -->
@@ -2386,20 +2392,21 @@ watch(
                 特
               </div>
               <div class="min-w-0">
-                <div class="text-xs font-black text-slate-800 tracking-wide truncate">
+                <div
+                  class="text-xs font-black text-slate-800 dark:text-slate-100 tracking-wide truncate"
+                >
                   特级会员状态管理
                 </div>
-                <div class="text-[10px] text-slate-400 truncate">
+                <div class="text-[10px] text-slate-400 dark:text-slate-400 truncate">
                   组内特权同步与加成控制
                 </div>
               </div>
             </div>
-            <!-- 状态小徽标 -->
 
-            <!-- 动态状态切换：已激活展示徽标，未激活展示“点击去开通”按钮 -->
+            <!-- 动态状态切换 -->
             <template v-if="getAtvTabGroup?.premiumMember">
               <span
-                class="px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 bg-amber-100 text-amber-800 border border-amber-300"
+                class="px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800"
               >
                 已激活
               </span>
@@ -2416,75 +2423,77 @@ watch(
           </div>
 
           <!-- 主体内容：根据是否开启特级会员动态展示 -->
-          <div class="pt-1 border-t border-amber-100/60">
+          <div class="pt-1 border-t border-amber-100/60 dark:border-amber-900/50">
             <Transition name="fade" mode="out-in">
-              <!-- 情况 A：已开启会员（展示共享或独立详情） -->
+              <!-- 情况 A：已开启会员 -->
               <div v-if="getAtvTabGroup?.premiumMember" class="space-y-2">
-                <!-- 子情况 A1：同组共享天数 -->
-                <div v-if="getAtvTabGroup?.premiumMember" class="space-y-1.5">
+                <div class="space-y-1.5">
                   <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-amber-900">
-                      共享剩余：<span class="text-sm font-black text-amber-600">{{
-                        groupSharedPremiumDaysAtvTab || 0
-                      }}</span>
+                    <span class="text-xs font-bold text-amber-900 dark:text-amber-200">
+                      共享剩余：<span
+                        class="text-sm font-black text-amber-600 dark:text-amber-400"
+                        >{{ groupSharedPremiumDaysAtvTab || 0 }}</span
+                      >
                       天
                     </span>
                   </div>
                   <!-- 起止时间展示 -->
                   <div
-                    class="text-[10px] font-semibold text-slate-500 bg-white dark:bg-slate-900/80 px-2.5 py-1.5 rounded-lg border border-amber-100 flex flex-col gap-0.5"
+                    class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900/80 px-2.5 py-1.5 rounded-lg border border-amber-100 dark:border-amber-900/60 flex flex-col gap-0.5"
                   >
                     <div class="flex justify-between">
                       <span class="text-slate-400">开通:</span>
-                      <span class="text-slate-700 font-bold">{{
+                      <span class="text-slate-700 dark:text-slate-200 font-bold">{{
                         groupSharedStartTimeAtvTab || "未知"
                       }}</span>
                       <span class="text-slate-400">到期:</span>
-                      <span class="text-slate-700 font-bold">{{
+                      <span class="text-slate-700 dark:text-slate-200 font-bold">{{
                         groupSharedEndTimeAtvTab || "未知"
                       }}</span>
                     </div>
                   </div>
                 </div>
 
-                <!-- 子情况 A2：当前角色独立输入（组内第一个开启） -->
-                <div v-else class="space-y-2">
+                <!-- 子情况 A2：当前角色独立输入（如果适用） -->
+                <div v-if="false" class="space-y-2">
                   <div class="flex items-center gap-2">
                     <input
                       v-model.number="getAtvTabGroup.premiumMemberDay"
                       min="1"
                       max="28"
                       placeholder="输入天数(最多28)"
-                      class="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-black text-xs text-slate-800 transition-all shadow-sm"
+                      class="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-black text-xs text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                       :class="
                         validationResult.invalidFields.includes('premiumMemberDay')
-                          ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                          : 'border-amber-300 focus:border-amber-500'
+                          ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
+                          : 'border-amber-300 dark:border-amber-700 focus:border-amber-500'
                       "
                     />
                   </div>
-                  <!-- 错误提示 -->
                   <span
                     v-if="validationResult.errors.premiumMemberDay"
-                    class="text-[10px] text-red-500 font-bold block"
+                    class="text-[10px] text-red-500 dark:text-red-400 font-bold block"
                   >
                     {{ validationResult.errors.premiumMemberDay }}
                   </span>
 
-                  <!-- 预计起止时间预览 -->
                   <div
                     v-if="
                       getAtvTabGroup.premiumMemberDay &&
                       !validationResult.errors.premiumMemberDay
                     "
-                    class="text-[10px] font-bold text-amber-900 bg-amber-100/70 px-2.5 py-1.5 rounded-lg border border-amber-200/60 flex flex-col gap-0.5"
+                    class="text-[10px] font-bold text-amber-900 dark:text-amber-200 bg-amber-100/70 dark:bg-amber-950/60 px-2.5 py-1.5 rounded-lg border border-amber-200/60 dark:border-amber-900/80 flex flex-col gap-0.5"
                   >
                     <div class="flex justify-between">
-                      <span class="text-amber-700/80">预计开通:</span>
+                      <span class="text-amber-700/80 dark:text-amber-400/80"
+                        >预计开通:</span
+                      >
                       <span class="font-black">{{ calculatedStartTime }}</span>
                     </div>
                     <div class="flex justify-between">
-                      <span class="text-amber-700/80">预计到期:</span>
+                      <span class="text-amber-700/80 dark:text-amber-400/80"
+                        >预计到期:</span
+                      >
                       <span class="font-black">{{ calculatedEndTime }}</span>
                     </div>
                   </div>
@@ -2493,20 +2502,21 @@ watch(
 
               <!-- 情况 B：未开启会员时的简洁占位说明 -->
               <div v-else class="py-2 text-center">
-                <span class="text-[11px] font-bold text-slate-400">
+                <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500">
                   当前分组暂未开通特级会员，开启后可享受多重特权加成。
                 </span>
               </div>
             </Transition>
           </div>
         </div>
+
         <!-- ================= 右侧：核心数据呈现区 ================= -->
         <div class="flex-1 flex flex-col justify-between space-y-3">
           <!-- 【极度凸显区】远征与超越副本当前收益 -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <!-- 1. 远征副本收益（高亮琥珀金渐变面板） -->
+            <!-- 1. 远征副本收益 -->
             <div
-              class="relative overflow-hidden p-3 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-white border-2 border-amber-400/40 rounded-xl flex items-center justify-between shadow-xs"
+              class="relative overflow-hidden p-3 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-white dark:from-amber-950/40 dark:via-amber-950/10 dark:to-slate-900 border-2 border-amber-400/40 dark:border-amber-700/60 rounded-xl flex items-center justify-between shadow-xs"
             >
               <div class="flex items-center gap-2 min-w-0">
                 <div
@@ -2514,20 +2524,21 @@ watch(
                 >
                   远
                 </div>
-                <span class="text-xs font-black text-slate-800 tracking-wide truncate"
+                <span
+                  class="text-xs font-black text-slate-800 dark:text-slate-100 tracking-wide truncate"
                   >远征副本当前收益</span
                 >
               </div>
               <span
-                class="text-xs font-black text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-md border border-amber-200 shrink-0"
+                class="text-xs font-black text-amber-700 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-950/80 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800 shrink-0"
               >
                 {{ getGroupDecayInfo(activeTabGroup, "expedition") }}
               </span>
             </div>
 
-            <!-- 2. 超越副本收益（高亮琥珀金渐变面板） -->
+            <!-- 2. 超越副本收益 -->
             <div
-              class="relative overflow-hidden p-3 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-white border-2 border-amber-400/40 rounded-xl flex items-center justify-between shadow-xs"
+              class="relative overflow-hidden p-3 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-white dark:from-amber-950/40 dark:via-amber-950/10 dark:to-slate-900 border-2 border-amber-400/40 dark:border-amber-700/60 rounded-xl flex items-center justify-between shadow-xs"
             >
               <div class="flex items-center gap-2 min-w-0">
                 <div
@@ -2535,12 +2546,13 @@ watch(
                 >
                   超
                 </div>
-                <span class="text-xs font-black text-slate-800 tracking-wide truncate"
+                <span
+                  class="text-xs font-black text-slate-800 dark:text-slate-100 tracking-wide truncate"
                   >超越副本当前收益</span
                 >
               </div>
               <span
-                class="text-xs font-black text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-md border border-amber-200 shrink-0"
+                class="text-xs font-black text-amber-700 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-950/80 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800 shrink-0"
               >
                 {{ getGroupDecayInfo(activeTabGroup, "surpass") }}
               </span>
@@ -2552,28 +2564,31 @@ watch(
             class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]"
             @click="handleTaskClick"
           >
-            <!-- 1. 账号奥德 (上限16) -->
+            <!-- 1. 账号奥德 -->
             <div
               class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
             >
-              <span class="text-[10px] text-slate-500 font-bold truncate">账号奥德</span>
+              <span
+                class="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate"
+                >账号奥德</span
+              >
               <div class="flex items-center gap-1 font-black text-xs">
                 <span
                   :class="
                     (getAtvTabGroup?.breezeAccountOd || 0) >= 16
-                      ? 'text-emerald-600'
-                      : 'text-slate-800'
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-slate-800 dark:text-slate-200'
                   "
                 >
                   {{ getAtvTabGroup?.breezeAccountOd || 0 }}
                 </span>
-                <span class="text-slate-300 font-normal">/16</span>
+                <span class="text-slate-300 dark:text-slate-600 font-normal">/16</span>
                 <span
                   class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
                   :class="
                     (getAtvTabGroup?.breezeAccountOd || 0) >= 16
-                      ? 'bg-emerald-50 text-emerald-600'
-                      : 'bg-slate-200/70 text-slate-400'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900'
+                      : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
                   "
                 >
                   {{ (getAtvTabGroup?.breezeAccountOd || 0) >= 16 ? "✓" : "-" }}
@@ -2581,28 +2596,31 @@ watch(
               </div>
             </div>
 
-            <!-- 2. 商店奥德 (上限16) -->
+            <!-- 2. 商店奥德 -->
             <div
               class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
             >
-              <span class="text-[10px] text-slate-500 font-bold truncate">商店奥德</span>
+              <span
+                class="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate"
+                >商店奥德</span
+              >
               <div class="flex items-center gap-1 font-black text-xs">
                 <span
                   :class="
                     (getAtvTabGroup?.materialAccountOd || 0) >= 16
-                      ? 'text-emerald-600'
-                      : 'text-slate-800'
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-slate-800 dark:text-slate-200'
                   "
                 >
                   {{ getAtvTabGroup?.materialAccountOd || 0 }}
                 </span>
-                <span class="text-slate-300 font-normal">/16</span>
+                <span class="text-slate-300 dark:text-slate-600 font-normal">/16</span>
                 <span
                   class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
                   :class="
                     (getAtvTabGroup?.materialAccountOd || 0) >= 16
-                      ? 'bg-emerald-50 text-emerald-600'
-                      : 'bg-slate-200/70 text-slate-400'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900'
+                      : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
                   "
                 >
                   {{ (getAtvTabGroup?.materialAccountOd || 0) >= 16 ? "✓" : "-" }}
@@ -2610,28 +2628,31 @@ watch(
               </div>
             </div>
 
-            <!-- 3. 周复活石 (上限7) -->
+            <!-- 3. 周复活石 -->
             <div
               class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
             >
-              <span class="text-[10px] text-slate-500 font-bold truncate">周复活石</span>
+              <span
+                class="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate"
+                >周复活石</span
+              >
               <div class="flex items-center gap-1 font-black text-xs">
                 <span
                   :class="
                     (getAtvTabGroup?.breezeReviveStone || 0) >= 7
-                      ? 'text-emerald-600'
-                      : 'text-slate-800'
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-slate-800 dark:text-slate-200'
                   "
                 >
                   {{ getAtvTabGroup?.breezeReviveStone || 0 }}
                 </span>
-                <span class="text-slate-300 font-normal">/7</span>
+                <span class="text-slate-300 dark:text-slate-600 font-normal">/7</span>
                 <span
                   class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
                   :class="
                     (getAtvTabGroup?.breezeReviveStone || 0) >= 7
-                      ? 'bg-emerald-50 text-emerald-600'
-                      : 'bg-slate-200/70 text-slate-400'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900'
+                      : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
                   "
                 >
                   {{ (getAtvTabGroup?.breezeReviveStone || 0) >= 7 ? "✓" : "-" }}
@@ -2639,28 +2660,31 @@ watch(
               </div>
             </div>
 
-            <!-- 4. 未知缝隙 (上限21) -->
+            <!-- 4. 未知缝隙 -->
             <div
               class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
             >
-              <span class="text-[10px] text-slate-500 font-bold truncate">未知缝隙</span>
+              <span
+                class="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate"
+                >未知缝隙</span
+              >
               <div class="flex items-center gap-1 font-black text-xs">
                 <span
                   :class="
                     (getAtvTabGroup?.breezeRiftTicket || 0) >= 21
-                      ? 'text-emerald-600'
-                      : 'text-slate-800'
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-slate-800 dark:text-slate-200'
                   "
                 >
                   {{ getAtvTabGroup?.breezeRiftTicket || 0 }}
                 </span>
-                <span class="text-slate-300 font-normal">/21</span>
+                <span class="text-slate-300 dark:text-slate-600 font-normal">/21</span>
                 <span
                   class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
                   :class="
                     (getAtvTabGroup?.breezeRiftTicket || 0) >= 21
-                      ? 'bg-emerald-50 text-emerald-600'
-                      : 'bg-slate-200/70 text-slate-400'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900'
+                      : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
                   "
                 >
                   {{ (getAtvTabGroup?.breezeRiftTicket || 0) >= 21 ? "✓" : "-" }}
@@ -2668,30 +2692,31 @@ watch(
               </div>
             </div>
 
-            <!-- 5. 完成卷(每日) (上限21) -->
+            <!-- 5. 完成卷(每日) -->
             <div
               class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
             >
-              <span class="text-[10px] text-slate-500 font-bold truncate"
+              <span
+                class="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate"
                 >完成卷(每日)</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
                 <span
                   :class="
                     (getAtvTabGroup?.breezeDailyTicket || 0) >= 21
-                      ? 'text-emerald-600'
-                      : 'text-slate-800'
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-slate-800 dark:text-slate-200'
                   "
                 >
                   {{ getAtvTabGroup?.breezeDailyTicket || 0 }}
                 </span>
-                <span class="text-slate-300 font-normal">/21</span>
+                <span class="text-slate-300 dark:text-slate-600 font-normal">/21</span>
                 <span
                   class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
                   :class="
                     (getAtvTabGroup?.breezeDailyTicket || 0) >= 21
-                      ? 'bg-emerald-50 text-emerald-600'
-                      : 'bg-slate-200/70 text-slate-400'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900'
+                      : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
                   "
                 >
                   {{ (getAtvTabGroup?.breezeDailyTicket || 0) >= 21 ? "✓" : "-" }}
@@ -2699,30 +2724,31 @@ watch(
               </div>
             </div>
 
-            <!-- 6. 完成卷(噩梦) (上限14) -->
+            <!-- 6. 完成卷(噩梦) -->
             <div
               class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
             >
-              <span class="text-[10px] text-slate-500 font-bold truncate"
+              <span
+                class="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate"
                 >完成卷(噩梦)</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
                 <span
                   :class="
                     (getAtvTabGroup?.breezeNightmareTicket || 0) >= 14
-                      ? 'text-emerald-600'
-                      : 'text-slate-800'
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-slate-800 dark:text-slate-200'
                   "
                 >
                   {{ getAtvTabGroup?.breezeNightmareTicket || 0 }}
                 </span>
-                <span class="text-slate-300 font-normal">/14</span>
+                <span class="text-slate-300 dark:text-slate-600 font-normal">/14</span>
                 <span
                   class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
                   :class="
                     (getAtvTabGroup?.breezeNightmareTicket || 0) >= 14
-                      ? 'bg-emerald-50 text-emerald-600'
-                      : 'bg-slate-200/70 text-slate-400'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900'
+                      : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
                   "
                 >
                   {{ (getAtvTabGroup?.breezeNightmareTicket || 0) >= 14 ? "✓" : "-" }}
@@ -2730,28 +2756,31 @@ watch(
               </div>
             </div>
 
-            <!-- 7. 地区A指令 (上限12) -->
+            <!-- 7. 地区A指令 -->
             <div
               class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
             >
-              <span class="text-[10px] text-slate-500 font-bold truncate">地区A指令</span>
+              <span
+                class="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate"
+                >地区A指令</span
+              >
               <div class="flex items-center gap-1 font-black text-xs">
                 <span
                   :class="
                     (getAtvTabGroup?.regionACount || 0) >= 12
-                      ? 'text-emerald-600'
-                      : 'text-slate-800'
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-slate-800 dark:text-slate-200'
                   "
                 >
                   {{ getAtvTabGroup?.regionACount || 0 }}
                 </span>
-                <span class="text-slate-300 font-normal">/12</span>
+                <span class="text-slate-300 dark:text-slate-600 font-normal">/12</span>
                 <span
                   class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
                   :class="
                     (getAtvTabGroup?.regionACount || 0) >= 12
-                      ? 'bg-emerald-50 text-emerald-600'
-                      : 'bg-slate-200/70 text-slate-400'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900'
+                      : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
                   "
                 >
                   {{ (getAtvTabGroup?.regionACount || 0) >= 12 ? "✓" : "-" }}
@@ -2759,28 +2788,31 @@ watch(
               </div>
             </div>
 
-            <!-- 8. 地区B指令 (上限12) -->
+            <!-- 8. 地区B指令 -->
             <div
               class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
             >
-              <span class="text-[10px] text-slate-500 font-bold truncate">地区B指令</span>
+              <span
+                class="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate"
+                >地区B指令</span
+              >
               <div class="flex items-center gap-1 font-black text-xs">
                 <span
                   :class="
                     (getAtvTabGroup?.regionBCount || 0) >= 12
-                      ? 'text-emerald-600'
-                      : 'text-slate-800'
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-slate-800 dark:text-slate-200'
                   "
                 >
                   {{ getAtvTabGroup?.regionBCount || 0 }}
                 </span>
-                <span class="text-slate-300 font-normal">/12</span>
+                <span class="text-slate-300 dark:text-slate-600 font-normal">/12</span>
                 <span
                   class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
                   :class="
                     (getAtvTabGroup?.regionBCount || 0) >= 12
-                      ? 'bg-emerald-50 text-emerald-600'
-                      : 'bg-slate-200/70 text-slate-400'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900'
+                      : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
                   "
                 >
                   {{ (getAtvTabGroup?.regionBCount || 0) >= 12 ? "✓" : "-" }}
@@ -2823,7 +2855,9 @@ watch(
               class="px-8 py-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-900 z-10"
             >
               <div>
-                <div class="text-xl font-black tracking-wide text-slate-900 dark:text-slate-100">
+                <div
+                  class="text-xl font-black tracking-wide text-slate-900 dark:text-slate-100"
+                >
                   新增角色
                 </div>
               </div>
@@ -4974,7 +5008,7 @@ watch(
               >
                 <!-- 顶部门幅提示卡 -->
                 <div
-                  class="flex items-start gap-3.5 p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-white border border-amber-200/80 shadow-sm"
+                  class="flex items-start gap-3.5 p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-white dark:from-amber-950/40 dark:via-orange-950/20 dark:to-slate-900 border border-amber-200/80 dark:border-amber-900/50 shadow-sm"
                 >
                   <div
                     class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center font-black text-base shadow-md shadow-amber-500/25 shrink-0"
@@ -4982,13 +5016,17 @@ watch(
                     ✨
                   </div>
                   <div class="space-y-1">
-                    <div class="text-xs font-black text-amber-900 tracking-wide">
+                    <div
+                      class="text-xs font-black text-amber-900 dark:text-amber-400 tracking-wide"
+                    >
                       开通特级会员特权
                     </div>
-                    <div class="text-[11px] font-bold text-slate-500 leading-relaxed">
-                      开通后将为当前分组（<span class="text-amber-700 font-black">{{
-                        getAtvTabGroup?.name || "当前分组"
-                      }}</span
+                    <div
+                      class="text-[11px] font-bold text-slate-500 dark:text-slate-400 leading-relaxed"
+                    >
+                      开通后将为当前分组（<span
+                        class="text-amber-700 dark:text-amber-400 font-black"
+                        >{{ getAtvTabGroup?.name || "当前分组" }}</span
                       >）的所有角色提供统一的特权加成与共享天数管理。
                     </div>
                   </div>
@@ -4999,10 +5037,14 @@ watch(
                   class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm space-y-4"
                 >
                   <div class="flex items-center justify-between">
-                    <label class="text-xs font-black text-slate-700 tracking-wide">
+                    <label
+                      class="text-xs font-black text-slate-700 dark:text-slate-200 tracking-wide"
+                    >
                       设置会员有效天数
                     </label>
-                    <span class="text-[10px] text-slate-400 font-semibold">
+                    <span
+                      class="text-[10px] text-slate-400 dark:text-slate-500 font-semibold"
+                    >
                       支持范围: 1 ~ 28 天
                     </span>
                   </div>
@@ -5014,10 +5056,10 @@ watch(
                       min="1"
                       max="28"
                       placeholder="请输入要开通的天数..."
-                      class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border-2 border-slate-200 dark:border-slate-700 outline-none font-black text-sm text-slate-800 transition-all focus:bg-white dark:bg-slate-900 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10"
+                      class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border-2 border-slate-200 dark:border-slate-700 outline-none font-black text-sm text-slate-800 dark:text-slate-100 transition-all focus:bg-white dark:focus:bg-slate-900 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10"
                     />
                     <div
-                      class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400"
+                      class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-slate-500"
                     >
                       天
                     </div>
@@ -5029,19 +5071,21 @@ watch(
                       globalPopupOp.data?.premiumMemberDay &&
                       globalPopupOp.data?.premiumMemberDay > 0
                     "
-                    class="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs font-bold text-amber-900 animate-fadeIn"
+                    class="p-3.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs font-bold text-amber-900 dark:text-amber-300 animate-fadeIn"
                   >
                     <div class="flex items-center gap-1.5">
-                      <span class="text-amber-700">预计开通：</span>
-                      <span class="font-black text-slate-800">{{
+                      <span class="text-amber-700 dark:text-amber-400">预计开通：</span>
+                      <span class="font-black text-slate-800 dark:text-slate-200">{{
                         calculatedStartTime(globalPopupOp.data?.premiumMemberDay) ||
                         "今天"
                       }}</span>
                     </div>
-                    <span class="hidden sm:inline text-amber-300">➔</span>
+                    <span class="hidden sm:inline text-amber-300 dark:text-amber-600"
+                      >➔</span
+                    >
                     <div class="flex items-center gap-1.5">
-                      <span class="text-amber-700">预计到期：</span>
-                      <span class="font-black text-amber-900">{{
+                      <span class="text-amber-700 dark:text-amber-400">预计到期：</span>
+                      <span class="font-black text-amber-900 dark:text-amber-200">{{
                         calculatedEndTime(globalPopupOp.data?.premiumMemberDay) ||
                         "计算中..."
                       }}</span>
@@ -5056,10 +5100,12 @@ watch(
               >
                 <!-- 头部：极简状态提示 -->
                 <div
-                  class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-700 text-xs"
+                  class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800 text-xs"
                 >
-                  <span class="font-bold text-slate-400">当前分组状态</span>
-                  <span class="font-black text-slate-700">
+                  <span class="font-bold text-slate-400 dark:text-slate-500"
+                    >当前分组状态</span
+                  >
+                  <span class="font-black text-slate-700 dark:text-slate-200">
                     {{
                       globalPopupOp?.targetGroup?.premiumMember
                         ? "特级会员 (上限 840)"
@@ -5073,8 +5119,10 @@ watch(
                   <!-- 1. 基础上限设置 -->
                   <div class="space-y-1.5">
                     <div class="flex items-center justify-between text-xs">
-                      <label class="font-bold text-slate-600">基础能量上限</label>
-                      <span class="text-[11px] text-slate-400"
+                      <label class="font-bold text-slate-600 dark:text-slate-300"
+                        >基础能量上限</label
+                      >
+                      <span class="text-[11px] text-slate-400 dark:text-slate-500"
                         >默认
                         {{
                           globalPopupOp?.targetGroup?.premiumMember ? "840" : "560"
@@ -5084,11 +5132,11 @@ watch(
                     <div class="relative">
                       <input
                         v-model.number="globalPopupOp.data.energy"
-                        class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-slate-400 dark:border-slate-700 focus:bg-white dark:bg-slate-900 outline-none font-black text-slate-800 text-sm transition-all"
+                        class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-800 dark:text-slate-100 text-sm transition-all"
                         placeholder="请输入上限"
                       />
                       <span
-                        class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400"
+                        class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-slate-500"
                         >点</span
                       >
                     </div>
@@ -5097,17 +5145,21 @@ watch(
                   <!-- 2. 存储/补充上限设置 -->
                   <div class="space-y-1.5">
                     <div class="flex items-center justify-between text-xs">
-                      <label class="font-bold text-slate-600">补充存储上限</label>
-                      <span class="text-[11px] text-slate-400">默认 2000</span>
+                      <label class="font-bold text-slate-600 dark:text-slate-300"
+                        >补充存储上限</label
+                      >
+                      <span class="text-[11px] text-slate-400 dark:text-slate-500"
+                        >默认 2000</span
+                      >
                     </div>
                     <div class="relative">
                       <input
                         v-model.number="globalPopupOp.data.storedEnergy"
-                        class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-slate-400 dark:border-slate-700 focus:bg-white dark:bg-slate-900 outline-none font-black text-slate-800 text-sm transition-all"
+                        class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-800 dark:text-slate-100 text-sm transition-all"
                         placeholder="请输入存储上限"
                       />
                       <span
-                        class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400"
+                        class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-slate-500"
                         >点</span
                       >
                     </div>
@@ -5138,7 +5190,9 @@ watch(
                 <span>⚡ 确认开通会员</span>
               </button>
               <!-- 奥德补充 -->
-              <div class="border-t border-slate-100 dark:border-slate-700 grid grid-cols-3 gap-2">
+              <div
+                class="border-t border-slate-100 dark:border-slate-700 grid grid-cols-3 gap-2"
+              >
                 <button
                   type="button"
                   class="py-3 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center truncate"

@@ -2005,23 +2005,42 @@ watch(
     0 20px 40px -10px rgba(69, 166, 213, 0.15);
 }
 
-/* 自定义滚动条 */
+/* 自定义滚动条（兼容黑夜模式） */
 .custom-scroll {
   height: 100vh;
   scrollbar-width: thin;
   scrollbar-color: #aee2f9 #e6f7ff;
 }
+
+/* 黑夜模式下的 Firefox 滚动条颜色 */
+.dark .custom-scroll {
+  scrollbar-color: #0369a1 #0f172a;
+}
+
+/* Webkit 核心浏览器（Chrome, Safari, Edge） */
 :deep(.custom-scroll)::-webkit-scrollbar {
   width: 8px;
 }
+
 :deep(.custom-scroll)::-webkit-scrollbar-track {
   background: #e6f7ff;
   border-radius: 9999px;
 }
+
 :deep(.custom-scroll)::-webkit-scrollbar-thumb {
   background: #aee2f9;
   border-radius: 9999px;
   box-shadow: inset 0 0 0 2px #ffffff;
+}
+
+/* 黑夜模式下的 Webkit 滚动条样式 */
+:deep(.dark .custom-scroll)::-webkit-scrollbar-track {
+  background: #0f172a; /* 对应 slate-900 */
+}
+
+:deep(.dark .custom-scroll)::-webkit-scrollbar-thumb {
+  background: #0284c7; /* 对应 sky-600 */
+  box-shadow: inset 0 0 0 2px #0f172a; /* 边框阴影适配暗色背景 */
 }
 
 .tab-btn {

@@ -2830,15 +2830,15 @@ defineExpose({
             <div class="flex items-center gap-6">
               <!-- Tab 切换按钮组 -->
               <div
-                class="flex items-center gap-1.5 bg-slate-200/70 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700"
+                class="flex items-center gap-1.5 bg-slate-200/70 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700"
               >
                 <button
                   type="button"
-                  class="flex-1 px-2 py-2 rounded-xl text-xs font-black transition-all shadow-2xs whitespace-nowrap"
+                  class="flex-1 px-2 py-2 rounded-xl text-xs font-black transition-all shadow-2xs whitespace-nowrap cursor-pointer"
                   :class="
                     activeTab === 'consume'
                       ? 'bg-[#45a6d5] text-white shadow-md shadow-[#45a6d5]/30'
-                      : 'text-slate-500 hover:text-slate-800 hover:bg-white dark:bg-slate-900/50'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700/60'
                   "
                   @click="tabClick('consume')"
                 >
@@ -2846,11 +2846,11 @@ defineExpose({
                 </button>
                 <button
                   type="button"
-                  class="flex-1 px-2 py-2 rounded-xl text-xs font-black transition-all shadow-2xs whitespace-nowrap"
+                  class="flex-1 px-2 py-2 rounded-xl text-xs font-black transition-all shadow-2xs whitespace-nowrap cursor-pointer"
                   :class="
                     activeTab === 'supplement'
                       ? 'bg-[#45a6d5] text-white shadow-md shadow-[#45a6d5]/30'
-                      : 'text-slate-500 hover:text-slate-800 hover:bg-white dark:bg-slate-900/50'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700/60'
                   "
                   @click="tabClick('supplement')"
                 >
@@ -2858,11 +2858,11 @@ defineExpose({
                 </button>
                 <button
                   type="button"
-                  class="flex-1 px-2 py-2 rounded-xl text-xs font-black transition-all shadow-2xs whitespace-nowrap"
+                  class="flex-1 px-2 py-2 rounded-xl text-xs font-black transition-all shadow-2xs whitespace-nowrap cursor-pointer"
                   :class="
                     activeTab === 'weeklydaily'
                       ? 'bg-[#45a6d5] text-white shadow-md shadow-[#45a6d5]/30'
-                      : 'text-slate-500 hover:text-slate-800 hover:bg-white dark:bg-slate-900/50'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700/60'
                   "
                   @click="tabClick('weeklydaily')"
                 >
@@ -2870,11 +2870,11 @@ defineExpose({
                 </button>
                 <button
                   type="button"
-                  class="flex-1 px-2 py-2 rounded-xl text-xs font-black transition-all shadow-2xs whitespace-nowrap"
+                  class="flex-1 px-2 py-2 rounded-xl text-xs font-black transition-all shadow-2xs whitespace-nowrap cursor-pointer"
                   :class="
                     activeTab === 'exchange'
                       ? 'bg-[#45a6d5] text-white shadow-md shadow-[#45a6d5]/30'
-                      : 'text-slate-500 hover:text-slate-800 hover:bg-white dark:bg-slate-900/50'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700/60'
                   "
                   @click="tabClick('exchange')"
                 >
@@ -2884,7 +2884,7 @@ defineExpose({
             </div>
             <button
               @click="handleCloseGameplay"
-              class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-colors"
+              class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
             >
               关闭
             </button>
@@ -2892,80 +2892,88 @@ defineExpose({
           <!-- 卡片：consume 消耗奥德-->
           <div
             v-if="gameplayCharForm?.characterId && activeTab == 'consume'"
-            class="bg-gradient-to-r from-sky-50 via-white to-sky-50/60 border border-sky-200/80 px-4 py-3 flex items-center justify-between flex-wrap gap-4 shadow-2xs"
+            class="bg-gradient-to-r from-sky-50 via-white to-sky-50/60 dark:from-sky-950/40 dark:via-slate-900 dark:to-sky-950/20 border border-sky-200/80 dark:border-sky-900/60 px-4 py-3 flex items-center justify-between flex-wrap gap-4 shadow-2xs"
           >
             <!-- 左侧：角色基础身份（小号紧凑显示，不抢戏） -->
             <div class="flex items-center flex-wrap gap-2 text-xs">
-              <span class="font-black text-slate-800 text-sm">
+              <span class="font-black text-slate-800 dark:text-slate-100 text-sm">
                 {{ gameplayCharForm?.characterName || gameplayCharForm?.name }}
               </span>
               <span
-                class="px-1.5 py-0.5 rounded bg-[#45a6d5]/10 text-[#45a6d5] font-bold text-[10px]"
+                class="px-1.5 py-0.5 rounded bg-[#45a6d5]/10 dark:bg-sky-950/80 text-[#45a6d5] dark:text-sky-400 font-bold text-[10px] border border-sky-200/50 dark:border-sky-900"
               >
                 {{ gameplayCharForm?.className || gameplayCharForm?.class || "未知" }}
               </span>
-              <span class="text-slate-300">|</span>
-              <span class="text-slate-500 font-bold"
+              <span class="text-slate-300 dark:text-slate-600">|</span>
+              <span class="text-slate-500 dark:text-slate-400 font-bold"
                 >Lv.{{ gameplayCharForm?.characterLevel || 1 }}</span
               >
-              <span class="text-slate-300">|</span>
-              <span class="text-slate-500 font-medium truncate max-w-[100px]">{{
-                gameplayCharForm.serverName || "未知"
-              }}</span>
+              <span class="text-slate-300 dark:text-slate-600">|</span>
+              <span
+                class="text-slate-500 dark:text-slate-400 font-medium truncate max-w-[100px]"
+                >{{ gameplayCharForm.serverName || "未知" }}</span
+              >
 
               <!-- 特级会员极简标 -->
               <span
                 v-if="getCharGroup?.premiumMember"
-                class="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded"
+                class="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/80 border border-amber-200/60 dark:border-amber-900 px-1.5 py-0.5 rounded"
               >
                 已开通特级会员
               </span>
-              <span v-else class="text-[10px] font-bold px-1.5 py-0.5 rounded">
+              <span
+                v-else
+                class="text-[10px] font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded"
+              >
                 未开通特级会员
               </span>
             </div>
 
             <!-- 右侧：奥德状态 -->
             <div
-              class="flex items-center gap-3 bg-white dark:bg-slate-900 border border-sky-200/80 px-3.5 py-1.5 rounded-xl shadow-2xs"
+              class="flex items-center gap-3 bg-white dark:bg-slate-900 border border-sky-200/80 dark:border-sky-900/80 px-3.5 py-1.5 rounded-xl shadow-2xs"
             >
               <div class="flex items-center gap-1.5">
                 <div class="w-2 h-2 rounded-full bg-[#45a6d5] animate-pulse"></div>
-                <span class="text-[11px] font-black text-slate-400">奥德</span>
+                <span class="text-[11px] font-black text-slate-400 dark:text-slate-400"
+                  >奥德</span
+                >
               </div>
 
               <div class="flex items-center gap-3 text-xs">
                 <!-- 奥德 -->
-                <div class="flex items-baseline gap-0.5">
-                  <strong class="text-sm font-black text-[#45a6d5]">{{
+                <div
+                  class="flex items-baseline gap-0.5 text-slate-700 dark:text-slate-200"
+                >
+                  <strong class="text-sm font-black text-[#45a6d5] dark:text-sky-400">{{
                     gameplayCharForm?.energy || 0
                   }}</strong>
                   （
-                  <strong class="text-sm font-black text-amber-600"
+                  <strong class="text-sm font-black text-amber-600 dark:text-amber-400"
                     >+{{ gameplayCharForm?.storedEnergy || 0 }}</strong
                   >）
-                  <span class="ext-sm font-black">/ {{ energyLimit }}</span>
+                  <span class="text-sm font-black">/ {{ energyLimit }}</span>
                 </div>
 
-                <div class="h-3 w-px bg-slate-200"></div>
+                <div class="h-3 w-px bg-slate-200 dark:bg-slate-700"></div>
               </div>
             </div>
           </div>
           <!-- 卡片：supplement 游玩补充--->
           <div
             v-if="gameplayCharForm?.characterId && activeTab === 'supplement'"
-            class="bg-gradient-to-r from-sky-50 via-white to-sky-50/60 border border-sky-200/80 px-4 py-3.5 shadow-2xs space-y-3 rounded-2xl"
+            class="bg-gradient-to-r from-sky-50 via-white to-sky-50/60 dark:from-sky-950/40 dark:via-slate-900 dark:to-sky-950/20 border border-sky-200/80 dark:border-sky-900/60 px-4 py-3.5 shadow-2xs space-y-3 rounded-2xl"
           >
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
               <div
                 v-for="item in summaryItems"
                 :key="item.key"
                 @click="scrollToSection && scrollToSection(item.key)"
-                class="flex flex-col bg-white dark:bg-slate-900 border border-sky-100/80 p-2.5 rounded-xl shadow-2xs transition-all hover:border-sky-400 hover:shadow-sm cursor-pointer select-none group"
+                class="flex flex-col bg-white dark:bg-slate-900 border border-sky-100/80 dark:border-slate-800 p-2.5 rounded-xl shadow-2xs transition-all hover:border-sky-400 dark:hover:border-sky-600 hover:shadow-sm cursor-pointer select-none group"
               >
                 <!-- 标题 -->
                 <span
-                  class="text-[10px] font-bold text-slate-400 mb-1 group-hover:text-[#45a6d5] transition-colors"
+                  class="text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1 group-hover:text-[#45a6d5] dark:group-hover:text-sky-400 transition-colors"
                 >
                   {{ item.label }}
                 </span>
@@ -2973,14 +2981,19 @@ defineExpose({
                 <!-- 数值区 -->
                 <div class="flex items-baseline gap-1 text-xs">
                   <!-- 基础值 -->
-                  <span class="font-black text-slate-800">
+                  <span class="font-black text-slate-800 dark:text-slate-200">
                     {{
                       item.getValue ? item.getValue(gameplayCharForm, getCharGroup) : 0
                     }}
                   </span>
 
                   <!-- 补充值（仅在有值或大于0时展示，或者安全输出） -->
-                  <span :class="['font-black', item.colorClass || 'text-amber-600']">
+                  <span
+                    :class="[
+                      'font-black',
+                      item.colorClass || 'text-amber-600 dark:text-amber-400',
+                    ]"
+                  >
                     +{{
                       item.getStoredValue
                         ? item.getStoredValue(gameplayCharForm, getCharGroup)
@@ -2989,7 +3002,10 @@ defineExpose({
                   </span>
 
                   <!-- 额度上限（如果有） -->
-                  <span v-if="item.limit" class="text-[10px] text-slate-400 font-medium">
+                  <span
+                    v-if="item.limit"
+                    class="text-[10px] text-slate-400 dark:text-slate-500 font-medium"
+                  >
                     /{{
                       typeof item.limit === "function"
                         ? item.limit(gameplayCharForm, getCharGroup)
@@ -3010,7 +3026,8 @@ defineExpose({
                 class="flex items-center gap-2 shrink-0 pr-3 border-r border-slate-100 dark:border-slate-700"
               >
                 <div class="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></div>
-                <span class="font-black text-slate-700 uppercase tracking-wider"
+                <span
+                  class="font-black text-slate-700 dark:text-slate-200 uppercase tracking-wider"
                   >今日消耗纵览</span
                 >
               </div>
@@ -3021,8 +3038,8 @@ defineExpose({
                 <div
                   class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl"
                 >
-                  <span class="text-slate-400 font-medium">使命</span>
-                  <span class="font-black text-slate-700">
+                  <span class="text-slate-400 dark:text-slate-500 font-medium">使命</span>
+                  <span class="font-black text-slate-700 dark:text-slate-200">
                     {{
                       weeklydailyFormValues.dailyMission
                         ? "已完成"
@@ -3036,11 +3053,11 @@ defineExpose({
                   class="flex items-center gap-1.5 px-2.5 py-1 border rounded-xl transition-all"
                   :class="
                     validationResult.invalidFields.includes('nightmareCount')
-                      ? 'bg-red-50 border-red-200 text-red-600'
-                      : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-700'
+                      ? 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900 text-red-600 dark:text-red-400'
+                      : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-700 dark:text-slate-200'
                   "
                 >
-                  <span class="text-slate-400 font-medium">噩梦</span>
+                  <span class="text-slate-400 dark:text-slate-500 font-medium">噩梦</span>
                   <span class="font-black"
                     >-{{ weeklydailyFormValues.nightmareCount || 0 }}</span
                   >
@@ -3051,11 +3068,11 @@ defineExpose({
                   class="flex items-center gap-1.5 px-2.5 py-1 border rounded-xl transition-all"
                   :class="
                     validationResult.invalidFields.includes('awakening')
-                      ? 'bg-red-50 border-red-200 text-red-600'
-                      : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-700'
+                      ? 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900 text-red-600 dark:text-red-400'
+                      : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-700 dark:text-slate-200'
                   "
                 >
-                  <span class="text-slate-400 font-medium">觉醒</span>
+                  <span class="text-slate-400 dark:text-slate-500 font-medium">觉醒</span>
                   <span class="font-black"
                     >-{{ weeklydailyFormValues.awakening || 0 }}</span
                   >
@@ -3066,11 +3083,11 @@ defineExpose({
                   class="flex items-center gap-1.5 px-2.5 py-1 border rounded-xl transition-all"
                   :class="
                     validationResult.invalidFields.includes('battlefield')
-                      ? 'bg-red-50 border-red-200 text-red-600'
-                      : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-700'
+                      ? 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900 text-red-600 dark:text-red-400'
+                      : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-700 dark:text-slate-200'
                   "
                 >
-                  <span class="text-slate-400 font-medium">战场</span>
+                  <span class="text-slate-400 dark:text-slate-500 font-medium">战场</span>
                   <span class="font-black"
                     >-{{ weeklydailyFormValues.battlefield || 0 }}</span
                   >
@@ -3081,11 +3098,11 @@ defineExpose({
                   class="flex items-center gap-1.5 px-2.5 py-1 border rounded-xl transition-all"
                   :class="
                     validationResult.invalidFields.includes('dailyRuns')
-                      ? 'bg-red-50 border-red-200 text-red-600'
-                      : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-700'
+                      ? 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900 text-red-600 dark:text-red-400'
+                      : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-700 dark:text-slate-200'
                   "
                 >
-                  <span class="text-slate-400 font-medium">副本</span>
+                  <span class="text-slate-400 dark:text-slate-500 font-medium">副本</span>
                   <span class="font-black"
                     >-{{ weeklydailyFormValues.dailyRuns || 0 }}</span
                   >
@@ -3096,11 +3113,13 @@ defineExpose({
                   class="flex items-center gap-1.5 px-2.5 py-1 border rounded-xl transition-all"
                   :class="
                     validationResult.invalidFields.includes('minigameCount')
-                      ? 'bg-red-50 border-red-200 text-red-600'
-                      : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-700'
+                      ? 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900 text-red-600 dark:text-red-400'
+                      : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-700 dark:text-slate-200'
                   "
                 >
-                  <span class="text-slate-400 font-medium">小游戏</span>
+                  <span class="text-slate-400 dark:text-slate-500 font-medium"
+                    >小游戏</span
+                  >
                   <span class="font-black"
                     >-{{ weeklydailyFormValues.minigameCount || 0 }}</span
                   >
@@ -3111,11 +3130,11 @@ defineExpose({
                   class="flex items-center gap-1.5 px-2.5 py-1 border rounded-xl transition-all"
                   :class="
                     validationResult.invalidFields.includes('dimensionalCount')
-                      ? 'bg-red-50 border-red-200 text-red-600'
-                      : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-700'
+                      ? 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900 text-red-600 dark:text-red-400'
+                      : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-700 dark:text-slate-200'
                   "
                 >
-                  <span class="text-slate-400 font-medium">次元</span>
+                  <span class="text-slate-400 dark:text-slate-500 font-medium">次元</span>
                   <span class="font-black"
                     >-{{ weeklydailyFormValues.dimensionalCount || 0 }}</span
                   >
@@ -3125,7 +3144,9 @@ defineExpose({
           </template>
 
           <!-- 弹窗表单主体 -->
-          <div class="p-3 space-y-6 overflow-y-auto custom-scroll flex-1 bg-slate-50 dark:bg-slate-800/50">
+          <div
+            class="p-3 space-y-6 overflow-y-auto custom-scroll flex-1 bg-slate-50 dark:bg-slate-800/50"
+          >
             <!-- 第一个分组：消耗奥德分组内容 -->
             <div v-if="activeTab === 'consume'" class="space-y-6">
               <template
@@ -3139,40 +3160,26 @@ defineExpose({
                     <div class="flex items-center gap-3">
                       <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
                       <div
-                        class="text-sm font-black uppercase tracking-wider text-slate-700"
+                        class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                       >
                         副本消耗与吉纳收益计算
                       </div>
                     </div>
-                    <!-- 当前奥德状态提示 -->
-                    <!-- <div class="flex items-center gap-3">
-                    <span class="text-xs font-bold text-slate-500">
-                      基础:
-                      <strong class="text-[#45a6d5]">{{
-                        gameplayCharForm?.energy || 0
-                      }}</strong>
-                      / {{ energyLimit }}
-                    </span>
-                    <span class="text-xs font-bold text-slate-500">
-                      存储:
-                      <strong class="text-amber-600">{{
-                        gameplayCharForm?.storedEnergy || 0
-                      }}</strong>
-                    </span>
-                  </div> -->
                   </div>
 
                   <!-- 1. 选择副本大类 -->
                   <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-500">选择副本类型</label>
+                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400"
+                      >选择副本类型</label
+                    >
                     <div class="grid grid-cols-3 gap-2">
                       <button
                         type="button"
-                        class="py-2.5 px-3 rounded-2xl font-black text-xs transition-all border shadow-sm"
+                        class="py-2.5 px-3 rounded-2xl font-black text-xs transition-all border shadow-sm cursor-pointer"
                         :class="
                           consumeForm.dungeonType === 'expedition'
                             ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sky-500/20'
-                            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                         "
                         @click="handleSelectDungeonType('expedition')"
                       >
@@ -3180,11 +3187,11 @@ defineExpose({
                       </button>
                       <button
                         type="button"
-                        class="py-2.5 px-3 rounded-2xl font-black text-xs transition-all border shadow-sm"
+                        class="py-2.5 px-3 rounded-2xl font-black text-xs transition-all border shadow-sm cursor-pointer"
                         :class="
                           consumeForm.dungeonType === 'surpass'
                             ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sky-500/20'
-                            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                         "
                         @click="handleSelectDungeonType('surpass')"
                       >
@@ -3192,11 +3199,11 @@ defineExpose({
                       </button>
                       <button
                         type="button"
-                        class="py-2.5 px-3 rounded-2xl font-black text-xs transition-all border shadow-sm"
+                        class="py-2.5 px-3 rounded-2xl font-black text-xs transition-all border shadow-sm cursor-pointer"
                         :class="
                           consumeForm.dungeonType === 'sanctuary'
                             ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sky-500/20'
-                            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                         "
                         @click="handleSelectDungeonType('sanctuary')"
                       >
@@ -3219,7 +3226,7 @@ defineExpose({
                     >
                       <div class="flex items-center justify-between">
                         <label
-                          class="text-xs font-black text-slate-700 flex items-center gap-2"
+                          class="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-2"
                         >
                           <span>
                             {{
@@ -3229,7 +3236,8 @@ defineExpose({
                             }}
                             分组共享本周已挑战次数
                           </span>
-                          <span class="text-[10px] font-bold text-slate-400"
+                          <span
+                            class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
                             >（同组账号共享）</span
                           >
                         </label>
@@ -3237,8 +3245,8 @@ defineExpose({
                           class="text-[10px] font-black px-2.5 py-0.5 rounded-full"
                           :class="
                             currentDecayRate < 1
-                              ? 'bg-amber-100 text-amber-700'
-                              : 'bg-emerald-100 text-emerald-700'
+                              ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-900'
+                              : 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900'
                           "
                         >
                           当前收益率:
@@ -3247,16 +3255,19 @@ defineExpose({
                       </div>
 
                       <div class="flex items-center justify-between pt-1">
-                        <div class="text-xs font-bold text-slate-600">
+                        <div class="text-xs font-bold text-slate-600 dark:text-slate-300">
                           该组账号下累计通关:
-                          <strong class="text-sm font-black text-[#45a6d5]">{{
-                            currentActiveRuns
-                          }}</strong>
+                          <strong
+                            class="text-sm font-black text-[#45a6d5] dark:text-sky-400"
+                            >{{ currentActiveRuns }}</strong
+                          >
                           次
                         </div>
-                        <div class="text-[11px] font-bold text-slate-500">
+                        <div
+                          class="text-[11px] font-bold text-slate-500 dark:text-slate-400"
+                        >
                           当前衰减阶梯:
-                          <span class="text-amber-600 font-black">{{
+                          <span class="text-amber-600 dark:text-amber-400 font-black">{{
                             currentDecayRuleLabel
                           }}</span>
                         </div>
@@ -3265,10 +3276,12 @@ defineExpose({
 
                     <!-- 3. 选择具体副本 -->
                     <div class="space-y-2">
-                      <label class="text-xs font-bold text-slate-500">选择具体副本</label>
+                      <label class="text-xs font-bold text-slate-500 dark:text-slate-400"
+                        >选择具体副本</label
+                      >
                       <select
                         v-model="consumeForm.selectedDungeonIndex"
-                        class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-[#45a6d5] outline-none font-bold text-xs text-slate-800 transition-all"
+                        class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-[#45a6d5] dark:focus:border-sky-500 outline-none font-bold text-xs text-slate-800 dark:text-slate-200 transition-all cursor-pointer"
                       >
                         <option
                           v-if="filteredDungeonList.length === 0"
@@ -3283,6 +3296,7 @@ defineExpose({
                           :key="item.key || index"
                           :value="index"
                           :disabled="item.isFinished"
+                          class="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200"
                         >
                           {{ "⭐".repeat(item.stars) }}
                           - {{ item.name }}
@@ -3307,7 +3321,7 @@ defineExpose({
                         )
                       "
                     >
-                      <label class="text-xs font-bold text-slate-500"
+                      <label class="text-xs font-bold text-slate-500 dark:text-slate-400"
                         >选择难度 / 阶段</label
                       >
 
@@ -3316,11 +3330,11 @@ defineExpose({
                           v-for="(diff, idx) in currentDifficultiesList"
                           :key="idx"
                           type="button"
-                          class="py-2.5 px-3 rounded-xl font-black text-xs transition-all border text-center flex flex-col items-center justify-center gap-0.5"
+                          class="py-2.5 px-3 rounded-xl font-black text-xs transition-all border text-center flex flex-col items-center justify-center gap-0.5 cursor-pointer"
                           :class="
                             consumeForm.selectedDiffIndex === idx
                               ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
-                              : 'bg-slate-50 dark:bg-slate-800 text-slate-600 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                              : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                           "
                           @click="consumeForm.selectedDiffIndex = idx"
                         >
@@ -3336,10 +3350,12 @@ defineExpose({
                     <!-- 5. 消耗模式 / 档位选择（非会员锁定单倍，会员可在“单倍/双倍”中切换选择） -->
                     <div class="space-y-2">
                       <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-slate-500"
+                        <span class="text-xs font-bold text-slate-500 dark:text-slate-400"
                           >消耗与奖励档位</span
                         >
-                        <span class="text-xs font-black text-amber-600">
+                        <span
+                          class="text-xs font-black text-amber-600 dark:text-amber-400"
+                        >
                           最终消耗奥德:
                           {{ calculatedEnergyCost }}
                           点
@@ -3354,8 +3370,8 @@ defineExpose({
                           class="py-2.5 px-3 rounded-xl font-bold text-xs transition-all border text-center flex flex-col items-center justify-center gap-0.5 cursor-pointer"
                           :class="
                             consumeForm.useDoubleEnergy === false
-                              ? 'bg-sky-600 text-white border-sky-600 shadow-sm'
-                              : 'bg-slate-50 dark:bg-slate-800 text-slate-600 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                              ? 'bg-sky-600 dark:bg-sky-500 text-white border-sky-600 dark:border-sky-500 shadow-sm'
+                              : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                           "
                           @click="consumeForm.useDoubleEnergy = false"
                         >
@@ -3373,10 +3389,10 @@ defineExpose({
                           class="py-2.5 px-3 rounded-xl font-bold text-xs transition-all border text-center flex flex-col items-center justify-center gap-0.5"
                           :class="[
                             !getCharGroup?.premiumMember
-                              ? 'opacity-40 bg-slate-100 text-slate-400 border-slate-200 dark:border-slate-700 cursor-not-allowed'
+                              ? 'opacity-40 bg-slate-100 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700/80 cursor-not-allowed'
                               : consumeForm.useDoubleEnergy !== false
                               ? 'bg-amber-500 text-white border-amber-500 shadow-sm cursor-pointer'
-                              : 'bg-slate-50 dark:bg-slate-800 text-slate-600 border-slate-200 dark:border-slate-700 hover:bg-slate-100 cursor-pointer',
+                              : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer',
                           ]"
                           @click="
                             getCharGroup?.premiumMember &&
@@ -3401,31 +3417,33 @@ defineExpose({
 
                     <!-- 6. 收益面板展示（受挑战次数衰减影响，且单倍基础消耗对应减半收益） -->
                     <div
-                      class="p-4 bg-amber-50/60 border border-amber-200/80 rounded-2xl space-y-2"
+                      class="p-4 bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/60 rounded-2xl space-y-2"
                     >
                       <div
-                        class="text-xs font-black text-amber-800 flex items-center justify-between"
+                        class="text-xs font-black text-amber-800 dark:text-amber-300 flex items-center justify-between"
                       >
                         <span>
                           预计吉纳总收益 (已乘衰减
                           {{ currentDecayRate * 100 }}%):
                         </span>
-                        <span class="text-sm font-black text-amber-700">
+                        <span
+                          class="text-sm font-black text-amber-700 dark:text-amber-400"
+                        >
                           {{ calculatedTotalGain }} 万
                         </span>
                       </div>
                       <div
-                        class="grid grid-cols-2 gap-2 text-[11px] font-bold text-amber-900/70"
+                        class="grid grid-cols-2 gap-2 text-[11px] font-bold text-amber-900/70 dark:text-amber-400/80"
                       >
                         <div>
                           基纳:
-                          <span class="font-black text-amber-900"
+                          <span class="font-black text-amber-900 dark:text-amber-200"
                             >{{ calculatedKinaGain }} 万</span
                           >
                         </div>
                         <div>
                           绑定基纳:
-                          <span class="font-black text-amber-900"
+                          <span class="font-black text-amber-900 dark:text-amber-200"
                             >{{ calculatedBoundKinaGain }} 万</span
                           >
                         </div>
@@ -3440,7 +3458,7 @@ defineExpose({
                   class="p-8 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/80 rounded-3xl flex flex-col items-center justify-center text-center space-y-4 shadow-inner"
                 >
                   <div
-                    class="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200/80 shadow-sm flex items-center justify-center text-amber-500"
+                    class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-900 shadow-sm flex items-center justify-center text-amber-500 dark:text-amber-400"
                   >
                     <svg
                       class="w-6 h-6"
@@ -3457,16 +3475,16 @@ defineExpose({
                     </svg>
                   </div>
                   <div class="space-y-1">
-                    <div class="text-sm font-black text-slate-700">
+                    <div class="text-sm font-black text-slate-700 dark:text-slate-200">
                       当前角色奥德能量不足
                     </div>
-                    <div class="text-xs font-bold text-slate-400">
+                    <div class="text-xs font-bold text-slate-400 dark:text-slate-400">
                       请先前往“奥德存储补充”配置能量后，再进行副本消耗计算
                     </div>
                   </div>
                   <button
                     type="button"
-                    class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5"
+                    class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer"
                     @click="activeTab = 'supplement'"
                   >
                     <span>⚡ 立即去补充奥德</span>
@@ -3483,7 +3501,7 @@ defineExpose({
                 :class="
                   validationResult.invalidFields.includes('storedEnergy') ||
                   validationResult.invalidFields.includes('energy')
-                    ? 'border-red-500 bg-red-50/20'
+                    ? 'border-red-500 bg-red-50/20 dark:bg-red-950/20'
                     : 'border-slate-200 dark:border-slate-700/80'
                 "
               >
@@ -3492,18 +3510,18 @@ defineExpose({
                   <div class="flex items-center gap-3">
                     <div class="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
                     <div
-                      class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
+                      class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2"
                     >
                       奥德补充
                       <span
                         class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
                         :class="{
-                          'bg-[#45a6d5]/10 text-[#45a6d5]':
+                          'bg-[#45a6d5]/10 dark:bg-sky-950/80 text-[#45a6d5] dark:text-sky-400':
                             2000 - totalsStoredEnergyCount > 200,
-                          'bg-amber-500/10 text-amber-600':
+                          'bg-amber-500/10 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400':
                             2000 - totalsStoredEnergyCount <= 200 &&
                             2000 - totalsStoredEnergyCount > 0,
-                          'bg-rose-500/10 text-rose-600 animate-pulse':
+                          'bg-rose-500/10 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 animate-pulse':
                             2000 - totalsStoredEnergyCount <= 0,
                         }"
                       >
@@ -3517,34 +3535,35 @@ defineExpose({
 
                     <span
                       v-if="validationResult.invalidFields.includes('storedEnergy')"
-                      class="text-[10px] text-red-500 font-bold"
+                      class="text-[10px] text-red-500 dark:text-red-400 font-bold"
                     >
                       {{ validationResult.errors.storedEnergy }}
                     </span>
                     <span
                       v-if="validationResult.invalidFields.includes('energy')"
-                      class="text-[10px] text-red-500 font-bold"
+                      class="text-[10px] text-red-500 dark:text-red-400 font-bold"
                     >
                       {{ validationResult.errors.energy }}
                     </span>
                   </div>
                   <!-- 存储上限提示 -->
-                  <span class="text-[10px] font-bold text-slate-400">
+                  <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500">
                     存储上限: 2000 点
                   </span>
                 </div>
 
                 <!-- 🌟 核心凸显区：当前基础奥德 & 当前已补充存储奥德 -->
                 <div
-                  class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gradient-to-br from-slate-50 via-indigo-50/20 to-slate-100/50 border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-inner"
+                  class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gradient-to-br from-slate-50 via-indigo-50/20 to-slate-100/50 dark:from-slate-900 dark:via-indigo-950/20 dark:to-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-inner p-3"
                 >
                   <!-- ==================== 左侧：基础奥德卡片 ==================== -->
                   <div
-                    class="flex flex-col p-3 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700/90 shadow-sm hover:border-sky-300 transition-all gap-2.5"
+                    class="flex flex-col p-3 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700/90 shadow-sm hover:border-sky-300 dark:hover:border-sky-600 transition-all gap-2.5"
                   >
                     <!-- 顶栏：标题说明 -->
                     <div class="flex items-center justify-between">
-                      <span class="text-xs font-bold text-slate-500 tracking-wide"
+                      <span
+                        class="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide"
                         >当前基础奥德</span
                       >
                     </div>
@@ -3555,14 +3574,20 @@ defineExpose({
                     >
                       <!-- 左侧：原数值 -->
                       <div class="flex flex-col">
-                        <span class="text-[10px] text-slate-400 font-semibold"
+                        <span
+                          class="text-[10px] text-slate-400 dark:text-slate-500 font-semibold"
                           >原数值</span
                         >
                         <div class="flex items-baseline gap-1 mt-0.5">
-                          <span class="text-xl font-black text-slate-700 tracking-tight">
+                          <span
+                            class="text-xl font-black text-slate-700 dark:text-slate-200 tracking-tight"
+                          >
                             {{ gameplayCharForm.energy || 0 }}
                           </span>
-                          <span class="text-xs font-bold text-slate-400">点</span>
+                          <span
+                            class="text-xs font-bold text-slate-400 dark:text-slate-500"
+                            >点</span
+                          >
                         </div>
                       </div>
 
@@ -3574,7 +3599,7 @@ defineExpose({
                           Number(supplementFormValues.energy) !==
                             Number(gameplayCharForm.energy || 0)
                         "
-                        class="flex items-center text-sky-500 font-bold animate-pulse"
+                        class="flex items-center text-sky-500 dark:text-sky-400 font-bold animate-pulse"
                       >
                         <svg
                           class="w-5 h-5"
@@ -3599,7 +3624,7 @@ defineExpose({
                           Number(supplementFormValues.energy) !==
                             Number(gameplayCharForm.energy || 0)
                         "
-                        class="flex flex-col items-end px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/30 animate-fadeIn"
+                        class="flex flex-col items-end px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 dark:from-sky-600 dark:to-blue-700 text-white shadow-md shadow-sky-500/30 animate-fadeIn"
                       >
                         <span class="text-[10px] text-sky-100 font-bold tracking-wider"
                           >调整为</span
@@ -3616,11 +3641,12 @@ defineExpose({
 
                   <!-- ==================== 右侧：补充存储奥德卡片 ==================== -->
                   <div
-                    class="flex flex-col p-3 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700/90 shadow-sm hover:border-indigo-300 transition-all gap-2.5"
+                    class="flex flex-col p-3 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700/90 shadow-sm hover:border-indigo-300 dark:hover:border-indigo-600 transition-all gap-2.5"
                   >
                     <!-- 顶栏：标题说明与上限百分比/状态 -->
                     <div class="flex items-center justify-between">
-                      <span class="text-xs font-bold text-slate-500 tracking-wide"
+                      <span
+                        class="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide"
                         >当前已补充存储奥德</span
                       >
                       <!-- 上限红蓝动态告警标签 -->
@@ -3629,8 +3655,8 @@ defineExpose({
                         :class="
                           (gameplayCharForm.storedEnergy || 0) + totalSupplementPoints >
                           2000
-                            ? 'bg-rose-50 text-rose-600 border border-rose-200 animate-pulse'
-                            : 'bg-indigo-50 text-indigo-600'
+                            ? 'bg-rose-50 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900 animate-pulse'
+                            : 'bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-900'
                         "
                       >
                         总计: {{ totalsStoredEnergyCount }} / 2000
@@ -3639,26 +3665,33 @@ defineExpose({
 
                     <!-- 主体：原存储值与上限进度展示区 -->
                     <div
-                      class="flex items-center justify-between gap-2 p-2 bg-indigo-50/30 rounded-xl border border-indigo-100/60"
+                      class="flex items-center justify-between gap-2 p-2 bg-indigo-50/30 dark:bg-indigo-950/20 rounded-xl border border-indigo-100/60 dark:border-indigo-900/40"
                     >
                       <!-- 左侧：原存储数值 -->
                       <div class="flex flex-col">
-                        <span class="text-[10px] text-indigo-400 font-semibold"
+                        <span
+                          class="text-[10px] text-indigo-400 dark:text-indigo-400/80 font-semibold"
                           >原补充</span
                         >
                         <div class="flex items-baseline gap-1 mt-0.5">
-                          <span class="text-xl font-black text-indigo-900 tracking-tight">
+                          <span
+                            class="text-xl font-black text-indigo-900 dark:text-indigo-200 tracking-tight"
+                          >
                             {{ gameplayCharForm.storedEnergy || 0 }}
                           </span>
-                          <span class="text-xs font-bold text-indigo-400">点</span>
+                          <span
+                            class="text-xs font-bold text-indigo-400 dark:text-indigo-400/80"
+                            >点</span
+                          >
                         </div>
                       </div>
 
                       <!-- 右侧：当前总计状态看板 -->
                       <div
-                        class="flex flex-col items-end px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-indigo-100 shadow-sm"
+                        class="flex flex-col items-end px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-indigo-100 dark:border-indigo-900/60 shadow-sm"
                       >
-                        <span class="text-[10px] text-slate-400 font-bold tracking-wider"
+                        <span
+                          class="text-[10px] text-slate-400 dark:text-slate-500 font-bold tracking-wider"
                           >补充上限</span
                         >
                         <div class="flex items-baseline gap-1 mt-0.5">
@@ -3668,28 +3701,33 @@ defineExpose({
                               (gameplayCharForm.storedEnergy || 0) +
                                 totalSupplementPoints >
                               2000
-                                ? 'text-rose-600'
-                                : 'text-indigo-600'
+                                ? 'text-rose-600 dark:text-rose-400'
+                                : 'text-indigo-600 dark:text-indigo-400'
                             "
                           >
                             {{ totalsStoredEnergyCount }}
                           </strong>
-                          <span class="text-xs font-bold text-slate-400">/ 2000 点</span>
+                          <span
+                            class="text-xs font-bold text-slate-400 dark:text-slate-500"
+                            >/ 2000 点</span
+                          >
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
+
                 <div class="grid grid-cols-2 gap-4">
                   <!-- 基础奥德能量 -->
                   <div>
                     <div class="flex items-center justify-between mb-1">
-                      <label class="text-xs font-bold text-slate-500"
+                      <label class="text-xs font-bold text-slate-500 dark:text-slate-400"
                         >修改当前奥德能量</label
                       >
-                      <span class="text-[10px] font-black text-[#45a6d5]">
-                        <span class="text-slate-700"></span
-                        >{{
+                      <span
+                        class="text-[10px] font-black text-[#45a6d5] dark:text-sky-400"
+                      >
+                        {{
                           getCharGroup?.premiumMember || getCharGroup?.premiumMember
                             ? "当前为会员上限840"
                             : "当前为非会员上限560"
@@ -3698,48 +3736,34 @@ defineExpose({
                     </div>
                     <input
                       v-model.number="supplementFormValues.energy"
-                      class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                      class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-200 transition-all shadow-sm"
                       :class="
                         validationResult.invalidFields.includes('energy')
-                          ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                          : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
+                          ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
+                          : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5] dark:focus:border-sky-500'
                       "
                     />
-                    <!-- <span
-                          v-if="validationResult.errors.energy"
-                          class="text-[10px] text-red-500 font-bold mt-1 block"
-                        >
-                          {{ validationResult.errors.energy }}
-                        </span> -->
                   </div>
 
                   <!-- 存储补充能量 -->
                   <div>
                     <div class="flex items-center justify-between mb-1">
-                      <label class="text-xs font-bold text-slate-500"
+                      <label class="text-xs font-bold text-slate-500 dark:text-slate-400"
                         >修改当前补充奥德能量</label
                       >
-                      <!-- <span class="text-[10px] font-black text-[#45a6d5]">
-                        {{ gameplayCharForm?.storedEnergy || 0 }}
-                      </span> -->
                     </div>
                     <input
                       v-model.number="supplementFormValues.storedEnergy"
-                      class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                      class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-200 transition-all shadow-sm"
                       :class="
                         validationResult.invalidFields.includes('storedEnergy')
-                          ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                          : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
+                          ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
+                          : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5] dark:focus:border-sky-500'
                       "
                     />
-                    <!-- <span
-                          v-if="validationResult.errors.storedEnergy"
-                          class="text-[10px] text-red-500 font-bold mt-1 block"
-                        >
-                          {{ validationResult.errors.storedEnergy }}
-                        </span> -->
                   </div>
                 </div>
+
                 <!-- 计数器操作区域 -->
                 <div
                   class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-4"
@@ -3750,17 +3774,17 @@ defineExpose({
                       class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2"
                     >
                       <div
-                        class="flex items-center justify-between text-xs font-bold text-slate-600"
+                        class="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-300"
                       >
                         <span>大奥德 (每个 +40 点)</span>
-                        <span class="text-amber-600 font-black"
+                        <span class="text-amber-600 dark:text-amber-400 font-black"
                           >+{{ bigOdTotalPoints }}点</span
                         >
                       </div>
                       <div class="flex items-center gap-2">
                         <button
                           type="button"
-                          class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                          class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black flex items-center justify-center transition-all cursor-pointer"
                           @click="handleUpdateOdCount('big', -1)"
                         >
                           -
@@ -3768,11 +3792,11 @@ defineExpose({
                         <input
                           v-model.number="supplementFormValues.bigOdCount"
                           min="0"
-                          class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 outline-none"
+                          class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 dark:text-slate-200 outline-none"
                         />
                         <button
                           type="button"
-                          class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                          class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/80 text-amber-700 dark:text-amber-400 font-black flex items-center justify-center transition-all cursor-pointer"
                           @click="handleUpdateOdCount('big', 1)"
                           :disabled="totalsStoredEnergyCount > 2000"
                         >
@@ -3786,17 +3810,17 @@ defineExpose({
                       class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2"
                     >
                       <div
-                        class="flex items-center justify-between text-xs font-bold text-slate-600"
+                        class="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-300"
                       >
                         <span>小奥德 (每个 +10 点)</span>
-                        <span class="text-sky-600 font-black"
+                        <span class="text-sky-600 dark:text-sky-400 font-black"
                           >+{{ smallOdTotalPoints }}点</span
                         >
                       </div>
                       <div class="flex items-center gap-2">
                         <button
                           type="button"
-                          class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                          class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black flex items-center justify-center transition-all cursor-pointer"
                           @click="handleUpdateOdCount('small', -1)"
                         >
                           -
@@ -3804,11 +3828,11 @@ defineExpose({
                         <input
                           v-model.number="supplementFormValues.smallOdCount"
                           min="0"
-                          class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 outline-none"
+                          class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 dark:text-slate-200 outline-none"
                         />
                         <button
                           type="button"
-                          class="w-8 h-8 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                          class="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/80 text-sky-700 dark:text-sky-400 font-black flex items-center justify-center transition-all cursor-pointer"
                           @click="handleUpdateOdCount('small', 1)"
                           :disabled="totalsStoredEnergyCount > 2000"
                         >
@@ -3822,9 +3846,9 @@ defineExpose({
                   <div
                     class="pt-3 border-t border-slate-200 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
                   >
-                    <span class="font-bold text-slate-500">
+                    <span class="font-bold text-slate-500 dark:text-slate-400">
                       已选:
-                      <strong class="text-slate-800"
+                      <strong class="text-slate-800 dark:text-slate-200"
                         >{{
                           (supplementFormValues.bigOdCount || 0) +
                           (supplementFormValues.smallOdCount || 0)
@@ -3832,7 +3856,7 @@ defineExpose({
                         个</strong
                       >
                       | 本次增加:
-                      <strong class="text-indigo-600"
+                      <strong class="text-indigo-600 dark:text-indigo-400"
                         >+{{ totalSupplementPoints }} 点</strong
                       >
                     </span>
@@ -3846,7 +3870,7 @@ defineExpose({
                   ref="nightmareSection"
                   :class="
                     validationResult.invalidFields.includes('storedNightmareCount')
-                      ? 'border-red-500 bg-red-50/20'
+                      ? 'border-red-500 bg-red-50/20 dark:bg-red-950/20'
                       : 'border-slate-200 dark:border-slate-700/80'
                   "
                 >
@@ -3858,18 +3882,18 @@ defineExpose({
                       <div class="flex items-center justify-between">
                         <!-- 标题与动态提示 -->
                         <div
-                          class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
+                          class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2"
                         >
                           <span>噩梦补充</span>
                           <span
                             class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
                             :class="{
-                              'bg-[#45a6d5]/10 text-[#45a6d5]':
+                              'bg-[#45a6d5]/10 dark:bg-sky-950/80 text-[#45a6d5] dark:text-sky-400':
                                 30 - totalsToredNightmareCountRuns > 5,
-                              'bg-amber-500/10 text-amber-600':
+                              'bg-amber-500/10 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400':
                                 30 - totalsToredNightmareCountRuns <= 5 &&
                                 30 - totalsToredNightmareCountRuns > 0,
-                              'bg-rose-500/10 text-rose-600 animate-pulse':
+                              'bg-rose-500/10 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 animate-pulse':
                                 30 - totalsToredNightmareCountRuns <= 0,
                             }"
                           >
@@ -3886,13 +3910,15 @@ defineExpose({
                         v-if="
                           validationResult.invalidFields.includes('storedNightmareCount')
                         "
-                        class="text-[10px] text-red-500 font-bold"
+                        class="text-[10px] text-red-500 dark:text-red-400 font-bold"
                       >
                         {{ validationResult.errors.storedNightmareCount }}
                       </span>
                     </div>
                     <!-- 提示标签 -->
-                    <span class="text-[10px] font-bold text-slate-400">
+                    <span
+                      class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
+                    >
                       角色总上限：30次
                     </span>
                   </div>
@@ -3905,17 +3931,17 @@ defineExpose({
                       class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2"
                     >
                       <div
-                        class="flex items-center justify-between text-xs font-bold text-slate-600"
+                        class="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-300"
                       >
                         <span>噩梦次数补充 (每次增加 1 次)</span>
-                        <span class="text-purple-600 font-black"
+                        <span class="text-purple-600 dark:text-purple-400 font-black"
                           >+{{ supplementFormValues.storedNightmareCount || 0 }} 次</span
                         >
                       </div>
                       <div class="flex items-center gap-2">
                         <button
                           type="button"
-                          class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                          class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black flex items-center justify-center transition-all cursor-pointer"
                           @click="
                             supplementFormValues.storedNightmareCount = Math.max(
                               0,
@@ -3928,11 +3954,11 @@ defineExpose({
                         <input
                           v-model.number="supplementFormValues.storedNightmareCount"
                           min="0"
-                          class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 outline-none"
+                          class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 dark:text-slate-200 outline-none"
                         />
                         <button
                           type="button"
-                          class="w-8 h-8 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                          class="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/80 text-purple-700 dark:text-purple-400 font-black flex items-center justify-center transition-all cursor-pointer"
                           @click="
                             supplementFormValues.storedNightmareCount =
                               (supplementFormValues.storedNightmareCount || 0) + 1
@@ -3947,18 +3973,20 @@ defineExpose({
                     <div
                       class="pt-3 border-t border-slate-200 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
                     >
-                      <span class="font-bold text-slate-500">
+                      <span class="font-bold text-slate-500 dark:text-slate-400">
                         当前角色噩梦补充:
-                        <strongg class="text-purple-600"
+                        <strong class="text-purple-600 dark:text-purple-400"
                           >+{{
                             supplementFormValues.storedNightmareCount || 0
                           }}
-                          次</strongg
+                          次</strong
                         >
                       </span>
-                      <span class="font-bold text-slate-500">
+                      <span class="font-bold text-slate-500 dark:text-slate-400">
                         噩梦补充总计:
-                        <strong class="text-sm font-black text-purple-600">
+                        <strong
+                          class="text-sm font-black text-purple-600 dark:text-purple-400"
+                        >
                           {{ totalsToredNightmareCountRuns }}
                           / 30 次
                         </strong>
@@ -3966,13 +3994,14 @@ defineExpose({
                     </div>
                   </div>
                 </div>
+
                 <!-- 觉醒战补充卡片 -->
                 <div
                   class="p-6 bg-white dark:bg-slate-900 border-2 rounded-3xl space-y-5 shadow-sm transition-all md:col-span-3 h-full flex flex-col"
                   ref="awakeningSection"
                   :class="
                     validationResult.invalidFields.includes('storedAwakening')
-                      ? 'border-red-500 bg-red-50/20'
+                      ? 'border-red-500 bg-red-50/20 dark:bg-red-950/20'
                       : 'border-slate-200 dark:border-slate-700/80'
                   "
                 >
@@ -3984,18 +4013,18 @@ defineExpose({
                       <div class="flex items-center justify-between">
                         <!-- 标题与动态提示 -->
                         <div
-                          class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
+                          class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2"
                         >
                           <span>觉醒战补充</span>
                           <span
                             class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
                             :class="{
-                              'bg-[#45a6d5]/10 text-[#45a6d5]':
+                              'bg-[#45a6d5]/10 dark:bg-sky-950/80 text-[#45a6d5] dark:text-sky-400':
                                 30 - totalStoredAwakeningRuns > 5,
-                              'bg-amber-500/10 text-amber-600':
+                              'bg-amber-500/10 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400':
                                 30 - totalStoredAwakeningRuns <= 5 &&
                                 30 - totalStoredAwakeningRuns > 0,
-                              'bg-rose-500/10 text-rose-600 animate-pulse':
+                              'bg-rose-500/10 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 animate-pulse':
                                 30 - totalStoredAwakeningRuns <= 0,
                             }"
                           >
@@ -4010,13 +4039,15 @@ defineExpose({
 
                       <span
                         v-if="validationResult.invalidFields.includes('storedAwakening')"
-                        class="text-[10px] text-red-500 font-bold"
+                        class="text-[10px] text-red-500 dark:text-red-400 font-bold"
                       >
                         {{ validationResult.errors.storedAwakening }}
                       </span>
                     </div>
                     <!-- 提示标签 -->
-                    <span class="text-[10px] font-bold text-slate-400">
+                    <span
+                      class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
+                    >
                       角色总上限：30次
                     </span>
                   </div>
@@ -4029,17 +4060,17 @@ defineExpose({
                       class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2"
                     >
                       <div
-                        class="flex items-center justify-between text-xs font-bold text-slate-600"
+                        class="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-300"
                       >
                         <span>觉醒战次数补充 (每次增加 1 次)</span>
-                        <span class="text-purple-600 font-black"
+                        <span class="text-purple-600 dark:text-purple-400 font-black"
                           >+{{ supplementFormValues.storedAwakening || 0 }} 次</span
                         >
                       </div>
                       <div class="flex items-center gap-2">
                         <button
                           type="button"
-                          class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                          class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black flex items-center justify-center transition-all cursor-pointer"
                           @click="
                             supplementFormValues.storedAwakening = Math.max(
                               0,
@@ -4052,11 +4083,11 @@ defineExpose({
                         <input
                           v-model.number="supplementFormValues.storedAwakening"
                           min="0"
-                          class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 outline-none"
+                          class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 dark:text-slate-200 outline-none"
                         />
                         <button
                           type="button"
-                          class="w-8 h-8 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                          class="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/80 text-purple-700 dark:text-purple-400 font-black flex items-center justify-center transition-all cursor-pointer"
                           @click="
                             supplementFormValues.storedAwakening =
                               (supplementFormValues.storedAwakening || 0) + 1
@@ -4071,15 +4102,17 @@ defineExpose({
                     <div
                       class="pt-3 border-t border-slate-200 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
                     >
-                      <span class="font-bold text-slate-500">
+                      <span class="font-bold text-slate-500 dark:text-slate-400">
                         当前角色觉醒战补充:
-                        <strong class="text-purple-600"
+                        <strong class="text-purple-600 dark:text-purple-400"
                           >+{{ supplementFormValues.storedAwakening || 0 }} 次</strong
                         >
                       </span>
-                      <span class="font-bold text-slate-500">
+                      <span class="font-bold text-slate-500 dark:text-slate-400">
                         觉醒战补充总计:
-                        <strong class="text-sm font-black text-purple-600">
+                        <strong
+                          class="text-sm font-black text-purple-600 dark:text-purple-400"
+                        >
                           {{ totalStoredAwakeningRuns }}
                           / 30 次
                         </strong>
@@ -4094,7 +4127,7 @@ defineExpose({
                   ref="dailyRunsSection"
                   :class="
                     validationResult.invalidFields.includes('storedDailyRuns')
-                      ? 'border-red-500 bg-red-50/20'
+                      ? 'border-red-500 bg-red-50/20 dark:bg-red-950/20'
                       : 'border-slate-200 dark:border-slate-700/80'
                   "
                 >
@@ -4105,18 +4138,18 @@ defineExpose({
                       <div class="flex items-center justify-between">
                         <!-- 标题与动态剩余提示 -->
                         <div
-                          class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
+                          class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2"
                         >
                           <span>每日副本补充</span>
                           <span
                             class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
                             :class="{
-                              'bg-[#45a6d5]/10 text-[#45a6d5]':
+                              'bg-[#45a6d5]/10 dark:bg-sky-950/80 text-[#45a6d5] dark:text-sky-400':
                                 30 - totalGroupStoredDailyRuns > 5,
-                              'bg-amber-500/10 text-amber-600':
+                              'bg-amber-500/10 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400':
                                 30 - totalGroupStoredDailyRuns <= 5 &&
                                 30 - totalGroupStoredDailyRuns > 0,
-                              'bg-rose-500/10 text-rose-600 animate-pulse':
+                              'bg-rose-500/10 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 animate-pulse':
                                 30 - totalGroupStoredDailyRuns <= 0,
                             }"
                           >
@@ -4131,14 +4164,16 @@ defineExpose({
 
                       <span
                         v-if="validationResult.invalidFields.includes('storedDailyRuns')"
-                        class="text-[10px] text-red-500 font-bold"
+                        class="text-[10px] text-red-500 dark:text-red-400 font-bold"
                       >
                         {{ validationResult.errors.storedDailyRuns }}
                       </span>
                     </div>
                     <!-- 存储上限提示 -->
 
-                    <span class="text-[10px] font-bold text-slate-400">
+                    <span
+                      class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
+                    >
                       组内总上限: 30 次
                     </span>
                   </div>
@@ -4151,17 +4186,17 @@ defineExpose({
                       class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2"
                     >
                       <div
-                        class="flex items-center justify-between text-xs font-bold text-slate-600"
+                        class="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-300"
                       >
                         <span>每日副本卷 (每次增加 1 次)</span>
-                        <span class="text-amber-600 font-black"
+                        <span class="text-amber-600 dark:text-amber-400 font-black"
                           >+{{ supplementFormValues.storedDailyRuns || 0 }} 次</span
                         >
                       </div>
                       <div class="flex items-center gap-2">
                         <button
                           type="button"
-                          class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                          class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black flex items-center justify-center transition-all cursor-pointer"
                           @click="
                             supplementFormValues.storedDailyRuns = Math.max(
                               0,
@@ -4174,11 +4209,11 @@ defineExpose({
                         <input
                           v-model.number="supplementFormValues.storedDailyRuns"
                           min="0"
-                          class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 outline-none"
+                          class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 dark:text-slate-200 outline-none"
                         />
                         <button
                           type="button"
-                          class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                          class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/80 text-amber-700 dark:text-amber-400 font-black flex items-center justify-center transition-all cursor-pointer"
                           @click="
                             supplementFormValues.storedDailyRuns =
                               (supplementFormValues.storedDailyRuns || 0) + 1
@@ -4193,20 +4228,20 @@ defineExpose({
                     <div
                       class="pt-3 border-t border-slate-200 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
                     >
-                      <span class="font-bold text-slate-500">
+                      <span class="font-bold text-slate-500 dark:text-slate-400">
                         当前角色本次增加:
-                        <strong class="text-amber-600"
+                        <strong class="text-amber-600 dark:text-amber-400"
                           >+{{ supplementFormValues.storedDailyRuns || 0 }} 次</strong
                         >
                       </span>
-                      <span class="font-bold text-slate-500">
+                      <span class="font-bold text-slate-500 dark:text-slate-400">
                         该账号下每日副本补充总计:
                         <strong
                           class="text-sm font-black"
                           :class="
                             totalGroupStoredDailyRuns > 30
-                              ? 'text-rose-600'
-                              : 'text-amber-600'
+                              ? 'text-rose-600 dark:text-rose-400'
+                              : 'text-amber-600 dark:text-amber-400'
                           "
                         >
                           {{ totalGroupStoredDailyRuns }}
@@ -4216,13 +4251,14 @@ defineExpose({
                     </div>
                   </div>
                 </div>
+
                 <!-- 古树庆典小游戏补充卡片 -->
                 <div
                   class="p-6 bg-white dark:bg-slate-900 border-2 rounded-3xl space-y-5 shadow-sm transition-all md:col-span-3 h-full flex flex-col"
                   ref="minigameSection"
                   :class="
                     validationResult.invalidFields.includes('storedMinigameCount')
-                      ? 'border-red-500 bg-red-50/20'
+                      ? 'border-red-500 bg-red-50/20 dark:bg-red-950/20'
                       : 'border-slate-200 dark:border-slate-700/80'
                   "
                 >
@@ -4234,18 +4270,18 @@ defineExpose({
                       <div class="flex items-center justify-between">
                         <!-- 标题与动态剩余提示 -->
                         <div
-                          class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
+                          class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2"
                         >
                           <span>古树庆典补充</span>
                           <span
                             class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
                             :class="{
-                              'bg-[#45a6d5]/10 text-[#45a6d5]':
+                              'bg-[#45a6d5]/10 dark:bg-sky-950/80 text-[#45a6d5] dark:text-sky-400':
                                 30 - totalGroupStoredMinigameCount > 5,
-                              'bg-amber-500/10 text-amber-600':
+                              'bg-amber-500/10 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400':
                                 30 - totalGroupStoredMinigameCount <= 5 &&
                                 30 - totalGroupStoredMinigameCount > 0,
-                              'bg-rose-500/10 text-rose-600 animate-pulse':
+                              'bg-rose-500/10 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 animate-pulse':
                                 30 - totalGroupStoredMinigameCount <= 0,
                             }"
                           >
@@ -4262,13 +4298,15 @@ defineExpose({
                         v-if="
                           validationResult.invalidFields.includes('storedMinigameCount')
                         "
-                        class="text-[10px] text-red-500 font-bold"
+                        class="text-[10px] text-red-500 dark:text-red-400 font-bold"
                       >
                         {{ validationResult.errors.storedMinigameCount }}
                       </span>
                     </div>
                     <!-- 存储上限提示 -->
-                    <span class="text-[10px] font-bold text-slate-400">
+                    <span
+                      class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
+                    >
                       组内总上限: 30 次
                     </span>
                   </div>
@@ -4281,17 +4319,17 @@ defineExpose({
                       class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2"
                     >
                       <div
-                        class="flex items-center justify-between text-xs font-bold text-slate-600"
+                        class="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-300"
                       >
                         <span>古树庆典补充 (每次增加 1 次)</span>
-                        <span class="text-amber-600 font-black"
+                        <span class="text-amber-600 dark:text-amber-400 font-black"
                           >+{{ supplementFormValues.storedMinigameCount || 0 }} 次</span
                         >
                       </div>
                       <div class="flex items-center gap-2">
                         <button
                           type="button"
-                          class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                          class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black flex items-center justify-center transition-all cursor-pointer"
                           @click="
                             supplementFormValues.storedMinigameCount = Math.max(
                               0,
@@ -4304,11 +4342,11 @@ defineExpose({
                         <input
                           v-model.number="supplementFormValues.storedMinigameCount"
                           min="0"
-                          class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 outline-none"
+                          class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 dark:text-slate-200 outline-none"
                         />
                         <button
                           type="button"
-                          class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                          class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/80 text-amber-700 dark:text-amber-400 font-black flex items-center justify-center transition-all cursor-pointer"
                           @click="
                             supplementFormValues.storedMinigameCount =
                               (supplementFormValues.storedMinigameCount || 0) + 1
@@ -4323,20 +4361,20 @@ defineExpose({
                     <div
                       class="pt-3 border-t border-slate-200 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
                     >
-                      <span class="font-bold text-slate-500">
+                      <span class="font-bold text-slate-500 dark:text-slate-400">
                         当前角色本次增加:
-                        <strong class="text-amber-600"
+                        <strong class="text-amber-600 dark:text-amber-400"
                           >+{{ supplementFormValues.storedMinigameCount || 0 }} 次</strong
                         >
                       </span>
-                      <span class="font-bold text-slate-500">
+                      <span class="font-bold text-slate-500 dark:text-slate-400">
                         该账号下古树庆典小游戏补充总计:
                         <strong
                           class="text-sm font-black"
                           :class="
                             totalGroupStoredMinigameCount > 30
-                              ? 'text-rose-600'
-                              : 'text-amber-600'
+                              ? 'text-rose-600 dark:text-rose-400'
+                              : 'text-amber-600 dark:text-amber-400'
                           "
                         >
                           {{ totalGroupStoredMinigameCount }}
@@ -4346,13 +4384,14 @@ defineExpose({
                     </div>
                   </div>
                 </div>
+
                 <!-- 次元袭击补充卡片 -->
                 <div
                   class="p-6 bg-white dark:bg-slate-900 border-2 rounded-3xl space-y-5 shadow-sm transition-all md:col-span-3 h-full flex flex-col"
                   ref="dimensionalSection"
                   :class="
                     validationResult.invalidFields.includes('storedDimensionalCount')
-                      ? 'border-red-500 bg-red-50/20'
+                      ? 'border-red-500 bg-red-50/20 dark:bg-red-950/20'
                       : 'border-slate-200 dark:border-slate-700/80'
                   "
                 >
@@ -4364,18 +4403,18 @@ defineExpose({
                       <div class="flex items-center justify-between">
                         <!-- 标题与动态剩余提示 -->
                         <div
-                          class="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"
+                          class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2"
                         >
                           <span>次元袭击补充</span>
                           <span
                             class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
                             :class="{
-                              'bg-[#45a6d5]/10 text-[#45a6d5]':
+                              'bg-[#45a6d5]/10 dark:bg-sky-950/80 text-[#45a6d5] dark:text-sky-400':
                                 30 - totalGroupStoredDimensionalCount > 5,
-                              'bg-amber-500/10 text-amber-600':
+                              'bg-amber-500/10 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400':
                                 30 - totalGroupStoredDimensionalCount <= 5 &&
                                 30 - totalGroupStoredDimensionalCount > 0,
-                              'bg-rose-500/10 text-rose-600 animate-pulse':
+                              'bg-rose-500/10 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 animate-pulse':
                                 30 - totalGroupStoredDimensionalCount <= 0,
                             }"
                           >
@@ -4396,13 +4435,15 @@ defineExpose({
                             'storedDimensionalCount'
                           )
                         "
-                        class="text-[10px] text-red-500 font-bold"
+                        class="text-[10px] text-red-500 dark:text-red-400 font-bold"
                       >
                         {{ validationResult.errors.storedDimensionalCount }}
                       </span>
                     </div>
                     <!-- 存储上限提示 -->
-                    <span class="text-[10px] font-bold text-slate-400">
+                    <span
+                      class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
+                    >
                       组内总上限: 30 次
                     </span>
                   </div>
@@ -4415,10 +4456,10 @@ defineExpose({
                       class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2"
                     >
                       <div
-                        class="flex items-center justify-between text-xs font-bold text-slate-600"
+                        class="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-300"
                       >
                         <span>次元袭击补充 (每次增加 1 次)</span>
-                        <span class="text-amber-600 font-black"
+                        <span class="text-amber-600 dark:text-amber-400 font-black"
                           >+{{
                             supplementFormValues.storedDimensionalCount || 0
                           }}
@@ -4428,7 +4469,7 @@ defineExpose({
                       <div class="flex items-center gap-2">
                         <button
                           type="button"
-                          class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                          class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black flex items-center justify-center transition-all cursor-pointer"
                           @click="
                             supplementFormValues.storedDimensionalCount = Math.max(
                               0,
@@ -4441,11 +4482,11 @@ defineExpose({
                         <input
                           v-model.number="supplementFormValues.storedDimensionalCount"
                           min="0"
-                          class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 outline-none"
+                          class="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 dark:text-slate-200 outline-none"
                         />
                         <button
                           type="button"
-                          class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-black flex items-center justify-center transition-all cursor-pointer"
+                          class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/80 text-amber-700 dark:text-amber-400 font-black flex items-center justify-center transition-all cursor-pointer"
                           @click="
                             supplementFormValues.storedDimensionalCount =
                               (supplementFormValues.storedDimensionalCount || 0) + 1
@@ -4460,23 +4501,23 @@ defineExpose({
                     <div
                       class="pt-3 border-t border-slate-200 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
                     >
-                      <span class="font-bold text-slate-500">
+                      <span class="font-bold text-slate-500 dark:text-slate-400">
                         当前角色本次增加:
-                        <strong class="text-amber-600"
+                        <strong class="text-amber-600 dark:text-amber-400"
                           >+{{
                             supplementFormValues.storedDimensionalCount || 0
                           }}
                           次</strong
                         >
                       </span>
-                      <span class="font-bold text-slate-500">
+                      <span class="font-bold text-slate-500 dark:text-slate-400">
                         该账号下次元袭击补充总计:
                         <strong
                           class="text-sm font-black"
                           :class="
                             totalGroupStoredDimensionalCount > 30
-                              ? 'text-rose-600'
-                              : 'text-amber-600'
+                              ? 'text-rose-600 dark:text-rose-400'
+                              : 'text-amber-600 dark:text-amber-400'
                           "
                         >
                           {{ totalGroupStoredDimensionalCount }}
@@ -4488,6 +4529,7 @@ defineExpose({
                 </div>
               </div>
             </template>
+
             <!-- 卡片：weeklydaily 日/周常任务 -->
             <div
               v-if="gameplayCharForm?.characterId && activeTab == 'weeklydaily'"
@@ -4498,15 +4540,17 @@ defineExpose({
                 class="w-full group relative overflow-hidden p-5 border rounded-3xl transition-all duration-300 shadow-xs"
                 :class="
                   gameplayCharForm.dailyMission
-                    ? 'bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border-emerald-500/30'
-                    : 'bg-gradient-to-br from-sky-500/10 via-sky-500/5 to-transparent border-sky-500/20 hover:border-sky-500/40'
+                    ? 'bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent dark:from-emerald-950/20 dark:via-emerald-950/10 border-emerald-500/30 dark:border-emerald-800/60'
+                    : 'bg-gradient-to-br from-sky-500/10 via-sky-500/5 to-transparent dark:from-sky-950/20 dark:via-sky-950/10 border-sky-500/20 dark:border-sky-900/60 hover:border-sky-500/40 dark:hover:border-sky-700/80'
                 "
               >
                 <!-- 背景装饰光晕：根据完成状态动态变色 -->
                 <div
                   class="absolute -right-10 -bottom-10 w-32 h-32 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500 pointer-events-none"
                   :class="
-                    gameplayCharForm.dailyMission ? 'bg-emerald-500/10' : 'bg-sky-500/10'
+                    gameplayCharForm.dailyMission
+                      ? 'bg-emerald-500/10 dark:bg-emerald-500/5'
+                      : 'bg-sky-500/10 dark:bg-sky-500/5'
                   "
                 ></div>
 
@@ -4519,8 +4563,8 @@ defineExpose({
                       class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md shrink-0 transform group-hover:-rotate-6 transition-transform duration-300"
                       :class="
                         gameplayCharForm.dailyMission
-                          ? 'bg-gradient-to-tr from-emerald-600 to-emerald-400 shadow-emerald-500/30'
-                          : 'bg-gradient-to-tr from-sky-600 to-sky-400 shadow-sky-500/30'
+                          ? 'bg-gradient-to-tr from-emerald-600 to-emerald-400 dark:from-emerald-700 dark:to-emerald-500 shadow-emerald-500/30'
+                          : 'bg-gradient-to-tr from-sky-600 to-sky-400 dark:from-sky-700 dark:to-sky-500 shadow-sky-500/30'
                       "
                     >
                       <!-- 动态图标：未完成时显示时钟，已完成时显示对勾 -->
@@ -4558,13 +4602,13 @@ defineExpose({
                     <div class="space-y-1 min-w-0">
                       <div class="flex items-center gap-2">
                         <h3
-                          class="text-xs font-black tracking-wide uppercase text-slate-800 truncate"
+                          class="text-xs font-black tracking-wide uppercase text-slate-800 dark:text-slate-100 truncate"
                         >
                           日常每日使命任务
                         </h3>
                         <span
                           v-if="gameplayCharForm.dailyMission"
-                          class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 shrink-0"
+                          class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-800 shrink-0"
                         >
                           今日已达成
                         </span>
@@ -4577,7 +4621,7 @@ defineExpose({
                     <!-- 状态 A：已完成时的专属优雅占位样式（无输入框与按钮） -->
                     <template v-if="gameplayCharForm.dailyMission">
                       <div
-                        class="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900/90 border border-emerald-500/20 text-xs font-black text-emerald-700 shadow-2xs"
+                        class="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900/90 border border-emerald-500/20 dark:border-emerald-800/80 text-xs font-black text-emerald-700 dark:text-emerald-400 shadow-2xs"
                       >
                         <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                         <span>已完成 (5/5)</span>
@@ -4588,7 +4632,7 @@ defineExpose({
                     <template v-else>
                       <!-- 进度文字提示 -->
                       <div
-                        class="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-slate-900/80 border border-sky-500/20 text-[11px] font-bold text-sky-700 shadow-2xs"
+                        class="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-slate-900/80 border border-sky-500/20 dark:border-sky-900/80 text-[11px] font-bold text-sky-700 dark:text-sky-400 shadow-2xs"
                       >
                         <span
                           class="w-2 h-2 rounded-full bg-sky-500 animate-pulse"
@@ -4601,11 +4645,11 @@ defineExpose({
 
                       <!-- 步进器按钮组 -->
                       <div
-                        class="flex items-center gap-1.5 bg-white dark:bg-slate-900/90 p-1.5 border border-sky-500/20 rounded-2xl shadow-2xs"
+                        class="flex items-center gap-1.5 bg-white dark:bg-slate-900/90 p-1.5 border border-sky-500/20 dark:border-sky-900/80 rounded-2xl shadow-2xs"
                       >
                         <button
                           type="button"
-                          class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-black text-xs flex items-center justify-center transition-all cursor-pointer"
+                          class="w-7 h-7 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 text-slate-700 dark:text-slate-200 font-black text-xs flex items-center justify-center transition-all cursor-pointer"
                           @click="
                             weeklydailyFormValues.dailyTaskCount = Math.max(
                               0,
@@ -4620,12 +4664,12 @@ defineExpose({
                           v-model.number="weeklydailyFormValues.dailyTaskCount"
                           min="0"
                           max="5"
-                          class="w-9 text-center font-black text-xs text-sky-700 bg-transparent outline-none"
+                          class="w-9 text-center font-black text-xs text-sky-700 dark:text-sky-400 bg-transparent outline-none"
                         />
 
                         <button
                           type="button"
-                          class="w-7 h-7 rounded-xl bg-sky-50 hover:bg-sky-100 active:scale-95 text-sky-700 font-black text-xs flex items-center justify-center transition-all cursor-pointer"
+                          class="w-7 h-7 rounded-xl bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/80 active:scale-95 text-sky-700 dark:text-sky-400 font-black text-xs flex items-center justify-center transition-all cursor-pointer"
                           @click="
                             weeklydailyFormValues.dailyTaskCount = Math.min(
                               5,
@@ -4640,7 +4684,7 @@ defineExpose({
                       <!-- 一键拉满快捷按钮 -->
                       <button
                         type="button"
-                        class="px-4 py-2.5 bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-500 hover:to-sky-400 active:scale-95 text-white font-black text-xs rounded-2xl shadow-md shadow-sky-600/25 transition-all duration-200 cursor-pointer flex items-center gap-1.5"
+                        class="px-4 py-2.5 bg-gradient-to-r from-sky-600 to-sky-500 dark:from-sky-700 dark:to-sky-600 hover:from-sky-500 hover:to-sky-400 dark:hover:from-sky-600 dark:hover:to-sky-500 active:scale-95 text-white font-black text-xs rounded-2xl shadow-md shadow-sky-600/25 transition-all duration-200 cursor-pointer flex items-center gap-1.5"
                         @click="
                           weeklydailyFormValues.dailyTaskCount = 5;
                           weeklydailyFormValues.dailyMission = true;
@@ -4661,8 +4705,8 @@ defineExpose({
                   ref="nightmareSection"
                   :class="
                     validationResult.invalidFields.includes('nightmareCount')
-                      ? 'border-red-500 bg-red-50/20'
-                      : ''
+                      ? 'border-red-500 bg-red-50/20 dark:bg-red-950/20'
+                      : 'border-slate-200 dark:border-slate-800'
                   "
                 >
                   <template
@@ -4674,14 +4718,14 @@ defineExpose({
                   >
                     <!-- 头部：标题与状态/报错展示 -->
                     <div
-                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700"
+                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
                     >
                       <div class="flex items-center gap-2.5">
                         <div
                           class="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm shadow-purple-500/50 animate-pulse"
                         ></div>
                         <div
-                          class="text-xs font-black uppercase tracking-wider text-slate-800"
+                          class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-100"
                         >
                           <span>噩梦消耗</span>
                         </div>
@@ -4690,13 +4734,13 @@ defineExpose({
                       <!-- 动态错误提示或剩余次数 Badge -->
                       <span
                         v-if="validationResult.invalidFields.includes('nightmareCount')"
-                        class="text-[10px] text-red-500 font-bold bg-red-50 px-2 py-0.5 rounded-full border border-red-200"
+                        class="text-[10px] text-red-500 dark:text-red-400 font-bold bg-red-50 dark:bg-red-950/80 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-900"
                       >
                         {{ validationResult.errors.nightmareCount }}
                       </span>
                       <span
                         v-else
-                        class="text-[10px] px-2.5 py-1 rounded-full font-black bg-purple-50 text-purple-700 border border-purple-200/60 shadow-2xs"
+                        class="text-[10px] px-2.5 py-1 rounded-full font-black bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-900/60 shadow-2xs"
                       >
                         剩余可消耗: {{ totalsRemainingNightmareCountRuns || 0 }}
                       </span>
@@ -4709,10 +4753,11 @@ defineExpose({
                         class="p-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-2.5"
                       >
                         <div
-                          class="flex items-center justify-between text-[11px] font-bold text-slate-600 px-0.5"
+                          class="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-400 px-0.5"
                         >
                           <span>角色消耗次数</span>
-                          <span class="text-purple-600 font-black text-xs"
+                          <span
+                            class="text-purple-600 dark:text-purple-400 font-black text-xs"
                             >-{{ weeklydailyFormValues.nightmareCount || 0 }}</span
                           >
                         </div>
@@ -4721,7 +4766,7 @@ defineExpose({
                         <div class="flex items-center gap-2">
                           <button
                             type="button"
-                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 active:scale-95 text-slate-700 dark:text-slate-200 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             @click="
                               weeklydailyFormValues.nightmareCount = Math.max(
                                 0,
@@ -4736,12 +4781,12 @@ defineExpose({
                             v-model.number="weeklydailyFormValues.nightmareCount"
                             type="number"
                             min="0"
-                            class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 outline-none shadow-2xs focus:border-purple-400 transition-all"
+                            class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-purple-400 transition-all"
                           />
 
                           <button
                             type="button"
-                            class="w-8 h-8 rounded-xl bg-purple-50 hover:bg-purple-100 active:scale-95 text-purple-700 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            class="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/80 active:scale-95 text-purple-700 dark:text-purple-300 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             @click="
                               weeklydailyFormValues.nightmareCount =
                                 (weeklydailyFormValues.nightmareCount || 0) + 1
@@ -4756,7 +4801,7 @@ defineExpose({
                       <div class="grid grid-cols-2 gap-2 pt-0.5">
                         <button
                           type="button"
-                          class="py-2 px-2 bg-slate-50 dark:bg-slate-800 hover:bg-purple-50 active:scale-98 border border-slate-200 dark:border-slate-700/80 hover:border-purple-200 rounded-xl text-slate-700 hover:text-purple-600 font-bold text-[11px] transition-all cursor-pointer text-center shadow-2xs flex items-center justify-center gap-1"
+                          class="py-2 px-2 bg-slate-50 dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-purple-950/40 active:scale-98 border border-slate-200 dark:border-slate-700/80 hover:border-purple-200 dark:hover:border-purple-800 rounded-xl text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 font-bold text-[11px] transition-all cursor-pointer text-center shadow-2xs flex items-center justify-center gap-1"
                           @click="weeklydailyFormValues.nightmareCount += 2"
                         >
                           <span class="text-purple-500 font-black">+</span> 增加 2 次
@@ -4764,7 +4809,7 @@ defineExpose({
 
                         <button
                           type="button"
-                          class="py-2 px-2 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-purple-600/25 rounded-xl flex items-center justify-center truncate"
+                          class="py-2 px-2 bg-gradient-to-r from-purple-600 to-purple-500 dark:from-purple-700 dark:to-purple-600 hover:from-purple-500 hover:to-purple-400 dark:hover:from-purple-600 dark:hover:to-purple-500 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-purple-600/25 rounded-xl flex items-center justify-center truncate"
                           @click="
                             weeklydailyFormValues.nightmareCount +=
                               totalsRemainingNightmareCountRuns || 0
@@ -4778,18 +4823,20 @@ defineExpose({
 
                   <template v-else>
                     <div
-                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700"
+                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
                     >
                       <div class="flex items-center gap-2.5">
-                        <div class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
                         <div
-                          class="text-xs font-black uppercase tracking-wider text-slate-400"
+                          class="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700"
+                        ></div>
+                        <div
+                          class="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500"
                         >
                           <span>噩梦消耗</span>
                         </div>
                       </div>
                       <span
-                        class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 text-slate-400"
+                        class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500"
                       >
                         无可用
                       </span>
@@ -4797,14 +4844,16 @@ defineExpose({
 
                     <!-- 内部居中的精致空状态面板 -->
                     <div
-                      class="flex-1 flex flex-col items-center justify-center py-6 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl space-y-2"
+                      class="flex-1 flex flex-col items-center justify-center py-6 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl space-y-2"
                     >
                       <div
-                        class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-xs"
+                        class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 font-bold text-xs"
                       >
                         —
                       </div>
-                      <p class="text-xs font-bold text-slate-400">暂无可消耗的次数</p>
+                      <p class="text-xs font-bold text-slate-400 dark:text-slate-500">
+                        暂无可消耗的次数
+                      </p>
                     </div>
                   </template>
                 </div>
@@ -4815,8 +4864,8 @@ defineExpose({
                   ref="awakeningSection"
                   :class="
                     validationResult.invalidFields.includes('awakening')
-                      ? 'border-red-500 bg-red-50/20'
-                      : ''
+                      ? 'border-red-500 bg-red-50/20 dark:bg-red-950/20'
+                      : 'border-slate-200 dark:border-slate-800'
                   "
                 >
                   <template
@@ -4828,14 +4877,14 @@ defineExpose({
                   >
                     <!-- 头部：标题与状态/报错展示 -->
                     <div
-                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700"
+                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
                     >
                       <div class="flex items-center gap-2.5">
                         <div
                           class="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm shadow-purple-500/50 animate-pulse"
                         ></div>
                         <div
-                          class="text-xs font-black uppercase tracking-wider text-slate-800"
+                          class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-100"
                         >
                           <span>觉醒战消耗</span>
                         </div>
@@ -4844,13 +4893,13 @@ defineExpose({
                       <!-- 动态错误提示或剩余次数 Badge -->
                       <span
                         v-if="validationResult.invalidFields.includes('awakening')"
-                        class="text-[10px] text-red-500 font-bold bg-red-50 px-2 py-0.5 rounded-full border border-red-200"
+                        class="text-[10px] text-red-500 dark:text-red-400 font-bold bg-red-50 dark:bg-red-950/80 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-900"
                       >
                         {{ validationResult.errors.awakening }}
                       </span>
                       <span
                         v-else
-                        class="text-[10px] px-2.5 py-1 rounded-full font-black bg-purple-50 text-purple-700 border border-purple-200/60 shadow-2xs"
+                        class="text-[10px] px-2.5 py-1 rounded-full font-black bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-900/60 shadow-2xs"
                       >
                         剩余可消耗: {{ totalsRemainingAwakeningCountRuns || 0 }}
                       </span>
@@ -4863,10 +4912,11 @@ defineExpose({
                         class="p-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-2.5"
                       >
                         <div
-                          class="flex items-center justify-between text-[11px] font-bold text-slate-600 px-0.5"
+                          class="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-400 px-0.5"
                         >
                           <span>角色消耗次数</span>
-                          <span class="text-purple-600 font-black text-xs"
+                          <span
+                            class="text-purple-600 dark:text-purple-400 font-black text-xs"
                             >-{{ weeklydailyFormValues.awakening || 0 }}</span
                           >
                         </div>
@@ -4875,7 +4925,7 @@ defineExpose({
                         <div class="flex items-center gap-2">
                           <button
                             type="button"
-                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 active:scale-95 text-slate-700 dark:text-slate-200 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             @click="
                               weeklydailyFormValues.awakening = Math.max(
                                 0,
@@ -4890,12 +4940,12 @@ defineExpose({
                             v-model.number="weeklydailyFormValues.awakening"
                             type="number"
                             min="0"
-                            class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 outline-none shadow-2xs focus:border-purple-400 transition-all"
+                            class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-purple-400 transition-all"
                           />
 
                           <button
                             type="button"
-                            class="w-8 h-8 rounded-xl bg-purple-50 hover:bg-purple-100 active:scale-95 text-purple-700 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            class="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/80 active:scale-95 text-purple-700 dark:text-purple-300 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             @click="
                               weeklydailyFormValues.awakening =
                                 (weeklydailyFormValues.awakening || 0) + 1
@@ -4910,7 +4960,7 @@ defineExpose({
                       <div class="grid grid-cols-2 gap-2 pt-0.5">
                         <button
                           type="button"
-                          class="py-2 px-2 bg-slate-50 dark:bg-slate-800 hover:bg-purple-50 active:scale-98 border border-slate-200 dark:border-slate-700/80 hover:border-purple-200 rounded-xl text-slate-700 hover:text-purple-600 font-bold text-[11px] transition-all cursor-pointer text-center shadow-2xs flex items-center justify-center gap-1"
+                          class="py-2 px-2 bg-slate-50 dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-purple-950/40 active:scale-98 border border-slate-200 dark:border-slate-700/80 hover:border-purple-200 dark:hover:border-purple-800 rounded-xl text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 font-bold text-[11px] transition-all cursor-pointer text-center shadow-2xs flex items-center justify-center gap-1"
                           @click="weeklydailyFormValues.awakening += 2"
                         >
                           <span class="text-purple-500 font-black">+</span> 增加 2 次
@@ -4918,7 +4968,7 @@ defineExpose({
 
                         <button
                           type="button"
-                          class="py-2 px-2 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-purple-600/25 rounded-xl flex items-center justify-center truncate"
+                          class="py-2 px-2 bg-gradient-to-r from-purple-600 to-purple-500 dark:from-purple-700 dark:to-purple-600 hover:from-purple-500 hover:to-purple-400 dark:hover:from-purple-600 dark:hover:to-purple-500 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-purple-600/25 rounded-xl flex items-center justify-center truncate"
                           @click="
                             weeklydailyFormValues.awakening +=
                               totalsRemainingAwakeningCountRuns || 0
@@ -4932,18 +4982,20 @@ defineExpose({
 
                   <template v-else>
                     <div
-                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700"
+                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
                     >
                       <div class="flex items-center gap-2.5">
-                        <div class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
                         <div
-                          class="text-xs font-black uppercase tracking-wider text-slate-400"
+                          class="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700"
+                        ></div>
+                        <div
+                          class="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500"
                         >
                           <span>觉醒战消耗次数</span>
                         </div>
                       </div>
                       <span
-                        class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 text-slate-400"
+                        class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500"
                       >
                         无可用
                       </span>
@@ -4951,14 +5003,16 @@ defineExpose({
 
                     <!-- 内部居中的精致空状态面板 -->
                     <div
-                      class="flex-1 flex flex-col items-center justify-center py-6 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl space-y-2"
+                      class="flex-1 flex flex-col items-center justify-center py-6 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl space-y-2"
                     >
                       <div
-                        class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-xs"
+                        class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 font-bold text-xs"
                       >
                         —
                       </div>
-                      <p class="text-xs font-bold text-slate-400">暂无可消耗的次数</p>
+                      <p class="text-xs font-bold text-slate-400 dark:text-slate-500">
+                        暂无可消耗的次数
+                      </p>
                     </div>
                   </template>
                 </div>
@@ -4969,21 +5023,21 @@ defineExpose({
                   ref="battlefieldSection"
                   :class="
                     validationResult.invalidFields.includes('battlefield')
-                      ? 'border-red-500 bg-red-50/20'
-                      : ''
+                      ? 'border-red-500 bg-red-50/20 dark:bg-red-950/20'
+                      : 'border-slate-200 dark:border-slate-800'
                   "
                 >
                   <template v-if="(gameplayCharForm?.battlefield || 0) > 0">
                     <!-- 头部：标题与状态/报错展示 -->
                     <div
-                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700"
+                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
                     >
                       <div class="flex items-center gap-2.5">
                         <div
                           class="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm shadow-purple-500/50 animate-pulse"
                         ></div>
                         <div
-                          class="text-xs font-black uppercase tracking-wider text-slate-800"
+                          class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-100"
                         >
                           <span>战场消耗</span>
                         </div>
@@ -4992,13 +5046,13 @@ defineExpose({
                       <!-- 动态错误提示或剩余次数 Badge -->
                       <span
                         v-if="validationResult.invalidFields.includes('battlefield')"
-                        class="text-[10px] text-red-500 font-bold bg-red-50 px-2 py-0.5 rounded-full border border-red-200"
+                        class="text-[10px] text-red-500 dark:text-red-400 font-bold bg-red-50 dark:bg-red-950/80 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-900"
                       >
                         {{ validationResult.errors.battlefield }}
                       </span>
                       <span
                         v-else
-                        class="text-[10px] px-2.5 py-1 rounded-full font-black bg-purple-50 text-purple-700 border border-purple-200/60 shadow-2xs"
+                        class="text-[10px] px-2.5 py-1 rounded-full font-black bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-900/60 shadow-2xs"
                       >
                         剩余可消耗:
                         {{
@@ -5015,10 +5069,11 @@ defineExpose({
                         class="p-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-2.5"
                       >
                         <div
-                          class="flex items-center justify-between text-[11px] font-bold text-slate-600 px-0.5"
+                          class="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-400 px-0.5"
                         >
                           <span>角色消耗次数</span>
-                          <span class="text-purple-600 font-black text-xs"
+                          <span
+                            class="text-purple-600 dark:text-purple-400 font-black text-xs"
                             >-{{ weeklydailyFormValues.battlefield || 0 }}</span
                           >
                         </div>
@@ -5027,7 +5082,7 @@ defineExpose({
                         <div class="flex items-center gap-2">
                           <button
                             type="button"
-                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 active:scale-95 text-slate-700 dark:text-slate-200 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             @click="
                               weeklydailyFormValues.battlefield = Math.max(
                                 0,
@@ -5042,12 +5097,12 @@ defineExpose({
                             v-model.number="weeklydailyFormValues.battlefield"
                             type="number"
                             min="0"
-                            class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 outline-none shadow-2xs focus:border-purple-400 transition-all"
+                            class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-purple-400 transition-all"
                           />
 
                           <button
                             type="button"
-                            class="w-8 h-8 rounded-xl bg-purple-50 hover:bg-purple-100 active:scale-95 text-purple-700 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            class="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/80 active:scale-95 text-purple-700 dark:text-purple-300 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             @click="
                               weeklydailyFormValues.battlefield =
                                 (weeklydailyFormValues.battlefield || 0) + 1
@@ -5062,7 +5117,7 @@ defineExpose({
                       <div class="grid grid-cols-2 gap-2 pt-0.5">
                         <button
                           type="button"
-                          class="py-2 px-2 bg-slate-50 dark:bg-slate-800 hover:bg-purple-50 active:scale-98 border border-slate-200 dark:border-slate-700/80 hover:border-purple-200 rounded-xl text-slate-700 hover:text-purple-600 font-bold text-[11px] transition-all cursor-pointer text-center shadow-2xs flex items-center justify-center gap-1"
+                          class="py-2 px-2 bg-slate-50 dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-purple-950/40 active:scale-98 border border-slate-200 dark:border-slate-700/80 hover:border-purple-200 dark:hover:border-purple-800 rounded-xl text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 font-bold text-[11px] transition-all cursor-pointer text-center shadow-2xs flex items-center justify-center gap-1"
                           @click="weeklydailyFormValues.battlefield += 2"
                         >
                           <span class="text-purple-500 font-black">+</span> 增加 2 次
@@ -5070,7 +5125,7 @@ defineExpose({
 
                         <button
                           type="button"
-                          class="py-2 px-2 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-purple-600/25 rounded-xl flex items-center justify-center truncate"
+                          class="py-2 px-2 bg-gradient-to-r from-purple-600 to-purple-500 dark:from-purple-700 dark:to-purple-600 hover:from-purple-500 hover:to-purple-400 dark:hover:from-purple-600 dark:hover:to-purple-500 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-purple-600/25 rounded-xl flex items-center justify-center truncate"
                           @click="
                             weeklydailyFormValues.battlefield +=
                               gameplayCharForm.battlefield || 0
@@ -5084,18 +5139,20 @@ defineExpose({
 
                   <template v-else>
                     <div
-                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700"
+                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
                     >
                       <div class="flex items-center gap-2.5">
-                        <div class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
                         <div
-                          class="text-xs font-black uppercase tracking-wider text-slate-400"
+                          class="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700"
+                        ></div>
+                        <div
+                          class="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500"
                         >
                           <span>战场消耗</span>
                         </div>
                       </div>
                       <span
-                        class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 text-slate-400"
+                        class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500"
                       >
                         无可用
                       </span>
@@ -5103,19 +5160,20 @@ defineExpose({
 
                     <!-- 内部居中的精致空状态面板 -->
                     <div
-                      class="flex-1 flex flex-col items-center justify-center py-6 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl space-y-2"
+                      class="flex-1 flex flex-col items-center justify-center py-6 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl space-y-2"
                     >
                       <div
-                        class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-xs"
+                        class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 font-bold text-xs"
                       >
                         —
                       </div>
-                      <p class="text-xs font-bold text-slate-400">暂无可消耗的次数</p>
+                      <p class="text-xs font-bold text-slate-400 dark:text-slate-500">
+                        暂无可消耗的次数
+                      </p>
                     </div>
                   </template>
                 </div>
               </div>
-
               <!-- ================= 4. 每日副本、古树庆典、次元袭击（一行三列布局） ================= -->
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <!-- ================= 每日副本消耗管理 ================= -->
@@ -5124,8 +5182,8 @@ defineExpose({
                   ref="dailyRunsSection"
                   :class="
                     validationResult.invalidFields.includes('dailyRuns')
-                      ? 'border-red-500 bg-red-50/20'
-                      : ''
+                      ? 'border-red-500 bg-red-50/20 dark:bg-red-950/20'
+                      : 'border-slate-200 dark:border-slate-800'
                   "
                 >
                   <template
@@ -5137,7 +5195,7 @@ defineExpose({
                   >
                     <!-- 头部：标题与状态/报错展示 -->
                     <div
-                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700"
+                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
                     >
                       <div class="flex items-center gap-2.5">
                         <!-- 动态呼吸圆点 -->
@@ -5145,7 +5203,7 @@ defineExpose({
                           class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50 animate-pulse"
                         ></div>
                         <div
-                          class="text-xs font-black uppercase tracking-wider text-slate-800"
+                          class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-100"
                         >
                           <span>每日副本消耗</span>
                         </div>
@@ -5154,13 +5212,13 @@ defineExpose({
                       <!-- 动态错误提示或剩余次数 Badge -->
                       <span
                         v-if="validationResult.invalidFields.includes('dailyRuns')"
-                        class="text-[10px] text-red-500 font-bold bg-red-50 px-2 py-0.5 rounded-full border border-red-200"
+                        class="text-[10px] text-red-500 dark:text-red-400 font-bold bg-red-50 dark:bg-red-950/80 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-900"
                       >
                         {{ validationResult.errors.dailyRuns || "异常" }}
                       </span>
                       <span
                         v-else
-                        class="text-[10px] px-2.5 py-1 rounded-full font-black bg-amber-50 text-amber-700 border border-amber-200/60 shadow-2xs"
+                        class="text-[10px] px-2.5 py-1 rounded-full font-black bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-900/60 shadow-2xs"
                       >
                         共享可消耗: {{ totalsRemainingDailyRunsCountRuns || 0 }}
                       </span>
@@ -5173,10 +5231,11 @@ defineExpose({
                         class="p-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-2.5"
                       >
                         <div
-                          class="flex items-center justify-between text-[11px] font-bold text-slate-600 px-0.5"
+                          class="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-400 px-0.5"
                         >
                           <span>角色消耗次数</span>
-                          <span class="text-amber-600 font-black text-xs"
+                          <span
+                            class="text-amber-600 dark:text-amber-400 font-black text-xs"
                             >-{{ weeklydailyFormValues.dailyRuns || 0 }}</span
                           >
                         </div>
@@ -5185,7 +5244,7 @@ defineExpose({
                         <div class="flex items-center gap-2">
                           <button
                             type="button"
-                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 active:scale-95 text-slate-700 dark:text-slate-200 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             @click="
                               weeklydailyFormValues.dailyRuns = Math.max(
                                 0,
@@ -5200,12 +5259,12 @@ defineExpose({
                             v-model.number="weeklydailyFormValues.dailyRuns"
                             type="number"
                             min="0"
-                            class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 outline-none shadow-2xs focus:border-amber-400 transition-all"
+                            class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-amber-400 transition-all"
                           />
 
                           <button
                             type="button"
-                            class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-amber-100 active:scale-95 text-amber-700 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/80 active:scale-95 text-amber-700 dark:text-amber-300 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             @click="
                               weeklydailyFormValues.dailyRuns =
                                 (weeklydailyFormValues.dailyRuns || 0) + 1
@@ -5218,22 +5277,10 @@ defineExpose({
 
                       <!-- 底部：快捷操作按钮 (两列等宽排列) -->
                       <div class="grid grid-cols-2 gap-2 pt-0.5">
-                        <!-- 增加一半 -->
-                        <!-- <button
-                        type="button"
-                        class="py-2 px-1 bg-slate-50 dark:bg-slate-800 hover:bg-amber-50 active:scale-98 border border-slate-200 dark:border-slate-700/80 hover:border-amber-200 rounded-xl text-slate-700 hover:text-amber-600 font-bold text-[11px] transition-all cursor-pointer text-center shadow-2xs flex items-center justify-center gap-0.5 truncate"
-                        @click="
-                          weeklydailyFormValues.dailyRuns += Math.floor(
-                            (totalsRemainingDailyRunsCountRuns || 0) / 2
-                          )
-                        "
-                      >
-                        <span class="text-amber-500 font-black">+</span>一半
-                      </button> -->
                         <!-- 清空 -->
                         <button
                           type="button"
-                          class="py-2 px-1 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 active:scale-98 border border-slate-200 dark:border-slate-700/80 hover:border-red-200 rounded-xl text-slate-600 hover:text-red-600 font-bold text-[11px] transition-all cursor-pointer text-center shadow-2xs flex items-center justify-center truncate"
+                          class="py-2 px-1 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/40 active:scale-98 border border-slate-200 dark:border-slate-700/80 hover:border-red-200 dark:hover:border-red-800 rounded-xl text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 font-bold text-[11px] transition-all cursor-pointer text-center shadow-2xs flex items-center justify-center truncate"
                           @click="weeklydailyFormValues.dailyRuns = 0"
                         >
                           清空
@@ -5241,7 +5288,7 @@ defineExpose({
                         <!-- 全部 -->
                         <button
                           type="button"
-                          class="py-2 px-1 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-amber-600/25 rounded-xl flex items-center justify-center truncate"
+                          class="py-2 px-1 bg-gradient-to-r from-amber-600 to-amber-500 dark:from-amber-700 dark:to-amber-600 hover:from-amber-500 hover:to-amber-400 dark:hover:from-amber-600 dark:hover:to-amber-500 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-amber-600/25 rounded-xl flex items-center justify-center truncate"
                           @click="
                             weeklydailyFormValues.dailyRuns =
                               (weeklydailyFormValues.dailyRuns || 0) +
@@ -5255,18 +5302,20 @@ defineExpose({
                   </template>
                   <template v-else>
                     <div
-                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700"
+                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
                     >
                       <div class="flex items-center gap-2.5">
-                        <div class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
                         <div
-                          class="text-xs font-black uppercase tracking-wider text-slate-400"
+                          class="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700"
+                        ></div>
+                        <div
+                          class="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500"
                         >
                           <span>每日副本消耗</span>
                         </div>
                       </div>
                       <span
-                        class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 text-slate-400"
+                        class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500"
                       >
                         无可用
                       </span>
@@ -5274,14 +5323,16 @@ defineExpose({
 
                     <!-- 内部居中的精致空状态面板 -->
                     <div
-                      class="flex-1 flex flex-col items-center justify-center py-6 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl space-y-2"
+                      class="flex-1 flex flex-col items-center justify-center py-6 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl space-y-2"
                     >
                       <div
-                        class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-xs"
+                        class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 font-bold text-xs"
                       >
                         —
                       </div>
-                      <p class="text-xs font-bold text-slate-400">暂无可消耗的次数</p>
+                      <p class="text-xs font-bold text-slate-400 dark:text-slate-500">
+                        暂无可消耗的次数
+                      </p>
                     </div>
                   </template>
                 </div>
@@ -5292,8 +5343,8 @@ defineExpose({
                   ref="minigameSection"
                   :class="
                     validationResult.invalidFields.includes('minigameCount')
-                      ? 'border-red-500 bg-red-50/20'
-                      : ''
+                      ? 'border-red-500 bg-red-50/20 dark:bg-red-950/20'
+                      : 'border-slate-200 dark:border-slate-800'
                   "
                 >
                   <template
@@ -5305,7 +5356,7 @@ defineExpose({
                   >
                     <!-- 头部：标题与状态/报错展示 -->
                     <div
-                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700"
+                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
                     >
                       <div class="flex items-center gap-2.5">
                         <!-- 动态呼吸圆点 -->
@@ -5313,7 +5364,7 @@ defineExpose({
                           class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50 animate-pulse"
                         ></div>
                         <div
-                          class="text-xs font-black uppercase tracking-wider text-slate-800"
+                          class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-100"
                         >
                           <span>古树庆典小游戏消耗</span>
                         </div>
@@ -5322,13 +5373,13 @@ defineExpose({
                       <!-- 动态错误提示或剩余次数 Badge -->
                       <span
                         v-if="validationResult.invalidFields.includes('minigameCount')"
-                        class="text-[10px] text-red-500 font-bold bg-red-50 px-2 py-0.5 rounded-full border border-red-200"
+                        class="text-[10px] text-red-500 dark:text-red-400 font-bold bg-red-50 dark:bg-red-950/80 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-900"
                       >
                         {{ validationResult.errors.minigameCount || "异常" }}
                       </span>
                       <span
                         v-else
-                        class="text-[10px] px-2.5 py-1 rounded-full font-black bg-amber-50 text-amber-700 border border-amber-200/60 shadow-2xs"
+                        class="text-[10px] px-2.5 py-1 rounded-full font-black bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-900/60 shadow-2xs"
                       >
                         共享可消耗: {{ totalsRemainingMinigameCountRuns || 0 }}
                       </span>
@@ -5341,10 +5392,11 @@ defineExpose({
                         class="p-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-2.5"
                       >
                         <div
-                          class="flex items-center justify-between text-[11px] font-bold text-slate-600 px-0.5"
+                          class="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-400 px-0.5"
                         >
                           <span>角色消耗次数</span>
-                          <span class="text-amber-600 font-black text-xs"
+                          <span
+                            class="text-amber-600 dark:text-amber-400 font-black text-xs"
                             >-{{ weeklydailyFormValues.minigameCount || 0 }}</span
                           >
                         </div>
@@ -5353,7 +5405,7 @@ defineExpose({
                         <div class="flex items-center gap-2">
                           <button
                             type="button"
-                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 active:scale-95 text-slate-700 dark:text-slate-200 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             @click="
                               weeklydailyFormValues.minigameCount = Math.max(
                                 0,
@@ -5368,12 +5420,12 @@ defineExpose({
                             v-model.number="weeklydailyFormValues.minigameCount"
                             type="number"
                             min="0"
-                            class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 outline-none shadow-2xs focus:border-amber-400 transition-all"
+                            class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-amber-400 transition-all"
                           />
 
                           <button
                             type="button"
-                            class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-amber-100 active:scale-95 text-amber-700 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/80 active:scale-95 text-amber-700 dark:text-amber-300 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             @click="
                               weeklydailyFormValues.minigameCount =
                                 (weeklydailyFormValues.minigameCount || 0) + 1
@@ -5389,7 +5441,7 @@ defineExpose({
                         <!-- 清空 -->
                         <button
                           type="button"
-                          class="py-2 px-1 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 active:scale-98 border border-slate-200 dark:border-slate-700/80 hover:border-red-200 rounded-xl text-slate-600 hover:text-red-600 font-bold text-[11px] transition-all cursor-pointer text-center shadow-2xs flex items-center justify-center truncate"
+                          class="py-2 px-1 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/40 active:scale-98 border border-slate-200 dark:border-slate-700/80 hover:border-red-200 dark:hover:border-red-800 rounded-xl text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 font-bold text-[11px] transition-all cursor-pointer text-center shadow-2xs flex items-center justify-center truncate"
                           @click="weeklydailyFormValues.minigameCount = 0"
                         >
                           清空
@@ -5397,7 +5449,7 @@ defineExpose({
                         <!-- 全部 -->
                         <button
                           type="button"
-                          class="py-2 px-1 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-amber-600/25 rounded-xl flex items-center justify-center truncate"
+                          class="py-2 px-1 bg-gradient-to-r from-amber-600 to-amber-500 dark:from-amber-700 dark:to-amber-600 hover:from-amber-500 hover:to-amber-400 dark:hover:from-amber-600 dark:hover:to-amber-500 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-amber-600/25 rounded-xl flex items-center justify-center truncate"
                           @click="
                             weeklydailyFormValues.minigameCount =
                               (weeklydailyFormValues.minigameCount || 0) +
@@ -5412,18 +5464,20 @@ defineExpose({
 
                   <template v-else>
                     <div
-                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700"
+                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
                     >
                       <div class="flex items-center gap-2.5">
-                        <div class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
                         <div
-                          class="text-xs font-black uppercase tracking-wider text-slate-400"
+                          class="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700"
+                        ></div>
+                        <div
+                          class="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500"
                         >
                           <span>古树庆典小游戏消耗</span>
                         </div>
                       </div>
                       <span
-                        class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 text-slate-400"
+                        class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500"
                       >
                         无可用
                       </span>
@@ -5431,14 +5485,16 @@ defineExpose({
 
                     <!-- 内部居中的精致空状态面板 -->
                     <div
-                      class="flex-1 flex flex-col items-center justify-center py-6 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl space-y-2"
+                      class="flex-1 flex flex-col items-center justify-center py-6 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl space-y-2"
                     >
                       <div
-                        class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-xs"
+                        class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 font-bold text-xs"
                       >
                         —
                       </div>
-                      <p class="text-xs font-bold text-slate-400">暂无可消耗的次数</p>
+                      <p class="text-xs font-bold text-slate-400 dark:text-slate-500">
+                        暂无可消耗的次数
+                      </p>
                     </div>
                   </template>
                 </div>
@@ -5449,8 +5505,8 @@ defineExpose({
                   ref="dimensionalSection"
                   :class="
                     validationResult.invalidFields.includes('dimensionalCount')
-                      ? 'border-red-500 bg-red-50/20'
-                      : ''
+                      ? 'border-red-500 bg-red-50/20 dark:bg-red-950/20'
+                      : 'border-slate-200 dark:border-slate-800'
                   "
                 >
                   <template
@@ -5462,7 +5518,7 @@ defineExpose({
                   >
                     <!-- 头部：标题与状态/报错展示 -->
                     <div
-                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700"
+                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
                     >
                       <div class="flex items-center gap-2.5">
                         <!-- 动态呼吸圆点 -->
@@ -5470,7 +5526,7 @@ defineExpose({
                           class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50 animate-pulse"
                         ></div>
                         <div
-                          class="text-xs font-black uppercase tracking-wider text-slate-800"
+                          class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-100"
                         >
                           <span>次元袭击消耗</span>
                         </div>
@@ -5479,13 +5535,13 @@ defineExpose({
                       <!-- 动态错误提示或剩余次数 Badge -->
                       <span
                         v-if="validationResult.invalidFields.includes('dimensionalCount')"
-                        class="text-[10px] text-red-500 font-bold bg-red-50 px-2 py-0.5 rounded-full border border-red-200"
+                        class="text-[10px] text-red-500 dark:text-red-400 font-bold bg-red-50 dark:bg-red-950/80 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-900"
                       >
                         {{ validationResult.errors.dimensionalCount || "异常" }}
                       </span>
                       <span
                         v-else
-                        class="text-[10px] px-2.5 py-1 rounded-full font-black bg-amber-50 text-amber-700 border border-amber-200/60 shadow-2xs"
+                        class="text-[10px] px-2.5 py-1 rounded-full font-black bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-900/60 shadow-2xs"
                       >
                         共享可消耗: {{ totalsRemainingDimensionalCountRuns || 0 }}
                       </span>
@@ -5498,10 +5554,11 @@ defineExpose({
                         class="p-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-2.5"
                       >
                         <div
-                          class="flex items-center justify-between text-[11px] font-bold text-slate-600 px-0.5"
+                          class="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-400 px-0.5"
                         >
                           <span>角色消耗次数</span>
-                          <span class="text-amber-600 font-black text-xs"
+                          <span
+                            class="text-amber-600 dark:text-amber-400 font-black text-xs"
                             >-{{ weeklydailyFormValues.dimensionalCount || 0 }}</span
                           >
                         </div>
@@ -5510,7 +5567,7 @@ defineExpose({
                         <div class="flex items-center gap-2">
                           <button
                             type="button"
-                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 active:scale-95 text-slate-700 dark:text-slate-200 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             @click="
                               weeklydailyFormValues.dimensionalCount = Math.max(
                                 0,
@@ -5525,12 +5582,12 @@ defineExpose({
                             v-model.number="weeklydailyFormValues.dimensionalCount"
                             type="number"
                             min="0"
-                            class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 outline-none shadow-2xs focus:border-amber-400 transition-all"
+                            class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-amber-400 transition-all"
                           />
 
                           <button
                             type="button"
-                            class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-amber-100 active:scale-95 text-amber-700 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/80 active:scale-95 text-amber-700 dark:text-amber-300 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             @click="
                               weeklydailyFormValues.dimensionalCount =
                                 (weeklydailyFormValues.dimensionalCount || 0) + 1
@@ -5546,7 +5603,7 @@ defineExpose({
                         <!-- 清空 -->
                         <button
                           type="button"
-                          class="py-2 px-1 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 active:scale-98 border border-slate-200 dark:border-slate-700/80 hover:border-red-200 rounded-xl text-slate-600 hover:text-red-600 font-bold text-[11px] transition-all cursor-pointer text-center shadow-2xs flex items-center justify-center truncate"
+                          class="py-2 px-1 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/40 active:scale-98 border border-slate-200 dark:border-slate-700/80 hover:border-red-200 dark:hover:border-red-800 rounded-xl text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 font-bold text-[11px] transition-all cursor-pointer text-center shadow-2xs flex items-center justify-center truncate"
                           @click="weeklydailyFormValues.dimensionalCount = 0"
                         >
                           清空
@@ -5554,7 +5611,7 @@ defineExpose({
                         <!-- 全部 -->
                         <button
                           type="button"
-                          class="py-2 px-1 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-amber-600/25 rounded-xl flex items-center justify-center truncate"
+                          class="py-2 px-1 bg-gradient-to-r from-amber-600 to-amber-500 dark:from-amber-700 dark:to-amber-600 hover:from-amber-500 hover:to-amber-400 dark:hover:from-amber-600 dark:hover:to-amber-500 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-amber-600/25 rounded-xl flex items-center justify-center truncate"
                           @click="
                             weeklydailyFormValues.dimensionalCount =
                               (weeklydailyFormValues.dimensionalCount || 0) +
@@ -5568,18 +5625,20 @@ defineExpose({
                   </template>
                   <template v-else>
                     <div
-                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700"
+                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
                     >
                       <div class="flex items-center gap-2.5">
-                        <div class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
                         <div
-                          class="text-xs font-black uppercase tracking-wider text-slate-400"
+                          class="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700"
+                        ></div>
+                        <div
+                          class="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500"
                         >
                           <span>次元袭击消耗</span>
                         </div>
                       </div>
                       <span
-                        class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 text-slate-400"
+                        class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500"
                       >
                         无可用
                       </span>
@@ -5587,14 +5646,16 @@ defineExpose({
 
                     <!-- 内部居中的精致空状态面板 -->
                     <div
-                      class="flex-1 flex flex-col items-center justify-center py-6 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl space-y-2"
+                      class="flex-1 flex flex-col items-center justify-center py-6 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl space-y-2"
                     >
                       <div
-                        class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-xs"
+                        class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 font-bold text-xs"
                       >
                         —
                       </div>
-                      <p class="text-xs font-bold text-slate-400">暂无可消耗的次数</p>
+                      <p class="text-xs font-bold text-slate-400 dark:text-slate-500">
+                        暂无可消耗的次数
+                      </p>
                     </div>
                   </template>
                 </div>
@@ -5610,7 +5671,7 @@ defineExpose({
             >
               <!-- ================= 角色奥德综合管理模块 ================= -->
               <div
-                class="p-5 bg-gradient-to-r from-amber-50/60 via-white to-sky-50/65 border-2 border-slate-200 dark:border-slate-700/80 rounded-3xl space-y-4 shadow-sm"
+                class="p-5 bg-gradient-to-r from-amber-50/60 via-white to-sky-50/65 dark:from-amber-950/20 dark:via-slate-900 dark:to-sky-950/20 border-2 border-slate-200 dark:border-slate-700/80 rounded-3xl space-y-4 shadow-sm"
               >
                 <!-- 模块标题栏 -->
                 <div
@@ -5619,7 +5680,7 @@ defineExpose({
                   <div class="flex items-center gap-2.5">
                     <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
                     <div
-                      class="text-xs font-black uppercase tracking-wider text-slate-700"
+                      class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                     >
                       角色奥德综合兑换管理
                     </div>
@@ -5634,12 +5695,12 @@ defineExpose({
                     class="p-3.5 border rounded-2xl space-y-2.5 transition-all"
                     :class="
                       (gameplayCharForm?.materialCharOd || 0) >= 4
-                        ? 'bg-amber-50/40 border-amber-200'
+                        ? 'bg-amber-50/40 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/80'
                         : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700/80'
                     "
                   >
                     <div
-                      class="flex items-center justify-between text-xs font-bold text-slate-700"
+                      class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200"
                     >
                       <div class="flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-amber-400"></span>
@@ -5649,8 +5710,8 @@ defineExpose({
                         class="font-black"
                         :class="
                           (gameplayCharForm?.materialCharOd || 0) >= 4
-                            ? 'text-amber-700'
-                            : 'text-amber-600'
+                            ? 'text-amber-700 dark:text-amber-400'
+                            : 'text-amber-600 dark:text-amber-500'
                         "
                       >
                         {{ gameplayCharForm?.materialCharOd || 0 }} / 4
@@ -5660,14 +5721,15 @@ defineExpose({
                     <!-- 已达成状态 -->
                     <template v-if="(gameplayCharForm?.materialCharOd || 0) >= 4">
                       <div
-                        class="py-3 flex flex-col items-center justify-center space-y-0.5 bg-white dark:bg-slate-900/90 border border-amber-200/60 rounded-xl"
+                        class="py-3 flex flex-col items-center justify-center space-y-0.5 bg-white dark:bg-slate-900/90 border border-amber-200/60 dark:border-amber-800/60 rounded-xl"
                       >
                         <div
-                          class="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-black text-[10px]"
+                          class="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-950/80 flex items-center justify-center text-amber-600 dark:text-amber-400 font-black text-[10px]"
                         >
                           ✓
                         </div>
-                        <span class="text-[11px] font-black text-amber-800"
+                        <span
+                          class="text-[11px] font-black text-amber-800 dark:text-amber-300"
                           >已全部拉满</span
                         >
                       </div>
@@ -5678,7 +5740,7 @@ defineExpose({
                       <div class="flex items-center gap-1.5">
                         <button
                           type="button"
-                          class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center cursor-pointer transition-all active:scale-95"
+                          class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-xs flex items-center justify-center cursor-pointer transition-all active:scale-95"
                           @click="
                             exchangeFormValues.materialCharOd = Math.max(
                               0,
@@ -5692,11 +5754,11 @@ defineExpose({
                           v-model.number="exchangeFormValues.materialCharOd"
                           min="0"
                           max="4"
-                          class="flex-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 outline-none focus:border-amber-400 transition-all"
+                          class="flex-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none focus:border-amber-400 transition-all"
                         />
                         <button
                           type="button"
-                          class="w-7 h-7 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-black text-xs flex items-center justify-center cursor-pointer transition-all active:scale-95"
+                          class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/80 text-amber-700 dark:text-amber-300 font-black text-xs flex items-center justify-center cursor-pointer transition-all active:scale-95"
                           @click="
                             exchangeFormValues.materialCharOd = Math.min(
                               4,
@@ -5710,14 +5772,14 @@ defineExpose({
                       <div class="flex gap-1 pt-0.5">
                         <button
                           type="button"
-                          class="flex-1 py-1 bg-slate-50 dark:bg-slate-800 hover:bg-amber-50 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 hover:text-amber-600 transition-all cursor-pointer"
+                          class="flex-1 py-1 bg-slate-50 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-950/40 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 transition-all cursor-pointer"
                           @click="exchangeFormValues.materialCharOd = 0"
                         >
                           清空
                         </button>
                         <button
                           type="button"
-                          class="flex-1 py-1 bg-slate-50 dark:bg-slate-800 hover:bg-amber-50 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 hover:text-amber-600 transition-all cursor-pointer"
+                          class="flex-1 py-1 bg-slate-50 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-950/40 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 transition-all cursor-pointer"
                           @click="exchangeFormValues.materialCharOd = 4"
                         >
                           拉满 (4)
@@ -5730,13 +5792,13 @@ defineExpose({
                   <div
                     class="p-3.5 border rounded-2xl space-y-2.5 transition-all"
                     :class="
-                      (exchangeFormValues.breezeCharOd || 0) >= 4
-                        ? 'bg-sky-50/40 border-sky-200'
+                      (gameplayCharForm?.breezeCharOd || 0) >= 4
+                        ? 'bg-sky-50/40 dark:bg-sky-950/30 border-sky-200 dark:border-sky-800/80'
                         : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700/80'
                     "
                   >
                     <div
-                      class="flex items-center justify-between text-xs font-bold text-slate-700"
+                      class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200"
                     >
                       <div class="flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-[#45a6d5]"></span>
@@ -5746,25 +5808,26 @@ defineExpose({
                         class="font-black"
                         :class="
                           (gameplayCharForm?.breezeCharOd || 0) >= 4
-                            ? 'text-sky-700'
+                            ? 'text-sky-700 dark:text-sky-400'
                             : 'text-[#45a6d5]'
                         "
                       >
-                        {{ exchangeFormValues.breezeCharOd || 0 }} / 4
+                        {{ gameplayCharForm?.breezeCharOd || 0 }} / 4
                       </span>
                     </div>
 
                     <!-- 已达成状态 -->
                     <template v-if="(gameplayCharForm?.breezeCharOd || 0) >= 4">
                       <div
-                        class="py-3 flex flex-col items-center justify-center space-y-0.5 bg-white dark:bg-slate-900/90 border border-sky-200/60 rounded-xl"
+                        class="py-3 flex flex-col items-center justify-center space-y-0.5 bg-white dark:bg-slate-900/90 border border-sky-200/60 dark:border-sky-800/60 rounded-xl"
                       >
                         <div
-                          class="w-5 h-5 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 font-black text-[10px]"
+                          class="w-5 h-5 rounded-full bg-sky-100 dark:bg-sky-950/80 flex items-center justify-center text-sky-600 dark:text-sky-400 font-black text-[10px]"
                         >
                           ✓
                         </div>
-                        <span class="text-[11px] font-black text-sky-800"
+                        <span
+                          class="text-[11px] font-black text-sky-800 dark:text-sky-300"
                           >已全部拉满</span
                         >
                       </div>
@@ -5775,7 +5838,7 @@ defineExpose({
                       <div class="flex items-center gap-1.5">
                         <button
                           type="button"
-                          class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center cursor-pointer transition-all active:scale-95"
+                          class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-xs flex items-center justify-center cursor-pointer transition-all active:scale-95"
                           @click="
                             exchangeFormValues.breezeCharOd = Math.max(
                               0,
@@ -5789,11 +5852,11 @@ defineExpose({
                           v-model.number="exchangeFormValues.breezeCharOd"
                           min="0"
                           max="4"
-                          class="flex-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 outline-none focus:border-[#45a6d5] transition-all"
+                          class="flex-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none focus:border-[#45a6d5] transition-all"
                         />
                         <button
                           type="button"
-                          class="w-7 h-7 rounded-lg bg-sky-50 hover:bg-sky-100 text-[#45a6d5] font-black text-xs flex items-center justify-center cursor-pointer transition-all active:scale-95"
+                          class="w-7 h-7 rounded-lg bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/80 text-[#45a6d5] font-black text-xs flex items-center justify-center cursor-pointer transition-all active:scale-95"
                           @click="
                             exchangeFormValues.breezeCharOd = Math.min(
                               4,
@@ -5807,14 +5870,14 @@ defineExpose({
                       <div class="flex gap-1 pt-0.5">
                         <button
                           type="button"
-                          class="flex-1 py-1 bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 hover:text-[#45a6d5] transition-all cursor-pointer"
+                          class="flex-1 py-1 bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-[#45a6d5] transition-all cursor-pointer"
                           @click="exchangeFormValues.breezeCharOd = 0"
                         >
                           清空
                         </button>
                         <button
                           type="button"
-                          class="flex-1 py-1 bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 hover:text-[#45a6d5] transition-all cursor-pointer"
+                          class="flex-1 py-1 bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-[#45a6d5] transition-all cursor-pointer"
                           @click="exchangeFormValues.breezeCharOd = 4"
                         >
                           拉满 (4)
@@ -5836,7 +5899,7 @@ defineExpose({
                     <div class="flex items-center gap-2.5">
                       <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
                       <div
-                        class="text-xs font-black uppercase tracking-wider text-slate-700"
+                        class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                       >
                         物质变换兑换管理
                       </div>
@@ -5850,20 +5913,20 @@ defineExpose({
                       class="p-3.5 border rounded-2xl space-y-2 transition-all"
                       :class="
                         (getCharGroup?.materialAccountOd || 0) >= 16
-                          ? 'bg-amber-50/40 border-amber-200'
+                          ? 'bg-amber-50/40 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/80'
                           : 'bg-slate-50 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700/70'
                       "
                     >
                       <div
-                        class="flex items-center justify-between text-xs font-bold text-slate-700"
+                        class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200"
                       >
                         <span>账号奥德</span>
                         <span
                           class="font-black"
                           :class="
                             (getCharGroup?.materialAccountOd || 0) >= 16
-                              ? 'text-amber-700'
-                              : 'text-amber-600'
+                              ? 'text-amber-700 dark:text-amber-400'
+                              : 'text-amber-600 dark:text-amber-500'
                           "
                         >
                           {{ getCharGroup?.materialAccountOd || 0 }} / 16
@@ -5873,14 +5936,15 @@ defineExpose({
                       <!-- 已达成：显示清爽的成功占位样式 -->
                       <template v-if="(getCharGroup?.materialAccountOd || 0) >= 16">
                         <div
-                          class="py-4 flex flex-col items-center justify-center space-y-1 bg-white dark:bg-slate-900/80 border border-amber-200/60 rounded-xl"
+                          class="py-4 flex flex-col items-center justify-center space-y-1 bg-white dark:bg-slate-900/80 border border-amber-200/60 dark:border-amber-800/60 rounded-xl"
                         >
                           <div
-                            class="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-black text-[10px] shadow-2xs"
+                            class="w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-950/80 flex items-center justify-center text-amber-600 dark:text-amber-400 font-black text-[10px] shadow-2xs"
                           >
                             ✓
                           </div>
-                          <span class="text-[11px] font-black text-amber-800"
+                          <span
+                            class="text-[11px] font-black text-amber-800 dark:text-amber-300"
                             >账号奥德已拉满</span
                           >
                         </div>
@@ -5892,7 +5956,7 @@ defineExpose({
                           <button
                             type="button"
                             v-if="!getCharGroup?.materialAccountOd"
-                            class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center cursor-pointer transition-all active:scale-95"
+                            class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-xs flex items-center justify-center cursor-pointer transition-all active:scale-95"
                             @click="
                               exchangeFormValues.materialAccountOd = Math.max(
                                 0,
@@ -5910,11 +5974,11 @@ defineExpose({
                                 ? 16 - getCharGroup?.materialAccountOd
                                 : 16
                             "
-                            class="flex-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 outline-none focus:border-amber-400 transition-all"
+                            class="flex-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none focus:border-amber-400 transition-all"
                           />
                           <button
                             type="button"
-                            class="w-7 h-7 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-black text-xs flex items-center justify-center cursor-pointer transition-all active:scale-95"
+                            class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/80 text-amber-700 dark:text-amber-300 font-black text-xs flex items-center justify-center cursor-pointer transition-all active:scale-95"
                             @click="
                               exchangeFormValues.materialAccountOd = Math.min(
                                 getCharGroup?.materialAccountOd
@@ -5930,14 +5994,14 @@ defineExpose({
                         <div class="flex gap-1 pt-1">
                           <button
                             type="button"
-                            class="flex-1 py-1 bg-white dark:bg-slate-900 hover:bg-amber-50 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 hover:text-amber-600 transition-all cursor-pointer"
+                            class="flex-1 py-1 bg-white dark:bg-slate-900 hover:bg-amber-50 dark:hover:bg-amber-950/40 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 transition-all cursor-pointer"
                             @click="exchangeFormValues.materialAccountOd = 0"
                           >
                             清空
                           </button>
                           <button
                             type="button"
-                            class="flex-1 py-1 bg-white dark:bg-slate-900 hover:bg-amber-50 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 hover:text-amber-600 transition-all cursor-pointer"
+                            class="flex-1 py-1 bg-white dark:bg-slate-900 hover:bg-amber-50 dark:hover:bg-amber-950/40 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 transition-all cursor-pointer"
                             @click="
                               exchangeFormValues.materialAccountOd = getCharGroup?.materialAccountOd
                                 ? 16 - getCharGroup?.materialAccountOd
@@ -5966,7 +6030,7 @@ defineExpose({
                     <div class="flex items-center gap-2.5">
                       <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
                       <div
-                        class="text-xs font-black uppercase tracking-wider text-slate-700"
+                        class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                       >
                         微风商店上限兑换管理
                       </div>
@@ -5982,7 +6046,7 @@ defineExpose({
                       class="p-2.5 border rounded-xl space-y-1 transition-all"
                       :class="
                         (exchangeFormValues.breezeAccountOd || 0) >= 16
-                          ? 'bg-sky-50/40 border-sky-200'
+                          ? 'bg-sky-50/40 dark:bg-sky-950/30 border-sky-200 dark:border-sky-800/80'
                           : 'bg-slate-50 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700/70'
                       "
                     >
@@ -5990,15 +6054,15 @@ defineExpose({
                         class="flex justify-between text-[10px] font-bold"
                         :class="
                           (exchangeFormValues.breezeAccountOd || 0) >= 16
-                            ? 'text-sky-800'
-                            : 'text-slate-500'
+                            ? 'text-sky-800 dark:text-sky-300'
+                            : 'text-slate-500 dark:text-slate-400'
                         "
                       >
                         <span>账号奥德</span>
                         <span
                           :class="
                             (exchangeFormValues.breezeAccountOd || 0) >= 16
-                              ? 'text-sky-700 font-black'
+                              ? 'text-sky-700 dark:text-sky-400 font-black'
                               : 'text-[#45a6d5]'
                           "
                           >{{ exchangeFormValues.breezeAccountOd || 0 }}/16</span
@@ -6008,10 +6072,10 @@ defineExpose({
                       <!-- 已达成状态占位 -->
                       <template v-if="(exchangeFormValues.breezeAccountOd || 0) >= 16">
                         <div
-                          class="py-2 flex items-center justify-center gap-1 bg-white dark:bg-slate-900/90 border border-sky-200/60 rounded-lg text-sky-700 font-black text-[10px]"
+                          class="py-2 flex items-center justify-center gap-1 bg-white dark:bg-slate-900/90 border border-sky-200/60 dark:border-sky-800/60 rounded-lg text-sky-700 dark:text-sky-300 font-black text-[10px]"
                         >
                           <span
-                            class="w-3 h-3 rounded-full bg-sky-100 flex items-center justify-center text-[8px]"
+                            class="w-3 h-3 rounded-full bg-sky-100 dark:bg-sky-950/80 flex items-center justify-center text-[8px]"
                             >✓</span
                           >
                           <span>已拉满</span>
@@ -6024,11 +6088,11 @@ defineExpose({
                             v-model.number="exchangeFormValues.breezeAccountOd"
                             min="0"
                             max="16"
-                            class="flex-1 w-full px-1 py-0.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-center font-black text-xs outline-none focus:border-[#45a6d5]"
+                            class="flex-1 w-full px-1 py-0.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none focus:border-[#45a6d5]"
                           />
                           <button
                             type="button"
-                            class="flex-1 py-0.5 bg-slate-100 hover:bg-[#45a6d5]/20 text-[10px] font-bold rounded text-center transition-colors truncate cursor-pointer"
+                            class="flex-1 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-[#45a6d5]/20 dark:hover:bg-sky-950/60 text-[10px] font-bold rounded text-center text-slate-700 dark:text-slate-300 transition-colors truncate cursor-pointer"
                             @click="exchangeFormValues.breezeAccountOd = 16"
                           >
                             最大
@@ -6042,7 +6106,7 @@ defineExpose({
                       class="p-2.5 border rounded-xl space-y-1 transition-all"
                       :class="
                         (exchangeFormValues.breezeReviveStone || 0) >= 7
-                          ? 'bg-sky-50/40 border-sky-200'
+                          ? 'bg-sky-50/40 dark:bg-sky-950/30 border-sky-200 dark:border-sky-800/80'
                           : 'bg-slate-50 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700/70'
                       "
                     >
@@ -6050,15 +6114,15 @@ defineExpose({
                         class="flex justify-between text-[10px] font-bold"
                         :class="
                           (exchangeFormValues.breezeReviveStone || 0) >= 7
-                            ? 'text-sky-800'
-                            : 'text-slate-500'
+                            ? 'text-sky-800 dark:text-sky-300'
+                            : 'text-slate-500 dark:text-slate-400'
                         "
                       >
                         <span>复活石</span>
                         <span
                           :class="
                             (exchangeFormValues.breezeReviveStone || 0) >= 7
-                              ? 'text-sky-700 font-black'
+                              ? 'text-sky-700 dark:text-sky-400 font-black'
                               : 'text-[#45a6d5]'
                           "
                           >{{ exchangeFormValues.breezeReviveStone || 0 }}/7</span
@@ -6067,10 +6131,10 @@ defineExpose({
 
                       <template v-if="(exchangeFormValues.breezeReviveStone || 0) >= 7">
                         <div
-                          class="py-2 flex items-center justify-center gap-1 bg-white dark:bg-slate-900/90 border border-sky-200/60 rounded-lg text-sky-700 font-black text-[10px]"
+                          class="py-2 flex items-center justify-center gap-1 bg-white dark:bg-slate-900/90 border border-sky-200/60 dark:border-sky-800/60 rounded-lg text-sky-700 dark:text-sky-300 font-black text-[10px]"
                         >
                           <span
-                            class="w-3 h-3 rounded-full bg-sky-100 flex items-center justify-center text-[8px]"
+                            class="w-3 h-3 rounded-full bg-sky-100 dark:bg-sky-950/80 flex items-center justify-center text-[8px]"
                             >✓</span
                           >
                           <span>已拉满</span>
@@ -6082,11 +6146,11 @@ defineExpose({
                             v-model.number="exchangeFormValues.breezeReviveStone"
                             min="0"
                             max="7"
-                            class="flex-1 w-full px-1 py-0.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-center font-black text-xs outline-none focus:border-[#45a6d5]"
+                            class="flex-1 w-full px-1 py-0.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none focus:border-[#45a6d5]"
                           />
                           <button
                             type="button"
-                            class="flex-1 py-0.5 bg-slate-100 hover:bg-[#45a6d5]/20 text-[10px] font-bold rounded text-center transition-colors truncate cursor-pointer"
+                            class="flex-1 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-[#45a6d5]/20 dark:hover:bg-sky-950/60 text-[10px] font-bold rounded text-center text-slate-700 dark:text-slate-300 transition-colors truncate cursor-pointer"
                             @click="exchangeFormValues.breezeReviveStone = 7"
                           >
                             最大
@@ -6100,7 +6164,7 @@ defineExpose({
                       class="p-2.5 border rounded-xl space-y-1 transition-all"
                       :class="
                         (exchangeFormValues.breezeRiftTicket || 0) >= 21
-                          ? 'bg-sky-50/40 border-sky-200'
+                          ? 'bg-sky-50/40 dark:bg-sky-950/30 border-sky-200 dark:border-sky-800/80'
                           : 'bg-slate-50 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700/70'
                       "
                     >
@@ -6108,15 +6172,15 @@ defineExpose({
                         class="flex justify-between text-[10px] font-bold truncate"
                         :class="
                           (exchangeFormValues.breezeRiftTicket || 0) >= 21
-                            ? 'text-sky-800'
-                            : 'text-slate-500'
+                            ? 'text-sky-800 dark:text-sky-300'
+                            : 'text-slate-500 dark:text-slate-400'
                         "
                       >
                         <span>未知缝隙卷</span>
                         <span
                           :class="
                             (exchangeFormValues.breezeRiftTicket || 0) >= 21
-                              ? 'text-sky-700 font-black'
+                              ? 'text-sky-700 dark:text-sky-400 font-black'
                               : 'text-[#45a6d5]'
                           "
                           >{{ exchangeFormValues.breezeRiftTicket || 0 }}/21</span
@@ -6125,10 +6189,10 @@ defineExpose({
 
                       <template v-if="(exchangeFormValues.breezeRiftTicket || 0) >= 21">
                         <div
-                          class="py-2 flex items-center justify-center gap-1 bg-white dark:bg-slate-900/90 border border-sky-200/60 rounded-lg text-sky-700 font-black text-[10px]"
+                          class="py-2 flex items-center justify-center gap-1 bg-white dark:bg-slate-900/90 border border-sky-200/60 dark:border-sky-800/60 rounded-lg text-sky-700 dark:text-sky-300 font-black text-[10px]"
                         >
                           <span
-                            class="w-3 h-3 rounded-full bg-sky-100 flex items-center justify-center text-[8px]"
+                            class="w-3 h-3 rounded-full bg-sky-100 dark:bg-sky-950/80 flex items-center justify-center text-[8px]"
                             >✓</span
                           >
                           <span>已拉满</span>
@@ -6140,11 +6204,11 @@ defineExpose({
                             v-model.number="exchangeFormValues.breezeRiftTicket"
                             min="0"
                             max="21"
-                            class="flex-1 w-full px-1 py-0.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-center font-black text-xs outline-none focus:border-[#45a6d5]"
+                            class="flex-1 w-full px-1 py-0.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none focus:border-[#45a6d5]"
                           />
                           <button
                             type="button"
-                            class="flex-1 py-0.5 bg-slate-100 hover:bg-[#45a6d5]/20 text-[10px] font-bold rounded text-center transition-colors truncate cursor-pointer"
+                            class="flex-1 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-[#45a6d5]/20 dark:hover:bg-sky-950/60 text-[10px] font-bold rounded text-center text-slate-700 dark:text-slate-300 transition-colors truncate cursor-pointer"
                             @click="exchangeFormValues.breezeRiftTicket = 21"
                           >
                             最大
@@ -6158,7 +6222,7 @@ defineExpose({
                       class="p-2.5 border rounded-xl space-y-1 transition-all"
                       :class="
                         (exchangeFormValues.breezeDailyTicket || 0) >= 21
-                          ? 'bg-sky-50/40 border-sky-200'
+                          ? 'bg-sky-50/40 dark:bg-sky-950/30 border-sky-200 dark:border-sky-800/80'
                           : 'bg-slate-50 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700/70'
                       "
                     >
@@ -6166,15 +6230,15 @@ defineExpose({
                         class="flex justify-between text-[10px] font-bold truncate"
                         :class="
                           (exchangeFormValues.breezeDailyTicket || 0) >= 21
-                            ? 'text-sky-800'
-                            : 'text-slate-500'
+                            ? 'text-sky-800 dark:text-sky-300'
+                            : 'text-slate-500 dark:text-slate-400'
                         "
                       >
                         <span>完成卷(每日)</span>
                         <span
                           :class="
                             (exchangeFormValues.breezeDailyTicket || 0) >= 21
-                              ? 'text-sky-700 font-black'
+                              ? 'text-sky-700 dark:text-sky-400 font-black'
                               : 'text-[#45a6d5]'
                           "
                           >{{ exchangeFormValues.breezeDailyTicket || 0 }}/21</span
@@ -6183,10 +6247,10 @@ defineExpose({
 
                       <template v-if="(exchangeFormValues.breezeDailyTicket || 0) >= 21">
                         <div
-                          class="py-2 flex items-center justify-center gap-1 bg-white dark:bg-slate-900/90 border border-sky-200/60 rounded-lg text-sky-700 font-black text-[10px]"
+                          class="py-2 flex items-center justify-center gap-1 bg-white dark:bg-slate-900/90 border border-sky-200/60 dark:border-sky-800/60 rounded-lg text-sky-700 dark:text-sky-300 font-black text-[10px]"
                         >
                           <span
-                            class="w-3 h-3 rounded-full bg-sky-100 flex items-center justify-center text-[8px]"
+                            class="w-3 h-3 rounded-full bg-sky-100 dark:bg-sky-950/80 flex items-center justify-center text-[8px]"
                             >✓</span
                           >
                           <span>已拉满</span>
@@ -6198,11 +6262,11 @@ defineExpose({
                             v-model.number="exchangeFormValues.breezeDailyTicket"
                             min="0"
                             max="21"
-                            class="flex-1 w-full px-1 py-0.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-center font-black text-xs outline-none focus:border-[#45a6d5]"
+                            class="flex-1 w-full px-1 py-0.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none focus:border-[#45a6d5]"
                           />
                           <button
                             type="button"
-                            class="flex-1 py-0.5 bg-slate-100 hover:bg-[#45a6d5]/20 text-[10px] font-bold rounded text-center transition-colors truncate cursor-pointer"
+                            class="flex-1 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-[#45a6d5]/20 dark:hover:bg-sky-950/60 text-[10px] font-bold rounded text-center text-slate-700 dark:text-slate-300 transition-colors truncate cursor-pointer"
                             @click="exchangeFormValues.breezeDailyTicket = 21"
                           >
                             最大
@@ -6216,7 +6280,7 @@ defineExpose({
                       class="p-2.5 border rounded-xl space-y-1 transition-all"
                       :class="
                         (exchangeFormValues.breezeNightmareTicket || 0) >= 14
-                          ? 'bg-sky-50/40 border-sky-200'
+                          ? 'bg-sky-50/40 dark:bg-sky-950/30 border-sky-200 dark:border-sky-800/80'
                           : 'bg-slate-50 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700/70'
                       "
                     >
@@ -6224,15 +6288,15 @@ defineExpose({
                         class="flex justify-between text-[10px] font-bold truncate"
                         :class="
                           (exchangeFormValues.breezeNightmareTicket || 0) >= 14
-                            ? 'text-sky-800'
-                            : 'text-slate-500'
+                            ? 'text-sky-800 dark:text-sky-300'
+                            : 'text-slate-500 dark:text-slate-400'
                         "
                       >
                         <span>完成卷(噩梦)</span>
                         <span
                           :class="
                             (exchangeFormValues.breezeNightmareTicket || 0) >= 14
-                              ? 'text-sky-700 font-black'
+                              ? 'text-sky-700 dark:text-sky-400 font-black'
                               : 'text-[#45a6d5]'
                           "
                           >{{ exchangeFormValues.breezeNightmareTicket || 0 }}/14</span
@@ -6243,10 +6307,10 @@ defineExpose({
                         v-if="(exchangeFormValues.breezeNightmareTicket || 0) >= 14"
                       >
                         <div
-                          class="py-2 flex items-center justify-center gap-1 bg-white dark:bg-slate-900/90 border border-sky-200/60 rounded-lg text-sky-700 font-black text-[10px]"
+                          class="py-2 flex items-center justify-center gap-1 bg-white dark:bg-slate-900/90 border border-sky-200/60 dark:border-sky-800/60 rounded-lg text-sky-700 dark:text-sky-300 font-black text-[10px]"
                         >
                           <span
-                            class="w-3 h-3 rounded-full bg-sky-100 flex items-center justify-center text-[8px]"
+                            class="w-3 h-3 rounded-full bg-sky-100 dark:bg-sky-950/80 flex items-center justify-center text-[8px]"
                             >✓</span
                           >
                           <span>已拉满</span>
@@ -6258,11 +6322,11 @@ defineExpose({
                             v-model.number="exchangeFormValues.breezeNightmareTicket"
                             min="0"
                             max="14"
-                            class="flex-1 w-full px-1 py-0.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-center font-black text-xs outline-none focus:border-[#45a6d5]"
+                            class="flex-1 w-full px-1 py-0.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none focus:border-[#45a6d5]"
                           />
                           <button
                             type="button"
-                            class="flex-1 py-0.5 bg-slate-100 hover:bg-[#45a6d5]/20 text-[10px] font-bold rounded text-center transition-colors truncate cursor-pointer"
+                            class="flex-1 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-[#45a6d5]/20 dark:hover:bg-sky-950/60 text-[10px] font-bold rounded text-center text-slate-700 dark:text-slate-300 transition-colors truncate cursor-pointer"
                             @click="exchangeFormValues.breezeNightmareTicket = 14"
                           >
                             最大
@@ -6273,320 +6337,68 @@ defineExpose({
                   </div>
                 </div>
               </div>
-
-              <!-- ================= 2. 深渊与地区指令书模块（结构化紧凑交互） ================= -->
+              <!-- ================= 3. 地区C与地区D指令书模块（结构化紧凑交互补充） ================= -->
               <div
-                class="p-5 bg-gradient-to-r from-sky-50 via-white to-sky-50/60 border border-sky-200/80 px-4 py-3.5 shadow-2xs space-y-4 rounded-2xl"
+                class="p-5 bg-gradient-to-r from-sky-50 via-white to-sky-50/60 dark:from-slate-900/80 dark:via-slate-900 dark:to-slate-900/60 border border-sky-200/80 dark:border-slate-700/80 px-4 py-3.5 shadow-2xs space-y-4 rounded-2xl"
               >
                 <div
-                  class="flex items-center justify-between pb-2 border-b border-sky-100"
+                  class="flex items-center justify-between pb-2 border-b border-sky-100 dark:border-slate-800"
                 >
                   <div class="flex items-center gap-2">
                     <div class="w-2.5 h-2.5 rounded-full bg-sky-500"></div>
                     <div
-                      class="text-xs font-black uppercase tracking-wider text-slate-700"
+                      class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                     >
-                      深渊与地区指令书管理
+                      扩展地区指令书管理
                     </div>
                   </div>
-                  <span class="text-[10px] font-bold text-slate-400">指令书上限控制</span>
+                  <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
+                    >指令书上限控制</span
+                  >
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                  <!-- 1. 下层深渊指令书 (普通5, 熟练5, 精锐5, 特命5) -->
-                  <div
-                    class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2"
-                  >
-                    <div
-                      class="flex justify-between font-black text-slate-700 text-xs pb-1 border-b border-slate-100 dark:border-slate-700"
-                    >
-                      <span>下层深渊指令书</span>
-                      <span class="text-sky-600">上限各 5</span>
-                    </div>
-                    <div class="space-y-1.5">
-                      <!-- 普通 -->
-                      <div
-                        class="flex items-center justify-between text-[11px] text-slate-600"
-                      >
-                        <span
-                          >普通 ({{ exchangeFormValues.lowerAbyssNormal || 0 }}/5)</span
-                        >
-                        <template v-if="(exchangeFormValues.lowerAbyssNormal || 0) >= 5">
-                          <span
-                            class="px-2 py-0.5 bg-sky-50 text-sky-700 font-black rounded text-[10px]"
-                            >✓ 已满</span
-                          >
-                        </template>
-                        <template v-else>
-                          <div class="flex gap-1">
-                            <button
-                              type="button"
-                              class="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 rounded text-[10px] font-bold cursor-pointer"
-                              @click="
-                                exchangeFormValues.lowerAbyssNormal = Math.max(
-                                  0,
-                                  (exchangeFormValues.lowerAbyssNormal || 0) - 1
-                                )
-                              "
-                            >
-                              -
-                            </button>
-                            <button
-                              type="button"
-                              class="px-1.5 py-0.5 bg-sky-50 hover:bg-sky-100 text-sky-600 rounded text-[10px] font-bold cursor-pointer"
-                              @click="exchangeFormValues.lowerAbyssNormal = 5"
-                            >
-                              5
-                            </button>
-                          </div>
-                        </template>
-                      </div>
-
-                      <!-- 熟练 -->
-                      <div
-                        class="flex items-center justify-between text-[11px] text-slate-600"
-                      >
-                        <span
-                          >熟练 ({{ exchangeFormValues.lowerAbyssSkilled || 0 }}/5)</span
-                        >
-                        <template v-if="(exchangeFormValues.lowerAbyssSkilled || 0) >= 5">
-                          <span
-                            class="px-2 py-0.5 bg-sky-50 text-sky-700 font-black rounded text-[10px]"
-                            >✓ 已满</span
-                          >
-                        </template>
-                        <template v-else>
-                          <div class="flex gap-1">
-                            <button
-                              type="button"
-                              class="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 rounded text-[10px] font-bold cursor-pointer"
-                              @click="
-                                exchangeFormValues.lowerAbyssSkilled = Math.max(
-                                  0,
-                                  (exchangeFormValues.lowerAbyssSkilled || 0) - 1
-                                )
-                              "
-                            >
-                              -
-                            </button>
-                            <button
-                              type="button"
-                              class="px-1.5 py-0.5 bg-sky-50 hover:bg-sky-100 text-sky-600 rounded text-[10px] font-bold cursor-pointer"
-                              @click="exchangeFormValues.lowerAbyssSkilled = 5"
-                            >
-                              5
-                            </button>
-                          </div>
-                        </template>
-                      </div>
-
-                      <!-- 精锐 -->
-                      <div
-                        class="flex items-center justify-between text-[11px] text-slate-600"
-                      >
-                        <span
-                          >精锐 ({{ exchangeFormValues.lowerAbyssElite || 0 }}/5)</span
-                        >
-                        <template v-if="(exchangeFormValues.lowerAbyssElite || 0) >= 5">
-                          <span
-                            class="px-2 py-0.5 bg-sky-50 text-sky-700 font-black rounded text-[10px]"
-                            >✓ 已满</span
-                          >
-                        </template>
-                        <template v-else>
-                          <div class="flex gap-1">
-                            <button
-                              type="button"
-                              class="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 rounded text-[10px] font-bold cursor-pointer"
-                              @click="
-                                exchangeFormValues.lowerAbyssElite = Math.max(
-                                  0,
-                                  (exchangeFormValues.lowerAbyssElite || 0) - 1
-                                )
-                              "
-                            >
-                              -
-                            </button>
-                            <button
-                              type="button"
-                              class="px-1.5 py-0.5 bg-sky-50 hover:bg-sky-100 text-sky-600 rounded text-[10px] font-bold cursor-pointer"
-                              @click="exchangeFormValues.lowerAbyssElite = 5"
-                            >
-                              5
-                            </button>
-                          </div>
-                        </template>
-                      </div>
-
-                      <!-- 特命 -->
-                      <div
-                        class="flex items-center justify-between text-[11px] text-slate-600"
-                      >
-                        <span
-                          >特命 ({{ exchangeFormValues.lowerAbyssSpecial || 0 }}/5)</span
-                        >
-                        <template v-if="(exchangeFormValues.lowerAbyssSpecial || 0) >= 5">
-                          <span
-                            class="px-2 py-0.5 bg-sky-50 text-sky-700 font-black rounded text-[10px]"
-                            >✓ 已满</span
-                          >
-                        </template>
-                        <template v-else>
-                          <div class="flex gap-1">
-                            <button
-                              type="button"
-                              class="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 rounded text-[10px] font-bold cursor-pointer"
-                              @click="
-                                exchangeFormValues.lowerAbyssSpecial = Math.max(
-                                  0,
-                                  (exchangeFormValues.lowerAbyssSpecial || 0) - 1
-                                )
-                              "
-                            >
-                              -
-                            </button>
-                            <button
-                              type="button"
-                              class="px-1.5 py-0.5 bg-sky-50 hover:bg-sky-100 text-sky-600 rounded text-[10px] font-bold cursor-pointer"
-                              @click="exchangeFormValues.lowerAbyssSpecial = 5"
-                            >
-                              5
-                            </button>
-                          </div>
-                        </template>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- 2. 中层深渊指令书 (熟练5, 特命5) -->
-                  <div
-                    class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2"
-                  >
-                    <div
-                      class="flex justify-between font-black text-slate-700 text-xs pb-1 border-b border-slate-100 dark:border-slate-700"
-                    >
-                      <span>中层深渊指令书</span>
-                      <span class="text-sky-600">上限各 5</span>
-                    </div>
-                    <div class="space-y-2">
-                      <!-- 熟练 -->
-                      <div
-                        class="flex items-center justify-between text-[11px] text-slate-600"
-                      >
-                        <span
-                          >熟练 ({{ exchangeFormValues.midAbyssSkilled || 0 }}/5)</span
-                        >
-                        <template v-if="(exchangeFormValues.midAbyssSkilled || 0) >= 5">
-                          <span
-                            class="px-2 py-0.5 bg-sky-50 text-sky-700 font-black rounded text-[10px]"
-                            >✓ 已满</span
-                          >
-                        </template>
-                        <template v-else>
-                          <div class="flex gap-1">
-                            <button
-                              type="button"
-                              class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 rounded text-[10px] font-bold cursor-pointer"
-                              @click="
-                                exchangeFormValues.midAbyssSkilled = Math.max(
-                                  0,
-                                  (exchangeFormValues.midAbyssSkilled || 0) - 1
-                                )
-                              "
-                            >
-                              -
-                            </button>
-                            <button
-                              type="button"
-                              class="px-2 py-0.5 bg-sky-50 hover:bg-sky-100 text-sky-600 rounded text-[10px] font-bold cursor-pointer"
-                              @click="exchangeFormValues.midAbyssSkilled = 5"
-                            >
-                              5
-                            </button>
-                          </div>
-                        </template>
-                      </div>
-
-                      <!-- 特命 -->
-                      <div
-                        class="flex items-center justify-between text-[11px] text-slate-600"
-                      >
-                        <span
-                          >特命 ({{ exchangeFormValues.midAbyssSpecial || 0 }}/5)</span
-                        >
-                        <template v-if="(exchangeFormValues.midAbyssSpecial || 0) >= 5">
-                          <span
-                            class="px-2 py-0.5 bg-sky-50 text-sky-700 font-black rounded text-[10px]"
-                            >✓ 已满</span
-                          >
-                        </template>
-                        <template v-else>
-                          <div class="flex gap-1">
-                            <button
-                              type="button"
-                              class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 rounded text-[10px] font-bold cursor-pointer"
-                              @click="
-                                exchangeFormValues.midAbyssSpecial = Math.max(
-                                  0,
-                                  (exchangeFormValues.midAbyssSpecial || 0) - 1
-                                )
-                              "
-                            >
-                              -
-                            </button>
-                            <button
-                              type="button"
-                              class="px-2 py-0.5 bg-sky-50 hover:bg-sky-100 text-sky-600 rounded text-[10px] font-bold cursor-pointer"
-                              @click="exchangeFormValues.midAbyssSpecial = 5"
-                            >
-                              5
-                            </button>
-                          </div>
-                        </template>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- 3. 地区A指令书 (上限12) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                  <!-- 1. 地区C指令书 (上限12) -->
                   <div
                     class="p-3 border rounded-2xl space-y-2 transition-all"
                     :class="
-                      (exchangeFormValues.regionACount || 0) >= 12
-                        ? 'bg-sky-50/40 border-sky-200'
+                      (exchangeFormValues.regionCCount || 0) >= 12
+                        ? 'bg-sky-50/40 dark:bg-sky-950/20 border-sky-200 dark:border-sky-800/60'
                         : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700/80'
                     "
                   >
                     <div
                       class="flex justify-between font-black text-xs pb-1 border-b"
                       :class="
-                        (exchangeFormValues.regionACount || 0) >= 12
-                          ? 'text-sky-800 border-sky-100'
-                          : 'text-slate-700 border-slate-100 dark:border-slate-700'
+                        (exchangeFormValues.regionCCount || 0) >= 12
+                          ? 'text-sky-800 dark:text-sky-300 border-sky-100 dark:border-sky-900/50'
+                          : 'text-slate-700 dark:text-slate-200 border-slate-100 dark:border-slate-700'
                       "
                     >
-                      <span>地区A指令书</span>
+                      <span>地区C指令书</span>
                       <span
                         :class="
-                          (exchangeFormValues.regionACount || 0) >= 12
-                            ? 'text-sky-700 font-black'
-                            : 'text-sky-600'
+                          (exchangeFormValues.regionCCount || 0) >= 12
+                            ? 'text-sky-700 dark:text-sky-400 font-black'
+                            : 'text-sky-600 dark:text-sky-400'
                         "
                         >上限 12</span
                       >
                     </div>
 
                     <!-- 已达成状态占位 -->
-                    <template v-if="(exchangeFormValues.regionACount || 0) >= 12">
+                    <template v-if="(exchangeFormValues.regionCCount || 0) >= 12">
                       <div
-                        class="py-4 flex flex-col items-center justify-center space-y-1 bg-white dark:bg-slate-900/90 border border-sky-200/60 rounded-xl"
+                        class="py-4 flex flex-col items-center justify-center space-y-1 bg-white dark:bg-slate-900/90 border border-sky-200/60 dark:border-sky-900/50 rounded-xl"
                       >
                         <div
-                          class="w-6 h-6 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 font-black text-[10px]"
+                          class="w-6 h-6 rounded-full bg-sky-100 dark:bg-sky-950 flex items-center justify-center text-sky-600 dark:text-sky-400 font-black text-[10px]"
                         >
                           ✓
                         </div>
-                        <span class="text-[11px] font-black text-sky-800"
-                          >地区A指令书已拉满</span
+                        <span
+                          class="text-[11px] font-black text-sky-800 dark:text-sky-300"
+                          >地区C指令书已拉满</span
                         >
                       </div>
                     </template>
@@ -6595,39 +6407,39 @@ defineExpose({
                     <template v-else>
                       <div class="space-y-3 pt-1">
                         <div
-                          class="flex items-center justify-between text-[11px] font-bold text-slate-600"
+                          class="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-400"
                         >
                           <span>当前数量</span>
-                          <span class="text-sky-600 font-black"
-                            >{{ exchangeFormValues.regionACount || 0 }} / 12</span
+                          <span class="text-sky-600 dark:text-sky-400 font-black"
+                            >{{ exchangeFormValues.regionCCount || 0 }} / 12</span
                           >
                         </div>
                         <div class="flex items-center gap-1.5">
                           <button
                             type="button"
-                            class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                            class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-black text-xs flex items-center justify-center cursor-pointer transition-colors"
                             @click="
-                              exchangeFormValues.regionACount = Math.max(
+                              exchangeFormValues.regionCCount = Math.max(
                                 0,
-                                (exchangeFormValues.regionACount || 0) - 1
+                                (exchangeFormValues.regionCCount || 0) - 1
                               )
                             "
                           >
                             -
                           </button>
                           <input
-                            v-model.number="exchangeFormValues.regionACount"
+                            v-model.number="exchangeFormValues.regionCCount"
                             min="0"
                             max="12"
-                            class="flex-1 px-1 py-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-xs rounded outline-none focus:border-sky-400"
+                            class="flex-1 px-1 py-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-xs rounded outline-none focus:border-sky-400 text-slate-800 dark:text-slate-100"
                           />
                           <button
                             type="button"
-                            class="w-6 h-6 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                            class="w-6 h-6 rounded bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900/80 text-sky-700 dark:text-sky-300 font-black text-xs flex items-center justify-center cursor-pointer transition-colors"
                             @click="
-                              exchangeFormValues.regionACount = Math.min(
+                              exchangeFormValues.regionCCount = Math.min(
                                 12,
-                                (exchangeFormValues.regionACount || 0) + 1
+                                (exchangeFormValues.regionCCount || 0) + 1
                               )
                             "
                           >
@@ -6636,8 +6448,8 @@ defineExpose({
                         </div>
                         <button
                           type="button"
-                          class="w-full py-1 bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 border border-slate-200 dark:border-slate-700 text-slate-600 hover:text-sky-600 font-bold text-[10px] rounded-lg transition-all cursor-pointer"
-                          @click="exchangeFormValues.regionACount = 12"
+                          class="w-full py-1 bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 font-bold text-[10px] rounded-lg transition-all cursor-pointer"
+                          @click="exchangeFormValues.regionCCount = 12"
                         >
                           一键拉满 (12)
                         </button>
@@ -6645,46 +6457,47 @@ defineExpose({
                     </template>
                   </div>
 
-                  <!-- 4. 地区B指令书 (上限12) -->
+                  <!-- 2. 地区D指令书 (上限12) -->
                   <div
                     class="p-3 border rounded-2xl space-y-2 transition-all"
                     :class="
-                      (exchangeFormValues.regionBCount || 0) >= 12
-                        ? 'bg-sky-50/40 border-sky-200'
+                      (exchangeFormValues.regionDCount || 0) >= 12
+                        ? 'bg-sky-50/40 dark:bg-sky-950/20 border-sky-200 dark:border-sky-800/60'
                         : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700/80'
                     "
                   >
                     <div
                       class="flex justify-between font-black text-xs pb-1 border-b"
                       :class="
-                        (exchangeFormValues.regionBCount || 0) >= 12
-                          ? 'text-sky-800 border-sky-100'
-                          : 'text-slate-700 border-slate-100 dark:border-slate-700'
+                        (exchangeFormValues.regionDCount || 0) >= 12
+                          ? 'text-sky-800 dark:text-sky-300 border-sky-100 dark:border-sky-900/50'
+                          : 'text-slate-700 dark:text-slate-200 border-slate-100 dark:border-slate-700'
                       "
                     >
-                      <span>地区B指令书</span>
+                      <span>地区D指令书</span>
                       <span
                         :class="
-                          (exchangeFormValues.regionBCount || 0) >= 12
-                            ? 'text-sky-700 font-black'
-                            : 'text-sky-600'
+                          (exchangeFormValues.regionDCount || 0) >= 12
+                            ? 'text-sky-700 dark:text-sky-400 font-black'
+                            : 'text-sky-600 dark:text-sky-400'
                         "
                         >上限 12</span
                       >
                     </div>
 
                     <!-- 已达成状态占位 -->
-                    <template v-if="(exchangeFormValues.regionBCount || 0) >= 12">
+                    <template v-if="(exchangeFormValues.regionDCount || 0) >= 12">
                       <div
-                        class="py-4 flex flex-col items-center justify-center space-y-1 bg-white dark:bg-slate-900/90 border border-sky-200/60 rounded-xl"
+                        class="py-4 flex flex-col items-center justify-center space-y-1 bg-white dark:bg-slate-900/90 border border-sky-200/60 dark:border-sky-900/50 rounded-xl"
                       >
                         <div
-                          class="w-6 h-6 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 font-black text-[10px]"
+                          class="w-6 h-6 rounded-full bg-sky-100 dark:bg-sky-950 flex items-center justify-center text-sky-600 dark:text-sky-400 font-black text-[10px]"
                         >
                           ✓
                         </div>
-                        <span class="text-[11px] font-black text-sky-800"
-                          >地区B指令书已拉满</span
+                        <span
+                          class="text-[11px] font-black text-sky-800 dark:text-sky-300"
+                          >地区D指令书已拉满</span
                         >
                       </div>
                     </template>
@@ -6693,39 +6506,39 @@ defineExpose({
                     <template v-else>
                       <div class="space-y-3 pt-1">
                         <div
-                          class="flex items-center justify-between text-[11px] font-bold text-slate-600"
+                          class="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-400"
                         >
                           <span>当前数量</span>
-                          <span class="text-sky-600 font-black"
-                            >{{ exchangeFormValues.regionBCount || 0 }} / 12</span
+                          <span class="text-sky-600 dark:text-sky-400 font-black"
+                            >{{ exchangeFormValues.regionDCount || 0 }} / 12</span
                           >
                         </div>
                         <div class="flex items-center gap-1.5">
                           <button
                             type="button"
-                            class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                            class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-black text-xs flex items-center justify-center cursor-pointer transition-colors"
                             @click="
-                              exchangeFormValues.regionBCount = Math.max(
+                              exchangeFormValues.regionDCount = Math.max(
                                 0,
-                                (exchangeFormValues.regionBCount || 0) - 1
+                                (exchangeFormValues.regionDCount || 0) - 1
                               )
                             "
                           >
                             -
                           </button>
                           <input
-                            v-model.number="exchangeFormValues.regionBCount"
+                            v-model.number="exchangeFormValues.regionDCount"
                             min="0"
                             max="12"
-                            class="flex-1 px-1 py-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-xs rounded outline-none focus:border-sky-400"
+                            class="flex-1 px-1 py-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-xs rounded outline-none focus:border-sky-400 text-slate-800 dark:text-slate-100"
                           />
                           <button
                             type="button"
-                            class="w-6 h-6 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 font-black text-xs flex items-center justify-center cursor-pointer"
+                            class="w-6 h-6 rounded bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900/80 text-sky-700 dark:text-sky-300 font-black text-xs flex items-center justify-center cursor-pointer transition-colors"
                             @click="
-                              exchangeFormValues.regionBCount = Math.min(
+                              exchangeFormValues.regionDCount = Math.min(
                                 12,
-                                (exchangeFormValues.regionBCount || 0) + 1
+                                (exchangeFormValues.regionDCount || 0) + 1
                               )
                             "
                           >
@@ -6734,8 +6547,8 @@ defineExpose({
                         </div>
                         <button
                           type="button"
-                          class="w-full py-1 bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 border border-slate-200 dark:border-slate-700 text-slate-600 hover:text-sky-600 font-bold text-[10px] rounded-lg transition-all cursor-pointer"
-                          @click="exchangeFormValues.regionBCount = 12"
+                          class="w-full py-1 bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 font-bold text-[10px] rounded-lg transition-all cursor-pointer"
+                          @click="exchangeFormValues.regionDCount = 12"
                         >
                           一键拉满 (12)
                         </button>
