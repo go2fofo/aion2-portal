@@ -17,6 +17,13 @@ const getWednesday5amTimestamp = (date: Date = new Date()): number => {
 };
 
 /**
+ * 获取某个时间戳对应的“本周周期所属的周三5点时间戳”
+ */
+const getWeekPeriodTimestamp = (timestamp: number): number => {
+  return getWednesday5amTimestamp(new Date(timestamp));
+};
+
+/**
  * 获取今天 5 点的时间戳
  */
 const getToday5amTimestamp = (): number => {
@@ -53,14 +60,18 @@ export const executeRulesByDictionary = (gameData: any) => {
         const lastTime = lastTimeStr ? new Date(lastTimeStr).getTime() : 0;
 
         // 1. 每周三 5点 重置类规则
-        if (refreshType === "weekly" && lastTime < currentWednesday5am) {
-          if (rule.action) {
-            rule.action(group, gameData.characters);
-          } else if (rule.targetField) {
-            setNestedProperty(group, rule.targetField, rule.resetValue);
+        if (refreshType === "weekly") {
+          const lastPeriod = getWeekPeriodTimestamp(lastTime);
+          // 只要上次更新的所属周期 < 当前周三5点周期，就代表本周还没重置过
+          if (lastPeriod < currentWednesday5am) {
+            if (rule.action) {
+              rule.action(group, gameData.characters);
+            } else if (rule.targetField) {
+              setNestedProperty(group, rule.targetField, rule.resetValue);
+            }
+            group[timeField] = new Date(now).toISOString();
+            hasChanges = true;
           }
-          group[timeField] = new Date(now).toISOString();
-          hasChanges = true;
         }
 
         // 2. 每天 5点 恢复/重置类规则
@@ -179,18 +190,22 @@ export const executeRulesByDictionary = (gameData: any) => {
         }
 
         // 3. 每周三 5点 重置/恢复类规则（如觉醒战、战场、圣域）
-        if (refreshType === "weekly" && lastTime < currentWednesday5am) {
-          if (rule.incrementCount !== undefined) {
-            const max = rule.maxValue || rule.maxCount || 3;
-            char[rule.targetField!] = Math.min(
-              max,
-              (char[rule.targetField!] || 0) + rule.incrementCount,
-            );
-          } else if (rule.resetValue !== undefined) {
-            setNestedProperty(char, rule.targetField!, rule.resetValue);
+        if (refreshType === "weekly") {
+          const lastPeriod = getWeekPeriodTimestamp(lastTime);
+          // 采用周期比较，彻底免疫时间戳带有秒数/毫秒数导致的误判
+          if (lastPeriod < currentWednesday5am) {
+            if (rule.incrementCount !== undefined) {
+              const max = rule.maxValue || rule.maxCount || 3;
+              char[rule.targetField!] = Math.min(
+                max,
+                (char[rule.targetField!] || 0) + rule.incrementCount,
+              );
+            } else if (rule.resetValue !== undefined) {
+              setNestedProperty(char, rule.targetField!, rule.resetValue);
+            }
+            char[timeField] = new Date(now).toISOString();
+            hasChanges = true;
           }
-          char[timeField] = new Date(now).toISOString();
-          hasChanges = true;
         }
       });
     }

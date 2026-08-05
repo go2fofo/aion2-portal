@@ -33,7 +33,7 @@ const calculatedEndTime = (premiumMemberDay: any) => {
   return formatDate(endDate);
 };
 /**
- * 🛠️ 数据自愈与平滑迁移方法：修复历史版本中超限的“次元袭击”等字段
+ * 🛠️ 数据自愈与平滑迁移方法：修复历史版本中数据缺失或者变更修补数据
  * @param {Object} gameData 原始游戏数据对象
  * @returns {boolean} 返回是否有数据被修复/变动过
  */
@@ -129,6 +129,52 @@ const sanitizeGameData = (gameData: any) => {
 
         hasModified = true;
       }
+    }
+
+    // ================角色周常时间戳异常自愈逻辑 ====================
+    if (Array.isArray(gameData.characters)) {
+      const safePastDate = new Date(
+        Date.now() - 7 * 24 * 3600 * 1000,
+      ).toISOString();
+
+      // 计算本周三 5 点的基准时间戳
+      const getWednesday5amTimestamp = (date: Date = new Date()): number => {
+        const d = new Date(date);
+        const day = d.getDay();
+        const hour = d.getHours();
+        let diffDays = day - 3;
+        if (diffDays < 0 || (diffDays === 0 && hour < 5)) {
+          diffDays += 7;
+        }
+        d.setDate(d.getDate() - diffDays);
+        d.setHours(5, 0, 0, 0);
+        return d.getTime();
+      };
+
+      const currentWednesday5am = getWednesday5amTimestamp();
+
+      gameData.characters.forEach((char: any) => {
+        const updateTime = char.lastBattlefieldUpdate
+          ? new Date(char.lastBattlefieldUpdate).getTime()
+          : 0;
+
+        // 判定条件1：时间格式本身无效（NaN 或空）
+        const isInvalidFormat = !updateTime || isNaN(updateTime);
+
+        // 判定条件2：时间落在了“本周三 5 点整”到“5点零5分”之间（精准捕获那个因初始化产生的错误时间戳）
+        // 你的错误时间是 05:00:40，正好落在这个危险区间内
+        const isBuggyTimestamp = 
+          updateTime >= currentWednesday5am && 
+          updateTime <= currentWednesday5am + 5 * 60 * 1000;
+
+        if (isInvalidFormat || isBuggyTimestamp) {
+          console.log(
+            `[DataMigration] 角色 [${char.characterName || char.id}] 的战场更新时间异常（检测到临界点死锁时间），已自动自愈`,
+          );
+          char.lastBattlefieldUpdate = safePastDate;
+          hasModified = true;
+        }
+      });
     }
   });
 

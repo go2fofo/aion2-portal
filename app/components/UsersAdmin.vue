@@ -789,13 +789,15 @@ const confirmAddCustomCharacter = async () => {
   $loading.show("正在添加自定义角色...");
   try {
     const nowIso = new Date().toISOString();
+    // 💡 构造一个安全的“过去时间”（往前推 7 天），确保新加的角色能正常参与周常/副本刷新
+    const safePastDate = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
 
     // 严格按照你提供的数据结构进行组装
     const newCustomCharacter = {
       /** 角色唯一 ID（时间戳格式） */
-      id: Date.now(),
+      id: new Date().getTime(),
       /** 角色系统加密唯一标识符（自定义角色可为空） */
-      characterId: Date.now(),
+      characterId: new Date().getTime(),
       /** 角色游戏昵称 */
       characterName: customForm.value?.characterName.trim(),
       /** 角色等级 */
@@ -814,12 +816,35 @@ const confirmAddCustomCharacter = async () => {
       equipmentScore: 0,
       /** 角色是否被锁定（防止误操作，通常为 true） */
       locked: true,
-      //   /** 角色是否为主账号（布尔值）用于区分归属于哪个大号或小号 */
-      //   primaryAccount: true,
-      // 补充可能需要的扩展字段（如备注、能量、更新时间戳等，方便页面渲染）
+
+      // ==================== 补充周常/副本时间戳（防止因缺失或使用 nowIso 导致卡死重置） ====================
+      runs: 0,
+      transcendRuns: 0,
+      nightmareCount: 0,
+      storedNightmareCount: 0,
+      lastNightmareUpdate: safePastDate, // 噩梦副本最后更新时间（使用过去时间）
+
+      awakening: 0,
+      storedAwakening: 0,
+      lastAwakeningUpdate: safePastDate, // 觉醒战最后更新时间（使用过去时间）
+
+      battlefield: 0,
+      lastBattlefieldUpdate: safePastDate, // 战场最后更新时间（使用过去时间，确保本周能正常刷新）
+
+      sanctuary: { s1: 1, s2: 1, s3: 1 },
+      lastSanctuaryRunsUpdate: safePastDate, // 圣域最后更新时间
+
+      energy: 0,
+      storedEnergy: 0,
+      lastEnergyUpdate: nowIso, // 能量需要从建号这一刻开始实时恢复，所以用 nowIso 没问题
+
+      isMaterialCharOd: false,
+      materialCharOdDate: nowIso,
+
+      /** 备注信息 */
       remark: customForm.value?.remark ? customForm.value?.remark.trim() : "",
-      lastEnergyUpdate: nowIso,
       needsRefresh: false,
+      createDate: nowIso,
     };
 
     console.log(
@@ -827,14 +852,8 @@ const confirmAddCustomCharacter = async () => {
       "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
       newCustomCharacter
     );
-    console.log(
-      `🔍 [UsersAdmin:825] %c newCustomCharacter11111: `,
-      "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-      customForm.value
-    );
 
-    // 调用你原有的添加队员/角色方法（或者直接 push 到 gameData.characters 中）
-    // 如果你有封装好的 addMemberToTeam 方法，可以传进去；如果没有可以直接用下面注释的逻辑：
+    // 调用你原有的添加队员/角色方法
     if (typeof addMemberToTeam === "function") {
       await addMemberToTeam(newCustomCharacter);
     }
@@ -863,10 +882,20 @@ const getAtvTabGroup = computed(() => {
 
 // 获取同组其他角色共享的会员剩余天数（并顺便自动同步给当前表单）
 const groupSharedPremiumDays = computed(() => {
-  return newCharGroupForm.value?.premiumMemberDay || 0;
+  return (
+    calcPremiumRemainingDays(
+      newCharGroupForm.value?.premiumEndTime,
+      newCharGroupForm.value?.premiumMemberDay
+    ) || 0
+  );
 });
 const groupSharedPremiumDaysAtvTab = computed(() => {
-  return getAtvTabGroup.value?.premiumMemberDay || 0;
+  return (
+    calcPremiumRemainingDays(
+      getAtvTabGroup.value?.premiumEndTime,
+      getAtvTabGroup.value?.premiumMemberDay
+    ) || 0
+  );
 });
 //=========================================添加成员结束=========================================
 
@@ -969,10 +998,15 @@ const handleSaveCharacter = async () => {
   }
 
   const nowIso = new Date().toISOString();
-  const newChar = {
-    id: Date.now(),
 
-    // ==================== 1. 能量与物资相关时间戳补齐 ====================
+  // 💡 构造一个安全的“过去时间”（例如：当前时间往前推 7 天，或者固定设为一个过去的周三时间）
+  // 这样可以确保新号的周常/副本时间戳绝对早于本周三 5 点，建号时就能正常参与重置/发次数
+  const safePastDate = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+
+  const newChar = {
+    id: new Date().getTime(),
+
+    // ==================== 1. 能量与物资相关时间戳（从当前建号时刻开始计时） ====================
     energy: 0,
     storedEnergy: 0,
     lastEnergyUpdate: nowIso, // 奥德能量最后更新时间，供解释器时间间隔计算使用
@@ -985,7 +1019,7 @@ const handleSaveCharacter = async () => {
     breezeEnergyPurchased: false,
     breezeEnergyPurchasedDate: nowIso,
 
-    // ==================== 2. 副本与次数进度及时间戳补齐 ====================
+    // ==================== 2. 副本与次数进度及时间戳（使用 safePastDate 确保能正常触发周常/日常刷新） ====================
     /** 每周远征副本通关次数 */
     runs: 0,
     /** 每周超越副本通关次数 */
@@ -993,22 +1027,22 @@ const handleSaveCharacter = async () => {
 
     nightmareCount: 0,
     storedNightmareCount: 0,
-    lastNightmareUpdate: nowIso, // 噩梦副本最后更新时间
+    lastNightmareUpdate: safePastDate, // 噩梦副本最后更新时间（改用过去时间）
 
     /** 角色觉醒战次数，当前角色每周三5点更新，固定3次*/
     awakening: 0,
     /** 觉醒战补充次数 角色独立*/
     storedAwakening: 0,
     /** 觉醒战最后更新时间 */
-    lastAwakeningUpdate: nowIso,
+    lastAwakeningUpdate: safePastDate, // 觉醒战最后更新时间（改用过去时间）
 
     /** 战场玩法的次数 */
     battlefield: 0,
-    lastBattlefieldUpdate: nowIso,
+    lastBattlefieldUpdate: safePastDate, // 战场最后更新时间（改用过去时间）
 
     // ==================== 3. 圣域及其他日常时间戳补齐 ====================
     sanctuary: { s1: 1, s2: 1, s3: 1 },
-    lastSanctuaryRunsUpdate: nowIso, // 圣域最后更新时间
+    lastSanctuaryRunsUpdate: safePastDate, // 圣域最后更新时间（改用过去时间）
 
     dailySignIn: false,
     dailySignInDate: nowIso, // 每日签到状态及时间
@@ -1855,11 +1889,22 @@ watch(
   },
   { deep: true }
 );
+// watch(
+//   () => validationResult.value,
+//   (newVal) => {
+//     console.log(
+//       `🔍 [UsersAdmin:1298] %c validationResulty验证: `,
+//       "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+//       newVal
+//     );
+//   },
+//   { deep: true, immediate: true }
+// );
 watch(
-  () => validationResult.value,
+  () => gameData.value,
   (newVal) => {
     console.log(
-      `🔍 [UsersAdmin:1298] %c validationResulty验证: `,
+      `🔍 [UsersAdmin:1298] %c gameData监听: `,
       "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
       newVal
     );
