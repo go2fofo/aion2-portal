@@ -4,105 +4,7 @@
     :class="{ 'h-screen overflow-hidden': showIntro && isClient }"
     ref="scrollContainer"
   >
-    <ClientOnly>
-      <!-- 视频引导层 -->
-      <div
-        class="fixed inset-0 z-[100] bg-sky-50 flex flex-col items-center justify-center h-[100dvh] w-screen overflow-hidden transition-all duration-1000 ease-in-out"
-        :class="{
-          'opacity-0 pointer-events-none translate-y-[-100%]': !showIntro,
-        }"
-        @wheel.prevent="handleIntroScroll"
-        @touchmove.prevent="handleIntroScroll"
-      >
-        <!-- 背景氛围层 (极简白/浅蓝) -->
-        <div
-          class="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-40"
-        >
-          <video
-            v-show="!isPlayingOutro"
-            src="/bbbssp.mp4"
-            class="w-full h-full object-cover blur-[100px] scale-150 saturate-200 opacity-50"
-            autoplay
-            loop
-            muted
-            playsinline
-          ></video>
-          <video
-            v-show="isPlayingOutro"
-            ref="outroBgRef"
-            src="/bbbsout.mp4"
-            class="w-full h-full object-cover blur-[100px] scale-150 saturate-200 opacity-50"
-            muted
-            playsinline
-          ></video>
-        </div>
 
-        <!-- 前景视频层 -->
-        <div
-          class="relative z-10 flex-1 w-full flex flex-col items-center justify-center p-8 animate-float-slow"
-          @click="handleIntroClick"
-        >
-          <div
-            class="relative w-full max-w-4xl aspect-square flex items-center justify-center"
-          >
-            <!-- 循环播放的引导视频 -->
-            <video
-              v-show="!isPlayingOutro"
-              ref="introVideoRef"
-              src="/bbbssp.mp4"
-              class="max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-[3rem] video-glow bg-white cursor-pointer"
-              autoplay
-              loop
-              muted
-              playsinline
-              x5-video-player-type="h5-page"
-              x5-playsinline="true"
-              webkit-playsinline="true"
-            ></video>
-
-            <!-- 过渡视频 -->
-            <video
-              v-show="isPlayingOutro"
-              ref="outroVideoRef"
-              src="/bbbsout.mp4"
-              class="max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-[3rem] video-glow bg-white"
-              muted
-              playsinline
-              preload="auto"
-              @ended="onOutroEnded"
-            ></video>
-          </div>
-        </div>
-
-        <!-- 底部提示区域 -->
-        <div
-          v-if="!isPlayingOutro"
-          class="relative z-20 pb-12 w-full text-center flex flex-col items-center gap-2 animate-arrow"
-        >
-          <div
-            class="text-[#45a6d5] font-black text-xl tracking-widest drop-shadow-sm"
-          >
-            上滑开启冒险
-          </div>
-          <div class="w-8 h-8 flex items-center justify-center text-[#45a6d5]">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="3"
-              stroke="currentColor"
-              class="w-6 h-6"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M4.5 15.75l7.5-7.5 7.5 7.5"
-              />
-            </svg>
-          </div>
-        </div>
-      </div>
-    </ClientOnly>
 
     <!-- 全局背景装饰层 (极致层级与位置优化) -->
     <div
@@ -124,47 +26,6 @@
       >
         <img src="/bbbscmt.png" class="w-full h-full object-contain" />
       </div>
-    </div>
-
-    <!-- 云朵层：引导结束后才显示 -->
-    <div
-      v-show="!showIntro"
-      class="absolute inset-0 z-0 pointer-events-none transition-opacity duration-1000"
-      :class="showIntro ? 'opacity-0' : 'opacity-100'"
-    >
-      <div
-        v-for="n in 5"
-        :key="'blur-' + n"
-        class="absolute bg-white/55 blur-xl rounded-full animate-cloud-soft"
-        :style="{
-          width: 120 + n * 40 + 'px',
-          height: 70 + n * 18 + 'px',
-          top: n * 16 + '%',
-          left: n % 2 === 0 ? '8%' : '72%',
-          animationDuration: 8 + n * 2 + 's',
-        }"
-      ></div>
-
-      <transition-group name="cloud-fade" appear>
-        <img
-          v-for="c in clouds"
-          :key="c.id"
-          :src="c.image"
-          class="absolute cloud-item"
-          :style="{
-            top: c.top + '%',
-            left: c.left + '%',
-            width: c.size + 'px',
-            opacity: c.opacity,
-            '--bob-amp': `-${c.bob}px`,
-            '--wiggle-amp': `${c.wiggle}px`,
-            '--breath-scale': c.breath,
-            '--rot-amp': `${c.rot}deg`,
-            '--offset-x': `${c.ox}px`,
-            '--offset-y': `${c.oy}px`,
-          }"
-        />
-      </transition-group>
     </div>
 
     <nav class="relative z-50 p-6 flex items-center">
@@ -259,7 +120,7 @@
                 2px 2px 0px #0284c7,
                 4px 4px 0px #bae6fd;
             "
-            >宝宝巴士</span
+            >永恒之塔2</span
           >
           <span
             class="inline-block ml-0 md:ml-4 transform -rotate-3 md:-rotate-6 bg-[#f9b11d] text-white px-3 py-1 md:px- md:py-1 rounded-2xl text-2xl sm:text-4xl md:text-6xl shadow-[3px_3px_0_0_#d98a00] md:shadow-[4px_4px_0_0_#d98a00] hover:rotate-0 hover:scale-110 transition-all duration-300 cursor-pointer border-2 border-white"
@@ -271,9 +132,9 @@
             >
           </span>
         </h2>
-        <p class="mt-2 text-sky-700 font-bold text-sm md:text-base">
+        <!-- <p class="mt-2 text-sky-700 font-bold text-sm md:text-base">
           宝宝巴士，你的每一个本都是宝宝本
-        </p>
+        </p> -->
         <div class="mt-1 flex gap-2">
           <span class="w-2 h-2 rounded-full bg-[#45a6d5]"></span>
           <span class="w-2 h-2 rounded-full bg-[#AEE2F9]"></span>
