@@ -231,16 +231,17 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
 
       <!-- 顶部标题栏（所有模式均展示） -->
       <div
-        class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3 pr-16"
+        class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/80 pb-3 pr-16 transition-colors"
       >
         <div class="flex items-center gap-3">
+          <!-- 锁定/解锁按钮（纯 SVG 图标版） -->
           <button
             type="button"
             class="w-8 h-8 rounded-xl flex items-center justify-center border text-xs font-bold transition-all shadow-sm"
             :class="
               char.locked
-                ? 'bg-amber-50 text-amber-600 border-amber-200'
-                : 'bg-slate-100 text-slate-600 border-slate-200 dark:border-slate-700'
+                ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900/80'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
             "
             @click="emit('toggle-lock', char)"
             :title="
@@ -249,10 +250,44 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
                 : '未锁定（点击锁定以防止误删）'
             "
           >
-            {{ char.locked ? "🔒" : "🔓" }}
+            <!-- 已锁定：闭锁 SVG 图标 -->
+            <svg
+              v-if="char.locked"
+              class="w-4 h-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+
+            <!-- 未锁定：开锁 SVG 图标 -->
+            <svg
+              v-else
+              class="w-4 h-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
+              />
+            </svg>
           </button>
+
+          <!-- 头像容器 -->
           <div
-            class="w-10 h-10 rounded-2xl bg-sky-50 text-[#45a6d5] font-black flex items-center justify-center border border-sky-100 shadow-sm overflow-hidden"
+            class="w-10 h-10 rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-[#45a6d5] dark:text-sky-400 font-black flex items-center justify-center border border-sky-100 dark:border-sky-900/60 shadow-sm overflow-hidden"
           >
             <img
               v-if="char.profileImage"
@@ -264,20 +299,29 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
               char.characterName ? char.characterName.charAt(0) : "角"
             }}</span>
           </div>
+
+          <!-- 角色基本信息 -->
           <div>
-            <div class="text-sm font-black text-slate-800 flex items-center gap-2">
+            <!-- 角色名称与职业标签 -->
+            <div
+              class="text-sm font-black text-slate-800 dark:text-slate-100 flex items-center gap-2"
+            >
               <span>{{ char.characterName || "未命名角色" }}</span>
               <span
-                class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600"
+                class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-slate-700"
               >
                 {{ char.className || "选择职业" }}
               </span>
             </div>
+
+            <!-- 等级、种族、服务器 -->
             <div
-              class="text-[10px] font-bold text-slate-400 mt-0.5 flex items-center gap-2"
+              class="text-[10px] font-bold text-slate-400 dark:text-slate-400 mt-0.5 flex items-center gap-2"
             >
               <span>等级: {{ char.characterLevel || 1 }}</span>
+              <span>·</span>
               <span>{{ char.raceName || "未知种族" }}</span>
+              <span>·</span>
               <span>{{ char.serverName || "未知服务器" }}</span>
             </div>
           </div>
