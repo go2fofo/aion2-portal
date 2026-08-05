@@ -1037,9 +1037,10 @@ const handleTaskClick = (char, field, tab) => {
       });
 
       break;
-    case "globalSimpleEnergy": //通用弹框
+    case "globalSimpleEnergy": //通用弹框奥德修改
+    case "globalModifyCharacter": //通用弹框角色信息修改
       //发送给父组件
-      emit("task-click", char, "globalSimpleEnergy");
+      emit("task-click", char, tab);
       break;
 
     default:

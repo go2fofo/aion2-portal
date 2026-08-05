@@ -301,7 +301,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           </div>
 
           <!-- 角色基本信息 -->
-          <div>
+          <div @click="emit('task-click', char, '', 'globalModifyCharacter')">
             <!-- 角色名称与职业标签 -->
             <div
               class="text-sm font-black text-slate-800 dark:text-slate-100 flex items-center gap-2"
@@ -328,31 +328,32 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         </div>
       </div>
 
-      <!-- ================= 模式一：基础数值指标（非 simple 模式或 custom 模式下显示） ================= -->
+<!-- ================= 模式一：基础数值指标（非 simple 模式或 custom 模式下显示） ================= -->
       <div
         v-if="
           currentMode !== 'simple' && (currentMode !== 'custom' || fields.showCombatPower)
         "
         class="grid grid-cols-2 gap-3"
+        @click="emit('task-click', char, '', 'globalModifyCharacter')"
       >
         <div
-          class="bg-white dark:bg-slate-900/80 p-3 rounded-2xl border-2 border-yellow-100 shadow-sm flex flex-col justify-between space-y-1"
+          class="bg-white dark:bg-slate-900/80 p-3 rounded-2xl border-2 border-yellow-100 dark:border-yellow-900/40 shadow-sm flex flex-col justify-between space-y-1"
         >
-          <div class="text-[10px] text-slate-400 font-black uppercase leading-none">
+          <div class="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase leading-none">
             装等
           </div>
-          <div class="text-yellow-600 font-black text-xs">
+          <div class="text-yellow-600 dark:text-yellow-400 font-black text-xs">
             {{ char.itemLevel || char.equipmentScore || "N/A" }}
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900/80 p-3 rounded-2xl border-2 border-emerald-100 shadow-sm flex flex-col justify-between space-y-1"
+          class="bg-white dark:bg-slate-900/80 p-3 rounded-2xl border-2 border-emerald-100 dark:border-emerald-900/40 shadow-sm flex flex-col justify-between space-y-1"
         >
-          <div class="text-[10px] text-slate-400 font-black uppercase leading-none">
+          <div class="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase leading-none">
             战斗力
           </div>
-          <div class="text-emerald-700 font-black text-xs">
+          <div class="text-emerald-700 dark:text-emerald-400 font-black text-xs">
             {{ formatCombatPower(char.combatPower) }}
           </div>
         </div>
@@ -844,7 +845,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
       </div>
 
       <!-- 底部操作与元信息标签（所有模式均展示） -->
-      <div
+      <!-- <div
         class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700 text-[11px] font-bold text-slate-400"
       >
         <span>分组: {{ getGroupName(char.group) }}</span>
@@ -865,7 +866,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
             删除
           </button>
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>

@@ -450,13 +450,36 @@ export const dungeonDecayRules = {
 };
 
 
-// 职业字典数组对象
+// 职业字典数组对象（带繁体对照）
 export const characterClasses = [
-  { id: 1, name: "剑星" },
-  { id: 2, name: "守护星" },
-  { id: 3, name: "拳星" },
-  { id: 4, name: "护法星" },
-  { id: 5, name: "弓星" },
-  { id: 6, name: "魔道星" },
-  { id: 7, name: "精灵星" },
+  { id: 1, name: "剑星", twName: "劍星" },
+  { id: 2, name: "守护星", twName: "守護星" },
+  { id: 3, name: "拳星", twName: "拳星" },
+  { id: 4, name: "护法星", twName: "護法星" },
+  { id: 5, name: "弓星", twName: "弓星" },
+  { id: 6, name: "魔道星", twName: "魔道星" },
+  { id: 7, name: "精灵星", twName: "精靈星" },
+  { id: 8, name: "治愈星", twName: "治癒星" },
 ];
+// 简繁互转映射表（如果以后职业增多，也可以引入成熟的库如 'china-conversion'，目前只有7个职业直接写映射最省事高效）
+export const twToScMap = {
+  "劍星": "剑星",
+  "守護星": "守护星",
+  "拳星": "拳星",
+  "護法星": "护法星",
+  "弓星": "弓星",
+  "魔道星": "魔道星",
+  "精靈星": "精灵星",
+  "治癒星": "治愈星",
+};
+
+export const scToTwMap = {
+  "剑星": "劍星",
+  "守护星": "守護星",
+  "拳星": "拳星",
+  "护法星": "護法星",
+  "弓星": "弓星",
+  "魔道星": "魔道星",
+  "精灵星": "精靈星",
+  "治愈星": "治癒星"
+};

@@ -21,7 +21,7 @@ import GroupCharacterPanel from "./components/GroupCharacterPanel.vue";
 import cloneDeep from "lodash/cloneDeep";
 import { dungeonDecayRules } from "./config/userAdmin";
 import { useGameRefresh } from "@/composables/useGameRefresh";
-import { characterClasses } from "./config/userAdmin";
+import { characterClasses, twToScMap, scToTwMap } from "./config/userAdmin";
 
 const client = useSupabaseClient();
 const user = useSupabaseUser();
@@ -814,9 +814,17 @@ const confirmAddCustomCharacter = async () => {
       /** 角色战力评分 */
       combatPower: Number(customForm.value?.combatPower) || 0,
       /** 装备评分 */
-      equipmentScore: 0,
+      equipmentScore: Number(customForm.value?.equipmentScore) || 0,
       /** 角色是否被锁定（防止误操作，通常为 true） */
       locked: true,
+      /** 服务器id和服务器名称 */
+      serverId: customForm.value?.serverId || "",
+      serverName: customForm.value?.serverId
+        ? formatServerDisplay(customForm.value?.serverId)
+        : "",
+      /** 角色种族 */
+      raceId: customForm.value?.raceId || "",
+      raceName: customForm.value?.raceId == 1 ? "天族" : "魔族",
 
       // ==================== 补充周常/副本时间戳（防止因缺失或使用 nowIso 导致卡死重置） ====================
       runs: 0,
@@ -843,7 +851,7 @@ const confirmAddCustomCharacter = async () => {
       materialCharOdDate: nowIso,
 
       /** 备注信息 */
-      remark: customForm.value?.remark ? customForm.value?.remark.trim() : "",
+      remark: customForm.value?.remark ? customForm.value?.remark?.trim() : "",
       needsRefresh: false,
       createDate: nowIso,
     };
@@ -1472,35 +1480,6 @@ const groupCharacterPanelHandleToggleTask = async (char, field) => {
   await groupCharacterPanelHandleUpdateCharacter(updatedChar);
 };
 
-//用于通用项 点击触发事件，可随意拓展，目前只做了角色卡片内点击触发
-const groupCharacterPanelHandleClickTask = async (char, gType) => {
-  switch (gType) {
-    case "globalSimpleEnergy": //简化版奥德能量设置补充
-      globalPopupOpen.value = true;
-      globalPopupOp.value = {
-        type: "globalSimpleEnergy",
-        name: "奥德补充",
-        data: {
-          storedEnergy: 0,
-          energy: 0,
-        },
-        targetChar: char,
-        targetGroup: getGroupById(char?.group),
-      };
-      break;
-
-    default:
-      break;
-  }
-
-  console.log(
-    `🔍 [UsersAdmin:1436] %c 用于通用项 点击触发事件:groupCharacterPanelHandleClickTask `,
-    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-    char,
-    gType
-  );
-};
-
 // 分组角色卡片列表底层保存处理
 const updateCharacter = async (char) => {
   await saveData();
@@ -1751,7 +1730,40 @@ const handleOpenGlobalPopup = (type, name) => {
   globalPopupOp.value.type = type;
   globalPopupOp.value.name = name;
 };
-//按钮完成触发
+//用于通用项 点击触发事件，可随意拓展，目前只做了角色卡片内点击触发
+const groupCharacterPanelHandleClickTask = async (char, gType) => {
+  const getGlobalPopupOpName = {
+    globalSimpleEnergy: "奥德补充",
+    globalModifyCharacter: "角色信息修改",
+  };
+  switch (gType) {
+    case "globalSimpleEnergy": //简化版奥德能量设置补充
+    case "globalModifyCharacter": //角色信息修改
+      globalPopupOpen.value = true;
+      globalPopupOp.value = {
+        type: gType,
+        name: getGlobalPopupOpName[gType],
+        data: {
+          ...cloneDeep(char),
+        },
+        targetChar: char,
+        targetGroup: getGroupById(char?.group),
+      };
+      break;
+
+    default:
+      break;
+  }
+
+  console.log(
+    `🔍 [UsersAdmin:1436] %c 用于通用项 点击触发事件:groupCharacterPanelHandleClickTask `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    char,
+    gType
+  );
+};
+
+//通用弹框按钮完成触发
 const handleGlobalPopupFill = (type) => {
   switch (type) {
     case "premiumMember": // 开通会员
@@ -1795,6 +1807,53 @@ const handleGlobalPopupFill = (type) => {
       }
 
       break;
+    case "globalModifyCharacter": // 修改角色信息
+      {
+        $loading.show("正在修改角色...");
+        try {
+          // 严格按照你提供的数据结构进行组装
+          const newCustomCharacter = {
+            ...cloneDeep(globalPopupOp.value?.targetChar),
+            /** 角色游戏昵称 */
+            characterName: globalPopupOp.value?.data?.characterName.trim(),
+            /** 角色等级 */
+            characterLevel: Number(globalPopupOp.value?.data?.characterLevel) || 1,
+            /** 道具/装备评分等级 */
+            itemLevel: globalPopupOp.value?.data?.itemLevel,
+            /** 职业名称 */
+            className: globalPopupOp.value?.data?.className || "",
+            /** 角色战力评分 */
+            combatPower: Number(globalPopupOp.value?.data?.combatPower) || 0,
+            /** 装备评分 */
+            equipmentScore: Number(globalPopupOp.value?.data?.equipmentScore) || 0,
+            /** 服务器id和服务器名称 */
+            serverId: globalPopupOp.value?.data?.serverId || "",
+            serverName: globalPopupOp.value?.data?.serverId
+              ? formatServerDisplay(globalPopupOp.value?.data?.serverId)
+              : "",
+            /** 角色种族 */
+            raceId: globalPopupOp.value?.data?.raceId || "",
+            raceName: globalPopupOp.value?.data?.raceId == 1 ? "天族" : "魔族",
+            /** 备注信息 */
+            remark: globalPopupOp.value?.data?.remark
+              ? globalPopupOp.value?.data?.remark?.trim()
+              : "",
+          };
+
+          console.log(
+            `🔍 [UsersAdmin:825] %c newCustomCharacter11111: `,
+            "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+            newCustomCharacter
+          );
+          groupCharacterPanelHandleUpdateCharacter(newCustomCharacter);
+        } catch (e) {
+          $alert("修改失败", e?.message || String(e));
+        } finally {
+          $loading.hide();
+        }
+      }
+
+      break;
 
     default:
       break;
@@ -1828,6 +1887,32 @@ const handleGroupClick = (group) => {
     handleSignInSignIn(groupItem);
   }
 };
+const normalizedClassName = computed({
+  get() {
+    const val = globalPopupOp.value?.data?.className;
+    if (!val) return "";
+    // 如果是繁体，转为简体去匹配 option 的 value
+    return twToScMap[val] || val;
+  },
+  set(newValue) {
+    // 存入数据时，你可以统一存简体，或者根据业务需要存繁体
+    // 这里统一存字典里的简体名
+    globalPopupOp.value.data.className = newValue;
+  },
+});
+const normalizedCustomFormClassName = computed({
+  get() {
+    const val = customForm.value?.className;
+    if (!val) return "";
+    // 如果是繁体，转为简体去匹配 option 的 value
+    return twToScMap[val] || val;
+  },
+  set(newValue) {
+    // 存入数据时，你可以统一存简体，或者根据业务需要存繁体
+    // 这里统一存字典里的简体名
+    customForm.value.className = newValue;
+  },
+});
 // 1. 监听角色表单
 watch(
   () => newCharForm.value,
@@ -1955,7 +2040,7 @@ watch(
       </div>
     </div>
     <!-- 顶部数据面板 -->
-    <!-- ================= 顶部数据面板 ================= -->
+<!-- ================= 顶部数据面板 ================= -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
       <!-- 总角色数 -->
       <div
@@ -1963,7 +2048,7 @@ watch(
       >
         <!-- 左侧：总角色数 -->
         <div class="shrink-0">
-          <div class="text-slate-400 text-xs font-bold tracking-wider uppercase">
+          <div class="text-slate-400 dark:text-slate-500 text-xs font-bold tracking-wider uppercase">
             总角色数
           </div>
           <div
@@ -1975,13 +2060,13 @@ watch(
 
         <!-- 右侧：每一项独立成卡的分组签到与会员状态总览区 -->
         <div class="flex-1 flex flex-col items-end gap-2 min-w-0">
-          <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+          <div class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
             分组账号综合状态与快捷切换 (点击切换并签到)
           </div>
 
           <!-- 每一项排开的独立卡片列表 -->
           <div
-            class="flex items-center gap-2 flex-wrap justify-end max-w-full overflow-x-auto py-0.5"
+            class="flex items-center gap-2 flex-wrap justify-end max-w-full overflow-x-auto py-0.5 custom-scroll"
           >
             <template v-for="group in allGroups" :key="group.name">
               <button
@@ -1989,10 +2074,10 @@ watch(
                 @click="handleGroupClick(group)"
                 class="px-3 py-2 rounded-2xl border transition-all cursor-pointer shadow-xs shrink-0 active:scale-95 flex flex-col items-start gap-1.5 text-left min-w-[120px]"
                 :class="[
-                  // 依据签到状态变换底色与边框
+                  // 依据签到状态变换底色与边框（兼顾黑夜模式下的深色微调）
                   group.dailySignIn
-                    ? 'bg-emerald-50/60 hover:bg-emerald-100/70 border-emerald-200/90 text-emerald-900'
-                    : 'bg-rose-50/60 hover:bg-rose-100/70 border-rose-200/90 text-rose-900',
+                    ? 'bg-emerald-50/60 dark:bg-emerald-950/20 hover:bg-emerald-100/70 dark:hover:bg-emerald-900/30 border-emerald-200/90 dark:border-emerald-800/50 text-emerald-900 dark:text-emerald-200'
+                    : 'bg-rose-50/60 dark:bg-rose-950/20 hover:bg-rose-100/70 dark:hover:bg-rose-900/30 border-rose-200/90 dark:border-rose-800/50 text-rose-900 dark:text-rose-200',
                 ]"
                 :title="
                   group.name +
@@ -2006,7 +2091,7 @@ watch(
                 <div class="flex items-center justify-between w-full gap-2">
                   <span
                     class="text-xs font-black truncate max-w-[70px]"
-                    :class="group.dailySignIn ? 'text-emerald-900' : 'text-rose-900'"
+                    :class="group.dailySignIn ? 'text-emerald-900 dark:text-emerald-300' : 'text-rose-900 dark:text-rose-300'"
                   >
                     {{ group.name }}
                   </span>
@@ -2014,7 +2099,7 @@ watch(
                     class="px-1.5 py-0.5 rounded text-[9px] font-black shrink-0 tracking-tighter"
                     :class="
                       group.dailySignIn
-                        ? 'bg-emerald-200/80 text-emerald-800'
+                        ? 'bg-emerald-200/80 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200'
                         : 'bg-rose-500 text-white shadow-2xs'
                     "
                   >
@@ -2024,18 +2109,18 @@ watch(
 
                 <!-- 第二行：特级会员状态显示 -->
                 <div
-                  class="w-full pt-1 border-t border-slate-200 dark:border-slate-700/50 flex items-center justify-between text-[9px] font-bold"
+                  class="w-full pt-1 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-[9px] font-bold"
                 >
                   <template v-if="group.premiumMember">
-                    <span class="text-amber-700 flex items-center gap-1 font-black">
+                    <span class="text-amber-700 dark:text-amber-400 flex items-center gap-1 font-black">
                       <span>特级会员剩余</span>
-                      <strong class="text-amber-800"
+                      <strong class="text-amber-800 dark:text-amber-300"
                         >{{ group.premiumRemainingMemberDay || 0 }}天</strong
                       >
                     </span>
                   </template>
                   <template v-else>
-                    <span class="text-slate-400 font-medium">未开通会员</span>
+                    <span class="text-slate-400 dark:text-slate-500 font-medium">未开通会员</span>
                   </template>
                 </div>
               </button>
@@ -2046,37 +2131,39 @@ watch(
 
       <!-- 2. 今日收益吉纳数（基于 runLogs 实时计算当前组或全部的绑定与非绑定） -->
       <div
-        class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-shadow"
+        class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
       >
-        <div class="flex items-center justify-between">
-          <div class="text-slate-400 text-xs font-bold tracking-wider uppercase">
-            今日收益吉纳数 (万)
+        <div>
+          <div class="flex items-center justify-between">
+            <div class="text-slate-400 dark:text-slate-500 text-xs font-bold tracking-wider uppercase">
+              今日收益吉纳数 (万)
+            </div>
+            <span
+              class="text-[10px] font-black px-2 py-0.5 rounded-md bg-[#45a6d5]/10 dark:bg-[#45a6d5]/20 text-[#45a6d5] border border-[#45a6d5]/20 dark:border-[#45a6d5]/30"
+            >
+              {{
+                activeTabGroup === "all"
+                  ? "全部数据汇总"
+                  : gameData?.groups?.find((g) => g?.id === activeTabGroup)?.name
+              }}
+            </span>
           </div>
-          <span
-            class="text-[10px] font-black px-2 py-0.5 rounded-md bg-[#45a6d5]/10 text-[#45a6d5] border border-[#45a6d5]/20"
-          >
-            {{
-              activeTabGroup === "all"
-                ? "全部数据汇总"
-                : gameData?.groups?.find((g) => g?.id === activeTabGroup)?.name
-            }}
-          </span>
-        </div>
 
-        <!-- 总收益数字 -->
-        <div class="text-3xl font-black mt-2 text-[#45a6d5] tracking-tight">
-          {{ activeGroupKinaStats.total }}
+          <!-- 总收益数字 -->
+          <div class="text-3xl font-black mt-2 text-[#45a6d5] tracking-tight">
+            {{ activeGroupKinaStats.total }}
+          </div>
         </div>
 
         <!-- 绑定与非绑定细分 -->
         <div
-          class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs"
+          class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/80 flex items-center justify-between text-xs"
         >
           <div class="flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
-            <span class="text-slate-500 font-medium"
+            <span class="text-slate-500 dark:text-slate-400 font-medium"
               >非绑定:
-              <strong class="text-slate-800 font-black">{{
+              <strong class="text-slate-800 dark:text-slate-200 font-black">{{
                 activeGroupKinaStats.kinaGain
               }}</strong>
               万</span
@@ -2084,9 +2171,9 @@ watch(
           </div>
           <div class="flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-            <span class="text-slate-500 font-medium"
+            <span class="text-slate-500 dark:text-slate-400 font-medium"
               >绑定:
-              <strong class="text-slate-800 font-black">{{
+              <strong class="text-slate-800 dark:text-slate-200 font-black">{{
                 activeGroupKinaStats.boundKinaGain
               }}</strong>
               万</span
@@ -2100,21 +2187,20 @@ watch(
         class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
       >
         <div>
-          <div class="text-slate-400 text-xs font-bold tracking-wider uppercase">
+          <div class="text-slate-400 dark:text-slate-500 text-xs font-bold tracking-wider uppercase">
             总奥德能量 (点)
           </div>
-          <div class="text-3xl font-black mt-2 text-amber-600 tracking-tight">
+          <div class="text-3xl font-black mt-2 text-amber-600 dark:text-amber-400 tracking-tight">
             {{ totalEnergy }}
           </div>
         </div>
         <div
-          class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 text-[11px] text-slate-400 font-medium"
+          class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700/80 text-[11px] text-slate-400 dark:text-slate-500 font-medium"
         >
           包含当前账号下所有角色的实时累积能量
         </div>
       </div>
     </div>
-
     <!-- 操作栏 -->
     <div
       class="flex items-center justify-between bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-700/80 shadow-sm -mt-4"
@@ -2142,11 +2228,11 @@ watch(
         </button>
         <button
           @click="openGroupModal"
-          class="px-6 py-3 rounded-2xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-black text-sm transition-all active:scale-95 flex items-center gap-2 border border-slate-200 dark:border-slate-700/60"
+          class="px-6 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700/80 font-black text-sm transition-all active:scale-95 flex items-center gap-2 border border-slate-200 dark:border-slate-700/60"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4 text-slate-500"
+            class="w-4 h-4 text-slate-500 dark:text-slate-400"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -2163,11 +2249,11 @@ watch(
         <!-- 设置按钮 -->
         <button
           @click="openSettingsModal"
-          class="px-6 py-3 rounded-2xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-black text-sm transition-all active:scale-95 flex items-center gap-2 border border-slate-200 dark:border-slate-700/60"
+          class="px-6 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700/80 font-black text-sm transition-all active:scale-95 flex items-center gap-2 border border-slate-200 dark:border-slate-700/60"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4 text-slate-500"
+            class="w-4 h-4 text-slate-500 dark:text-slate-400"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -2191,11 +2277,11 @@ watch(
         <button
           @click="handleSync"
           :disabled="isRefreshing"
-          class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-800 text-slate-700 border border-slate-200 dark:border-slate-700/80 font-bold text-xs shadow-sm transition-all transform active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+          class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700/80 font-bold text-xs shadow-sm transition-all transform active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
         >
           <!-- 刷新图标：点击时带有旋转动画 -->
           <svg
-            class="w-3.5 h-3.5 text-sky-500 transition-transform duration-500"
+            class="w-3.5 h-3.5 text-sky-500 dark:text-[#45a6d5] transition-transform duration-500"
             :class="{ 'animate-spin': isRefreshing }"
             fill="none"
             stroke="currentColor"
@@ -2213,7 +2299,7 @@ watch(
       </div>
 
       <div
-        class="flex items-center gap-2 text-xs font-bold text-slate-400 bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-xl border border-slate-100 dark:border-slate-700"
+        class="flex items-center gap-2 text-xs font-bold text-slate-400 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-xl border border-slate-100 dark:border-slate-700/60"
       >
         <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
         <span>{{ user ? "已同步到云端数据库" : "当前为本地存储模式" }}</span>
@@ -2231,7 +2317,7 @@ watch(
         :class="
           activeTabGroup === 'all'
             ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sm shadow-sky-500/20'
-            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 hover:bg-slate-100 border-slate-200 dark:border-slate-700/60'
+            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/80 border-slate-200 dark:border-slate-700/60'
         "
       >
         <span>全部角色</span>
@@ -2239,8 +2325,8 @@ watch(
           class="min-w-[18px] text-center px-1.5 py-0.5 rounded-full text-[10px] font-black leading-none"
           :class="
             activeTabGroup === 'all'
-              ? 'bg-white dark:bg-slate-900/20 text-white'
-              : 'bg-slate-200/70 text-slate-600'
+              ? 'bg-white/20 text-white'
+              : 'bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
           "
         >
           {{ gameData.characters.length }}
@@ -2254,7 +2340,7 @@ watch(
         :class="
           activeTabGroup === 'default'
             ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sm shadow-sky-500/20'
-            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 hover:bg-slate-100 border-slate-200 dark:border-slate-700/60'
+            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/80 border-slate-200 dark:border-slate-700/60'
         "
       >
         <span>默认分组</span>
@@ -2262,8 +2348,8 @@ watch(
           class="min-w-[18px] text-center px-1.5 py-0.5 rounded-full text-[10px] font-black leading-none"
           :class="
             activeTabGroup === 'default'
-              ? 'bg-white dark:bg-slate-900/20 text-white'
-              : 'bg-slate-200/70 text-slate-600'
+              ? 'bg-white/20 text-white'
+              : 'bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
           "
         >
           {{
@@ -2283,7 +2369,7 @@ watch(
         :class="
           activeTabGroup === group.id
             ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sm shadow-sky-500/20'
-            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 hover:bg-slate-100 border-slate-200 dark:border-slate-700/60'
+            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/80 border-slate-200 dark:border-slate-700/60'
         "
       >
         <span>{{ group.name }}</span>
@@ -2291,8 +2377,8 @@ watch(
           class="min-w-[18px] text-center px-1.5 py-0.5 rounded-full text-[10px] font-black leading-none"
           :class="
             activeTabGroup === group.id
-              ? 'bg-white dark:bg-slate-900/20 text-white'
-              : 'bg-slate-200/70 text-slate-600'
+              ? 'bg-white/20 text-white'
+              : 'bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
           "
         >
           {{ gameData.characters.filter((c) => c.group === group.id).length }}
@@ -2882,7 +2968,7 @@ watch(
                     <div class="flex items-center gap-3">
                       <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
                       <div
-                        class="text-sm font-black uppercase tracking-wider text-slate-700"
+                        class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                       >
                         基础身份信息
                       </div>
@@ -2894,7 +2980,7 @@ watch(
                           (pickerOpenOther.type = 'add'),
                           (pickerTab = 'aion2')
                       "
-                      class="px-4 py-2 rounded-xl bg-[#45a6d5] text-white font-bold text-xs hover:bg-[#3b95c0] transition-all shadow-sm shadow-sky-500/20 flex items-center gap-1.5 active:scale-95"
+                      class="px-4 py-2 rounded-xl bg-[#45a6d5] text-white font-bold text-xs hover:bg-[#3b95c0] transition-all shadow-sm shadow-sky-500/20 flex items-center gap-1.5 active:scale-95 cursor-pointer"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -2917,20 +3003,24 @@ watch(
                   <!-- 选择完成后的角色基本信息预览展示卡片 -->
                   <div
                     v-if="newCharForm.characterId"
-                    class="p-4 bg-sky-50/60 border border-sky-100 rounded-2xl flex items-center gap-4 transition-all"
+                    class="p-4 bg-sky-50/60 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-900/50 rounded-2xl flex items-center gap-4 transition-all"
                   >
                     <img
                       v-if="newCharForm.profileImage"
                       :src="newCharForm.profileImage"
                       alt="头像"
-                      class="w-14 h-14 rounded-xl object-cover border border-sky-200 shadow-sm"
+                      class="w-14 h-14 rounded-xl object-cover border border-sky-200 dark:border-sky-800 shadow-sm"
                     />
                     <div class="flex-1 min-w-0 grid grid-cols-2 md:grid-cols-4 gap-3">
                       <div>
-                        <div class="text-[10px] font-bold text-slate-400">
+                        <div
+                          class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
+                        >
                           昵称 / 职业
                         </div>
-                        <div class="text-sm font-black text-slate-800 truncate">
+                        <div
+                          class="text-sm font-black text-slate-800 dark:text-slate-100 truncate"
+                        >
                           {{ newCharForm.characterName || newCharForm.name }}
                           <span class="text-xs font-bold text-[#45a6d5]"
                             >({{ newCharForm.className || newCharForm.class }})</span
@@ -2938,31 +3028,47 @@ watch(
                         </div>
                       </div>
                       <div>
-                        <div class="text-[10px] font-bold text-slate-400">
+                        <div
+                          class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
+                        >
                           等级 / 装等
                         </div>
-                        <div class="text-sm font-black text-slate-800">
+                        <div
+                          class="text-sm font-black text-slate-800 dark:text-slate-100"
+                        >
                           Lv.{{ newCharForm.value?.characterLevel || 1 }}
-                          <span class="text-xs font-bold text-amber-600"
+                          <span
+                            class="text-xs font-bold text-amber-600 dark:text-amber-400"
                             >({{ newCharForm.value?.itemLevel || 0 }})</span
                           >
                         </div>
                       </div>
                       <div>
-                        <div class="text-[10px] font-bold text-slate-400">
+                        <div
+                          class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
+                        >
                           服务器 / 种族
                         </div>
-                        <div class="text-sm font-black text-slate-800 truncate">
+                        <div
+                          class="text-sm font-black text-slate-800 dark:text-slate-100 truncate"
+                        >
                           {{ newCharForm.value?.serverName || "未知" }}
                           ·
-                          <span class="text-xs font-bold text-purple-600">{{
-                            newCharForm.value?.raceName || "未知"
-                          }}</span>
+                          <span
+                            class="text-xs font-bold text-purple-600 dark:text-purple-400"
+                            >{{ newCharForm.value?.raceName || "未知" }}</span
+                          >
                         </div>
                       </div>
                       <div>
-                        <div class="text-[10px] font-bold text-slate-400">称号</div>
-                        <div class="text-sm font-black text-slate-800 truncate">
+                        <div
+                          class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
+                        >
+                          称号
+                        </div>
+                        <div
+                          class="text-sm font-black text-slate-800 dark:text-slate-100 truncate"
+                        >
                           {{ newCharForm.value?.titleName || "无" }}
                         </div>
                       </div>
@@ -2974,19 +3080,19 @@ watch(
                   class="bg-white dark:bg-slate-900 border p-6 rounded-3xl space-y-5 shadow-sm transition-all"
                   :class="
                     validationResult.errors.group
-                      ? 'border-red-500 bg-red-50/20'
+                      ? 'border-red-500 bg-red-50/20 dark:bg-red-950/20'
                       : 'border-slate-200 dark:border-slate-700/80'
                   "
                 >
                   <div class="flex items-center gap-3">
                     <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
                     <div
-                      class="text-sm font-black uppercase tracking-wider text-slate-700"
+                      class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                     >
                       所属分组配置
                     </div>
                   </div>
-                  <p class="text-xs font-bold text-slate-400">
+                  <p class="text-xs font-bold text-slate-400 dark:text-slate-500">
                     选择角色所属的分组，同组账号将共享远征/超越挑战次数等资源
                   </p>
                   <div class="grid grid-cols-1 gap-5 pt-1">
@@ -2994,14 +3100,15 @@ watch(
                     <div class="flex flex-col">
                       <div class="flex items-center justify-between mb-2">
                         <!-- 标题 -->
-                        <label class="text-xs font-bold text-slate-500 block"
+                        <label
+                          class="text-xs font-bold text-slate-500 dark:text-slate-400 block"
                           >所属分组</label
                         >
 
                         <!-- 错误提示（右侧对齐） -->
                         <span
                           v-if="validationResult.errors.group"
-                          class="text-[10px] text-red-500 font-bold"
+                          class="text-[10px] text-red-500 dark:text-red-400 font-bold"
                         >
                           {{ validationResult.errors.group }}
                         </span>
@@ -3018,7 +3125,7 @@ watch(
                               }
                             }
                           "
-                          class="w-full h-[50px] px-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5] focus:bg-white dark:bg-slate-900 outline-none font-bold text-sm text-slate-800 transition-all cursor-pointer box-border"
+                          class="w-full h-[50px] px-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all cursor-pointer box-border"
                         >
                           <option :value="null" disabled hidden>请选择所属分组...</option>
                           <option
@@ -3041,7 +3148,7 @@ watch(
                   <div class="flex items-center gap-3">
                     <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
                     <div
-                      class="text-sm font-black uppercase tracking-wider text-slate-700"
+                      class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                     >
                       账号属性配置
                     </div>
@@ -3050,17 +3157,18 @@ watch(
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1 items-stretch">
                     <!-- 是否为主账号 (带同组排他提示) -->
                     <div class="flex flex-col">
-                      <label class="text-xs font-bold text-slate-500 block mb-2"
+                      <label
+                        class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2"
                         >主账号状态</label
                       >
 
                       <div class="flex-1 flex items-center">
                         <div
-                          class="w-full h-[50px] flex items-center justify-between px-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700/80 select-none box-border transition-all"
+                          class="w-full h-[50px] flex items-center justify-between px-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 select-none box-border transition-all"
                           :class="[
                             getCharGroup?.primaryAccountID
-                              ? 'opacity-60 cursor-not-allowed bg-slate-100/60 border-slate-200 dark:border-slate-700'
-                              : 'cursor-pointer hover:border-[#45a6d5]',
+                              ? 'opacity-60 cursor-not-allowed bg-slate-100/60 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700'
+                              : 'cursor-pointer border-slate-200 dark:border-slate-700 hover:border-[#45a6d5]',
                           ]"
                           @click="
                             () => {
@@ -3073,13 +3181,14 @@ watch(
                           "
                         >
                           <div class="flex items-center gap-2">
-                            <span class="text-sm font-bold text-slate-700"
+                            <span
+                              class="text-sm font-bold text-slate-700 dark:text-slate-200"
                               >设为主账号</span
                             >
                             <!-- 提示文案：告知用户为什么被锁定 -->
                             <span
                               v-if="getCharGroup?.primaryAccountID"
-                              class="text-[10px] text-amber-600 font-medium bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200"
+                              class="text-[10px] text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-900/50"
                             >
                               该组已有主账号
                             </span>
@@ -3090,10 +3199,10 @@ watch(
                             class="w-10 h-6 flex items-center rounded-full p-1 transition-colors duration-300"
                             :class="[
                               getCharGroup?.primaryAccountID
-                                ? 'bg-slate-300 cursor-not-allowed'
+                                ? 'bg-slate-300 dark:bg-slate-700 cursor-not-allowed'
                                 : newCharGroupForm.primaryAccountID
                                 ? 'bg-[#45a6d5]'
-                                : 'bg-slate-300',
+                                : 'bg-slate-300 dark:bg-slate-700',
                             ]"
                           >
                             <div
@@ -3111,18 +3220,19 @@ watch(
 
                     <!-- 特级会员选择：高度与输入框/开关严格对齐 -->
                     <div class="flex flex-col">
-                      <label class="text-xs font-bold text-slate-500 block mb-2"
+                      <label
+                        class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2"
                         >特级会员状态</label
                       >
                       <div class="flex-1 flex items-center">
                         <!-- 如果同组有其他角色开启了会员，则直接展示共享状态并隐藏开关 -->
                         <div
                           v-if="getCharGroup?.premiumMember"
-                          class="w-full h-[50px] px-4 rounded-2xl bg-emerald-50 border-2 border-emerald-200 text-emerald-700 text-xs font-bold flex items-center justify-between box-border"
+                          class="w-full h-[50px] px-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border-2 border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center justify-between box-border"
                         >
                           <span>同组已共享特级会员</span>
                           <span
-                            class="text-[10px] bg-emerald-200 px-2 py-0.5 rounded-full"
+                            class="text-[10px] bg-emerald-200 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 px-2 py-0.5 rounded-full"
                             >无需重复开启</span
                           >
                         </div>
@@ -3135,7 +3245,8 @@ watch(
                             newCharGroupForm.premiumMember = !newCharGroupForm.premiumMember
                           "
                         >
-                          <span class="text-sm font-bold text-slate-700"
+                          <span
+                            class="text-sm font-bold text-slate-700 dark:text-slate-200"
                             >开通特级会员</span
                           >
                           <div
@@ -3143,7 +3254,7 @@ watch(
                             :class="
                               newCharGroupForm.premiumMember
                                 ? 'bg-amber-500'
-                                : 'bg-slate-300'
+                                : 'bg-slate-300 dark:bg-slate-700'
                             "
                           >
                             <div
@@ -3167,29 +3278,33 @@ watch(
                       class="pt-2"
                     >
                       <div
-                        class="p-4 bg-amber-50/50 border border-amber-200/60 rounded-2xl space-y-3"
+                        class="p-4 bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 rounded-2xl space-y-3"
                       >
-                        <label class="text-xs font-bold text-amber-700 block"
+                        <label
+                          class="text-xs font-bold text-amber-700 dark:text-amber-400 block"
                           >特级会员剩余天数</label
                         >
 
                         <!-- 情况 A：同组已有其他角色开启了会员（只展示共享天数，自动同步） -->
                         <div v-if="getCharGroup?.premiumMember" class="space-y-1 py-1">
                           <div class="flex items-center justify-between">
-                            <span class="text-sm font-black text-amber-900">
-                              同组共享天数：<span class="text-base text-amber-600">{{
-                                groupSharedPremiumDays
-                              }}</span>
+                            <span
+                              class="text-sm font-black text-amber-900 dark:text-amber-200"
+                            >
+                              同组共享天数：<span
+                                class="text-base text-amber-600 dark:text-amber-400"
+                                >{{ groupSharedPremiumDays }}</span
+                              >
                               天（已自动同步）
                             </span>
                             <span
-                              class="text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-bold"
+                              class="text-[10px] bg-amber-200 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 px-2 py-0.5 rounded-full font-bold"
                               >组内一致</span
                             >
                           </div>
                           <!-- 同组共享时的起止时间展示 -->
                           <div
-                            class="text-[11px] font-bold text-amber-700/80 flex items-center gap-3 pt-1"
+                            class="text-[11px] font-bold text-amber-700/80 dark:text-amber-400/80 flex items-center gap-3 pt-1"
                           >
                             <span>开通时间: {{ groupSharedStartTime || "未知" }}</span>
                             <span>|</span>
@@ -3204,40 +3319,47 @@ watch(
                             min="1"
                             max="28"
                             placeholder="请输入剩余天数（最多28天）..."
-                            class="w-full md:w-1/3 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                            class="w-full md:w-1/3 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                             :class="
                               validationResult.invalidFields.includes('premiumMemberDay')
-                                ? 'border-red-500 focus:border-red-600 bg-red-50/20'
-                                : 'border-amber-200 focus:border-amber-500'
+                                ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
+                                : 'border-amber-200 dark:border-amber-800 focus:border-amber-500 dark:focus:border-amber-400'
                             "
                           />
                           <!-- 错误提示小字 -->
                           <span
                             v-if="validationResult.errors.premiumMemberDay"
-                            class="text-[10px] text-red-500 font-bold block"
+                            class="text-[10px] text-red-500 dark:text-red-400 font-bold block"
                           >
                             {{ validationResult.errors.premiumMemberDay }}
                           </span>
 
-                          <!-- 实时计算并展示：开通时间 与 结束时间（基于总时长28天倒推与顺延） -->
+                          <!-- 实时计算并展示：开通时间 与 结束时间 -->
                           <div
                             v-if="
                               newCharGroupForm.premiumMemberDay &&
                               !validationResult.errors.premiumMemberDay
                             "
-                            class="text-xs font-bold text-amber-800 bg-amber-100/60 px-3 py-2 rounded-xl flex flex-wrap items-center gap-x-4 gap-y-1"
+                            class="text-xs font-bold text-amber-800 dark:text-amber-300 bg-amber-100/60 dark:bg-amber-900/30 px-3 py-2 rounded-xl flex flex-wrap items-center gap-x-4 gap-y-1"
                           >
                             <span
-                              >预计开通时间：<strong class="text-amber-900">{{
-                                calculatedStartTime(newCharGroupForm.premiumMemberDay) ||
-                                "计算中..."
-                              }}</strong></span
+                              >预计开通时间：<strong
+                                class="text-amber-900 dark:text-amber-200"
+                                >{{
+                                  calculatedStartTime(
+                                    newCharGroupForm.premiumMemberDay
+                                  ) || "计算中..."
+                                }}</strong
+                              ></span
                             >
                             <span
-                              >预计到期时间：<strong class="text-amber-900">{{
-                                calculatedEndTime(newCharGroupForm.premiumMemberDay) ||
-                                "计算中..."
-                              }}</strong></span
+                              >预计到期时间：<strong
+                                class="text-amber-900 dark:text-amber-200"
+                                >{{
+                                  calculatedEndTime(newCharGroupForm.premiumMemberDay) ||
+                                  "计算中..."
+                                }}</strong
+                              ></span
                             >
                           </div>
                         </div>
@@ -3250,7 +3372,7 @@ watch(
                   class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-6 rounded-3xl space-y-6 shadow-sm"
                 >
                   <div
-                    class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-700"
+                    class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800"
                   >
                     <!-- 左侧：图标、名称与核心数值 -->
                     <div class="flex items-center gap-2.5">
@@ -3259,18 +3381,20 @@ watch(
                       ></div>
                       <div class="flex items-center gap-2">
                         <span
-                          class="text-sm font-black uppercase tracking-wider text-slate-700"
+                          class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                           >奥德能量</span
                         >
                         <span
-                          class="text-xs font-black text-[#45a6d5] bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-100"
+                          class="text-xs font-black text-[#45a6d5] bg-sky-50 dark:bg-sky-950/40 px-2 py-0.5 rounded-lg border border-sky-100 dark:border-sky-900/50"
                         >
                           {{ newCharForm?.energy || 0 }}
-                          <span class="text-amber-600 font-bold"
+                          <span class="text-amber-600 dark:text-amber-400 font-bold"
                             >（+{{ newCharForm?.storedEnergy || 0 }}）</span
                           >
-                          <span class="text-slate-400 font-bold">/ </span>
-                          <span class="text-slate-700">{{
+                          <span class="text-slate-400 dark:text-slate-500 font-bold"
+                            >/
+                          </span>
+                          <span class="text-slate-700 dark:text-slate-200">{{
                             newCharGroupForm?.premiumMember || getCharGroup?.premiumMember
                               ? 840
                               : 560
@@ -3290,7 +3414,10 @@ watch(
                       <!-- 基础奥德能量 -->
                       <div>
                         <div class="flex items-center justify-between mb-1.5">
-                          <label class="text-xs font-bold text-slate-500">当前能量</label>
+                          <label
+                            class="text-xs font-bold text-slate-500 dark:text-slate-400"
+                            >当前能量</label
+                          >
                           <span class="text-[10px] font-black text-[#45a6d5]">
                             {{ newCharForm?.energy || 0 }}
                             ({{
@@ -3312,16 +3439,16 @@ watch(
                         </div>
                         <input
                           v-model.number="newCharForm.energy"
-                          class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                          class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                           :class="
                             validationResult.invalidFields.includes('energy')
-                              ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                              ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
                               : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                           "
                         />
                         <span
                           v-if="validationResult.errors.energy"
-                          class="text-[10px] text-red-500 font-bold mt-1 block"
+                          class="text-[10px] text-red-500 dark:text-red-400 font-bold mt-1 block"
                         >
                           {{ validationResult.errors.energy }}
                         </span>
@@ -3330,10 +3457,13 @@ watch(
                       <!-- 存储补充能量 -->
                       <div>
                         <div class="flex items-center justify-between mb-1.5">
-                          <label class="text-xs font-bold text-slate-500"
+                          <label
+                            class="text-xs font-bold text-slate-500 dark:text-slate-400"
                             >存储补充能量</label
                           >
-                          <span class="text-[10px] font-black text-amber-600">
+                          <span
+                            class="text-[10px] font-black text-amber-600 dark:text-amber-400"
+                          >
                             {{ newCharForm.storedEnergy || 0 }}
                             ({{ Math.max(0, 2000 - (newCharForm.storedEnergy || 0)) }}) /
                             2000
@@ -3341,16 +3471,16 @@ watch(
                         </div>
                         <input
                           v-model.number="newCharForm.storedEnergy"
-                          class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                          class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                           :class="
                             validationResult.invalidFields.includes('storedEnergy')
-                              ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                              ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
                               : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                           "
                         />
                         <span
                           v-if="validationResult.errors.storedEnergy"
-                          class="text-[10px] text-red-500 font-bold mt-1 block"
+                          class="text-[10px] text-red-500 dark:text-red-400 font-bold mt-1 block"
                         >
                           {{ validationResult.errors.storedEnergy }}
                         </span>
@@ -3366,7 +3496,7 @@ watch(
                   <div class="flex items-center gap-3">
                     <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
                     <div
-                      class="text-sm font-black uppercase tracking-wider text-slate-700"
+                      class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                     >
                       次数进度配置
                     </div>
@@ -3379,7 +3509,7 @@ watch(
                       <div class="flex items-center gap-3">
                         <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
                         <div
-                          class="text-sm font-black uppercase tracking-wider text-slate-700"
+                          class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                         >
                           战场 (角色独立配置)
                         </div>
@@ -3392,7 +3522,7 @@ watch(
                         class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
-                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
+                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
                         >
                           <span>挑战次数 (角色独立 / 上限3)</span>
                           <span class="text-xs font-black text-[#45a6d5]">
@@ -3403,7 +3533,8 @@ watch(
                         <div class="grid grid-cols-1 gap-4">
                           <div>
                             <div class="flex items-center justify-between mb-1.5">
-                              <label class="text-xs font-bold text-slate-500"
+                              <label
+                                class="text-xs font-bold text-slate-500 dark:text-slate-400"
                                 >当前次数</label
                               >
                             </div>
@@ -3411,16 +3542,16 @@ watch(
                               v-model.number="newCharForm.battlefield"
                               max="14"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes('battlefield')
-                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
                                   : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
                               v-if="validationResult.errors.battlefield"
-                              class="text-[10px] text-red-500 font-bold mt-1 block"
+                              class="text-[10px] text-red-500 dark:text-red-400 font-bold mt-1 block"
                             >
                               {{ validationResult.errors.battlefield }}
                             </span>
@@ -3429,6 +3560,7 @@ watch(
                       </div>
                     </div>
                   </div>
+
                   <!-- 噩梦副本卡片 -->
                   <div
                     class="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-3xl space-y-4 shadow-sm"
@@ -3437,19 +3569,19 @@ watch(
                       <div class="flex items-center gap-3">
                         <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
                         <div
-                          class="text-sm font-black uppercase tracking-wider text-slate-700"
+                          class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                         >
                           噩梦副本 (角色独立配置)
                         </div>
                       </div>
                       <span
-                        class="text-[10px] font-bold px-3 py-1 rounded-full bg-sky-50 text-[#45a6d5]"
+                        class="text-[10px] font-bold px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950/40 text-[#45a6d5] border border-sky-100 dark:border-sky-900/50"
                       >
                         当前角色独立维护
                       </span>
                     </div>
 
-                    <p class="text-xs font-bold text-slate-400">
+                    <p class="text-xs font-bold text-slate-400 dark:text-slate-500">
                       噩梦副本挑战次数（上限14）与存储补充次数（上限30）均为当前角色独立所有，不与其他组内角色共享。
                     </p>
 
@@ -3459,7 +3591,7 @@ watch(
                         class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
-                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
+                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
                         >
                           <span>挑战次数 (角色独立 / 上限14)</span>
                           <span class="text-xs font-black text-[#45a6d5]">
@@ -3470,7 +3602,8 @@ watch(
                         <div class="grid grid-cols-1 gap-4">
                           <div>
                             <div class="flex items-center justify-between mb-1.5">
-                              <label class="text-xs font-bold text-slate-500"
+                              <label
+                                class="text-xs font-bold text-slate-500 dark:text-slate-400"
                                 >当前次数</label
                               >
                             </div>
@@ -3478,16 +3611,16 @@ watch(
                               v-model.number="newCharForm.nightmareCount"
                               max="14"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes('nightmareCount')
-                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
                                   : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
                               v-if="validationResult.errors.nightmareCount"
-                              class="text-[10px] text-red-500 font-bold mt-1 block"
+                              class="text-[10px] text-red-500 dark:text-red-400 font-bold mt-1 block"
                             >
                               {{ validationResult.errors.nightmareCount }}
                             </span>
@@ -3500,10 +3633,12 @@ watch(
                         class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
-                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
+                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
                         >
                           <span>存储补充次数 (角色独立 / 上限30)</span>
-                          <span class="text-xs font-black text-amber-600">
+                          <span
+                            class="text-xs font-black text-amber-600 dark:text-amber-400"
+                          >
                             {{ newCharForm.storedNightmareCount || 0 }}
                             / 30
                           </span>
@@ -3511,10 +3646,13 @@ watch(
                         <div class="grid grid-cols-1 gap-4">
                           <div>
                             <div class="flex items-center justify-between mb-1.5">
-                              <label class="text-xs font-bold text-slate-500"
+                              <label
+                                class="text-xs font-bold text-slate-500 dark:text-slate-400"
                                 >存储次数</label
                               >
-                              <span class="text-[10px] font-black text-amber-600">
+                              <span
+                                class="text-[10px] font-black text-amber-600 dark:text-amber-400"
+                              >
                                 剩余可补充:
                                 {{
                                   Math.max(
@@ -3528,18 +3666,18 @@ watch(
                               v-model.number="newCharForm.storedNightmareCount"
                               max="30"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes(
                                   'storedNightmareCount'
                                 )
-                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
                                   : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
                               v-if="validationResult.errors.storedNightmareCount"
-                              class="text-[10px] text-red-500 font-bold mt-1 block"
+                              class="text-[10px] text-red-500 dark:text-red-400 font-bold mt-1 block"
                             >
                               {{ validationResult.errors.storedNightmareCount }}
                             </span>
@@ -3556,19 +3694,19 @@ watch(
                       <div class="flex items-center gap-3">
                         <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
                         <div
-                          class="text-sm font-black uppercase tracking-wider text-slate-700"
+                          class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                         >
                           觉醒战 (角色独立配置)
                         </div>
                       </div>
                       <span
-                        class="text-[10px] font-bold px-3 py-1 rounded-full bg-sky-50 text-[#45a6d5]"
+                        class="text-[10px] font-bold px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950/40 text-[#45a6d5] border border-sky-100 dark:border-sky-900/50"
                       >
                         当前角色独立维护
                       </span>
                     </div>
 
-                    <p class="text-xs font-bold text-slate-400">
+                    <p class="text-xs font-bold text-slate-400 dark:text-slate-500">
                       觉醒战挑战次数（上限3）与存储补充次数（上限30）均为当前角色独立所有，不与其他组内角色共享。
                     </p>
 
@@ -3578,7 +3716,7 @@ watch(
                         class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
-                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
+                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
                         >
                           <span>挑战次数 (角色独立 / 上限3)</span>
                           <span class="text-xs font-black text-[#45a6d5]">
@@ -3589,7 +3727,8 @@ watch(
                         <div class="grid grid-cols-1 gap-4">
                           <div>
                             <div class="flex items-center justify-between mb-1.5">
-                              <label class="text-xs font-bold text-slate-500"
+                              <label
+                                class="text-xs font-bold text-slate-500 dark:text-slate-400"
                                 >当前次数</label
                               >
                             </div>
@@ -3597,16 +3736,16 @@ watch(
                               v-model.number="newCharForm.awakening"
                               max="3"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes('awakening')
-                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
                                   : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
                               v-if="validationResult.errors.awakening"
-                              class="text-[10px] text-red-500 font-bold mt-1 block"
+                              class="text-[10px] text-red-500 dark:text-red-400 font-bold mt-1 block"
                             >
                               {{ validationResult.errors.awakening }}
                             </span>
@@ -3619,10 +3758,12 @@ watch(
                         class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
-                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
+                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
                         >
                           <span>存储补充次数 (角色独立 / 上限30)</span>
-                          <span class="text-xs font-black text-amber-600">
+                          <span
+                            class="text-xs font-black text-amber-600 dark:text-amber-400"
+                          >
                             {{ newCharForm.storedAwakening || 0 }}
                             / 30
                           </span>
@@ -3630,10 +3771,13 @@ watch(
                         <div class="grid grid-cols-1 gap-4">
                           <div>
                             <div class="flex items-center justify-between mb-1.5">
-                              <label class="text-xs font-bold text-slate-500"
+                              <label
+                                class="text-xs font-bold text-slate-500 dark:text-slate-400"
                                 >存储次数</label
                               >
-                              <span class="text-[10px] font-black text-amber-600">
+                              <span
+                                class="text-[10px] font-black text-amber-600 dark:text-amber-400"
+                              >
                                 剩余可补充:
                                 {{ Math.max(0, 30 - (newCharForm.storedAwakening || 0)) }}
                               </span>
@@ -3642,16 +3786,16 @@ watch(
                               v-model.number="newCharForm.storedAwakening"
                               max="30"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes('storedAwakening')
-                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
                                   : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
                               v-if="validationResult.errors.storedAwakening"
-                              class="text-[10px] text-red-500 font-bold mt-1 block"
+                              class="text-[10px] text-red-500 dark:text-red-400 font-bold mt-1 block"
                             >
                               {{ validationResult.errors.storedAwakening }}
                             </span>
@@ -3669,17 +3813,17 @@ watch(
                       <div class="flex items-center gap-3">
                         <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
                         <div
-                          class="text-sm font-black uppercase tracking-wider text-slate-700"
+                          class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                         >
                           每日副本 (组内共享挑战与补充)
                         </div>
                       </div>
                       <span
-                        class="text-[10px] font-bold px-3 py-1 rounded-full"
+                        class="text-[10px] font-bold px-3 py-1 rounded-full border"
                         :class="
                           hasGroupDailyRuns
-                            ? 'bg-amber-100 text-amber-700'
-                            : 'bg-sky-50 text-[#45a6d5]'
+                            ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/50'
+                            : 'bg-sky-50 dark:bg-sky-950/40 text-[#45a6d5] border-sky-100 dark:border-sky-900/50'
                         "
                       >
                         {{
@@ -3690,7 +3834,7 @@ watch(
                       </span>
                     </div>
 
-                    <p class="text-xs font-bold text-slate-400">
+                    <p class="text-xs font-bold text-slate-400 dark:text-slate-500">
                       同一分组账号下挑战次数与存储补充次数均视为组内共用（挑战上限14，存储补充上限30）。
                     </p>
 
@@ -3701,7 +3845,7 @@ watch(
                         class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
-                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
+                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
                         >
                           <span>挑战次数 (组内共用 / 上限14)</span>
                           <span class="text-xs font-black text-[#45a6d5]">
@@ -3712,7 +3856,8 @@ watch(
                         <div class="grid grid-cols-1 gap-4">
                           <div>
                             <div class="flex items-center justify-between mb-1.5">
-                              <label class="text-xs font-bold text-slate-500"
+                              <label
+                                class="text-xs font-bold text-slate-500 dark:text-slate-400"
                                 >当前次数</label
                               >
                             </div>
@@ -3720,16 +3865,16 @@ watch(
                               v-model.number="newCharGroupForm.dailyRuns"
                               max="14"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes('dailyRuns')
-                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
                                   : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
                               v-if="validationResult.errors.dailyRuns"
-                              class="text-[10px] text-red-500 font-bold mt-1 block"
+                              class="text-[10px] text-red-500 dark:text-red-400 font-bold mt-1 block"
                             >
                               {{ validationResult.errors.dailyRuns }}
                             </span>
@@ -3740,13 +3885,16 @@ watch(
                       <!-- 同组已配置占位 -->
                       <div
                         v-else
-                        class="p-4 bg-amber-50/50 border border-amber-200/60 rounded-2xl flex flex-col justify-center space-y-2"
+                        class="p-4 bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/50 rounded-2xl flex flex-col justify-center space-y-2"
                       >
-                        <div class="text-xs font-bold text-amber-800">
+                        <div class="text-xs font-bold text-amber-800 dark:text-amber-300">
                           挑战次数已由同组角色共享设定
                         </div>
-                        <div class="text-xs font-medium text-amber-600">
-                          当前分组共享挑战次数为：<span class="font-black text-amber-700"
+                        <div
+                          class="text-xs font-medium text-amber-600 dark:text-amber-400"
+                        >
+                          当前分组共享挑战次数为：<span
+                            class="font-black text-amber-700 dark:text-amber-200"
                             >{{ getCharGroup?.dailyRuns || 0 }} / 7</span
                           >。当前角色无需重复配置。
                         </div>
@@ -3757,10 +3905,12 @@ watch(
                         class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
-                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
+                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
                         >
                           <span>存储补充次数 (组内共用 / 上限30)</span>
-                          <span class="text-xs font-black text-amber-600">
+                          <span
+                            class="text-xs font-black text-amber-600 dark:text-amber-400"
+                          >
                             {{ totalGroupStoredDailyRuns }}
                             / 30
                           </span>
@@ -3768,10 +3918,13 @@ watch(
                         <div class="grid grid-cols-1 gap-4">
                           <div>
                             <div class="flex items-center justify-between mb-1.5">
-                              <label class="text-xs font-bold text-slate-500"
+                              <label
+                                class="text-xs font-bold text-slate-500 dark:text-slate-400"
                                 >存储次数</label
                               >
-                              <span class="text-[10px] font-black text-amber-600">
+                              <span
+                                class="text-[10px] font-black text-amber-600 dark:text-amber-400"
+                              >
                                 组内剩余可补充:
                                 {{ Math.max(0, 30 - totalGroupStoredDailyRuns) }}
                               </span>
@@ -3780,16 +3933,16 @@ watch(
                               v-model.number="newCharGroupForm.storedDailyRunsInput"
                               max="30"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes('storedDailyRuns')
-                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
                                   : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
                               v-if="validationResult.errors.storedDailyRuns"
-                              class="text-[10px] text-red-500 font-bold mt-1 block"
+                              class="text-[10px] text-red-500 dark:text-red-400 font-bold mt-1 block"
                             >
                               {{ validationResult.errors.storedDailyRuns }}
                             </span>
@@ -3806,17 +3959,17 @@ watch(
                       <div class="flex items-center gap-3">
                         <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
                         <div
-                          class="text-sm font-black uppercase tracking-wider text-slate-700"
+                          class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                         >
                           古树庆典小游戏 (组内共享挑战与补充)
                         </div>
                       </div>
                       <span
-                        class="text-[10px] font-bold px-3 py-1 rounded-full"
+                        class="text-[10px] font-bold px-3 py-1 rounded-full border"
                         :class="
                           hasGroupMinigameCount
-                            ? 'bg-amber-100 text-amber-700'
-                            : 'bg-sky-50 text-[#45a6d5]'
+                            ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/50'
+                            : 'bg-sky-50 dark:bg-sky-950/40 text-[#45a6d5] border-sky-100 dark:border-sky-900/50'
                         "
                       >
                         {{
@@ -3827,7 +3980,7 @@ watch(
                       </span>
                     </div>
 
-                    <p class="text-xs font-bold text-slate-400">
+                    <p class="text-xs font-bold text-slate-400 dark:text-slate-500">
                       同一分组账号下小游戏挑战次数与存储补充次数均视为组内共用（挑战上限14，存储补充上限30）。
                     </p>
 
@@ -3838,7 +3991,7 @@ watch(
                         class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
-                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
+                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
                         >
                           <span>挑战次数 (组内共用 / 上限7)</span>
                           <span class="text-xs font-black text-[#45a6d5]">
@@ -3849,7 +4002,8 @@ watch(
                         <div class="grid grid-cols-1 gap-4">
                           <div>
                             <div class="flex items-center justify-between mb-1.5">
-                              <label class="text-xs font-bold text-slate-500"
+                              <label
+                                class="text-xs font-bold text-slate-500 dark:text-slate-400"
                                 >当前次数</label
                               >
                             </div>
@@ -3857,16 +4011,16 @@ watch(
                               v-model.number="newCharGroupForm.minigameCount"
                               max="14"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes('minigameCount')
-                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
                                   : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
                               v-if="validationResult.errors.minigameCount"
-                              class="text-[10px] text-red-500 font-bold mt-1 block"
+                              class="text-[10px] text-red-500 dark:text-red-400 font-bold mt-1 block"
                             >
                               {{ validationResult.errors.minigameCount }}
                             </span>
@@ -3877,13 +4031,16 @@ watch(
                       <!-- 同组已配置占位 -->
                       <div
                         v-else
-                        class="p-4 bg-amber-50/50 border border-amber-200/60 rounded-2xl flex flex-col justify-center space-y-2"
+                        class="p-4 bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/50 rounded-2xl flex flex-col justify-center space-y-2"
                       >
-                        <div class="text-xs font-bold text-amber-800">
+                        <div class="text-xs font-bold text-amber-800 dark:text-amber-300">
                           挑战次数已由同组角色共享设定
                         </div>
-                        <div class="text-xs font-medium text-amber-600">
-                          当前分组共享挑战次数为：<span class="font-black text-amber-700"
+                        <div
+                          class="text-xs font-medium text-amber-600 dark:text-amber-400"
+                        >
+                          当前分组共享挑战次数为：<span
+                            class="font-black text-amber-700 dark:text-amber-200"
                             >{{ getCharGroup?.minigameCount || 0 }} / 14</span
                           >。当前角色无需重复配置。
                         </div>
@@ -3894,10 +4051,12 @@ watch(
                         class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
-                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
+                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
                         >
                           <span>存储补充次数 (组内共用 / 上限30)</span>
-                          <span class="text-xs font-black text-amber-600">
+                          <span
+                            class="text-xs font-black text-amber-600 dark:text-amber-400"
+                          >
                             {{ totalGroupStoredMinigameCount }}
                             / 30
                           </span>
@@ -3905,10 +4064,13 @@ watch(
                         <div class="grid grid-cols-1 gap-4">
                           <div>
                             <div class="flex items-center justify-between mb-1.5">
-                              <label class="text-xs font-bold text-slate-500"
+                              <label
+                                class="text-xs font-bold text-slate-500 dark:text-slate-400"
                                 >存储次数</label
                               >
-                              <span class="text-[10px] font-black text-amber-600">
+                              <span
+                                class="text-[10px] font-black text-amber-600 dark:text-amber-400"
+                              >
                                 组内剩余可补充:
                                 {{ Math.max(0, 30 - totalGroupStoredMinigameCount) }}
                               </span>
@@ -3917,18 +4079,18 @@ watch(
                               v-model.number="newCharGroupForm.storedMinigameCountInput"
                               max="30"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes(
                                   'storedMinigameCount'
                                 )
-                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
                                   : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
                               v-if="validationResult.errors.storedMinigameCount"
-                              class="text-[10px] text-red-500 font-bold mt-1 block"
+                              class="text-[10px] text-red-500 dark:text-red-400 font-bold mt-1 block"
                             >
                               {{ validationResult.errors.storedMinigameCount }}
                             </span>
@@ -3945,17 +4107,17 @@ watch(
                       <div class="flex items-center gap-3">
                         <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
                         <div
-                          class="text-sm font-black uppercase tracking-wider text-slate-700"
+                          class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                         >
                           次元袭击 (组内共享挑战与补充)
                         </div>
                       </div>
                       <span
-                        class="text-[10px] font-bold px-3 py-1 rounded-full"
+                        class="text-[10px] font-bold px-3 py-1 rounded-full border"
                         :class="
                           hasGroupDimensionalCount
-                            ? 'bg-amber-100 text-amber-700'
-                            : 'bg-sky-50 text-[#45a6d5]'
+                            ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/50'
+                            : 'bg-sky-50 dark:bg-sky-950/40 text-[#45a6d5] border-sky-100 dark:border-sky-900/50'
                         "
                       >
                         {{
@@ -3966,7 +4128,7 @@ watch(
                       </span>
                     </div>
 
-                    <p class="text-xs font-bold text-slate-400">
+                    <p class="text-xs font-bold text-slate-400 dark:text-slate-500">
                       同一分组账号下次元袭击挑战次数与存储补充次数均视为组内共用（挑战上限7，存储补充上限30）。
                     </p>
 
@@ -3977,7 +4139,7 @@ watch(
                         class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
-                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
+                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
                         >
                           <span>挑战次数 (组内共用 / 上限14)</span>
                           <span class="text-xs font-black text-[#45a6d5]">
@@ -3988,7 +4150,8 @@ watch(
                         <div class="grid grid-cols-1 gap-4">
                           <div>
                             <div class="flex items-center justify-between mb-1.5">
-                              <label class="text-xs font-bold text-slate-500"
+                              <label
+                                class="text-xs font-bold text-slate-500 dark:text-slate-400"
                                 >当前次数</label
                               >
                             </div>
@@ -3996,18 +4159,18 @@ watch(
                               v-model.number="newCharGroupForm.dimensionalCount"
                               max="14"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes(
                                   'dimensionalCount'
                                 )
-                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
                                   : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
                               v-if="validationResult.errors.dimensionalCount"
-                              class="text-[10px] text-red-500 font-bold mt-1 block"
+                              class="text-[10px] text-red-500 dark:text-red-400 font-bold mt-1 block"
                             >
                               {{ validationResult.errors.dimensionalCount }}
                             </span>
@@ -4018,13 +4181,16 @@ watch(
                       <!-- 同组已配置占位 -->
                       <div
                         v-else
-                        class="p-4 bg-amber-50/50 border border-amber-200/60 rounded-2xl flex flex-col justify-center space-y-2"
+                        class="p-4 bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/50 rounded-2xl flex flex-col justify-center space-y-2"
                       >
-                        <div class="text-xs font-bold text-amber-800">
+                        <div class="text-xs font-bold text-amber-800 dark:text-amber-300">
                           挑战次数已由同组角色共享设定
                         </div>
-                        <div class="text-xs font-medium text-amber-600">
-                          当前分组共享挑战次数为：<span class="font-black text-amber-700"
+                        <div
+                          class="text-xs font-medium text-amber-600 dark:text-amber-400"
+                        >
+                          当前分组共享挑战次数为：<span
+                            class="font-black text-amber-700 dark:text-amber-200"
                             >{{ getCharGroup?.dimensionalCount || 0 }} / 14</span
                           >。当前角色无需重复配置。
                         </div>
@@ -4035,10 +4201,12 @@ watch(
                         class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
-                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 uppercase tracking-wider"
+                          class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
                         >
                           <span>存储补充次数 (组内共用 / 上限30)</span>
-                          <span class="text-xs font-black text-amber-600">
+                          <span
+                            class="text-xs font-black text-amber-600 dark:text-amber-400"
+                          >
                             {{ totalGroupStoredDimensionalCount }}
                             / 30
                           </span>
@@ -4046,10 +4214,13 @@ watch(
                         <div class="grid grid-cols-1 gap-4">
                           <div>
                             <div class="flex items-center justify-between mb-1.5">
-                              <label class="text-xs font-bold text-slate-500"
+                              <label
+                                class="text-xs font-bold text-slate-500 dark:text-slate-400"
                                 >存储次数</label
                               >
-                              <span class="text-[10px] font-black text-amber-600">
+                              <span
+                                class="text-[10px] font-black text-amber-600 dark:text-amber-400"
+                              >
                                 组内剩余可补充:
                                 {{ Math.max(0, 30 - totalGroupStoredDimensionalCount) }}
                               </span>
@@ -4060,18 +4231,18 @@ watch(
                               "
                               max="30"
                               min="0"
-                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                              class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                               :class="
                                 validationResult.invalidFields.includes(
                                   'storedDimensionalCount'
                                 )
-                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                                  ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
                                   : 'border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5]'
                               "
                             />
                             <span
                               v-if="validationResult.errors.storedDimensionalCount"
-                              class="text-[10px] text-red-500 font-bold mt-1 block"
+                              class="text-[10px] text-red-500 dark:text-red-400 font-bold mt-1 block"
                             >
                               {{ validationResult.errors.storedDimensionalCount }}
                             </span>
@@ -4082,79 +4253,82 @@ watch(
                   </div>
                   <!-- 圣域系列次数分组 -->
                   <div
-                    class="p-5 bg-emerald-50/40 border border-emerald-100/80 rounded-2xl space-y-3"
+                    class="p-5 bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-100/80 dark:border-emerald-900/40 rounded-2xl space-y-3"
                   >
                     <div
-                      class="text-[11px] font-extrabold text-emerald-600 uppercase tracking-wider"
+                      class="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider"
                     >
                       圣域副本次数 (每项上限10次)
                     </div>
                     <div class="grid grid-cols-3 gap-4">
                       <!-- S1 -->
                       <div>
-                        <label class="text-xs font-bold text-slate-600 block mb-1.5"
+                        <label
+                          class="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1.5"
                           >深渊重铸：卢德莱-S1 次数</label
                         >
                         <input
                           v-model.number="newCharForm.sanctuary.s1"
                           max="1"
                           min="0"
-                          class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                          class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                           :class="
                             validationResult.invalidFields.includes('sanctuary.s1')
-                              ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                              ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
                               : 'border-slate-200 dark:border-slate-700/80 focus:border-emerald-500'
                           "
                         />
                         <span
                           v-if="validationResult.errors['sanctuary.s1']"
-                          class="text-[10px] text-red-500 font-bold mt-1 block"
+                          class="text-[10px] text-red-500 dark:text-red-400 font-bold mt-1 block"
                         >
                           {{ validationResult.errors["sanctuary.s1"] }}
                         </span>
                       </div>
                       <!-- S2 -->
                       <div>
-                        <label class="text-xs font-bold text-slate-600 block mb-1.5"
+                        <label
+                          class="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1.5"
                           >侵蚀净化所-S2 次数</label
                         >
                         <input
                           v-model.number="newCharForm.sanctuary.s2"
                           max="1"
                           min="0"
-                          class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                          class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                           :class="
                             validationResult.invalidFields.includes('sanctuary.s2')
-                              ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                              ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
                               : 'border-slate-200 dark:border-slate-700/80 focus:border-emerald-500'
                           "
                         />
                         <span
                           v-if="validationResult.errors['sanctuary.s2']"
-                          class="text-[10px] text-red-500 font-bold mt-1 block"
+                          class="text-[10px] text-red-500 dark:text-red-400 font-bold mt-1 block"
                         >
                           {{ validationResult.errors["sanctuary.s2"] }}
                         </span>
                       </div>
                       <!-- S3 -->
                       <div>
-                        <label class="text-xs font-bold text-slate-600 block mb-1.5"
+                        <label
+                          class="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1.5"
                           >穆斯费尔尔圣杯-S3 次数</label
                         >
                         <input
                           v-model.number="newCharForm.sanctuary.s3"
                           max="1"
                           min="0"
-                          class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                          class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                           :class="
                             validationResult.invalidFields.includes('sanctuary.s3')
-                              ? 'border-red-500 focus:border-red-600 bg-red-50/20'
+                              ? 'border-red-500 focus:border-red-600 bg-red-50/20 dark:bg-red-950/20'
                               : 'border-slate-200 dark:border-slate-700/80 focus:border-emerald-500'
                           "
                         />
                         <span
                           v-if="validationResult.errors['sanctuary.s3']"
-                          class="text-[10px] text-red-500 font-bold mt-1 block"
+                          class="text-[10px] text-red-500 dark:text-red-400 font-bold mt-1 block"
                         >
                           {{ validationResult.errors["sanctuary.s3"] }}
                         </span>
@@ -4163,9 +4337,9 @@ watch(
                   </div>
                 </div>
               </template>
-              <template v-else>
+          <template v-else>
                 <div
-                  class="p-8 bg-slate-50 dark:bg-slate-800/70 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-3xl flex flex-col items-center justify-center text-center space-y-3 transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 group cursor-pointer"
+                  class="p-8 bg-slate-50 dark:bg-slate-800/70 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-3xl flex flex-col items-center justify-center text-center space-y-3 transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 dark:hover:bg-sky-950/20 group cursor-pointer"
                   @click="
                     (pickerOpen = true),
                       (pickerOpenOther.type = 'add'),
@@ -4174,7 +4348,7 @@ watch(
                 >
                   <!-- 图标外发光圆圈 -->
                   <div
-                    class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 shadow-sm flex items-center justify-center text-[#45a6d5] group-hover:scale-110 group-hover:border-sky-200 group-hover:shadow-md transition-all duration-300"
+                    class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 shadow-sm flex items-center justify-center text-[#45a6d5] group-hover:scale-110 group-hover:border-sky-200 dark:group-hover:border-sky-700/60 group-hover:shadow-md transition-all duration-300"
                   >
                     <svg
                       class="w-6 h-6"
@@ -4194,7 +4368,7 @@ watch(
                   <!-- 提示文案 -->
                   <div class="space-y-1">
                     <div
-                      class="text-sm font-black text-slate-700 group-hover:text-[#45a6d5] transition-colors"
+                      class="text-sm font-black text-slate-700 dark:text-slate-200 group-hover:text-[#45a6d5] transition-colors"
                     >
                       点击添加/选择角色
                     </div>
@@ -4238,13 +4412,13 @@ watch(
           >
             <!-- 弹窗头部 -->
             <div
-              class="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between gap-4"
+              class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4"
             >
-              <div class="font-black text-slate-800 text-lg">
+              <div class="font-black text-slate-800 dark:text-slate-100 text-lg">
                 {{ pickerOpenOther.type === "add" ? "添加角色" : "选择其他角色" }}
               </div>
               <button
-                class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors cursor-pointer"
+                class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                 @click="pickerOpen = false"
               >
                 关闭
@@ -4253,7 +4427,7 @@ watch(
 
             <!-- 🌟 新增：Tab 切换栏 -->
             <div
-              class="px-6 pt-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3"
+              class="px-6 pt-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3"
             >
               <button
                 type="button"
@@ -4262,7 +4436,7 @@ watch(
                 :class="
                   pickerTab === 'aion2'
                     ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sm'
-                    : 'bg-white dark:bg-slate-900 text-slate-600 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
                 "
               >
                 永恒之塔2（台服）
@@ -4274,7 +4448,7 @@ watch(
                 :class="
                   pickerTab === 'custom'
                     ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sm'
-                    : 'bg-white dark:bg-slate-900 text-slate-600 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
                 "
               >
                 自定义角色
@@ -4289,11 +4463,11 @@ watch(
                   <div class="flex items-center gap-2">
                     <input
                       v-model="myKeyword"
-                      class="flex-1 px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:bg-slate-900 outline-none font-bold text-slate-700 transition-all"
+                      class="flex-1 px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-bold text-slate-700 dark:text-slate-100 transition-all"
                       placeholder="搜索我的角色..."
                     />
                     <button
-                      class="px-4 py-3 rounded-2xl bg-slate-100 text-slate-700 font-black text-sm hover:bg-slate-200 transition-colors cursor-pointer"
+                      class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-black text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                       :disabled="myLoading"
                       @click="fetchMyMembers"
                     >
@@ -4314,10 +4488,12 @@ watch(
                     <div
                       v-for="m in filteredMyMembers"
                       :key="m.id"
-                      class="p-3 rounded-2xl border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-800 transition-colors flex items-center justify-between gap-3"
+                      class="p-3 rounded-2xl border border-slate-100 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors flex items-center justify-between gap-3"
                     >
                       <div class="min-w-0">
-                        <div class="font-black text-slate-800 truncate">
+                        <div
+                          class="font-black text-slate-800 dark:text-slate-100 truncate"
+                        >
                           {{
                             formatNameWithServerShort({
                               characterName: m.character_name,
@@ -4327,7 +4503,7 @@ watch(
                           }}
                         </div>
                         <div
-                          class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap"
+                          class="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2 flex-wrap"
                         >
                           <span>{{ formatServerDisplay(m.server_id) }}</span>
                           <span>{{ m.class_name || "—" }}</span>
@@ -4339,7 +4515,7 @@ watch(
                           <input
                             v-model="m.remark"
                             type="text"
-                            class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-[#45a6d5] outline-none font-bold text-xs text-slate-700 transition-all"
+                            class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-[#45a6d5] outline-none font-bold text-xs text-slate-700 dark:text-slate-200 transition-all"
                             placeholder="备注（可选）"
                           />
                         </div>
@@ -4367,14 +4543,14 @@ watch(
                   <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
                     <select
                       v-model.number="searchRaceId"
-                      class="px-5 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:bg-slate-900 outline-none font-black text-slate-700"
+                      class="px-5 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-700 dark:text-slate-200 cursor-pointer"
                     >
                       <option :value="1">天族</option>
                       <option :value="2">魔族</option>
                     </select>
                     <select
                       v-model.number="searchServerId"
-                      class="px-5 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:bg-slate-900 outline-none font-black text-slate-700"
+                      class="px-5 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-700 dark:text-slate-200 cursor-pointer"
                     >
                       <option
                         v-for="s in searchServerOptions"
@@ -4388,7 +4564,7 @@ watch(
                   <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2">
                     <input
                       v-model="searchQuick"
-                      class="px-4 py-3 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-700 focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all"
+                      class="px-4 py-3 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-700 focus:border-[#45a6d5] outline-none font-bold text-slate-700 dark:text-slate-100 transition-all"
                       placeholder="输入角色名关键字或者快捷粘贴：角色名[区服简写]（例如 xxx[xxx]）"
                       @keyup.enter="applyQuickToSearchAndSearch"
                     />
@@ -4416,16 +4592,16 @@ watch(
                     <div
                       v-for="c in searchResults"
                       :key="c.characterId"
-                      class="p-3 rounded-2xl border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-800 transition-colors cursor-pointer"
+                      class="p-3 rounded-2xl border border-slate-100 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors cursor-pointer"
                     >
                       <div class="flex items-center justify-between gap-3">
                         <div class="min-w-0">
                           <div
-                            class="font-black text-slate-800 truncate"
+                            class="font-black text-slate-800 dark:text-slate-100 truncate"
                             v-html="c.name"
                           ></div>
                           <div
-                            class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap"
+                            class="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2 flex-wrap"
                           >
                             <span>{{ formatServerDisplay(c.serverId) }}</span>
                             <span>{{ c.race === 1 ? "天族" : "魔族" }}</span>
@@ -4455,30 +4631,69 @@ watch(
               <!-- ==================== TAB 2: 自定义角色 ==================== -->
               <template v-else-if="pickerTab === 'custom'">
                 <div class="space-y-4 py-2">
-                  <div class="text-xs font-bold text-slate-400">
+                  <div class="text-xs font-bold text-slate-400 dark:text-slate-500">
                     手动输入自定义角色信息，可直接添加到当前分组中。
                   </div>
 
                   <!-- 输入表单 -->
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="space-y-1.5">
-                      <label class="text-xs font-black text-slate-700"
+                      <label class="text-xs font-black text-slate-700 dark:text-slate-300"
                         >角色名称 <span class="text-rose-500">*</span></label
                       >
                       <input
                         v-model="customForm.characterName"
-                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:bg-slate-900 outline-none font-bold text-slate-700 transition-all"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-bold text-slate-700 dark:text-slate-100 transition-all"
                         placeholder="请输入角色名称"
                       />
                     </div>
-                    <!-- 职业选择下拉框 -->
+                    <!--种族选择 -->
                     <div class="space-y-1.5">
-                      <label class="text-xs font-black text-slate-700">职业</label>
-                      <select
-                        v-model="customForm.className"
-                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:bg-slate-900 outline-none font-bold text-slate-700 transition-all cursor-pointer"
+                      <label
+                        class="text-xs font-black text-slate-700 dark:text-slate-300"
                       >
-                        <option value="" disabled selected>请选择职业</option>
+                        种族
+                      </label>
+                      <select
+                        v-model.number="customForm.raceId"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-700 dark:text-slate-200 cursor-pointer transition-all"
+                      >
+                        <option :value="1">天族</option>
+                        <option :value="2">魔族</option>
+                      </select>
+                    </div>
+                    <!-- 服务器选择 -->
+                    <div class="space-y-1.5">
+                      <label
+                        class="text-xs font-black text-slate-700 dark:text-slate-300"
+                      >
+                        服务器
+                      </label>
+                      <select
+                        v-model.number="customForm.serverId"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-700 dark:text-slate-200 cursor-pointer transition-all"
+                      >
+                        <option
+                          v-for="s in searchServerOptions"
+                          :key="s.serverId"
+                          :value="s.serverId"
+                        >
+                          {{ formatServerDisplay(s.serverId) }}
+                        </option>
+                      </select>
+                    </div>
+                    <!--  职业选择下拉框 -->
+                    <div class="space-y-1.5">
+                      <label
+                        class="text-xs font-black text-slate-700 dark:text-slate-300"
+                      >
+                        职业
+                      </label>
+                      <select
+                        v-model="normalizedCustomFormClassName"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-700 dark:text-slate-200 transition-all cursor-pointer"
+                      >
+                        <option value="" disabled>请选择职业</option>
                         <option
                           v-for="job in characterClasses"
                           :key="job.id"
@@ -4488,35 +4703,46 @@ watch(
                         </option>
                       </select>
                     </div>
-
                     <div class="space-y-1.5">
-                      <label class="text-xs font-black text-slate-700">等级</label>
+                      <label class="text-xs font-black text-slate-700 dark:text-slate-300"
+                        >等级</label
+                      >
                       <input
                         v-model.number="customForm.characterLevel"
-                        type="number"
-                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:bg-slate-900 outline-none font-bold text-slate-700 transition-all"
-                        placeholder="例如：55"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-bold text-slate-700 dark:text-slate-100 transition-all"
+                        placeholder=""
                       />
                     </div>
 
                     <div class="space-y-1.5">
-                      <label class="text-xs font-black text-slate-700"
-                        >战斗力 / 装备分</label
+                      <label class="text-xs font-black text-slate-700 dark:text-slate-300"
+                        >装备分</label
                       >
                       <input
                         v-model.number="customForm.itemLevel"
-                        type="number"
-                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:bg-slate-900 outline-none font-bold text-slate-700 transition-all"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-bold text-slate-700 dark:text-slate-100 transition-all"
+                        placeholder=""
+                      />
+                    </div>
+                    <div class="space-y-1.5">
+                      <label class="text-xs font-black text-slate-700 dark:text-slate-300"
+                        >战斗力</label
+                      >
+                      <input
+                        v-model.number="customForm.combatPower"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-bold text-slate-700 dark:text-slate-100 transition-all"
                         placeholder="例如：12500"
                       />
                     </div>
                   </div>
 
                   <div class="space-y-1.5">
-                    <label class="text-xs font-black text-slate-700">备注</label>
+                    <label class="text-xs font-black text-slate-700 dark:text-slate-300"
+                      >备注</label
+                    >
                     <input
                       v-model="customForm.remark"
-                      class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:bg-slate-900 outline-none font-bold text-slate-700 transition-all"
+                      class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-bold text-slate-700 dark:text-slate-100 transition-all"
                       placeholder="可选填备注信息"
                     />
                   </div>
@@ -4980,23 +5206,22 @@ watch(
           >
             <!-- 弹窗头部 -->
             <div
-              class="px-8 py-2 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-900 z-10"
+              class="px-8 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900 z-10"
             >
               <div class="flex items-center gap-3">
                 <div class="w-2.5 h-2.5 rounded-full bg-sky-500"></div>
                 <span
-                  class="text-sm font-black uppercase tracking-wider text-slate-700"
+                  class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                   >{{ globalPopupOp?.name }}</span
                 >
               </div>
               <button
                 @click="handleCloseGlobalPopup"
-                class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-colors"
+                class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold transition-colors cursor-pointer"
               >
                 关闭
               </button>
             </div>
-
             <!-- 弹窗表单主体 -->
             <div
               class="p-6 space-y-6 overflow-y-auto custom-scroll flex-1 bg-slate-50 dark:bg-slate-800/50"
@@ -5166,6 +5391,126 @@ watch(
                   </div>
                 </div>
               </div>
+              <!-- 修改角色信息 -->
+              <div
+                v-if="globalPopupOp.type == 'globalModifyCharacter'"
+                class="space-y-5 max-w-lg mx-auto py-2"
+              >
+                <div class="space-y-4 py-2">
+                  <!-- 输入表单 -->
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                      <label class="text-xs font-black text-slate-700 dark:text-slate-300"
+                        >角色名称 <span class="text-rose-500">*</span></label
+                      >
+                      <input
+                        v-model="globalPopupOp.data.characterName"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-bold text-slate-700 dark:text-slate-100 transition-all"
+                        placeholder="请输入角色名称"
+                      />
+                    </div>
+                    <!--种族选择 -->
+                    <div class="space-y-1.5">
+                      <label
+                        class="text-xs font-black text-slate-700 dark:text-slate-300"
+                      >
+                        种族
+                      </label>
+                      <select
+                        v-model.number="globalPopupOp.data.raceId"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-700 dark:text-slate-200 cursor-pointer transition-all"
+                      >
+                        <option :value="1">天族</option>
+                        <option :value="2">魔族</option>
+                      </select>
+                    </div>
+
+                    <!-- 服务器选择 -->
+                    <div class="space-y-1.5">
+                      <label
+                        class="text-xs font-black text-slate-700 dark:text-slate-300"
+                      >
+                        服务器
+                      </label>
+                      <select
+                        v-model.number="globalPopupOp.data.serverId"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-700 dark:text-slate-200 cursor-pointer transition-all"
+                      >
+                        <option
+                          v-for="s in searchServerOptions"
+                          :key="s.serverId"
+                          :value="s.serverId"
+                        >
+                          {{ formatServerDisplay(s.serverId) }}
+                        </option>
+                      </select>
+                    </div>
+                    <!--  职业选择下拉框 -->
+                    <div class="space-y-1.5">
+                      <label
+                        class="text-xs font-black text-slate-700 dark:text-slate-300"
+                      >
+                        职业
+                      </label>
+                      <select
+                        v-model="normalizedClassName"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-700 dark:text-slate-200 transition-all cursor-pointer"
+                      >
+                        <option value="" disabled>请选择职业</option>
+                        <option
+                          v-for="job in characterClasses"
+                          :key="job.id"
+                          :value="job.name"
+                        >
+                          {{ job.name }}
+                        </option>
+                      </select>
+                    </div>
+                    <div class="space-y-1.5">
+                      <label class="text-xs font-black text-slate-700 dark:text-slate-300"
+                        >等级</label
+                      >
+                      <input
+                        v-model.number="globalPopupOp.data.characterLevel"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-bold text-slate-700 dark:text-slate-100 transition-all"
+                        placeholder=""
+                      />
+                    </div>
+
+                    <div class="space-y-1.5">
+                      <label class="text-xs font-black text-slate-700 dark:text-slate-300"
+                        >装备分</label
+                      >
+                      <input
+                        v-model.number="globalPopupOp.data.itemLevel"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-bold text-slate-700 dark:text-slate-100 transition-all"
+                        placeholder=""
+                      />
+                    </div>
+                    <div class="space-y-1.5">
+                      <label class="text-xs font-black text-slate-700 dark:text-slate-300"
+                        >战斗力</label
+                      >
+                      <input
+                        v-model.number="globalPopupOp.data.combatPower"
+                        class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-bold text-slate-700 dark:text-slate-100 transition-all"
+                        placeholder="例如：12500"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-black text-slate-700 dark:text-slate-300"
+                      >备注</label
+                    >
+                    <input
+                      v-model="globalPopupOp.data.remark"
+                      class="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-bold text-slate-700 dark:text-slate-100 transition-all"
+                      placeholder="可选填备注信息"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- 弹窗底部操作按钮 -->
@@ -5192,6 +5537,7 @@ watch(
               <!-- 奥德补充 -->
               <div
                 class="border-t border-slate-100 dark:border-slate-700 grid grid-cols-3 gap-2"
+                v-if="globalPopupOp.type === 'globalSimpleEnergy'"
               >
                 <button
                   type="button"
@@ -5230,6 +5576,15 @@ watch(
                   确定补充
                 </button>
               </div>
+              <!-- 修改角色信息 -->
+              <button
+                type="button"
+                v-if="globalPopupOp.type === 'globalModifyCharacter'"
+                class="px-6 py-2.5 rounded-2xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-colors cursor-pointer shadow-sm active:scale-95"
+                @click="handleGlobalPopupFill('globalModifyCharacter')"
+              >
+                确认修改角色
+              </button>
             </div>
           </div>
         </div>
