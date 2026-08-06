@@ -5686,7 +5686,6 @@ defineExpose({
                       角色奥德综合兑换管理
                     </div>
                   </div>
-                  <span class="text-[10px] font-bold text-slate-400">双模块联动</span>
                 </div>
 
                 <!-- 内容网格：左右/上下自适应并排 -->
@@ -6338,7 +6337,7 @@ defineExpose({
                   </div>
                 </div>
               </div>
-              <!-- ================= 3. 地区C与地区D指令书模块（结构化紧凑交互补充） ================= -->
+              <!-- ================= 3. 地区C与地区B指令书模块（结构化紧凑交互补充） ================= -->
               <div
                 class="p-5 bg-gradient-to-r from-sky-50 via-white to-sky-50/60 dark:from-slate-900/80 dark:via-slate-900 dark:to-slate-900/60 border border-sky-200/80 dark:border-slate-700/80 px-4 py-3.5 shadow-2xs space-y-4 rounded-2xl"
               >
@@ -6359,11 +6358,11 @@ defineExpose({
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                  <!-- 1. 地区C指令书 (上限12) -->
+                  <!-- 1. 地区A指令书 (上限12) -->
                   <div
                     class="p-3 border rounded-2xl space-y-2 transition-all"
                     :class="
-                      (exchangeFormValues.regionCCount || 0) >= 12
+                      (exchangeFormValues.regionACount || 0) >= 12
                         ? 'bg-sky-50/40 dark:bg-sky-950/20 border-sky-200 dark:border-sky-800/60'
                         : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700/80'
                     "
@@ -6371,15 +6370,15 @@ defineExpose({
                     <div
                       class="flex justify-between font-black text-xs pb-1 border-b"
                       :class="
-                        (exchangeFormValues.regionCCount || 0) >= 12
+                        (exchangeFormValues.regionACount || 0) >= 12
                           ? 'text-sky-800 dark:text-sky-300 border-sky-100 dark:border-sky-900/50'
                           : 'text-slate-700 dark:text-slate-200 border-slate-100 dark:border-slate-700'
                       "
                     >
-                      <span>地区C指令书</span>
+                      <span>地区A指令书</span>
                       <span
                         :class="
-                          (exchangeFormValues.regionCCount || 0) >= 12
+                          (exchangeFormValues.regionACount || 0) >= 12
                             ? 'text-sky-700 dark:text-sky-400 font-black'
                             : 'text-sky-600 dark:text-sky-400'
                         "
@@ -6388,7 +6387,7 @@ defineExpose({
                     </div>
 
                     <!-- 已达成状态占位 -->
-                    <template v-if="(exchangeFormValues.regionCCount || 0) >= 12">
+                    <template v-if="(exchangeFormValues.regionACount || 0) >= 12">
                       <div
                         class="py-4 flex flex-col items-center justify-center space-y-1 bg-white dark:bg-slate-900/90 border border-sky-200/60 dark:border-sky-900/50 rounded-xl"
                       >
@@ -6399,7 +6398,7 @@ defineExpose({
                         </div>
                         <span
                           class="text-[11px] font-black text-sky-800 dark:text-sky-300"
-                          >地区C指令书已拉满</span
+                          >地区A指令书已拉满</span
                         >
                       </div>
                     </template>
@@ -6412,7 +6411,7 @@ defineExpose({
                         >
                           <span>当前数量</span>
                           <span class="text-sky-600 dark:text-sky-400 font-black"
-                            >{{ exchangeFormValues.regionCCount || 0 }} / 12</span
+                            >{{ exchangeFormValues.regionACount || 0 }} / 12</span
                           >
                         </div>
                         <div class="flex items-center gap-1.5">
@@ -6420,16 +6419,16 @@ defineExpose({
                             type="button"
                             class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-black text-xs flex items-center justify-center cursor-pointer transition-colors"
                             @click="
-                              exchangeFormValues.regionCCount = Math.max(
+                              exchangeFormValues.regionACount = Math.max(
                                 0,
-                                (exchangeFormValues.regionCCount || 0) - 1
+                                (exchangeFormValues.regionACount || 0) - 1
                               )
                             "
                           >
                             -
                           </button>
                           <input
-                            v-model.number="exchangeFormValues.regionCCount"
+                            v-model.number="exchangeFormValues.regionACount"
                             min="0"
                             max="12"
                             class="flex-1 px-1 py-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-xs rounded outline-none focus:border-sky-400 text-slate-800 dark:text-slate-100"
@@ -6438,9 +6437,9 @@ defineExpose({
                             type="button"
                             class="w-6 h-6 rounded bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900/80 text-sky-700 dark:text-sky-300 font-black text-xs flex items-center justify-center cursor-pointer transition-colors"
                             @click="
-                              exchangeFormValues.regionCCount = Math.min(
+                              exchangeFormValues.regionACount = Math.min(
                                 12,
-                                (exchangeFormValues.regionCCount || 0) + 1
+                                (exchangeFormValues.regionACount || 0) + 1
                               )
                             "
                           >
@@ -6450,7 +6449,7 @@ defineExpose({
                         <button
                           type="button"
                           class="w-full py-1 bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 font-bold text-[10px] rounded-lg transition-all cursor-pointer"
-                          @click="exchangeFormValues.regionCCount = 12"
+                          @click="exchangeFormValues.regionACount = 12"
                         >
                           一键拉满 (12)
                         </button>
@@ -6458,11 +6457,11 @@ defineExpose({
                     </template>
                   </div>
 
-                  <!-- 2. 地区D指令书 (上限12) -->
+                  <!-- 2. 地区B指令书 (上限12) -->
                   <div
                     class="p-3 border rounded-2xl space-y-2 transition-all"
                     :class="
-                      (exchangeFormValues.regionDCount || 0) >= 12
+                      (exchangeFormValues.regionBCount || 0) >= 12
                         ? 'bg-sky-50/40 dark:bg-sky-950/20 border-sky-200 dark:border-sky-800/60'
                         : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700/80'
                     "
@@ -6470,15 +6469,15 @@ defineExpose({
                     <div
                       class="flex justify-between font-black text-xs pb-1 border-b"
                       :class="
-                        (exchangeFormValues.regionDCount || 0) >= 12
+                        (exchangeFormValues.regionBCount || 0) >= 12
                           ? 'text-sky-800 dark:text-sky-300 border-sky-100 dark:border-sky-900/50'
                           : 'text-slate-700 dark:text-slate-200 border-slate-100 dark:border-slate-700'
                       "
                     >
-                      <span>地区D指令书</span>
+                      <span>地区B指令书</span>
                       <span
                         :class="
-                          (exchangeFormValues.regionDCount || 0) >= 12
+                          (exchangeFormValues.regionBCount || 0) >= 12
                             ? 'text-sky-700 dark:text-sky-400 font-black'
                             : 'text-sky-600 dark:text-sky-400'
                         "
@@ -6487,7 +6486,7 @@ defineExpose({
                     </div>
 
                     <!-- 已达成状态占位 -->
-                    <template v-if="(exchangeFormValues.regionDCount || 0) >= 12">
+                    <template v-if="(exchangeFormValues.regionBCount || 0) >= 12">
                       <div
                         class="py-4 flex flex-col items-center justify-center space-y-1 bg-white dark:bg-slate-900/90 border border-sky-200/60 dark:border-sky-900/50 rounded-xl"
                       >
@@ -6498,7 +6497,7 @@ defineExpose({
                         </div>
                         <span
                           class="text-[11px] font-black text-sky-800 dark:text-sky-300"
-                          >地区D指令书已拉满</span
+                          >地区B指令书已拉满</span
                         >
                       </div>
                     </template>
@@ -6511,7 +6510,7 @@ defineExpose({
                         >
                           <span>当前数量</span>
                           <span class="text-sky-600 dark:text-sky-400 font-black"
-                            >{{ exchangeFormValues.regionDCount || 0 }} / 12</span
+                            >{{ exchangeFormValues.regionBCount || 0 }} / 12</span
                           >
                         </div>
                         <div class="flex items-center gap-1.5">
@@ -6519,16 +6518,16 @@ defineExpose({
                             type="button"
                             class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-black text-xs flex items-center justify-center cursor-pointer transition-colors"
                             @click="
-                              exchangeFormValues.regionDCount = Math.max(
+                              exchangeFormValues.regionBCount = Math.max(
                                 0,
-                                (exchangeFormValues.regionDCount || 0) - 1
+                                (exchangeFormValues.regionBCount || 0) - 1
                               )
                             "
                           >
                             -
                           </button>
                           <input
-                            v-model.number="exchangeFormValues.regionDCount"
+                            v-model.number="exchangeFormValues.regionBCount"
                             min="0"
                             max="12"
                             class="flex-1 px-1 py-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-xs rounded outline-none focus:border-sky-400 text-slate-800 dark:text-slate-100"
@@ -6537,9 +6536,9 @@ defineExpose({
                             type="button"
                             class="w-6 h-6 rounded bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900/80 text-sky-700 dark:text-sky-300 font-black text-xs flex items-center justify-center cursor-pointer transition-colors"
                             @click="
-                              exchangeFormValues.regionDCount = Math.min(
+                              exchangeFormValues.regionBCount = Math.min(
                                 12,
-                                (exchangeFormValues.regionDCount || 0) + 1
+                                (exchangeFormValues.regionBCount || 0) + 1
                               )
                             "
                           >
@@ -6549,7 +6548,7 @@ defineExpose({
                         <button
                           type="button"
                           class="w-full py-1 bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 font-bold text-[10px] rounded-lg transition-all cursor-pointer"
-                          @click="exchangeFormValues.regionDCount = 12"
+                          @click="exchangeFormValues.regionBCount = 12"
                         >
                           一键拉满 (12)
                         </button>

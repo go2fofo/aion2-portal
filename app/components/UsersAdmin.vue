@@ -2003,13 +2003,15 @@ watch(
   <div
     class="p-2 bg-slate-50 dark:bg-slate-800 text-slate-800 rounded-3xl shadow-sm space-y-4 mx-auto border border-slate-100 dark:border-slate-700 min-h-[90vh]"
   >
-<!-- 顶部介绍 -->
+    <!-- 顶部介绍 -->
     <div
       class="w-full bg-white dark:bg-slate-900 text-slate-800 px-5 py-3 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/80 flex flex-col md:flex-row items-center justify-between gap-3 text-xs"
     >
       <!-- 左侧：项目说明与 GitHub 源码 -->
       <div class="flex items-center gap-2 overflow-hidden flex-wrap">
-        <span class="text-slate-700 dark:text-slate-200 font-bold truncate"> ✨ Aion2 管理系统已开源 </span>
+        <span class="text-slate-700 dark:text-slate-200 font-bold truncate">
+          ✨ Aion2 管理系统已开源
+        </span>
         <span class="text-slate-300 dark:text-slate-700">|</span>
         <a
           href="https://github.com/go2fofo/aion2-portal"
@@ -2020,16 +2022,16 @@ watch(
           GitHub 源码
         </a>
       </div>
-      
 
       <!-- 中间：独立展示的版本标签 -->
       <div class="flex items-center justify-center shrink-0">
-        <span class="px-3 py-1 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-black text-xs border border-sky-100 dark:border-sky-800/50 shadow-2xs flex items-center gap-1.5">
+        <span
+          class="px-3 py-1 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-black text-xs border border-sky-100 dark:border-sky-800/50 shadow-2xs flex items-center gap-1.5"
+        >
           <span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
-          版本：S3 0.0.5 最新版
+          每天都会更新～当前版本：S3 0.0.5 最新版
         </span>
       </div>
-
 
       <!-- 右侧：高亮凸显的“意见反馈”核心交互按钮 -->
       <div class="flex items-center shrink-0 w-full md:w-auto justify-end">
@@ -2054,7 +2056,7 @@ watch(
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
       <!-- 总角色数 -->
       <div
-        class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between gap-4"
+        class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between gap-4"
       >
         <!-- 左侧：总角色数 -->
         <div class="shrink-0">
@@ -2080,18 +2082,18 @@ watch(
 
           <!-- 每一项排开的独立卡片列表 -->
           <div
-            class="flex items-center gap-2 flex-wrap justify-end max-w-full overflow-x-auto py-0.5 custom-scroll"
+            class="flex items-center gap-1 flex-wrap justify-start max-w-full overflow-x-auto py-1 custom-scroll"
           >
             <template v-for="group in allGroups" :key="group.name">
               <button
                 type="button"
                 @click="handleGroupClick(group)"
-                class="px-3 py-2 rounded-2xl border transition-all cursor-pointer shadow-xs shrink-0 active:scale-95 flex flex-col items-start gap-1.5 text-left min-w-[120px]"
+                class="px-3 py-2.5 rounded-2xl border transition-all cursor-pointer shadow-xs shrink-0 active:scale-95 flex flex-col justify-between gap-2 text-left w-[138px] h-[58px]"
                 :class="[
                   // 依据签到状态变换底色与边框（兼顾黑夜模式下的深色微调）
                   group.dailySignIn
-                    ? 'bg-emerald-50/60 dark:bg-emerald-950/20 hover:bg-emerald-100/70 dark:hover:bg-emerald-900/30 border-emerald-200/90 dark:border-emerald-800/50 text-emerald-900 dark:text-emerald-200'
-                    : 'bg-rose-50/60 dark:bg-rose-950/20 hover:bg-rose-100/70 dark:hover:bg-rose-900/30 border-rose-200/90 dark:border-rose-800/50 text-rose-900 dark:text-rose-200',
+                    ? 'bg-emerald-50/70 dark:bg-emerald-950/25 hover:bg-emerald-100/80 dark:hover:bg-emerald-900/40 border-emerald-200/90 dark:border-emerald-800/60 text-emerald-900 dark:text-emerald-200'
+                    : 'bg-rose-50/70 dark:bg-rose-950/25 hover:bg-rose-100/80 dark:hover:bg-rose-900/40 border-rose-200/90 dark:border-rose-800/60 text-rose-900 dark:text-rose-200',
                 ]"
                 :title="
                   group.name +
@@ -2102,9 +2104,9 @@ watch(
                 "
               >
                 <!-- 第一行：分组名称与签到状态文字标签 -->
-                <div class="flex items-center justify-between w-full gap-2">
+                <div class="flex items-center justify-between w-full gap-1.5">
                   <span
-                    class="text-xs font-black truncate max-w-[70px]"
+                    class="text-xs font-black truncate max-w-[76px]"
                     :class="
                       group.dailySignIn
                         ? 'text-emerald-900 dark:text-emerald-300'
@@ -2125,22 +2127,22 @@ watch(
                   </span>
                 </div>
 
-                <!-- 第二行：特级会员状态显示 -->
+                <!-- 第二行：特级会员状态显示（底部固定对齐） -->
                 <div
                   class="w-full pt-1 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-[9px] font-bold"
                 >
                   <template v-if="group.premiumMember">
                     <span
-                      class="text-amber-700 dark:text-amber-400 flex items-center gap-1 font-black"
+                      class="text-amber-700 dark:text-amber-400 flex items-center gap-0.5 font-black truncate"
                     >
-                      <span>特级会员剩余</span>
+                      <span class="opacity-80">剩余</span>
                       <strong class="text-amber-800 dark:text-amber-300"
                         >{{ group.premiumRemainingMemberDay || 0 }}天</strong
                       >
                     </span>
                   </template>
                   <template v-else>
-                    <span class="text-slate-400 dark:text-slate-500 font-medium"
+                    <span class="text-slate-400 dark:text-slate-500 font-medium truncate"
                       >未开通会员</span
                     >
                   </template>
@@ -2153,7 +2155,7 @@ watch(
 
       <!-- 2. 今日收益吉纳数（基于 runLogs 实时计算当前组或全部的绑定与非绑定） -->
       <div
-        class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
+        class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
       >
         <div>
           <div class="flex items-center justify-between">
@@ -2208,7 +2210,7 @@ watch(
 
       <!-- 3. 总奥德能量 (点) -->
       <div
-        class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
+        class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
       >
         <div>
           <div

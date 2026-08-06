@@ -69,6 +69,39 @@ const gridColsClass = computed(() => {
       return "grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
   }
 });
+// 整体调大尺寸后的挂签样式类
+const gameplayBadgeClass = computed(() => {
+  const cols = Number(props.config?.columns) || 3;
+
+  if (cols <= 2) {
+    // 2列及以下：特大号！大幅加宽、加高，极具视觉冲击力与分量感
+    return "px-6 py-2.5 text-sm gap-2";
+  } else if (cols === 3) {
+    // 3列：标准适中偏大
+    return "px-5 py-2 text-[13px] gap-1.5";
+  } else if (cols === 4) {
+    // 4列：适中偏紧凑
+    return "px-4 py-1.5 text-[11px] gap-1.5";
+  } else {
+    // 5列及以上：紧凑微型
+    return "px-3 py-1 text-[10px] gap-1";
+  }
+});
+
+// 对应各列数的图标大小（完美匹配 2/3/4/5 列的四档划分）
+const gameplayIconClass = computed(() => {
+  const cols = Number(props.config?.columns) || 3;
+  
+  if (cols <= 2) {
+    return "w-5 h-5";      // 2列及以下：大图标
+  } else if (cols === 3) {
+    return "w-4 h-4";      // 3列：适中偏大
+  } else if (cols === 4) {
+    return "w-3.5 h-3.5";  // 4列：紧凑适中
+  } else {
+    return "w-3 h-3";      // 5列及以上：微型图标
+  }
+});
 
 //  当前模式判断辅助
 const currentMode = computed(() => props.config?.mode || "default");
@@ -217,27 +250,45 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
     <div
       v-for="char in characters"
       :key="char.characterId || char.id"
-      class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-4 rounded-3xl shadow-sm space-y-4 border-[#45a6d5] transition-all flex flex-col overflow-hidden"
+      class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-2 rounded-3xl shadow-sm space-y-4 border-[#45a6d5] transition-all flex flex-col"
       :class="char.locked ? 'opacity-95 bg-slate-50 dark:bg-slate-800/50' : ''"
     >
-      <!-- 右上角“游玩消耗”精致角标按钮 -->
+      <!-- 右上角“游玩消耗”挂载式精致标签按钮（自适应列数大小） -->
       <button
         type="button"
-        class="absolute top-0 right-0 px-3.5 py-1.5 bg-gradient-to-l from-purple-500 to-indigo-500 text-white font-black text-[12px] rounded-bl-2xl shadow-sm hover:from-purple-600 hover:to-indigo-600 transition-all tracking-wider z-10"
+        :class="[
+          gameplayBadgeClass,
+          'absolute -top-[1px] -right-[1px] bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-500 dark:to-indigo-500 text-white font-black rounded-bl-3xl rounded-tr-3xl shadow-[0_4px_16px_-4px_rgba(147,51,234,0.6)] hover:shadow-[0_6px_20px_-4px_rgba(147,51,234,0.8)] hover:scale-105 transition-all tracking-wider z-20 flex items-center active:scale-95',
+        ]"
         @click="emit('click-gameplay', char)"
       >
-        点击进行游玩消耗/补充
+        <!-- 小图标点缀 -->
+        <svg
+          :class="gameplayIconClass"
+          class="text-purple-200 animate-pulse shrink-0"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M11.42 15.17L17.25 21A2.5 2.5 0 0021 17.25l-5.83-5.83M15 5.5l3.5 3.5m-11.5 8.5l-4-4 8.5-8.5 4 4-8.5 8.5z"
+          ></path>
+        </svg>
+        <span>游玩消耗/补充</span>
       </button>
 
-      <!-- 顶部标题栏（所有模式均展示） -->
+      <!-- 顶部标题栏（所有模式均展示，完美兼容小卡片紧凑布局） -->
       <div
-        class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/80 pb-3 pr-16 transition-colors"
+        class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/80 pb-1 transition-colors"
       >
-        <div class="flex items-center gap-3">
-          <!-- 锁定/解锁按钮（纯 SVG 图标版） -->
+        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+          <!-- 锁定/解锁按钮（纯 SVG 图标版，固定尺寸防挤压） -->
           <button
             type="button"
-            class="w-8 h-8 rounded-xl flex items-center justify-center border text-xs font-bold transition-all shadow-sm"
+            class="w-8 h-8 rounded-xl flex items-center justify-center border text-xs font-bold transition-all shadow-xs shrink-0"
             :class="
               char.locked
                 ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900/80'
@@ -287,7 +338,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
 
           <!-- 头像容器 -->
           <div
-            class="w-10 h-10 rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-[#45a6d5] dark:text-sky-400 font-black flex items-center justify-center border border-sky-100 dark:border-sky-900/60 shadow-sm overflow-hidden"
+            class="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-[#45a6d5] dark:text-sky-400 font-black flex items-center justify-center border border-sky-100 dark:border-sky-900/60 shadow-xs overflow-hidden shrink-0"
           >
             <img
               v-if="char.profileImage"
@@ -295,40 +346,47 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
               alt="avatar"
               class="w-full h-full object-cover"
             />
-            <span v-else>{{
+            <span v-else class="text-xs">{{
               char.characterName ? char.characterName.charAt(0) : "角"
             }}</span>
           </div>
 
-          <!-- 角色基本信息 -->
-          <div @click="emit('task-click', char, '', 'globalModifyCharacter')">
+          <!-- 角色基本信息（增加 min-w-0 与 truncate 防止挤压换行） -->
+          <div
+            class="min-w-0 flex-1 cursor-pointer select-none"
+            @click="emit('task-click', char, '', 'globalModifyCharacter')"
+          >
             <!-- 角色名称与职业标签 -->
             <div
-              class="text-sm font-black text-slate-800 dark:text-slate-100 flex items-center gap-2"
+              class="text-xs font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5"
             >
-              <span>{{ char.characterName || "未命名角色" }}</span>
+              <span class="truncate max-w-[110px]">{{
+                char.characterName || "未命名角色"
+              }}</span>
               <span
-                class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-slate-700"
+                class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-slate-700 shrink-0"
               >
                 {{ char.className || "选择职业" }}
               </span>
             </div>
 
-            <!-- 等级、种族、服务器 -->
+            <!-- 等级、种族、服务器（极简紧凑） -->
             <div
-              class="text-[10px] font-bold text-slate-400 dark:text-slate-400 mt-0.5 flex items-center gap-2"
+              class="text-[9px] font-bold text-slate-400 dark:text-slate-400 mt-0.5 flex items-center gap-1 truncate"
             >
-              <span>等级: {{ char.characterLevel || 1 }}</span>
+              <span>Lv.{{ char.characterLevel || 1 }}</span>
               <span>·</span>
-              <span>{{ char.raceName || "未知种族" }}</span>
-              <span>·</span>
-              <span>{{ char.serverName || "未知服务器" }}</span>
+              <span class="truncate">{{ char.raceName || "未知种族" }}</span>
+              <template v-if="char.serverName">
+                <span>·</span>
+                <span class="truncate">{{ char.serverName }}</span>
+              </template>
             </div>
           </div>
         </div>
       </div>
 
-<!-- ================= 模式一：基础数值指标（非 simple 模式或 custom 模式下显示） ================= -->
+      <!-- ================= 模式一：基础数值指标（非 simple 模式或 custom 模式下显示） ================= -->
       <div
         v-if="
           currentMode !== 'simple' && (currentMode !== 'custom' || fields.showCombatPower)
@@ -339,7 +397,9 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         <div
           class="bg-white dark:bg-slate-900/80 p-3 rounded-2xl border-2 border-yellow-100 dark:border-yellow-900/40 shadow-sm flex flex-col justify-between space-y-1"
         >
-          <div class="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase leading-none">
+          <div
+            class="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase leading-none"
+          >
             装等
           </div>
           <div class="text-yellow-600 dark:text-yellow-400 font-black text-xs">
@@ -350,7 +410,9 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         <div
           class="bg-white dark:bg-slate-900/80 p-3 rounded-2xl border-2 border-emerald-100 dark:border-emerald-900/40 shadow-sm flex flex-col justify-between space-y-1"
         >
-          <div class="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase leading-none">
+          <div
+            class="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase leading-none"
+          >
             战斗力
           </div>
           <div class="text-emerald-700 dark:text-emerald-400 font-black text-xs">
@@ -830,6 +892,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           </div>
         </div>
       </div>
+
       <!-- ================= 模式五：备注输入框 ================= -->
       <div
         v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showNotes)"
