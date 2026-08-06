@@ -946,10 +946,10 @@ const currentTabTitle = computed(() => {
 });
 
 // 根据分组 ID 获取分组名称
-const getGroupName = (groupId) => {
-  if (!groupId) return "默认分组";
+const getGroup = (groupId) => {
+  if (!groupId) return {};
   const found = props.gameData?.groups?.find((g) => Number(g.id) === Number(groupId));
-  return found ? found.name : "默认分组";
+  return found ? found : {};
 };
 /**
  * 校验角色表单数据
@@ -1043,6 +1043,42 @@ const handleTaskClick = (char, field, tab) => {
       //发送给父组件
       emit("task-click", char, tab);
       break;
+    case "exchangeCharOD": //角色卡片点击奥德快捷核销
+      if (props.cardConfig == "simple") {
+        //单击直接修改
+        let updatedChar = cloneDeep(char);
+        // 定义各任务类型的满额上限
+        const limits = {
+          materialCharOd: 4, // 物质转换奥德
+          breezeCharOd: 4, // 商店奥德
+        };
+
+        const maxVal = limits[field] || 0;
+        const currentVal = updatedChar[field] || 0;
+
+        // 判断当前是否已达标（如果当前值小于上限，则视为未完成，点击后填满；反之清空）
+        const isCompleted = currentVal >= maxVal;
+
+        switch (field) {
+          case "breezeCharOd":
+            updatedChar.breezeCharOd = isCompleted ? 0 : 4;
+            updatedChar.isBreezeCharOd = !isCompleted;
+            break;
+          case "materialCharOd":
+            updatedChar.materialCharOd = isCompleted ? 0 : 4;
+            updatedChar.isMaterialCharOd = !isCompleted;
+            break;
+
+          default:
+            console.warn(`未知类型: ${field}`);
+            return;
+        }
+
+        emit("update-character", updatedChar);
+      } else {
+        //发送给父组件
+        emit("task-click", char, "globalExchangeCharOD",field);
+      }
 
     default:
       break;
@@ -1061,11 +1097,11 @@ const activeTab = ref("consume");
 const saving = ref(false);
 
 // 点击游玩消耗触发
-const handleClickGameplay = (char, tab,gGroup) => {
+const handleClickGameplay = (char, tab, gGroup) => {
   if (tab) {
     activeTab.value = tab;
   }
-  
+
   console.log(
     `🔍 [GroupCharacterPanel:724] %c 点击游玩消耗触发 char: `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
@@ -2316,7 +2352,7 @@ const handleExecuteExchange = () => {
     ...cloneDeep(currentTarget),
   };
   const nowStr = new Date().toLocaleString();
-  // 赋值角色od：商店周奥德能量（上限 5）
+  // 赋值角色od：商店周奥德能量（上限 4）
   if (breezeCharOd && breezeCharOd > 0) {
     updatedCharacter.breezeCharOd = (updatedCharacter.breezeCharOd || 0) + breezeCharOd;
     updatedCharacter.breezeCharOdDate = nowStr;
@@ -2327,7 +2363,7 @@ const handleExecuteExchange = () => {
     }
   }
 
-  // 物质变换角色奥德能量（上限 5，兼容可能没有的情况）
+  // 物质变换角色奥德能量（上限 4，兼容可能没有的情况）
   if (materialCharOd && materialCharOd > 0) {
     updatedCharacter.materialCharOd =
       (updatedCharacter.materialCharOd || 0) + materialCharOd;
@@ -2787,7 +2823,7 @@ defineExpose({
       v-if="filteredCharacters.length > 0"
       :characters="filteredCharacters"
       :config="props.cardConfig"
-      :get-group-name="getGroupName"
+      :get-group="getGroup"
       :format-combat-power="formatCombatPower"
       @click-gameplay="handleClickGameplay"
       @toggle-lock="(char) => emit('toggle-lock', char)"

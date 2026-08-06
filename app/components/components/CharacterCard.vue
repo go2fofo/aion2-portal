@@ -14,10 +14,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  // 分组获取方法
-  getGroupName: {
+  // 当前分组数据
+  getGroup: {
     type: Function,
-    default: (groupId) => groupId || "默认分组",
+    default: () => {},
   },
   // 戦斗力格式化方法
   formatCombatPower: {
@@ -91,15 +91,15 @@ const gameplayBadgeClass = computed(() => {
 // 对应各列数的图标大小（完美匹配 2/3/4/5 列的四档划分）
 const gameplayIconClass = computed(() => {
   const cols = Number(props.config?.columns) || 3;
-  
+
   if (cols <= 2) {
-    return "w-5 h-5";      // 2列及以下：大图标
+    return "w-5 h-5"; // 2列及以下：大图标
   } else if (cols === 3) {
-    return "w-4 h-4";      // 3列：适中偏大
+    return "w-4 h-4"; // 3列：适中偏大
   } else if (cols === 4) {
-    return "w-3.5 h-3.5";  // 4列：紧凑适中
+    return "w-3.5 h-3.5"; // 4列：紧凑适中
   } else {
-    return "w-3 h-3";      // 5列及以上：微型图标
+    return "w-3 h-3"; // 5列及以上：微型图标
   }
 });
 
@@ -243,6 +243,8 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
   };
 };
 //================ 周常/日常 结束 =====================
+
+
 </script>
 
 <template>
@@ -562,7 +564,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
               >{{ char.storedEnergy || 0 }}</span
             >
             <span class="text-slate-400 dark:text-slate-500 font-medium ml-0.5"
-              >/ {{ char.premiumMember ? 840 : 560 }}</span
+              >/ {{ getGroup(char.group).premiumMember ? 840 : 560 }}</span
             >
           </div>
         </div>
@@ -799,19 +801,21 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         </button>
       </div>
       <!-- ================= 首页精简版：角色奥德展示卡片 ================= -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
         <!-- 1. 微风商店 - 角色奥德 -->
         <div
-          class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between shadow-xs transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 dark:hover:bg-sky-950/30 cursor-pointer"
-          @click="emit('task-click', char, 'breezeCharOd', 'exchange')"
+          class="p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between shadow-xs transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 dark:hover:bg-sky-950/30 cursor-pointer"
+          @click="emit('task-click', char, 'breezeCharOd', 'exchangeCharOD')"
+          v-if="getGroup(char.group).premiumMember"
         >
-          <div class="flex items-center gap-2">
-            <div class="w-2 h-2 rounded-full bg-[#45a6d5]"></div>
-            <span class="font-bold text-slate-700 dark:text-slate-200 text-xs"
-              >微风商店·奥德</span
+          <div class="flex items-center gap-1.5 min-w-0">
+            <div class="w-1.5 h-1.5 rounded-full bg-[#45a6d5] shrink-0"></div>
+            <span
+              class="font-bold text-slate-700 dark:text-slate-200 text-[11px] truncate"
+              >商店奥德</span
             >
           </div>
-          <div class="flex items-center gap-1.5 font-black text-xs">
+          <div class="flex items-center gap-1 font-black text-[11px] shrink-0">
             <span
               :class="
                 (char.breezeCharOd || 0) >= 4
@@ -823,7 +827,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
             </span>
             <span class="text-slate-300 dark:text-slate-600 font-normal">/ 4</span>
             <span
-              class="w-4 h-4 rounded-full flex items-center justify-center text-[10px]"
+              class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
               :class="
                 (char.breezeCharOd || 0) >= 4
                   ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/80'
@@ -833,7 +837,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
               <template v-if="(char.breezeCharOd || 0) >= 4">✓</template>
               <template v-else>
                 <svg
-                  class="w-2.5 h-2.5"
+                  class="w-2 h-2"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -848,16 +852,17 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
 
         <!-- 2. 物质变换 - 角色奥德 -->
         <div
-          class="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between shadow-xs transition-all hover:border-amber-400/50 hover:bg-amber-50/30 dark:hover:bg-amber-950/30 cursor-pointer"
-          @click="emit('task-click', char, 'materialCharOd', 'exchange')"
+          class="p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between shadow-xs transition-all hover:border-amber-400/50 hover:bg-amber-50/30 dark:hover:bg-amber-950/30 cursor-pointer"
+          @click="emit('task-click', char, 'materialCharOd', 'exchangeCharOD')"
         >
-          <div class="flex items-center gap-2">
-            <div class="w-2 h-2 rounded-full bg-amber-400"></div>
-            <span class="font-bold text-slate-700 dark:text-slate-200 text-xs"
-              >物质变换·奥德</span
+          <div class="flex items-center gap-1.5 min-w-0">
+            <div class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></div>
+            <span
+              class="font-bold text-slate-700 dark:text-slate-200 text-[11px] truncate"
+              >变换奥德</span
             >
           </div>
-          <div class="flex items-center gap-1.5 font-black text-xs">
+          <div class="flex items-center gap-1 font-black text-[11px] shrink-0">
             <span
               :class="
                 (char.materialCharOd || 0) >= 4
@@ -869,7 +874,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
             </span>
             <span class="text-slate-300 dark:text-slate-600 font-normal">/ 4</span>
             <span
-              class="w-4 h-4 rounded-full flex items-center justify-center text-[10px]"
+              class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
               :class="
                 (char.materialCharOd || 0) >= 4
                   ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/80'
@@ -879,7 +884,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
               <template v-if="(char.materialCharOd || 0) >= 4">✓</template>
               <template v-else>
                 <svg
-                  class="w-2.5 h-2.5"
+                  class="w-2 h-2"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"

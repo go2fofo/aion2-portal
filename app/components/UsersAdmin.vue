@@ -1712,70 +1712,74 @@ const clearGameData = async () => {
  * @param {string} taskType 任务类型
  */
 const handleTaskClick = async (taskType) => {
-    console.log(`🔍 [UsersAdmin:1715] %c handleTaskClick--当前点击的taskType: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', taskType);
-    // $alert("设置成功")
-    
-    let newAtvTabGroup = cloneDeep(getAtvTabGroup.value);
-    if (!newAtvTabGroup) return;
+  console.log(
+    `🔍 [UsersAdmin:1715] %c handleTaskClick--当前点击的taskType: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    taskType
+  );
+  // $alert("设置成功")
 
-    // 定义各任务类型的满额上限
-    const limits = {
-        breezeAccountOd: 16,
-        materialAccountOd: 16,
-        breezeReviveStone: 7,
-        breezeRiftTicket: 21,
-        breezeDailyTicket: 21,
-        breezeNightmareTicket: 14,
-        regionACount: 12,
-        regionBCount: 12
-    };
+  let newAtvTabGroup = cloneDeep(getAtvTabGroup.value);
+  if (!newAtvTabGroup) return;
 
-    const maxVal = limits[taskType] || 0;
-    const currentVal = newAtvTabGroup[taskType] || 0;
+  // 定义各任务类型的满额上限
+  const limits = {
+    breezeAccountOd: 16,
+    materialAccountOd: 16,
+    breezeReviveStone: 7,
+    breezeRiftTicket: 21,
+    breezeDailyTicket: 21,
+    breezeNightmareTicket: 14,
+    regionACount: 12,
+    regionBCount: 12,
+  };
 
-    // 判断当前是否已达标（如果当前值小于上限，则视为未完成，点击后填满；反之清空）
-    const isCompleted = currentVal >= maxVal;
+  const maxVal = limits[taskType] || 0;
+  const currentVal = newAtvTabGroup[taskType] || 0;
 
-    switch (taskType) {
-        case 'breezeAccountOd':
-            newAtvTabGroup.breezeAccountOd = isCompleted ? 0 : 16;
-            newAtvTabGroup.isBreezeAccountOd = !isCompleted;
-            break;
-        case 'materialAccountOd':
-            newAtvTabGroup.materialAccountOd = isCompleted ? 0 : 16;
-            newAtvTabGroup.isMaterialAccountOd = !isCompleted;
-            break;
-        case 'breezeReviveStone':
-            newAtvTabGroup.breezeReviveStone = isCompleted ? 0 : 7;
-            newAtvTabGroup.isBreezeReviveStone = !isCompleted;
-            break;
-        case 'breezeRiftTicket':
-            newAtvTabGroup.breezeRiftTicket = isCompleted ? 0 : 21;
-            newAtvTabGroup.isBreezeRiftTicket = !isCompleted;
-            break;
-        case 'breezeDailyTicket':
-            newAtvTabGroup.breezeDailyTicket = isCompleted ? 0 : 21;
-            newAtvTabGroup.isBreezeDailyTicket = !isCompleted;
-            break;
-        case 'breezeNightmareTicket':
-            newAtvTabGroup.breezeNightmareTicket = isCompleted ? 0 : 14;
-            newAtvTabGroup.isBreezeNightmareTicket = !isCompleted;
-            break;
-        case 'regionACount':
-            newAtvTabGroup.regionACount = isCompleted ? 0 : 12;
-            newAtvTabGroup.isRegionACount = !isCompleted;
-            break;
-        case 'regionBCount':
-            newAtvTabGroup.regionBCount = isCompleted ? 0 : 12;
-            newAtvTabGroup.isRegionBCount = !isCompleted;
-            break;
-        default:
-            console.warn(`未知任务类型: ${taskType}`);
-            return;
-    }
+  // 判断当前是否已达标（如果当前值小于上限，则视为未完成，点击后填满；反之清空）
+  const isCompleted = currentVal >= maxVal;
 
-    // 提交更新
-    await groupCharacterPanelHandleUpdateGroup(newAtvTabGroup);
+  switch (taskType) {
+    case "breezeAccountOd":
+      newAtvTabGroup.breezeAccountOd = isCompleted ? 0 : 16;
+      newAtvTabGroup.isBreezeAccountOd = !isCompleted;
+      break;
+    case "materialAccountOd":
+      newAtvTabGroup.materialAccountOd = isCompleted ? 0 : 16;
+      newAtvTabGroup.isMaterialAccountOd = !isCompleted;
+      break;
+    case "breezeReviveStone":
+      newAtvTabGroup.breezeReviveStone = isCompleted ? 0 : 7;
+      newAtvTabGroup.isBreezeReviveStone = !isCompleted;
+      break;
+    case "breezeRiftTicket":
+      newAtvTabGroup.breezeRiftTicket = isCompleted ? 0 : 21;
+      newAtvTabGroup.isBreezeRiftTicket = !isCompleted;
+      break;
+    case "breezeDailyTicket":
+      newAtvTabGroup.breezeDailyTicket = isCompleted ? 0 : 21;
+      newAtvTabGroup.isBreezeDailyTicket = !isCompleted;
+      break;
+    case "breezeNightmareTicket":
+      newAtvTabGroup.breezeNightmareTicket = isCompleted ? 0 : 14;
+      newAtvTabGroup.isBreezeNightmareTicket = !isCompleted;
+      break;
+    case "regionACount":
+      newAtvTabGroup.regionACount = isCompleted ? 0 : 12;
+      newAtvTabGroup.isRegionACount = !isCompleted;
+      break;
+    case "regionBCount":
+      newAtvTabGroup.regionBCount = isCompleted ? 0 : 12;
+      newAtvTabGroup.isRegionBCount = !isCompleted;
+      break;
+    default:
+      console.warn(`未知任务类型: ${taskType}`);
+      return;
+  }
+
+  // 提交更新
+  await groupCharacterPanelHandleUpdateGroup(newAtvTabGroup);
 };
 
 //================ 通用弹框 开始================
@@ -1794,17 +1798,21 @@ const handleOpenGlobalPopup = (type, name) => {
   globalPopupOp.value.name = name;
 };
 //用于通用项 点击触发事件，可随意拓展，目前只做了角色卡片内点击触发
-const groupCharacterPanelHandleClickTask = async (char, gType) => {
+const groupCharacterPanelHandleClickTask = async (char, gType, fieldType) => {
   const getGlobalPopupOpName = {
     globalSimpleEnergy: "奥德补充",
     globalModifyCharacter: "角色信息修改",
+    globalExchangeCharOD: "奥德兑换",
   };
   switch (gType) {
-    case "globalSimpleEnergy": //简化版奥德能量设置补充
     case "globalModifyCharacter": //角色信息修改
+
+    case "globalSimpleEnergy": //简化版奥德能量设置补充
+    case "globalExchangeCharOD": //角色奥德 商店和物质变换
       globalPopupOpen.value = true;
-      globalPopupOp.value = {
+      let newGlobalPopupOp = {
         type: gType,
+        fieldType,
         name: getGlobalPopupOpName[gType],
         data: {
           ...cloneDeep(char),
@@ -1812,6 +1820,15 @@ const groupCharacterPanelHandleClickTask = async (char, gType) => {
         targetChar: char,
         targetGroup: getGroupById(char?.group),
       };
+
+      switch (gType) {
+        case "globalSimpleEnergy": //简化版奥德能量设置补充
+        case "globalExchangeCharOD": //角色奥德 商店和物质变换
+          newGlobalPopupOp.height = "40vh";
+        default:
+          break;
+      }
+      globalPopupOp.value = newGlobalPopupOp;
       break;
 
     default:
@@ -1917,7 +1934,50 @@ const handleGlobalPopupFill = (type) => {
       }
 
       break;
+    case "globalExchangeCharOD": //角色奥德 商店和物质变换
+      try {
+        // 严格按照你提供的数据结构进行组装
+        const newCharacter = {
+          ...cloneDeep(globalPopupOp.value?.targetChar),
+        };
+        let field = globalPopupOp.value?.fieldType;
 
+        const limits = {
+          materialCharOd: 4, // 物质转换奥德
+          breezeCharOd: 4, // 商店奥德
+        };
+
+        const maxVal = limits[field] || 0;
+        const currentVal = updatedChar[field] || 0;
+
+        // 判断当前是否已达标（如果当前值小于上限，则视为未完成，点击后填满；反之清空）
+        const isCompleted = currentVal >= maxVal;
+        switch (field) {
+          case "breezeCharOd":
+            newCharacter.breezeCharOd = isCompleted ? 0 : 4;
+            newCharacter.isBreezeCharOd = !isCompleted;
+            break;
+          case "materialCharOd":
+            newCharacter.materialCharOd = isCompleted ? 0 : 4;
+            newCharacter.isMaterialCharOd = !isCompleted;
+            break;
+
+          default:
+            console.warn(`未知类型: ${field}`);
+            return;
+        }
+        console.log(
+          `🔍 [UsersAdmin:825] %c newCharacter====globalExchangeCharOD====角色奥德 商店和物质变换: `,
+          "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+          newCharacter
+        );
+        groupCharacterPanelHandleUpdateCharacter(newCharacter);
+      } catch (e) {
+        $alert("修改失败", e?.message || String(e));
+      } finally {
+      }
+
+      break;
     default:
       break;
   }
@@ -2722,7 +2782,7 @@ watch(
           </div>
         </div>
 
-<!-- ================= 右侧：核心数据呈现区 ================= -->
+        <!-- ================= 右侧：核心数据呈现区 ================= -->
         <div class="flex-1 flex flex-col justify-between space-y-3">
           <!-- 【极度凸显区】远征与超越副本当前收益 -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -2772,9 +2832,7 @@ watch(
           </div>
 
           <!-- 第二部分：指标网格（高密度排列8项兑换与周常） -->
-          <div
-            class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]"
-          >
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
             <!-- 1. 账号奥德 -->
             <div
               class="p-2 border rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-95"
@@ -2787,7 +2845,11 @@ watch(
             >
               <span
                 class="text-[10px] font-bold truncate"
-                :class="(getAtvTabGroup?.breezeAccountOd || 0) >= 16 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'"
+                :class="
+                  (getAtvTabGroup?.breezeAccountOd || 0) >= 16
+                    ? 'text-emerald-700 dark:text-emerald-300'
+                    : 'text-slate-500 dark:text-slate-400'
+                "
                 >账号奥德</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2826,7 +2888,11 @@ watch(
             >
               <span
                 class="text-[10px] font-bold truncate"
-                :class="(getAtvTabGroup?.materialAccountOd || 0) >= 16 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'"
+                :class="
+                  (getAtvTabGroup?.materialAccountOd || 0) >= 16
+                    ? 'text-emerald-700 dark:text-emerald-300'
+                    : 'text-slate-500 dark:text-slate-400'
+                "
                 >商店奥德</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2865,7 +2931,11 @@ watch(
             >
               <span
                 class="text-[10px] font-bold truncate"
-                :class="(getAtvTabGroup?.breezeReviveStone || 0) >= 7 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'"
+                :class="
+                  (getAtvTabGroup?.breezeReviveStone || 0) >= 7
+                    ? 'text-emerald-700 dark:text-emerald-300'
+                    : 'text-slate-500 dark:text-slate-400'
+                "
                 >周复活石</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2904,7 +2974,11 @@ watch(
             >
               <span
                 class="text-[10px] font-bold truncate"
-                :class="(getAtvTabGroup?.breezeRiftTicket || 0) >= 21 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'"
+                :class="
+                  (getAtvTabGroup?.breezeRiftTicket || 0) >= 21
+                    ? 'text-emerald-700 dark:text-emerald-300'
+                    : 'text-slate-500 dark:text-slate-400'
+                "
                 >未知缝隙</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2943,7 +3017,11 @@ watch(
             >
               <span
                 class="text-[10px] font-bold truncate"
-                :class="(getAtvTabGroup?.breezeDailyTicket || 0) >= 21 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'"
+                :class="
+                  (getAtvTabGroup?.breezeDailyTicket || 0) >= 21
+                    ? 'text-emerald-700 dark:text-emerald-300'
+                    : 'text-slate-500 dark:text-slate-400'
+                "
                 >完成卷(每日)</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2982,7 +3060,11 @@ watch(
             >
               <span
                 class="text-[10px] font-bold truncate"
-                :class="(getAtvTabGroup?.breezeNightmareTicket || 0) >= 14 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'"
+                :class="
+                  (getAtvTabGroup?.breezeNightmareTicket || 0) >= 14
+                    ? 'text-emerald-700 dark:text-emerald-300'
+                    : 'text-slate-500 dark:text-slate-400'
+                "
                 >完成卷(噩梦)</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
@@ -3021,7 +3103,11 @@ watch(
             >
               <span
                 class="text-[10px] font-bold truncate"
-                :class="(getAtvTabGroup?.regionACount || 0) >= 12 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'"
+                :class="
+                  (getAtvTabGroup?.regionACount || 0) >= 12
+                    ? 'text-emerald-700 dark:text-emerald-300'
+                    : 'text-slate-500 dark:text-slate-400'
+                "
                 >地区A指令</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
@@ -3060,7 +3146,11 @@ watch(
             >
               <span
                 class="text-[10px] font-bold truncate"
-                :class="(getAtvTabGroup?.regionBCount || 0) >= 12 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'"
+                :class="
+                  (getAtvTabGroup?.regionBCount || 0) >= 12
+                    ? 'text-emerald-700 dark:text-emerald-300'
+                    : 'text-slate-500 dark:text-slate-400'
+                "
                 >地区B指令</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
@@ -4951,7 +5041,7 @@ watch(
         </div>
       </Transition>
     </Teleport>
-<!-- 分组管理 -->
+    <!-- 分组管理 -->
     <Teleport to="body">
       <Transition name="modal3">
         <div
@@ -4968,7 +5058,9 @@ watch(
             <div
               class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4"
             >
-              <div class="font-black text-slate-800 dark:text-slate-100 text-lg flex items-center gap-2">
+              <div
+                class="font-black text-slate-800 dark:text-slate-100 text-lg flex items-center gap-2"
+              >
                 <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
                 分组管理
               </div>
@@ -5419,7 +5511,8 @@ watch(
           class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 backdrop-blur-sm"
         >
           <div
-            class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-[2.5rem] shadow-2xl overflow-hidden text-slate-800 flex flex-col transition-all duration-300 h-[60vh] w-[30vw]"
+            class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-[2.5rem] shadow-2xl overflow-hidden text-slate-800 flex flex-col transition-all duration-300 w-[30vw]"
+            :style="{ height: globalPopupOp?.height || '60vh' }"
           >
             <!-- 弹窗头部 -->
             <div
@@ -5728,6 +5821,109 @@ watch(
                   </div>
                 </div>
               </div>
+              <!-- 奥德兑换 -->
+
+              <div
+                v-if="globalPopupOp.type == 'globalExchangeCharOD'"
+                class="space-y-5 max-w-lg mx-auto py-2"
+              >
+                <!-- 商店奥德 -->
+                <div v-if="globalPopupOp.fieldType == 'breezeCharOd'">
+                  <div class="space-y-1.5">
+                    <div class="flex items-center justify-between text-xs">
+                      <label class="font-bold text-slate-600 dark:text-slate-300"
+                        >商店奥德兑换上限</label
+                      >
+                      <span class="text-[11px] text-slate-400 dark:text-slate-500"
+                        >4</span
+                      >
+                    </div>
+                    <div class="relative">
+                      <input
+                        v-model.number="globalPopupOp.data.breezeCharOd"
+                        class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-800 dark:text-slate-100 text-sm transition-all"
+                        placeholder="请输入存储上限"
+                      />
+                      <span
+                        class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-slate-500"
+                        >点</span
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 变换奥德 -->
+                <div v-if="globalPopupOp.fieldType == 'materialCharOd'">
+                  <div class="space-y-1.5">
+                    <div class="flex items-center justify-between text-xs">
+                      <label class="font-bold text-slate-600 dark:text-slate-300"
+                        >变换奥德兑换上限</label
+                      >
+                      <span class="text-[11px] text-slate-400 dark:text-slate-500"
+                        >4</span
+                      >
+                    </div>
+                    <div class="relative">
+                      <input
+                        v-model.number="globalPopupOp.data.materialCharOd"
+                        class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-800 dark:text-slate-100 text-sm transition-all"
+                        placeholder="请输入"
+                      />
+                      <span
+                        class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-slate-500"
+                        >点</span
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 按钮 -->
+                <div
+                  class="border-t border-slate-100 dark:border-slate-700 grid grid-cols-3 gap-2"
+                >
+                  <button
+                    type="button"
+                    class="py-3 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center truncate"
+                    @click="
+                      () => {
+                        if (globalPopupOp.fieldType == 'breezeCharOd') {
+                          globalPopupOp.data.breezeCharOd = 4;
+                        }
+                        if (globalPopupOp.fieldType == 'materialCharOd') {
+                          globalPopupOp.data.materialCharOd = 4;
+                        }
+                      }
+                    "
+                  >
+                    一键补满
+                  </button>
+
+                  <button
+                    type="button"
+                    class="py-3 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center truncate"
+                    @click="
+                      () => {
+                        if (globalPopupOp.fieldType == 'breezeCharOd') {
+                          globalPopupOp.data.breezeCharOd = 0;
+                        }
+                        if (globalPopupOp.fieldType == 'materialCharOd') {
+                          globalPopupOp.data.materialCharOd = 0;
+                        }
+                      }
+                    "
+                  >
+                    一键清空
+                  </button>
+
+                  <button
+                    type="button"
+                    class="py-3 px-3 rounded-xl bg-[#45a6d5] hover:bg-[#3b95c0] text-white font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center shadow-sm truncate"
+                    @click="handleGlobalPopupFill('globalExchangeCharOD')"
+                  >
+                    确定
+                  </button>
+                </div>
+              </div>
             </div>
 
             <!-- 弹窗底部操作按钮 -->
@@ -5802,6 +5998,7 @@ watch(
               >
                 确认修改角色
               </button>
+              <!-- 奥德兑换 -->
             </div>
           </div>
         </div>
