@@ -1416,46 +1416,46 @@ watch(
       // 自身组件内部处理加载
     } else if (val === "updateAIon2") {
     } else if (val === "userAdmin") {
-      showMobileMenu.value = false;
-      await nextTick();
+      // showMobileMenu.value = false;
+      // await nextTick();
 
-      if (!scrollContainer.value) return;
+      // if (!scrollContainer.value) return;
 
-      // 如果当前已经有高度差，直接滚动
-      if (scrollContainer.value.scrollHeight > scrollContainer.value.clientHeight) {
-        scrollContainer.value.scrollTo({
-          top: scrollContainer.value.scrollHeight,
-          behavior: "smooth",
-        });
-        return;
-      }
+      // // 如果当前已经有高度差，直接滚动
+      // if (scrollContainer.value.scrollHeight > scrollContainer.value.clientHeight) {
+      //   scrollContainer.value.scrollTo({
+      //     top: scrollContainer.value.scrollHeight,
+      //     behavior: "smooth",
+      //   });
+      //   return;
+      // }
 
-      // 如果高度还没被撑开（内容在异步加载），使用 MutationObserver 监听内容撑开的瞬间
-      const observer = new MutationObserver(() => {
-        if (scrollContainer.value) {
-          const { scrollHeight, clientHeight } = scrollContainer.value;
-          // 一旦内容高度大于可视高度，说明加载完成了，立刻滚动到底部
-          if (scrollHeight > clientHeight) {
-            scrollContainer.value.scrollTo({
-              top: scrollHeight,
-              behavior: "smooth",
-            });
-            observer.disconnect(); // 滚动完成后销毁监听
-          }
-        }
-      });
+      // // 如果高度还没被撑开（内容在异步加载），使用 MutationObserver 监听内容撑开的瞬间
+      // const observer = new MutationObserver(() => {
+      //   if (scrollContainer.value) {
+      //     const { scrollHeight, clientHeight } = scrollContainer.value;
+      //     // 一旦内容高度大于可视高度，说明加载完成了，立刻滚动到底部
+      //     if (scrollHeight > clientHeight) {
+      //       scrollContainer.value.scrollTo({
+      //         top: scrollHeight,
+      //         behavior: "smooth",
+      //       });
+      //       observer.disconnect(); // 滚动完成后销毁监听
+      //     }
+      //   }
+      // });
 
-      // 开始监听容器内部 DOM 的变化
-      observer.observe(scrollContainer.value, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-      });
+      // // 开始监听容器内部 DOM 的变化
+      // observer.observe(scrollContainer.value, {
+      //   childList: true,
+      //   subtree: true,
+      //   attributes: true,
+      // });
 
-      // 设置一个兜底超时，防止接口卡住无限监听（比如 2 秒后自动断开）
-      setTimeout(() => {
-        observer.disconnect();
-      }, 2000);
+      // // 设置一个兜底超时，防止接口卡住无限监听（比如 2 秒后自动断开）
+      // setTimeout(() => {
+      //   observer.disconnect();
+      // }, 2000);
     } else {
       fetchPosts();
     }

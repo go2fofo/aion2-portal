@@ -2003,26 +2003,36 @@ watch(
   <div
     class="p-2 bg-slate-50 dark:bg-slate-800 text-slate-800 rounded-3xl shadow-sm space-y-4 mx-auto border border-slate-100 dark:border-slate-700 min-h-[90vh]"
   >
-    <!-- 顶部介绍 -->
+<!-- 顶部介绍 -->
     <div
-      class="w-full bg-white dark:bg-slate-900 text-slate-800 px-5 py-3 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+      class="w-full bg-white dark:bg-slate-900 text-slate-800 px-5 py-3 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/80 flex flex-col md:flex-row items-center justify-between gap-3 text-xs"
     >
-      <!-- 左侧：项目说明与低调的 GitHub 入口 -->
-      <div class="flex items-center gap-2 overflow-hidden">
-        <span class="text-slate-700 font-bold truncate"> ✨ Aion2 管理系统已开源 </span>
-        <span class="text-slate-300">|</span>
+      <!-- 左侧：项目说明与 GitHub 源码 -->
+      <div class="flex items-center gap-2 overflow-hidden flex-wrap">
+        <span class="text-slate-700 dark:text-slate-200 font-bold truncate"> ✨ Aion2 管理系统已开源 </span>
+        <span class="text-slate-300 dark:text-slate-700">|</span>
         <a
           href="https://github.com/go2fofo/aion2-portal"
           target="_blank"
           rel="noopener noreferrer"
-          class="text-slate-500 hover:text-slate-900 dark:text-slate-100 underline underline-offset-2 transition-colors shrink-0 text-[11px] font-medium"
+          class="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 underline underline-offset-2 transition-colors shrink-0 text-[11px] font-medium"
         >
           GitHub 源码
         </a>
       </div>
+      
 
-      <!-- 右侧：高亮凸显的“意见反馈”核心交互按钮（明亮蓝白主题） -->
-      <div class="flex items-center shrink-0 w-full sm:w-auto justify-end">
+      <!-- 中间：独立展示的版本标签 -->
+      <div class="flex items-center justify-center shrink-0">
+        <span class="px-3 py-1 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-black text-xs border border-sky-100 dark:border-sky-800/50 shadow-2xs flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
+          版本：S3 0.0.5 最新版
+        </span>
+      </div>
+
+
+      <!-- 右侧：高亮凸显的“意见反馈”核心交互按钮 -->
+      <div class="flex items-center shrink-0 w-full md:w-auto justify-end">
         <a
           href="https://www.bilibili.com/opus/1232239633532715010"
           target="_blank"
