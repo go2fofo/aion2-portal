@@ -2040,7 +2040,7 @@ watch(
       </div>
     </div>
     <!-- 顶部数据面板 -->
-<!-- ================= 顶部数据面板 ================= -->
+    <!-- ================= 顶部数据面板 ================= -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
       <!-- 总角色数 -->
       <div
@@ -2048,7 +2048,9 @@ watch(
       >
         <!-- 左侧：总角色数 -->
         <div class="shrink-0">
-          <div class="text-slate-400 dark:text-slate-500 text-xs font-bold tracking-wider uppercase">
+          <div
+            class="text-slate-400 dark:text-slate-500 text-xs font-bold tracking-wider uppercase"
+          >
             总角色数
           </div>
           <div
@@ -2060,7 +2062,9 @@ watch(
 
         <!-- 右侧：每一项独立成卡的分组签到与会员状态总览区 -->
         <div class="flex-1 flex flex-col items-end gap-2 min-w-0">
-          <div class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
+          <div
+            class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider"
+          >
             分组账号综合状态与快捷切换 (点击切换并签到)
           </div>
 
@@ -2091,7 +2095,11 @@ watch(
                 <div class="flex items-center justify-between w-full gap-2">
                   <span
                     class="text-xs font-black truncate max-w-[70px]"
-                    :class="group.dailySignIn ? 'text-emerald-900 dark:text-emerald-300' : 'text-rose-900 dark:text-rose-300'"
+                    :class="
+                      group.dailySignIn
+                        ? 'text-emerald-900 dark:text-emerald-300'
+                        : 'text-rose-900 dark:text-rose-300'
+                    "
                   >
                     {{ group.name }}
                   </span>
@@ -2112,7 +2120,9 @@ watch(
                   class="w-full pt-1 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-[9px] font-bold"
                 >
                   <template v-if="group.premiumMember">
-                    <span class="text-amber-700 dark:text-amber-400 flex items-center gap-1 font-black">
+                    <span
+                      class="text-amber-700 dark:text-amber-400 flex items-center gap-1 font-black"
+                    >
                       <span>特级会员剩余</span>
                       <strong class="text-amber-800 dark:text-amber-300"
                         >{{ group.premiumRemainingMemberDay || 0 }}天</strong
@@ -2120,7 +2130,9 @@ watch(
                     </span>
                   </template>
                   <template v-else>
-                    <span class="text-slate-400 dark:text-slate-500 font-medium">未开通会员</span>
+                    <span class="text-slate-400 dark:text-slate-500 font-medium"
+                      >未开通会员</span
+                    >
                   </template>
                 </div>
               </button>
@@ -2135,7 +2147,9 @@ watch(
       >
         <div>
           <div class="flex items-center justify-between">
-            <div class="text-slate-400 dark:text-slate-500 text-xs font-bold tracking-wider uppercase">
+            <div
+              class="text-slate-400 dark:text-slate-500 text-xs font-bold tracking-wider uppercase"
+            >
               今日收益吉纳数 (万)
             </div>
             <span
@@ -2187,10 +2201,14 @@ watch(
         class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
       >
         <div>
-          <div class="text-slate-400 dark:text-slate-500 text-xs font-bold tracking-wider uppercase">
+          <div
+            class="text-slate-400 dark:text-slate-500 text-xs font-bold tracking-wider uppercase"
+          >
             总奥德能量 (点)
           </div>
-          <div class="text-3xl font-black mt-2 text-amber-600 dark:text-amber-400 tracking-tight">
+          <div
+            class="text-3xl font-black mt-2 text-amber-600 dark:text-amber-400 tracking-tight"
+          >
             {{ totalEnergy }}
           </div>
         </div>
@@ -3023,7 +3041,7 @@ watch(
                         >
                           {{ newCharForm.characterName || newCharForm.name }}
                           <span class="text-xs font-bold text-[#45a6d5]"
-                            >({{ newCharForm.className || newCharForm.class }})</span
+                            >({{ newCharForm?.className || customForm?.className }})</span
                           >
                         </div>
                       </div>
@@ -3031,15 +3049,19 @@ watch(
                         <div
                           class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
                         >
-                          等级 / 装等
+                          等级 / 装等 / 战力
                         </div>
                         <div
                           class="text-sm font-black text-slate-800 dark:text-slate-100"
                         >
-                          Lv.{{ newCharForm.value?.characterLevel || 1 }}
+                          Lv.{{
+                            newCharForm?.characterLevel || customForm?.characterLevel
+                          }}
                           <span
                             class="text-xs font-bold text-amber-600 dark:text-amber-400"
-                            >({{ newCharForm.value?.itemLevel || 0 }})</span
+                            >({{
+                              newCharForm?.itemLevel || customForm?.itemLevel || 0
+                            }})</span
                           >
                         </div>
                       </div>
@@ -3052,24 +3074,26 @@ watch(
                         <div
                           class="text-sm font-black text-slate-800 dark:text-slate-100 truncate"
                         >
-                          {{ newCharForm.value?.serverName || "未知" }}
+                          {{
+                            newCharForm?.serverName ||
+                            (customForm?.serverId
+                              ? formatServerDisplay(customForm?.serverId)
+                              : "") ||
+                            "未知"
+                          }}
                           ·
                           <span
                             class="text-xs font-bold text-purple-600 dark:text-purple-400"
-                            >{{ newCharForm.value?.raceName || "未知" }}</span
+                            >{{
+                              newCharForm?.raceName ||
+                              (customForm.raceId
+                                ? customForm.raceId == 1
+                                  ? "天族"
+                                  : "魔族"
+                                : "") ||
+                              "未知"
+                            }}</span
                           >
-                        </div>
-                      </div>
-                      <div>
-                        <div
-                          class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
-                        >
-                          称号
-                        </div>
-                        <div
-                          class="text-sm font-black text-slate-800 dark:text-slate-100 truncate"
-                        >
-                          {{ newCharForm.value?.titleName || "无" }}
                         </div>
                       </div>
                     </div>
@@ -4337,7 +4361,7 @@ watch(
                   </div>
                 </div>
               </template>
-          <template v-else>
+              <template v-else>
                 <div
                   class="p-8 bg-slate-50 dark:bg-slate-800/70 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-3xl flex flex-col items-center justify-center text-center space-y-3 transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 dark:hover:bg-sky-950/20 group cursor-pointer"
                   @click="
