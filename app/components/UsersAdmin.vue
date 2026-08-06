@@ -2708,6 +2708,13 @@ watch(
                       >
                       天
                     </span>
+                    <button
+                      type="button"
+                      class="px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-950/80 hover:bg-amber-200 dark:hover:bg-amber-900 border border-amber-300 dark:border-amber-700 rounded-md transition-all active:scale-95 cursor-pointer shadow-2xs"
+                      @click="handleOpenGlobalPopup('premiumMember', '修改会员')"
+                    >
+                      修改
+                    </button>
                   </div>
                   <!-- 起止时间展示 -->
                   <div
