@@ -1887,6 +1887,39 @@ const handleGroupClick = (group) => {
     handleSignInSignIn(groupItem);
   }
 };
+
+// 面板显示模式切换触发
+const handleCardConfigModeChange = async (modeType) => {
+  switch (modeType) {
+    case "default":
+      {
+        const confirmed = await $confirm(
+          "切换确认",
+          `确定要切换到 <span class="text-[#45a6d5] font-black">标准模式</span> 吗？<br>
+                 <span class="text-xs text-slate-400 mt-1 inline-block">提示：该模式下内容可通过 <b class="text-slate-600 dark:text-slate-300">点击进入详情</b> 进行修改。</span>`
+        );
+        if (!confirmed) return;
+        cardConfig.value.mode = modeType;
+      }
+
+      break;
+    case "simple":
+      {
+        const confirmed = await $confirm(
+          "切换确认",
+          `确定要切换到 <span class="text-[#f9b11d] font-black">懒人模式</span> 吗？<br>
+                 <span class="text-xs text-slate-400 mt-1 inline-block">⚡ 提示：该模式下内容可通过 <b class="text-slate-600 dark:text-slate-300">双击在当前页面</b> 进行即时修改。</span>`
+        );
+        if (!confirmed) return;
+        cardConfig.value.mode = modeType;
+      }
+      break;
+
+    default:
+      break;
+  }
+};
+
 const normalizedClassName = computed({
   get() {
     const val = globalPopupOp.value?.data?.className;
@@ -4800,7 +4833,7 @@ watch(
         </div>
       </Transition>
     </Teleport>
-    <!-- 分组管理 -->
+<!-- 分组管理 -->
     <Teleport to="body">
       <Transition name="modal3">
         <div
@@ -4812,17 +4845,17 @@ watch(
             @click="groupOpen = false"
           ></div>
           <div
-            class="relative z-10 w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden"
+            class="relative z-10 w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden"
           >
             <div
-              class="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between gap-4"
+              class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4"
             >
-              <div class="font-black text-slate-800 text-lg flex items-center gap-2">
+              <div class="font-black text-slate-800 dark:text-slate-100 text-lg flex items-center gap-2">
                 <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
                 分组管理
               </div>
               <button
-                class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors"
+                class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                 @click="groupOpen = false"
               >
                 关闭
@@ -4832,10 +4865,10 @@ watch(
             <div class="p-6 space-y-6 max-h-[80vh] overflow-y-auto custom-scroll">
               <!-- 增/改 输入面板 -->
               <div
-                class="p-4 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700/80 space-y-3"
+                class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3"
               >
                 <div
-                  class="text-xs font-extrabold text-slate-500 uppercase tracking-wider"
+                  class="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
                 >
                   {{
                     groupEditingId !== null
@@ -4848,19 +4881,19 @@ watch(
                     v-model="groupInputName"
                     type="text"
                     placeholder="请输入分组名称（如：主力账号组）..."
-                    class="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5] outline-none font-bold text-sm text-slate-800 transition-all shadow-sm"
+                    class="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-[#45a6d5] outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                     @keyup.enter="saveGroup"
                   />
                   <button
                     @click="saveGroup"
-                    class="px-6 py-3 rounded-xl bg-[#45a6d5] hover:bg-[#3b95c0] text-white font-black text-sm transition-all shadow-md shadow-sky-500/20 active:scale-95 whitespace-nowrap"
+                    class="px-6 py-3 rounded-xl bg-[#45a6d5] hover:bg-[#3b95c0] text-white font-black text-sm transition-all shadow-md shadow-sky-500/20 dark:shadow-none active:scale-95 whitespace-nowrap cursor-pointer"
                   >
                     {{ groupEditingId !== null ? "保存修改" : "确认添加" }}
                   </button>
                   <button
                     v-if="groupEditingId !== null"
                     @click="cancelGroupEdit"
-                    class="px-4 py-3 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold text-sm transition-all whitespace-nowrap"
+                    class="px-4 py-3 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm transition-all whitespace-nowrap cursor-pointer"
                   >
                     取消
                   </button>
@@ -4870,7 +4903,7 @@ watch(
               <!-- 现有分组列表 -->
               <div class="space-y-3">
                 <div
-                  class="text-xs font-extrabold text-slate-400 uppercase tracking-wider"
+                  class="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
                 >
                   现有分组列表 ({{ gameData.groups.length }})
                 </div>
@@ -4878,15 +4911,15 @@ watch(
                 <div
                   v-for="group in gameData.groups"
                   :key="group.id"
-                  class="flex items-center justify-between p-4 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700/80 rounded-2xl hover:border-slate-300 dark:border-slate-700 transition-all shadow-sm"
+                  class="flex items-center justify-between p-4 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl hover:border-slate-300 dark:hover:border-slate-700 transition-all shadow-sm"
                 >
                   <div class="flex items-center gap-3">
                     <span
-                      class="w-7 h-7 rounded-xl bg-sky-50 text-[#45a6d5] text-xs font-black flex items-center justify-center border border-sky-100 shadow-sm"
+                      class="w-7 h-7 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-[#45a6d5] dark:text-sky-400 text-xs font-black flex items-center justify-center border border-sky-100 dark:border-sky-900/80 shadow-sm"
                     >
                       {{ group.id }}
                     </span>
-                    <span class="text-sm font-black text-slate-800">{{
+                    <span class="text-sm font-black text-slate-800 dark:text-slate-100">{{
                       group.name
                     }}</span>
                   </div>
@@ -4894,14 +4927,14 @@ watch(
                   <div class="flex items-center gap-2">
                     <button
                       @click="startEditGroup(group)"
-                      class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors"
+                      class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition-colors cursor-pointer"
                     >
                       编辑
                     </button>
                     <button
                       @click="deleteGroup(group.id)"
                       :disabled="gameData?.groups?.length === 1"
-                      class="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs transition-colors"
+                      class="px-4 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/60 text-rose-600 dark:text-rose-400 font-bold text-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       删除
                     </button>
@@ -4925,18 +4958,20 @@ watch(
             @click="settingsOpen = false"
           ></div>
           <div
-            class="relative z-10 w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col max-h-[85vh]"
+            class="relative z-10 w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col max-h-[85vh]"
           >
             <!-- 弹窗头部 -->
             <div
-              class="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between gap-4 shrink-0"
+              class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 shrink-0"
             >
-              <div class="font-black text-slate-800 text-lg flex items-center gap-2">
+              <div
+                class="font-black text-slate-800 dark:text-slate-100 text-lg flex items-center gap-2"
+              >
                 <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
                 系统设置与数据管理
               </div>
               <button
-                class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors cursor-pointer"
+                class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                 @click="settingsOpen = false"
               >
                 关闭
@@ -4947,22 +4982,26 @@ watch(
             <div class="p-6 space-y-6 overflow-y-auto custom-scroll flex-1">
               <!-- 1. 卡片布局与展示配置 -->
               <div class="space-y-3">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <h3
+                  class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
+                >
                   卡片布局与展示
                 </h3>
                 <div
-                  class="p-4 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/50 space-y-4"
+                  class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 space-y-4"
                 >
                   <!-- 列数选择 -->
                   <div class="flex items-center justify-between gap-4">
                     <div>
-                      <div class="text-sm font-black text-slate-800">卡片网格列数</div>
-                      <div class="text-xs text-slate-400 mt-0.5">
+                      <div class="text-sm font-black text-slate-800 dark:text-slate-200">
+                        卡片网格列数
+                      </div>
+                      <div class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                         调整每行展示的卡片数量
                       </div>
                     </div>
                     <div
-                      class="flex items-center gap-1.5 bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs"
+                      class="flex items-center gap-1.5 bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs"
                     >
                       <button
                         v-for="col in [1, 2, 3, 4, 5]"
@@ -4972,7 +5011,7 @@ watch(
                         :class="
                           cardConfig.columns === col
                             ? 'bg-[#45a6d5] text-white shadow-xs'
-                            : 'text-slate-600 hover:bg-slate-100'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                         "
                       >
                         {{ col }}
@@ -4982,46 +5021,48 @@ watch(
 
                   <!-- 展示模式 -->
                   <div
-                    class="flex items-center justify-between gap-4 pt-3 border-t border-slate-100 dark:border-slate-700"
+                    class="flex items-center justify-between gap-4 pt-3 border-t border-slate-100 dark:border-slate-800"
                   >
                     <div>
-                      <div class="text-sm font-black text-slate-800">面板显示模式</div>
-                      <div class="text-xs text-slate-400 mt-0.5">
-                        切换卡片的信息精简程度
+                      <div class="text-sm font-black text-slate-800 dark:text-slate-200">
+                        面板显示模式
+                      </div>
+                      <div class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                        切换卡片的信息精简程度,同时也会改变操作模式。
                       </div>
                     </div>
                     <div
-                      class="flex items-center gap-1.5 bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs"
+                      class="flex items-center gap-1.5 bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs"
                     >
                       <button
-                        @click="cardConfig.mode = 'default'"
+                        @click="handleCardConfigModeChange('default')"
                         class="px-3 py-1.5 rounded-lg font-black text-xs transition-all cursor-pointer"
                         :class="
                           cardConfig.mode === 'default'
                             ? 'bg-[#45a6d5] text-white shadow-xs'
-                            : 'text-slate-600 hover:bg-slate-100'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                         "
                       >
                         标准
                       </button>
                       <button
-                        @click="cardConfig.mode = 'simple'"
+                        @click="handleCardConfigModeChange('simple')"
                         class="px-3 py-1.5 rounded-lg font-black text-xs transition-all cursor-pointer"
                         :class="
                           cardConfig.mode === 'simple'
                             ? 'bg-[#45a6d5] text-white shadow-xs'
-                            : 'text-slate-600 hover:bg-slate-100'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                         "
                       >
                         懒人模式（一键快捷）
                       </button>
                       <button
-                        @click="cardConfig.mode = 'custom'"
+                        @click="handleCardConfigModeChange('custom')"
                         class="px-3 py-1.5 rounded-lg font-black text-xs transition-all cursor-pointer"
                         :class="
                           cardConfig.mode === 'custom'
                             ? 'bg-[#45a6d5] text-white shadow-xs'
-                            : 'text-slate-600 hover:bg-slate-100'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                         "
                       >
                         自定义
@@ -5032,57 +5073,59 @@ watch(
                   <!-- 自定义模式下的字段开关 (仅在 mode === 'custom' 时展开) -->
                   <div
                     v-if="cardConfig.mode === 'custom'"
-                    class="pt-3 border-t border-slate-100 dark:border-slate-700 space-y-3 pl-2"
+                    class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3 pl-2"
                   >
-                    <div class="text-xs font-bold text-slate-500">自定义显示字段项：</div>
+                    <div class="text-xs font-bold text-slate-500 dark:text-slate-400">
+                      自定义显示字段项：
+                    </div>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                       <label
-                        class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer"
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
                       >
                         <input
                           type="checkbox"
                           v-model="cardConfig.customFields.showCombatPower"
-                          class="rounded border-slate-300 dark:border-slate-700 text-[#45a6d5] focus:ring-[#45a6d5]"
+                          class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#45a6d5] focus:ring-[#45a6d5]"
                         />
                         显示战力
                       </label>
                       <label
-                        class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer"
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
                       >
                         <input
                           type="checkbox"
                           v-model="cardConfig.customFields.showDungeons"
-                          class="rounded border-slate-300 dark:border-slate-700 text-[#45a6d5] focus:ring-[#45a6d5]"
+                          class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#45a6d5] focus:ring-[#45a6d5]"
                         />
                         显示副本
                       </label>
                       <label
-                        class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer"
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
                       >
                         <input
                           type="checkbox"
                           v-model="cardConfig.customFields.showEnergy"
-                          class="rounded border-slate-300 dark:border-slate-700 text-[#45a6d5] focus:ring-[#45a6d5]"
+                          class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#45a6d5] focus:ring-[#45a6d5]"
                         />
                         显示能量
                       </label>
                       <label
-                        class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer"
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
                       >
                         <input
                           type="checkbox"
                           v-model="cardConfig.customFields.showTasks"
-                          class="rounded border-slate-300 dark:border-slate-700 text-[#45a6d5] focus:ring-[#45a6d5]"
+                          class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#45a6d5] focus:ring-[#45a6d5]"
                         />
                         显示任务按钮
                       </label>
                       <label
-                        class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer"
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
                       >
                         <input
                           type="checkbox"
                           v-model="cardConfig.customFields.showNotes"
-                          class="rounded border-slate-300 dark:border-slate-700 text-[#45a6d5] focus:ring-[#45a6d5]"
+                          class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#45a6d5] focus:ring-[#45a6d5]"
                         />
                         显示备注
                       </label>
@@ -5093,23 +5136,27 @@ watch(
 
               <!-- 2. 数据与存储管理 -->
               <div class="space-y-3">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <h3
+                  class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
+                >
                   数据与存储
                 </h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <!-- 导出备份 -->
                   <div
-                    class="p-4 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between gap-3"
+                    class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between gap-3"
                   >
                     <div>
-                      <div class="text-sm font-black text-slate-800">导出数据备份</div>
-                      <div class="text-xs text-slate-400 mt-0.5">
+                      <div class="text-sm font-black text-slate-800 dark:text-slate-200">
+                        导出数据备份
+                      </div>
+                      <div class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                         将全部游戏数据导出为 JSON 文件
                       </div>
                     </div>
                     <button
                       @click="exportGameData"
-                      class="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 hover:bg-slate-100 font-bold text-xs shadow-2xs transition-all shrink-0 cursor-pointer"
+                      class="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs shadow-2xs transition-all shrink-0 cursor-pointer"
                     >
                       导出
                     </button>
@@ -5117,16 +5164,18 @@ watch(
 
                   <!-- 导入备份 -->
                   <div
-                    class="p-4 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between gap-3"
+                    class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between gap-3"
                   >
                     <div>
-                      <div class="text-sm font-black text-slate-800">导入数据恢复</div>
-                      <div class="text-xs text-slate-400 mt-0.5">
+                      <div class="text-sm font-black text-slate-800 dark:text-slate-200">
+                        导入数据恢复
+                      </div>
+                      <div class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                         从本地 JSON 备份文件恢复数据
                       </div>
                     </div>
                     <label
-                      class="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 hover:bg-slate-100 font-bold text-xs shadow-2xs transition-all shrink-0 cursor-pointer"
+                      class="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs shadow-2xs transition-all shrink-0 cursor-pointer"
                     >
                       导入
                       <input
@@ -5142,24 +5191,32 @@ watch(
 
               <!-- 3. 界面偏好 -->
               <div class="space-y-3">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                <h3
+                  class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
+                >
                   界面偏好
                 </h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <!-- 紧凑模式 -->
                   <div
-                    class="p-4 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between gap-3"
+                    class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between gap-3"
                   >
                     <div>
-                      <div class="text-sm font-black text-slate-800">表格紧凑模式</div>
-                      <div class="text-xs text-slate-400 mt-0.5">
+                      <div class="text-sm font-black text-slate-800 dark:text-slate-200">
+                        表格紧凑模式
+                      </div>
+                      <div class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                         减小行高，同屏展示更多角色信息
                       </div>
                     </div>
                     <button
                       @click="settings.compactMode = !settings?.compactMode"
                       class="w-12 h-6 rounded-full transition-colors relative p-1 cursor-pointer"
-                      :class="settings?.compactMode ? 'bg-[#45a6d5]' : 'bg-slate-300'"
+                      :class="
+                        settings?.compactMode
+                          ? 'bg-[#45a6d5]'
+                          : 'bg-slate-300 dark:bg-slate-700'
+                      "
                     >
                       <div
                         class="w-4 h-4 rounded-full bg-white dark:bg-slate-900 transition-transform shadow-sm"
@@ -5170,18 +5227,24 @@ watch(
 
                   <!-- 自动保存提示 -->
                   <div
-                    class="p-4 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between gap-3"
+                    class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between gap-3"
                   >
                     <div>
-                      <div class="text-sm font-black text-slate-800">操作成功轻提示</div>
-                      <div class="text-xs text-slate-400 mt-0.5">
+                      <div class="text-sm font-black text-slate-800 dark:text-slate-200">
+                        操作成功轻提示
+                      </div>
+                      <div class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                         签到或修改数据时弹出 Toast 提示
                       </div>
                     </div>
                     <button
                       @click="settings.showToast = !settings?.showToast"
                       class="w-12 h-6 rounded-full transition-colors relative p-1 cursor-pointer"
-                      :class="settings?.showToast ? 'bg-[#45a6d5]' : 'bg-slate-300'"
+                      :class="
+                        settings?.showToast
+                          ? 'bg-[#45a6d5]'
+                          : 'bg-slate-300 dark:bg-slate-700'
+                      "
                     >
                       <div
                         class="w-4 h-4 rounded-full bg-white dark:bg-slate-900 transition-transform shadow-sm"
@@ -5198,13 +5261,13 @@ watch(
                   危险区域
                 </h3>
                 <div
-                  class="p-4 rounded-2xl border border-rose-200 bg-rose-50/30 flex items-center justify-between gap-4"
+                  class="p-4 rounded-2xl border border-rose-200 dark:border-rose-900/40 bg-rose-50/30 dark:bg-rose-950/20 flex items-center justify-between gap-4"
                 >
                   <div>
-                    <div class="text-sm font-black text-rose-700">
+                    <div class="text-sm font-black text-rose-700 dark:text-rose-400">
                       清空所有本地数据以及云端数据
                     </div>
-                    <div class="text-xs text-rose-400/90 mt-0.5">
+                    <div class="text-xs text-rose-400/90 dark:text-rose-400/70 mt-0.5">
                       该操作将永久删除所有角色、分组、日志及缓存，无法找回。
                     </div>
                   </div>
@@ -5219,12 +5282,12 @@ watch(
               </div>
 
               <!-- 5. 关于信息 -->
-              <div
-                class="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs text-slate-400"
+              <!-- <div
+                class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-400"
               >
                 <div>AION2 Portal 游戏辅助面板</div>
                 <div>Version 1.2.0</div>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
