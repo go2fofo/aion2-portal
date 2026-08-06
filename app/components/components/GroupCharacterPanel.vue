@@ -1030,6 +1030,7 @@ const handleTaskClick = (char, field, tab) => {
 
   switch (tab) {
     case "weeklydaily":
+    case "exchange":
       //tab
       handleClickGameplay(char, tab);
       nextTick(() => {
@@ -1060,10 +1061,11 @@ const activeTab = ref("consume");
 const saving = ref(false);
 
 // 点击游玩消耗触发
-const handleClickGameplay = (char, tab) => {
+const handleClickGameplay = (char, tab,gGroup) => {
   if (tab) {
     activeTab.value = tab;
   }
+  
   console.log(
     `🔍 [GroupCharacterPanel:724] %c 点击游玩消耗触发 char: `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",

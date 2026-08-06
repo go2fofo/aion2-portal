@@ -1711,8 +1711,71 @@ const clearGameData = async () => {
  * 处理任务点击事件
  * @param {string} taskType 任务类型
  */
-const handleTaskClick = (taskType) => {
-  //   groupCharacterPanelRef.value?.handleTaskClick(taskType);
+const handleTaskClick = async (taskType) => {
+    console.log(`🔍 [UsersAdmin:1715] %c handleTaskClick--当前点击的taskType: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', taskType);
+    // $alert("设置成功")
+    
+    let newAtvTabGroup = cloneDeep(getAtvTabGroup.value);
+    if (!newAtvTabGroup) return;
+
+    // 定义各任务类型的满额上限
+    const limits = {
+        breezeAccountOd: 16,
+        materialAccountOd: 16,
+        breezeReviveStone: 7,
+        breezeRiftTicket: 21,
+        breezeDailyTicket: 21,
+        breezeNightmareTicket: 14,
+        regionACount: 12,
+        regionBCount: 12
+    };
+
+    const maxVal = limits[taskType] || 0;
+    const currentVal = newAtvTabGroup[taskType] || 0;
+
+    // 判断当前是否已达标（如果当前值小于上限，则视为未完成，点击后填满；反之清空）
+    const isCompleted = currentVal >= maxVal;
+
+    switch (taskType) {
+        case 'breezeAccountOd':
+            newAtvTabGroup.breezeAccountOd = isCompleted ? 0 : 16;
+            newAtvTabGroup.isBreezeAccountOd = !isCompleted;
+            break;
+        case 'materialAccountOd':
+            newAtvTabGroup.materialAccountOd = isCompleted ? 0 : 16;
+            newAtvTabGroup.isMaterialAccountOd = !isCompleted;
+            break;
+        case 'breezeReviveStone':
+            newAtvTabGroup.breezeReviveStone = isCompleted ? 0 : 7;
+            newAtvTabGroup.isBreezeReviveStone = !isCompleted;
+            break;
+        case 'breezeRiftTicket':
+            newAtvTabGroup.breezeRiftTicket = isCompleted ? 0 : 21;
+            newAtvTabGroup.isBreezeRiftTicket = !isCompleted;
+            break;
+        case 'breezeDailyTicket':
+            newAtvTabGroup.breezeDailyTicket = isCompleted ? 0 : 21;
+            newAtvTabGroup.isBreezeDailyTicket = !isCompleted;
+            break;
+        case 'breezeNightmareTicket':
+            newAtvTabGroup.breezeNightmareTicket = isCompleted ? 0 : 14;
+            newAtvTabGroup.isBreezeNightmareTicket = !isCompleted;
+            break;
+        case 'regionACount':
+            newAtvTabGroup.regionACount = isCompleted ? 0 : 12;
+            newAtvTabGroup.isRegionACount = !isCompleted;
+            break;
+        case 'regionBCount':
+            newAtvTabGroup.regionBCount = isCompleted ? 0 : 12;
+            newAtvTabGroup.isRegionBCount = !isCompleted;
+            break;
+        default:
+            console.warn(`未知任务类型: ${taskType}`);
+            return;
+    }
+
+    // 提交更新
+    await groupCharacterPanelHandleUpdateGroup(newAtvTabGroup);
 };
 
 //================ 通用弹框 开始================
@@ -2659,7 +2722,7 @@ watch(
           </div>
         </div>
 
-        <!-- ================= 右侧：核心数据呈现区 ================= -->
+<!-- ================= 右侧：核心数据呈现区 ================= -->
         <div class="flex-1 flex flex-col justify-between space-y-3">
           <!-- 【极度凸显区】远征与超越副本当前收益 -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -2711,14 +2774,20 @@ watch(
           <!-- 第二部分：指标网格（高密度排列8项兑换与周常） -->
           <div
             class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]"
-            @click="handleTaskClick"
           >
             <!-- 1. 账号奥德 -->
             <div
-              class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
+              class="p-2 border rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-95"
+              :class="
+                (getAtvTabGroup?.breezeAccountOd || 0) >= 16
+                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-2xs'
+                  : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600'
+              "
+              @click="handleTaskClick('breezeAccountOd')"
             >
               <span
-                class="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate"
+                class="text-[10px] font-bold truncate"
+                :class="(getAtvTabGroup?.breezeAccountOd || 0) >= 16 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'"
                 >账号奥德</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2736,7 +2805,7 @@ watch(
                   class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
                   :class="
                     (getAtvTabGroup?.breezeAccountOd || 0) >= 16
-                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900'
+                      ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
                       : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
                   "
                 >
@@ -2747,10 +2816,17 @@ watch(
 
             <!-- 2. 商店奥德 -->
             <div
-              class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
+              class="p-2 border rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-95"
+              :class="
+                (getAtvTabGroup?.materialAccountOd || 0) >= 16
+                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-2xs'
+                  : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600'
+              "
+              @click="handleTaskClick('materialAccountOd')"
             >
               <span
-                class="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate"
+                class="text-[10px] font-bold truncate"
+                :class="(getAtvTabGroup?.materialAccountOd || 0) >= 16 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'"
                 >商店奥德</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2768,7 +2844,7 @@ watch(
                   class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
                   :class="
                     (getAtvTabGroup?.materialAccountOd || 0) >= 16
-                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900'
+                      ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
                       : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
                   "
                 >
@@ -2779,10 +2855,17 @@ watch(
 
             <!-- 3. 周复活石 -->
             <div
-              class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
+              class="p-2 border rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-95"
+              :class="
+                (getAtvTabGroup?.breezeReviveStone || 0) >= 7
+                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-2xs'
+                  : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600'
+              "
+              @click="handleTaskClick('breezeReviveStone')"
             >
               <span
-                class="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate"
+                class="text-[10px] font-bold truncate"
+                :class="(getAtvTabGroup?.breezeReviveStone || 0) >= 7 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'"
                 >周复活石</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2800,7 +2883,7 @@ watch(
                   class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
                   :class="
                     (getAtvTabGroup?.breezeReviveStone || 0) >= 7
-                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900'
+                      ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
                       : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
                   "
                 >
@@ -2811,10 +2894,17 @@ watch(
 
             <!-- 4. 未知缝隙 -->
             <div
-              class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
+              class="p-2 border rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-95"
+              :class="
+                (getAtvTabGroup?.breezeRiftTicket || 0) >= 21
+                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-2xs'
+                  : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600'
+              "
+              @click="handleTaskClick('breezeRiftTicket')"
             >
               <span
-                class="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate"
+                class="text-[10px] font-bold truncate"
+                :class="(getAtvTabGroup?.breezeRiftTicket || 0) >= 21 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'"
                 >未知缝隙</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2832,7 +2922,7 @@ watch(
                   class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
                   :class="
                     (getAtvTabGroup?.breezeRiftTicket || 0) >= 21
-                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900'
+                      ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
                       : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
                   "
                 >
@@ -2843,10 +2933,17 @@ watch(
 
             <!-- 5. 完成卷(每日) -->
             <div
-              class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
+              class="p-2 border rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-95"
+              :class="
+                (getAtvTabGroup?.breezeDailyTicket || 0) >= 21
+                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-2xs'
+                  : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600'
+              "
+              @click="handleTaskClick('breezeDailyTicket')"
             >
               <span
-                class="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate"
+                class="text-[10px] font-bold truncate"
+                :class="(getAtvTabGroup?.breezeDailyTicket || 0) >= 21 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'"
                 >完成卷(每日)</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2864,7 +2961,7 @@ watch(
                   class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
                   :class="
                     (getAtvTabGroup?.breezeDailyTicket || 0) >= 21
-                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900'
+                      ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
                       : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
                   "
                 >
@@ -2875,10 +2972,17 @@ watch(
 
             <!-- 6. 完成卷(噩梦) -->
             <div
-              class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
+              class="p-2 border rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-95"
+              :class="
+                (getAtvTabGroup?.breezeNightmareTicket || 0) >= 14
+                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-2xs'
+                  : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600'
+              "
+              @click="handleTaskClick('breezeNightmareTicket')"
             >
               <span
-                class="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate"
+                class="text-[10px] font-bold truncate"
+                :class="(getAtvTabGroup?.breezeNightmareTicket || 0) >= 14 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'"
                 >完成卷(噩梦)</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2896,7 +3000,7 @@ watch(
                   class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
                   :class="
                     (getAtvTabGroup?.breezeNightmareTicket || 0) >= 14
-                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900'
+                      ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
                       : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
                   "
                 >
@@ -2907,10 +3011,17 @@ watch(
 
             <!-- 7. 地区A指令 -->
             <div
-              class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
+              class="p-2 border rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-95"
+              :class="
+                (getAtvTabGroup?.regionACount || 0) >= 12
+                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-2xs'
+                  : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600'
+              "
+              @click="handleTaskClick('regionACount')"
             >
               <span
-                class="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate"
+                class="text-[10px] font-bold truncate"
+                :class="(getAtvTabGroup?.regionACount || 0) >= 12 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'"
                 >地区A指令</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2928,7 +3039,7 @@ watch(
                   class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
                   :class="
                     (getAtvTabGroup?.regionACount || 0) >= 12
-                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900'
+                      ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
                       : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
                   "
                 >
@@ -2939,10 +3050,17 @@ watch(
 
             <!-- 8. 地区B指令 -->
             <div
-              class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl flex items-center justify-between"
+              class="p-2 border rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-95"
+              :class="
+                (getAtvTabGroup?.regionBCount || 0) >= 12
+                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-2xs'
+                  : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600'
+              "
+              @click="handleTaskClick('regionBCount')"
             >
               <span
-                class="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate"
+                class="text-[10px] font-bold truncate"
+                :class="(getAtvTabGroup?.regionBCount || 0) >= 12 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'"
                 >地区B指令</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
@@ -2960,7 +3078,7 @@ watch(
                   class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
                   :class="
                     (getAtvTabGroup?.regionBCount || 0) >= 12
-                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900'
+                      ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
                       : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
                   "
                 >
