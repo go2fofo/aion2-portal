@@ -576,7 +576,7 @@ const loadData = async () => {
 const searchRaceId = ref(2);
 const customForm = ref({});
 const searchServerId = ref(2018);
-const searchServerOptions = computed(() => getServersByRace(searchRaceId.value));
+const searchServerOptions = computed(() => getServersByRace(customForm.value?.raceId|| globalPopupOp.value?.data?.raceId || searchRaceId.value));
 const filteredLegionMembers = computed(() => {
   const kw = legionKeyword.value.trim().toLowerCase();
   if (!kw) return legionMembers.value;
