@@ -452,10 +452,12 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
       <div
         v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showEnergy)"
         class="p-3.5 bg-gradient-to-br from-slate-50/90 to-slate-100/60 dark:from-slate-800/80 dark:to-slate-900/80 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2.5 shadow-sm transition-all hover:shadow dark:hover:border-slate-600"
-        @click="emit('task-click', char, '', 'globalSimpleEnergy')"
       >
         <!-- 头部：标题与数值概览 -->
-        <div class="flex items-center justify-between text-xs">
+        <div
+          class="flex items-center justify-between text-xs"
+          @click="emit('task-click', char, '', 'globalSimpleEnergy')"
+        >
           <span
             class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5"
           >
@@ -485,6 +487,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         <!-- 组合进度条主体 -->
         <div
           class="w-full bg-slate-200/70 dark:bg-slate-700/80 h-2.5 rounded-full overflow-hidden flex p-0.5 border border-slate-200 dark:border-slate-600 shadow-inner"
+          @click="emit('task-click', char, '', 'globalSimpleEnergy')"
         >
           <!-- 基础奥德进度条 -->
           <div
@@ -514,25 +517,116 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           ></div>
         </div>
 
-        <!-- 底部：图例与总计 -->
+        <!-- ================= 底部：自适应弹性流式布局（变换奥德 + 商店奥德 + 总计） ================= -->
         <div
-          class="flex items-center justify-between text-[10px] font-semibold text-slate-400 dark:text-slate-500 pt-0.5 px-0.5"
+          class="flex flex-wrap items-center justify-between gap-2 pt-1 px-0.5 text-[10px] font-semibold text-slate-400 dark:text-slate-500"
         >
-          <div class="flex items-center gap-2.5">
-            <span class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
-              <span class="w-1.5 h-1.5 rounded-full bg-[#45a6d5]"></span>
-              基础
-            </span>
-            <span class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-              存储
-            </span>
+          <!-- 左侧包裹区：内部卡片自适应内容宽度，空间不够时自动换行 -->
+          <div class="flex items-center gap-2 flex-wrap flex-1 min-w-0">
+            <!-- 1. 变换奥德 (Material Char Od) -->
+            <div
+              class="p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all hover:border-amber-400/50 hover:bg-amber-50/30 dark:hover:bg-amber-950/30 cursor-pointer shrink-0"
+              @click="emit('task-click', char, 'materialCharOd', 'exchangeCharOD')"
+            >
+              <div class="flex items-center gap-1.5 min-w-0">
+                <div class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></div>
+                <span
+                  class="font-bold text-slate-700 dark:text-slate-200 text-[11px] truncate"
+                  >变换奥德</span
+                >
+              </div>
+              <div class="flex items-center gap-1 font-black text-[11px] shrink-0">
+                <span
+                  :class="
+                    (char.materialCharOd || 0) >= 4
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-amber-600 dark:text-amber-400'
+                  "
+                >
+                  {{ char.materialCharOd || 0 }}
+                </span>
+                <span class="text-slate-300 dark:text-slate-600 font-normal">/ 4</span>
+                <span
+                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
+                  :class="
+                    (char.materialCharOd || 0) >= 4
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/80'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/50 dark:border-slate-700'
+                  "
+                >
+                  <template v-if="(char.materialCharOd || 0) >= 4">✓</template>
+                  <template v-else>
+                    <svg
+                      class="w-2 h-2"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
+                    </svg>
+                  </template>
+                </span>
+              </div>
+            </div>
+
+            <!-- 商店奥德兑换 -->
+            <div
+              class="p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 dark:hover:bg-sky-950/30 cursor-pointer shrink-0"
+              @click="emit('task-click', char, 'breezeCharOd', 'exchangeCharOD')"
+              v-if="getGroup(char.group)?.premiumMember"
+            >
+              <div class="flex items-center gap-1.5 min-w-0">
+                <div class="w-1.5 h-1.5 rounded-full bg-[#45a6d5] shrink-0"></div>
+                <span
+                  class="font-bold text-slate-700 dark:text-slate-200 text-[11px] truncate"
+                  >商店奥德</span
+                >
+              </div>
+              <div class="flex items-center gap-1 font-black text-[11px] shrink-0">
+                <span
+                  :class="
+                    (char.breezeCharOd || 0) >= 4
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-[#45a6d5] dark:text-sky-400'
+                  "
+                >
+                  {{ char.breezeCharOd || 0 }}
+                </span>
+                <span class="text-slate-300 dark:text-slate-600 font-normal"
+                  >/ {{ char.breezeCharOd || 4 }}</span
+                >
+                <span
+                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
+                  :class="
+                    (char.breezeCharOd || 0) >= 4
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/80'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/50 dark:border-slate-700'
+                  "
+                >
+                  <template v-if="(char.breezeCharOd || 0) >= 4">✓</template>
+                  <template v-else>
+                    <svg
+                      class="w-2 h-2"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
+                    </svg>
+                  </template>
+                </span>
+              </div>
+            </div>
           </div>
-          <span class="text-slate-500 dark:text-slate-400">
+
+          <!-- 右侧：总计点数（自动靠右，绝不挤压卡片） -->
+          <span class="text-slate-500 dark:text-slate-400 shrink-0">
             总计:
-            <strong class="text-slate-700 dark:text-slate-200 font-bold">{{
-              (char.energy || 0) + (char.storedEnergy || 0)
-            }}</strong>
+            <strong class="text-slate-700 dark:text-slate-200 font-bold">
+              {{ (char.energy || 0) + (char.storedEnergy || 0) }}
+            </strong>
             点
           </span>
         </div>
@@ -900,103 +994,6 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
             </span>
           </div>
         </button>
-      </div>
-      <!-- ================= 首页精简版：角色奥德展示卡片 ================= -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-        <!-- 1. 微风商店 - 角色奥德 -->
-        <div
-          class="p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between shadow-xs transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 dark:hover:bg-sky-950/30 cursor-pointer"
-          @click="emit('task-click', char, 'breezeCharOd', 'exchangeCharOD')"
-          v-if="getGroup(char.group).premiumMember"
-        >
-          <div class="flex items-center gap-1.5 min-w-0">
-            <div class="w-1.5 h-1.5 rounded-full bg-[#45a6d5] shrink-0"></div>
-            <span
-              class="font-bold text-slate-700 dark:text-slate-200 text-[11px] truncate"
-              >商店奥德</span
-            >
-          </div>
-          <div class="flex items-center gap-1 font-black text-[11px] shrink-0">
-            <span
-              :class="
-                (char.breezeCharOd || 0) >= 4
-                  ? 'text-emerald-600 dark:text-emerald-400'
-                  : 'text-[#45a6d5] dark:text-sky-400'
-              "
-            >
-              {{ char.breezeCharOd || 0 }}
-            </span>
-            <span class="text-slate-300 dark:text-slate-600 font-normal">/ 4</span>
-            <span
-              class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
-              :class="
-                (char.breezeCharOd || 0) >= 4
-                  ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/80'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/50 dark:border-slate-700'
-              "
-            >
-              <template v-if="(char.breezeCharOd || 0) >= 4">✓</template>
-              <template v-else>
-                <svg
-                  class="w-2 h-2"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="3"
-                >
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
-                </svg>
-              </template>
-            </span>
-          </div>
-        </div>
-
-        <!-- 2. 物质变换 - 角色奥德 -->
-        <div
-          class="p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between shadow-xs transition-all hover:border-amber-400/50 hover:bg-amber-50/30 dark:hover:bg-amber-950/30 cursor-pointer"
-          @click="emit('task-click', char, 'materialCharOd', 'exchangeCharOD')"
-        >
-          <div class="flex items-center gap-1.5 min-w-0">
-            <div class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></div>
-            <span
-              class="font-bold text-slate-700 dark:text-slate-200 text-[11px] truncate"
-              >变换奥德</span
-            >
-          </div>
-          <div class="flex items-center gap-1 font-black text-[11px] shrink-0">
-            <span
-              :class="
-                (char.materialCharOd || 0) >= 4
-                  ? 'text-emerald-600 dark:text-emerald-400'
-                  : 'text-amber-600 dark:text-amber-400'
-              "
-            >
-              {{ char.materialCharOd || 0 }}
-            </span>
-            <span class="text-slate-300 dark:text-slate-600 font-normal">/ 4</span>
-            <span
-              class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
-              :class="
-                (char.materialCharOd || 0) >= 4
-                  ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/80'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/50 dark:border-slate-700'
-              "
-            >
-              <template v-if="(char.materialCharOd || 0) >= 4">✓</template>
-              <template v-else>
-                <svg
-                  class="w-2 h-2"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="3"
-                >
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
-                </svg>
-              </template>
-            </span>
-          </div>
-        </div>
       </div>
 
       <!-- ================= 模式五：备注输入框 ================= -->
