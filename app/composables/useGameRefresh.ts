@@ -32,6 +32,111 @@ const calculatedEndTime = (premiumMemberDay: any) => {
   endDate.setDate(endDate.getDate() + remainingDays);
   return formatDate(endDate);
 };
+
+/**
+ * 1. 判断一个值是否为有效的时间戳（支持 13位毫秒 或 10位秒）
+ * @param {any} value 需要检测的值
+ * @returns {boolean}
+ */
+export const isTimestamp = (value: any) => {
+  if (value === null || value === undefined) return false;
+
+  let num = null;
+  if (typeof value === "number" && !isNaN(value)) {
+    num = value;
+  } else if (typeof value === "string" && /^\d{10,13}$/.test(value.trim())) {
+    num = Number(value.trim());
+  }
+
+  if (num === null) return false;
+
+  // 如果是 10 位秒级时间戳，转成毫秒进行校验
+  if (num.toString().length === 10) {
+    num *= 1000;
+  }
+
+  // 合理的时间戳范围限制（约 2000年 ~ 2100年 之间）
+  return num >= 946684800000 && num <= 4102444800000;
+};
+
+/**
+ * 2. 全能时间转时间戳方法（支持时间戳、Date对象、标准ISO字符串、带中文“下午/上午”及斜杠的自定义格式）
+ * @param {any} input 输入的时间（可以是数字、字符串、Date对象或包含时间字段的日志对象）
+ * @returns {number} 返回毫秒级时间戳，若解析失败返回 0
+ */
+export const convertToTimestamp: any = (input: any) => {
+  if (!input) return 0;
+
+  // A. 如果输入本身是一个对象（比如传进来的是整个 log 对象）
+  if (typeof input === "object" && !(input instanceof Date)) {
+    // 优先检查对象里有没有自带的 timestamp 字段
+    if (isTimestamp(input.timestamp))
+      return Number(
+        input.timestamp.toString().length === 10
+          ? input.timestamp * 1000
+          : input.timestamp,
+      );
+    if (isTimestamp(input.createdAt))
+      return Number(
+        input.createdAt.toString().length === 10
+          ? input.createdAt * 1000
+          : input.createdAt,
+      );
+    if (isTimestamp(input.date))
+      return Number(
+        input.date.toString().length === 10 ? input.date * 1000 : input.date,
+      );
+
+    // 如果没有，则依次尝试取对象的 createdAt 或 date 字段去解析
+    const targetStr = input.createdAt || input.date;
+    return convertToTimestamp(targetStr);
+  }
+
+  // B. 如果本身已经是 Date 对象
+  if (input instanceof Date) {
+    const time = input.getTime();
+    return isNaN(time) ? 0 : time;
+  }
+
+  // C. 如果本身就是数字或纯数字字符串形式的时间戳
+  if (isTimestamp(input)) {
+    let num = Number(input);
+    return num.toString().length === 10 ? num * 1000 : num;
+  }
+
+  // D. 如果是字符串，处理各种复杂文本格式
+  if (typeof input === "string") {
+    let raw = input.trim();
+
+    // 1. 处理带中文“下午/上午”的格式（如 "6/8/2026 下午10:11:44"）
+    if (raw.includes("下午") || raw.includes("上午")) {
+      const isPM = raw.includes("下午");
+      const nums = raw.match(/\d+/g);
+
+      if (nums && nums.length >= 6) {
+        let month = parseInt(nums[0], 10);
+        let day = parseInt(nums[1], 10);
+        let year = parseInt(nums[2], 10);
+        let hour = parseInt(nums[3], 10);
+        let minute = parseInt(nums[4], 10);
+        let second = parseInt(nums[5], 10);
+
+        if (isPM && hour < 12) hour += 12;
+        if (!isPM && hour === 12) hour = 0;
+
+        const standardizedStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}`;
+        const time = new Date(standardizedStr).getTime();
+        if (!isNaN(time)) return time;
+      }
+    }
+
+    // 2. 尝试用标准 JS 原生 Date 解析（支持 ISO 格式如 "2026-08-07T05:00:00.000Z" 或 "2026-08-07"）
+    const standardTime = new Date(raw).getTime();
+    if (!isNaN(standardTime)) return standardTime;
+  }
+
+  return 0;
+};
 /**
  * 🛠️ 数据自愈与平滑迁移方法：修复历史版本中数据缺失或者变更修补数据
  * @param {Object} gameData 原始游戏数据对象
@@ -43,10 +148,69 @@ const sanitizeGameData = (gameData: any) => {
   }
 
   let hasModified = false;
-  const nowIso = new Date().toISOString();
+  const nowIso = Date.now();
+
+  let groupsTimes = [
+    "lastRunsUpdate",
+
+    "lastTranscendRunsUpdate",
+
+    "lastDailyRunsUpdate",
+    "lastMinigameUpdate",
+    "lastDimensionalUpdate",
+
+    "lastUpdatedAt",
+    "updatedAt",
+    "createdAt",
+  ];
+  let runLogsTimes = ["createdAt", "updatedAt"];
+  let charactersTimes = [
+    "lastSanctuaryRunsUpdate",
+    "lastBattlefieldUpdate",
+
+    "lastAwakeningUpdate",
+    "lastNightmareUpdate",
+
+    "lastEnergyUpdate",
+
+    "breezeCharOdDate",
+    "materialCharOdDate",
+    "dailyMissionDate",
+
+    "createDate",
+  ];
 
   // 遍历所有分组进行清洗
-  gameData.groups.forEach((group: any) => {
+  gameData?.groups.forEach((group: any) => {
+    //判断分组时间
+    // A. 清洗分组自身的时间字段
+    groupsTimes.forEach((field) => {
+      if (
+        group[field] !== undefined &&
+        group[field] !== null &&
+        !isTimestamp(group[field])
+      ) {
+        group[field] = convertToTimestamp(group[field]);
+        hasModified = true;
+      }
+    });
+
+    // B. 清洗分组内的日志流水 (runLogs)
+    if (Array.isArray(group.runLogs)) {
+      group.runLogs.forEach((log: any) => {
+        runLogsTimes.forEach((field) => {
+          if (
+            log[field] !== undefined &&
+            log[field] !== null &&
+            !isTimestamp(log[field])
+          ) {
+            log[field] = convertToTimestamp(log[field]);
+            hasModified = true;
+          }
+        });
+      });
+    }
+
     // 假设次元袭击挑战次数的上限阈值是 7
     const MAX_DIMENSIONAL_LIMIT = 7;
 
@@ -163,8 +327,8 @@ const sanitizeGameData = (gameData: any) => {
 
         // 判定条件2：时间落在了“本周三 5 点整”到“5点零5分”之间（精准捕获那个因初始化产生的错误时间戳）
         // 你的错误时间是 05:00:40，正好落在这个危险区间内
-        const isBuggyTimestamp = 
-          updateTime >= currentWednesday5am && 
+        const isBuggyTimestamp =
+          updateTime >= currentWednesday5am &&
           updateTime <= currentWednesday5am + 5 * 60 * 1000;
 
         if (isInvalidFormat || isBuggyTimestamp) {
@@ -178,8 +342,36 @@ const sanitizeGameData = (gameData: any) => {
     }
   });
 
+  //遍历所有角色进行清洗
+  gameData?.characters?.length &&
+    gameData?.characters.forEach((char: any) => {
+      charactersTimes.forEach((field) => {
+        if (
+          char[field] !== undefined &&
+          char[field] !== null &&
+          !isTimestamp(char[field])
+        ) {
+          char[field] = convertToTimestamp(char[field]);
+          hasModified = true;
+        }
+      });
 
-  
+      // 如果角色身上也有自己的 runLogs，同样进行清洗
+      if (Array.isArray(char.runLogs)) {
+        char.runLogs.forEach((log: any) => {
+          runLogsTimes.forEach((field) => {
+            if (
+              log[field] !== undefined &&
+              log[field] !== null &&
+              !isTimestamp(log[field])
+            ) {
+              log[field] = convertToTimestamp(log[field]);
+              hasModified = true;
+            }
+          });
+        });
+      }
+    });
 
   return { gameData, hasModified };
 };

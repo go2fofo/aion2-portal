@@ -88,7 +88,7 @@ const defGameData = {
   version: "1.0.0",
   dataType: "complete",
   characterCount: 0,
-  exportDate: new Date().toLocaleString(),
+  exportDate: Date.now(),
 };
 // 游戏数据结构 参考 docs/多角色管理模块相关.md
 const gameData = ref(cloneDeep(defGameData));
@@ -581,7 +581,7 @@ const saveData = async () => {
 
   if (typeof saving !== "undefined") saving.value = true;
   if (gameData.value) {
-    gameData.value.exportDate = new Date().toLocaleString();
+    gameData.value.exportDate = Date.now();
   }
 
   try {
@@ -858,7 +858,7 @@ const confirmAddCustomCharacter = async () => {
 
   $loading.show("正在添加自定义角色...");
   try {
-    const nowIso = new Date().toISOString();
+    const nowIso = Date.now();
     // 💡 构造一个安全的“过去时间”（往前推 7 天），确保新加的角色能正常参与周常/副本刷新
     const safePastDate = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
 
@@ -1075,7 +1075,7 @@ const handleSaveCharacter = async () => {
     }
   }
 
-  const nowIso = new Date().toISOString();
+  const nowIso = Date.now();
 
   // 💡 构造一个安全的“过去时间”（例如：当前时间往前推 7 天，或者固定设为一个过去的周三时间）
   // 这样可以确保新号的周常/副本时间戳绝对早于本周三 5 点，建号时就能正常参与重置/发次数
@@ -1621,7 +1621,7 @@ const totalGroupStoredDimensionalCount = computed(() => {
 const handleSignInSignIn = async (group) => {
   let newAtvTabGroup = group ? { ...group } : { ...getAtvTabGroup.value };
   newAtvTabGroup.dailySignIn = !newAtvTabGroup?.dailySignIn;
-  newAtvTabGroup.dailySignInDate = new Date().toISOString().substring(0, 10);
+  newAtvTabGroup.dailySignInDate = Date.now();
   await groupCharacterPanelHandleUpdateGroup(newAtvTabGroup);
 };
 
@@ -1762,7 +1762,7 @@ const clearGameData = async () => {
     version: "1.0.0",
     dataType: "complete",
     characterCount: 0,
-    exportDate: new Date().toLocaleString(),
+    exportDate: Date.now(),
   };
 
   // 3. 直接调用统一的 saveData()：
@@ -1948,9 +1948,8 @@ const handleGlobalPopupFill = (type) => {
           globalPopupOp.value.data?.energy !== undefined &&
           globalPopupOp.value.data?.energy !== null
         ) {
-          const nowIso = new Date().toISOString();
           charItem.energy = globalPopupOp.value.data.energy;
-          charItem.lastEnergyUpdate = nowIso;
+          charItem.lastEnergyUpdate = Date.now();
         }
         if (
           globalPopupOp.value.data?.storedEnergy !== undefined &&

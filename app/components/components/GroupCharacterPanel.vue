@@ -1508,7 +1508,7 @@ const currentActiveRuns = computed({
           runs: consumeForm.value.dungeonType === "expedition" ? val : g.runs,
           transcendRuns:
             consumeForm.value.dungeonType === "surpass" ? val : g.transcendRuns,
-          updatedAt: new Date().toLocaleString(),
+          updatedAt: Date.now(),
         };
       }
       return g;
@@ -1904,7 +1904,7 @@ const handleExecuteConsume = async () => {
   // 5. 基础参数准备
   const dungeonType = consumeForm.value.dungeonType; // 'expedition' | 'surpass' | 'sanctuary'
   const currentDateStr = new Date().toISOString().split("T")[0];
-  const nowStr = new Date().toLocaleString();
+  const nowStr = Date.now();
 
   // ==================== B. 处理分组数据更新（远征与超越共享次数和日志） ====================
   const groupId = gameplayCharForm.value?.group;
@@ -2578,7 +2578,7 @@ const handleExecuteExchange = () => {
   const updatedCharacter = {
     ...cloneDeep(currentTarget),
   };
-  const nowStr = new Date().toLocaleString();
+  const nowStr = Date.now();
   // 赋值角色od：商店周奥德能量（上限 4）
   if (breezeCharOd && breezeCharOd > 0) {
     updatedCharacter.breezeCharOd = (updatedCharacter.breezeCharOd || 0) + breezeCharOd;
