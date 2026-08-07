@@ -288,7 +288,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           gameplayBadgeClass,
           'absolute -top-[1px] -right-[1px] bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-500 dark:to-indigo-500 text-white font-black rounded-bl-3xl rounded-tr-3xl shadow-[0_4px_16px_-4px_rgba(147,51,234,0.6)] hover:shadow-[0_6px_20px_-4px_rgba(147,51,234,0.8)] hover:scale-105 transition-all tracking-wider z-20 flex items-center active:scale-95',
         ]"
-        @click="emit('click-gameplay', char)"
+        @click="emit('click-gameplay', char,'consume')"
       >
         <!-- 小图标点缀 -->
         <svg

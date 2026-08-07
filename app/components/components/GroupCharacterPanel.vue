@@ -2786,7 +2786,7 @@ watch(
   (val) => {
     if (val) {
       console.log(
-        `🔍 [GroupCharacterPanel:530] %c activeTab tab监听变化: `,
+        `] %c activeTab tab监听变化: `,
         "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
         val
       );
