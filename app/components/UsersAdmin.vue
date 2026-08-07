@@ -1484,11 +1484,6 @@ const groupCharacterPanelHandleToggleTask = async (char, field) => {
   await groupCharacterPanelHandleUpdateCharacter(updatedChar);
 };
 
-// 分组角色卡片列表底层保存处理
-const updateCharacter = async (char) => {
-  await saveData();
-};
-
 // 分组角色卡片列表消耗能量事件处理
 const groupCharacterPanelHandleConsumeEnergy = async (char) => {
   char.energy = 0;
@@ -1807,12 +1802,14 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType) => {
     globalSimpleEnergy: "奥德补充",
     globalModifyCharacter: "角色信息修改",
     globalExchangeCharOD: "奥德兑换",
+    globalSanctuary: "圣域",
   };
   switch (gType) {
     case "globalModifyCharacter": //角色信息修改
 
     case "globalSimpleEnergy": //简化版奥德能量设置补充
     case "globalExchangeCharOD": //角色奥德 商店和物质变换
+    case "globalSanctuary": //圣域处理
       globalPopupOpen.value = true;
       let newGlobalPopupOp = {
         type: gType,
@@ -1825,6 +1822,7 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType) => {
         targetGroup: getGroupById(char?.group),
       };
 
+      // 修改弹框默认高度
       switch (gType) {
         case "globalSimpleEnergy": //简化版奥德能量设置补充
         case "globalExchangeCharOD": //角色奥德 商店和物质变换
@@ -1842,8 +1840,11 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType) => {
   console.log(
     `🔍 [UsersAdmin:1436] %c 用于通用项 点击触发事件:groupCharacterPanelHandleClickTask `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-    char,
-    gType
+    {
+      char,
+      gType,
+      fieldType,
+    }
   );
 };
 
@@ -2037,7 +2038,7 @@ const handleCardConfigModeChange = async (modeType) => {
                  <span class="text-xs text-slate-400 mt-1 inline-block">提示：该模式下内容可通过 <b class="text-slate-600 dark:text-slate-300">点击进入详情</b> 进行修改。</span>`
         );
         if (!confirmed) return;
-        cardConfig.value.mode = modeType;
+        cardConfig.mode = modeType;
       }
 
       break;
@@ -2049,7 +2050,7 @@ const handleCardConfigModeChange = async (modeType) => {
                  <span class="text-xs text-slate-400 mt-1 inline-block">⚡ 提示：该模式下内容可通过 <b class="text-slate-600 dark:text-slate-300">双击在当前页面</b> 进行即时修改。</span>`
         );
         if (!confirmed) return;
-        cardConfig.value.mode = modeType;
+        cardConfig.mode = modeType;
       }
       break;
 
@@ -5844,7 +5845,6 @@ watch(
                 </div>
               </div>
               <!-- 奥德兑换 -->
-
               <div
                 v-if="globalPopupOp.type == 'globalExchangeCharOD'"
                 class="space-y-5 max-w-lg mx-auto py-2"
@@ -5900,51 +5900,21 @@ watch(
                 </div>
 
                 <!-- 按钮 -->
-                <div
-                  class="border-t border-slate-100 dark:border-slate-700 grid grid-cols-3 gap-2"
-                >
-                  <button
-                    type="button"
-                    class="py-3 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center truncate"
-                    @click="
-                      () => {
-                        if (globalPopupOp.fieldType == 'breezeCharOd') {
-                          globalPopupOp.data.breezeCharOd = 4;
-                        }
-                        if (globalPopupOp.fieldType == 'materialCharOd') {
-                          globalPopupOp.data.materialCharOd = 4;
-                        }
-                      }
-                    "
-                  >
-                    一键补满
-                  </button>
+              </div>
 
-                  <button
-                    type="button"
-                    class="py-3 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center truncate"
-                    @click="
-                      () => {
-                        if (globalPopupOp.fieldType == 'breezeCharOd') {
-                          globalPopupOp.data.breezeCharOd = 0;
-                        }
-                        if (globalPopupOp.fieldType == 'materialCharOd') {
-                          globalPopupOp.data.materialCharOd = 0;
-                        }
-                      }
-                    "
-                  >
-                    一键清空
-                  </button>
+              <!-- ================= 圣域================= -->
+              <div
+                v-if="globalPopupOp.type == 'globalSanctuary'"
+                class="space-y-4 max-w-2xl mx-auto py-2 text-xs"
+              >
 
-                  <button
-                    type="button"
-                    class="py-3 px-3 rounded-xl bg-[#45a6d5] hover:bg-[#3b95c0] text-white font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center shadow-sm truncate"
-                    @click="handleGlobalPopupFill('globalExchangeCharOD')"
-                  >
-                    确定
-                  </button>
-                </div>
+              <div>
+
+              </div>
+              
+
+              
+              
               </div>
             </div>
 
@@ -6021,6 +5991,52 @@ watch(
                 确认修改角色
               </button>
               <!-- 奥德兑换 -->
+              <div
+                class="border-t border-slate-100 dark:border-slate-700 grid grid-cols-3 gap-2"
+                v-if="globalPopupOp.type == 'globalExchangeCharOD'"
+              >
+                <button
+                  type="button"
+                  class="py-3 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center truncate"
+                  @click="
+                    () => {
+                      if (globalPopupOp.fieldType == 'breezeCharOd') {
+                        globalPopupOp.data.breezeCharOd = 4;
+                      }
+                      if (globalPopupOp.fieldType == 'materialCharOd') {
+                        globalPopupOp.data.materialCharOd = 4;
+                      }
+                    }
+                  "
+                >
+                  一键补满
+                </button>
+
+                <button
+                  type="button"
+                  class="py-3 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center truncate"
+                  @click="
+                    () => {
+                      if (globalPopupOp.fieldType == 'breezeCharOd') {
+                        globalPopupOp.data.breezeCharOd = 0;
+                      }
+                      if (globalPopupOp.fieldType == 'materialCharOd') {
+                        globalPopupOp.data.materialCharOd = 0;
+                      }
+                    }
+                  "
+                >
+                  一键清空
+                </button>
+
+                <button
+                  type="button"
+                  class="py-3 px-3 rounded-xl bg-[#45a6d5] hover:bg-[#3b95c0] text-white font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center shadow-sm truncate"
+                  @click="handleGlobalPopupFill('globalExchangeCharOD')"
+                >
+                  确定
+                </button>
+              </div>
             </div>
           </div>
         </div>

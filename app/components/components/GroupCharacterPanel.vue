@@ -1011,7 +1011,7 @@ const handleToggleTask = (char, field) => {
   const updatedChar = { ...char, [field]: !char[field] };
   emit("update-character", updatedChar);
 };
-const handleTaskClick = (char, field, tab) => {
+const handleTaskClick = async (char, field, tab) => {
   console.log(
     `🔍 [GroupCharacterPanel:713] %c handleTaskClickk--char: `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
@@ -1036,12 +1036,16 @@ const handleTaskClick = (char, field, tab) => {
       nextTick(() => {
         scrollToSection(field);
       });
-
+      break;
+    case "consumeSanctuary": //消耗奥德跳转到圣域
+      await handleClickGameplay(char, 'consume');
+      await handleSelectDungeonType("sanctuary");
       break;
     case "globalSimpleEnergy": //通用弹框奥德修改
     case "globalModifyCharacter": //通用弹框角色信息修改
+    case "globalSanctuary": //通用弹框圣域相关处理修改--双击触发
       //发送给父组件
-      emit("task-click", char, tab);
+      emit("task-click", char, tab, field);
       break;
     case "exchangeCharOD": //角色卡片点击奥德快捷核销
       if (props.cardConfig == "simple") {
@@ -1528,9 +1532,16 @@ const currentDifficultiesList = computed(() => {
 
 // 切换副本大类时，自动把索引重置为 0 防止数组越界
 const handleSelectDungeonType = (type) => {
+  console.log(
+    `🔍 [GroupCharacterPanel:1531] %c 消耗奥德切换tab触发111: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    type
+  );
   consumeForm.value.dungeonType = type;
   consumeForm.value.selectedDungeonIndex = 0;
   consumeForm.value.selectedDiffIndex = 0;
+  consumeForm.value.calcInput = 1;
+  consumeForm.value.activeCalcTab = "runs";
 };
 
 // 监听具体副本切换，自动把难度索引重置为 0
@@ -1548,7 +1559,176 @@ const currentSelectedDiff = computed(() => {
     currentDifficultiesList.value[0]
   );
 });
+// ==================== 1. 核心计算方法（支持阶梯衰减循环累加） ====================
 
+/**
+ * 辅助函数：根据当前的“挑战累计次数”获取对应的衰减阶梯规则
+ */
+const getDecayRuleByCount = (dungeonType, count) => {
+  const rules = dungeonDecayRules[dungeonType] || dungeonDecayRules.expedition;
+  for (const rule of rules) {
+    if (count <= rule.maxCount) {
+      return rule;
+    }
+  }
+  return rules[rules.length - 1];
+};
+
+/**
+ * 【模式一：根据输入的次数计算】
+ * 输入：calcInput（目标打的次数）
+ * 计算：总消耗奥德、总非绑吉纳、总绑定吉纳、总吉纳
+ */
+const calculationByRuns = computed(() => {
+  if (!currentSelectedDiff.value) {
+    return { totalEnergy: 0, totalKina: 0, totalBoundKina: 0, totalGain: 0 };
+  }
+
+  const targetRuns = Number(consumeForm.value.calcInput) || 0;
+  if (targetRuns <= 0) {
+    return { totalEnergy: 0, totalKina: 0, totalBoundKina: 0, totalGain: 0 };
+  }
+
+  const dungeonType = consumeForm.value.dungeonType;
+  const baseEnergyPerRun = currentSelectedDiff.value.energy || 0;
+  const isDouble = isEffectiveDoubleEnergy.value;
+  const rewardMultiplier = isDouble ? 1 : 0.5; // 奖励倍率
+
+  const baseKina = currentSelectedDiff.value.kina || 0;
+  const baseBoundKina = currentSelectedDiff.value.boundKina || 0;
+
+  let totalEnergy = 0;
+  let totalKina = 0;
+  let totalBoundKina = 0;
+
+  // 模拟每一把的消耗与衰减累加
+  // 注意：这里的起始次数可以根据你实际业务是否需要加上“今日已刷次数”来决定，目前按从第 1 把到目标次数计算
+  for (let i = 1; i <= targetRuns; i++) {
+    // 获取当前第 i 把对应的衰减率
+    const decayRule = getDecayRuleByCount(dungeonType, i);
+    const decayRate = decayRule.rate;
+
+    // 单把消耗奥德（考虑单双倍）
+    const energyCost = isDouble ? baseEnergyPerRun * 2 : baseEnergyPerRun;
+    totalEnergy += energyCost;
+
+    // 单把吉纳产出
+    const kina = baseKina * rewardMultiplier * decayRate;
+    const boundKina = baseBoundKina * rewardMultiplier * decayRate;
+
+    totalKina += kina;
+    totalBoundKina += boundKina;
+  }
+
+  return {
+    totalEnergy,
+    totalKina: Number(totalKina.toFixed(2)),
+    totalBoundKina: Number(totalBoundKina.toFixed(2)),
+    totalGain: Number((totalKina + totalBoundKina).toFixed(2)),
+  };
+});
+
+/**
+ * 【模式二：根据输入的奥德计算】
+ * 输入：calcInput（准备消耗的奥德总数）
+ * 计算：可刷的最大次数、总非绑吉纳、总绑定吉纳、总吉纳、实际消耗奥德
+ */
+const calculationByEnergy = computed(() => {
+  if (!currentSelectedDiff.value) {
+    return {
+      possibleRuns: 0,
+      actualEnergy: 0,
+      totalKina: 0,
+      totalBoundKina: 0,
+      totalGain: 0,
+    };
+  }
+
+  const inputEnergy = Number(consumeForm.value.calcInput) || 0;
+  if (inputEnergy <= 0) {
+    return {
+      possibleRuns: 0,
+      actualEnergy: 0,
+      totalKina: 0,
+      totalBoundKina: 0,
+      totalGain: 0,
+    };
+  }
+
+  const dungeonType = consumeForm.value.dungeonType;
+  const baseEnergyPerRun = currentSelectedDiff.value.energy || 0;
+  const isDouble = isEffectiveDoubleEnergy.value;
+  const rewardMultiplier = isDouble ? 1 : 0.5;
+  const energyCostPerRun = isDouble ? baseEnergyPerRun * 2 : baseEnergyPerRun;
+
+  if (energyCostPerRun <= 0) {
+    return {
+      possibleRuns: 0,
+      actualEnergy: 0,
+      totalKina: 0,
+      totalBoundKina: 0,
+      totalGain: 0,
+    };
+  }
+
+  const baseKina = currentSelectedDiff.value.kina || 0;
+  const baseBoundKina = currentSelectedDiff.value.boundKina || 0;
+
+  let possibleRuns = 0;
+  let actualEnergy = 0;
+  let totalKina = 0;
+  let totalBoundKina = 0;
+
+  let currentSimulateEnergy = 0;
+  let i = 1;
+
+  // 循环扣减奥德，直到奥德不够刷下一把
+  while (true) {
+    const energyNeeded = energyCostPerRun;
+    if (currentSimulateEnergy + energyNeeded > inputEnergy) {
+      break; // 奥德不足以支撑下一把
+    }
+
+    currentSimulateEnergy += energyNeeded;
+    possibleRuns++;
+
+    // 获取当前把数的衰减率
+    const decayRule = getDecayRuleByCount(dungeonType, i);
+    const decayRate = decayRule.rate;
+
+    const kina = baseKina * rewardMultiplier * decayRate;
+    const boundKina = baseBoundKina * rewardMultiplier * decayRate;
+
+    totalKina += kina;
+    totalBoundKina += boundKina;
+    i++;
+  }
+
+  actualEnergy = currentSimulateEnergy;
+
+  return {
+    possibleRuns,
+    actualEnergy,
+    totalKina: Number(totalKina.toFixed(2)),
+    totalBoundKina: Number(totalBoundKina.toFixed(2)),
+    totalGain: Number((totalKina + totalBoundKina).toFixed(2)),
+  };
+});
+
+// 最终统一对外暴露的计算结果（根据当前的 activeCalcTab 自动切换）
+const currentCalculationResult = computed(() => {
+  if (consumeForm.value.activeCalcTab === "runs") {
+    return {
+      type: "runs",
+      ...calculationByRuns.value,
+    };
+  } else {
+    return {
+      type: "energy",
+      ...calculationByEnergy.value,
+    };
+  }
+});
 // 根据当前类型和挑战次数获取对应衰减阶梯
 const currentDecayRule = computed(() => {
   const rules =
@@ -1561,11 +1741,27 @@ const currentDecayRule = computed(() => {
   }
   return rules[rules.length - 1];
 });
-// 计算最终消耗奥德
-const calculatedEnergyCost = computed(() => {
+// 1. 单把消耗奥德（内部逻辑复用，专门用来做单次耗能判断、反推和循环累加）
+const singleEnergyCost = computed(() => {
   if (!currentSelectedDiff.value) return 0;
   const base = currentSelectedDiff.value.energy || 0;
   return isEffectiveDoubleEnergy.value ? base * 2 : base;
+});
+
+// 2. 最终消耗奥德（动态绑定：根据当前选择的 Tab 实时返回对应的“总消耗”或“实际消耗”）
+const calculatedEnergyCost = computed(() => {
+  if (!currentSelectedDiff.value) return 0;
+
+  // 如果当前是“消耗次数计算” Tab：返回 (单把消耗 × 输入的次数)
+  if (consumeForm.value.activeCalcTab === "runs") {
+    const runs = Number(consumeForm.value.calcInput) || 0;
+    return singleEnergyCost.value * runs;
+  }
+
+  // 如果当前是“消耗奥德计算” Tab：返回实际会扣除的奥德数（来自前面写好的 calculationByEnergy）
+  else {
+    return calculationByEnergy.value.actualEnergy;
+  }
 });
 const currentDecayRate = computed(() => currentDecayRule.value.rate);
 const currentDecayRuleLabel = computed(() => currentDecayRule.value.label);
@@ -1628,35 +1824,88 @@ watch(
   () => consumeForm.value.multiplier,
   (val) => localStorage.setItem("aion2_last_multiplier", val)
 );
+watch(
+  () => consumeForm.value.multiplier,
+  (val) => localStorage.setItem("aion2_last_activeCalcTab", val)
+);
 
-// 7. 执行扣除奥德逻辑（全面支持 远征、超越、圣域 的衰减阶梯与每日收益流水记录）
+// 7. 执行扣除奥德逻辑（全面支持批量次数/奥德输入、阶梯衰减与收益流水记录）
 const handleExecuteConsume = async () => {
-  const cost = calculatedEnergyCost.value;
-  const currentEnergy = gameplayCharForm.value?.energy || 0;
-  const currentStored = gameplayCharForm.value?.storedEnergy || 0;
+  // 1. 获取当前模式下实际要增加的挑战次数与奥德消耗
+  const isRunsTab = consumeForm.value.activeCalcTab === "runs";
+  const inputVal = Number(consumeForm.value.calcInput) || 0;
 
-  // 1. 检查总奥德是否足够
-  if (currentEnergy + currentStored < cost) {
-    $alert("当前角色的基础奥德与存储奥德总和不足，无法完成本次消耗！");
+  if (inputVal <= 0) {
+    $alert("请输入有效的计算数值（次数或奥德）！");
     return;
   }
 
+  let addRunsCount = 0;
+  let totalCostEnergy = 0;
+  let finalKinaGain = 0;
+  let finalBoundKinaGain = 0;
+
+  if (isRunsTab) {
+    // 模式一：根据输入的次数
+    addRunsCount = inputVal;
+    totalCostEnergy = calculatedEnergyCost.value; // 前面写好的动态计算总耗能
+    finalKinaGain = calculationByRuns.value.totalKina;
+    finalBoundKinaGain = calculationByRuns.value.totalBoundKina;
+  } else {
+    // 模式二：根据输入的奥德（反推能刷的次数）
+    const result = calculationByEnergy.value;
+    addRunsCount = result.possibleRuns;
+    totalCostEnergy = result.actualEnergy;
+    finalKinaGain = result.totalKina;
+    finalBoundKinaGain = result.totalBoundKina;
+  }
+
+  if (addRunsCount <= 0) {
+    $alert("当前输入的数值不足以支撑完成哪怕 1 次挑战！");
+    return;
+  }
+
+  const currentEnergy = gameplayCharForm.value?.energy || 0;
+  const currentStored = gameplayCharForm.value?.storedEnergy || 0;
+
+  // 2. 检查总奥德是否足够
+  if (currentEnergy + currentStored < totalCostEnergy) {
+    $alert(`当前角色的总奥德不足，本次操作需要 ${totalCostEnergy} 点奥德，无法完成！`);
+    return;
+  }
+
+  // 3. 弹出确认框（展示实际要消耗的奥德、次数及预计收益）
+  const confirmed = await $confirm?.(
+    `确定要消耗 ${totalCostEnergy} 点奥德完成 ${addRunsCount} 次挑战吗？\n预计可获得吉纳：${(
+      finalKinaGain + finalBoundKinaGain
+    ).toFixed(2)} 万`,
+    "提示",
+    {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
+    }
+  );
+
+  if (!confirmed) return;
+
+  // 4. 扣除奥德计算
   let newEnergy = currentEnergy;
   let newStored = currentStored;
 
-  if (currentEnergy >= cost) {
-    newEnergy = currentEnergy - cost;
+  if (currentEnergy >= totalCostEnergy) {
+    newEnergy = currentEnergy - totalCostEnergy;
   } else {
-    const remainingCost = cost - currentEnergy;
+    const remainingCost = totalCostEnergy - currentEnergy;
     newEnergy = 0;
     newStored = Math.max(0, currentStored - remainingCost);
   }
 
-  // 2. 基础参数准备
-  const addRunsCount = 1;
+  // 5. 基础参数准备
   const dungeonType = consumeForm.value.dungeonType; // 'expedition' | 'surpass' | 'sanctuary'
   const currentDateStr = new Date().toISOString().split("T")[0];
   const nowStr = new Date().toLocaleString();
+
   // ==================== B. 处理分组数据更新（远征与超越共享次数和日志） ====================
   const groupId = gameplayCharForm.value?.group;
   const groups = props.gameData?.groups || [];
@@ -1683,12 +1932,10 @@ const handleExecuteConsume = async () => {
           ...groupLogs[existingLogIndex],
           count: groupLogs[existingLogIndex].count + addRunsCount,
           kinaGain: Number(
-            (groupLogs[existingLogIndex].kinaGain + calculatedKinaGain.value).toFixed(2)
+            (groupLogs[existingLogIndex].kinaGain + finalKinaGain).toFixed(2)
           ),
           boundKinaGain: Number(
-            (
-              groupLogs[existingLogIndex].boundKinaGain + calculatedBoundKinaGain.value
-            ).toFixed(2)
+            (groupLogs[existingLogIndex].boundKinaGain + finalBoundKinaGain).toFixed(2)
           ),
           updatedAt: nowStr,
         };
@@ -1697,8 +1944,8 @@ const handleExecuteConsume = async () => {
           date: currentDateStr,
           type: dungeonType,
           count: addRunsCount,
-          kinaGain: calculatedKinaGain.value,
-          boundKinaGain: calculatedBoundKinaGain.value,
+          kinaGain: finalKinaGain,
+          boundKinaGain: finalBoundKinaGain,
           createdAt: nowStr,
           updatedAt: nowStr,
         });
@@ -1756,12 +2003,10 @@ const handleExecuteConsume = async () => {
       ...charLogs[charExistingLogIndex],
       count: charLogs[charExistingLogIndex].count + addRunsCount,
       kinaGain: Number(
-        (charLogs[charExistingLogIndex].kinaGain + calculatedKinaGain.value).toFixed(2)
+        (charLogs[charExistingLogIndex].kinaGain + finalKinaGain).toFixed(2)
       ),
       boundKinaGain: Number(
-        (
-          charLogs[charExistingLogIndex].boundKinaGain + calculatedBoundKinaGain.value
-        ).toFixed(2)
+        (charLogs[charExistingLogIndex].boundKinaGain + finalBoundKinaGain).toFixed(2)
       ),
       updatedAt: nowStr,
     };
@@ -1770,8 +2015,8 @@ const handleExecuteConsume = async () => {
       date: currentDateStr,
       type: dungeonType,
       count: addRunsCount,
-      kinaGain: calculatedKinaGain.value,
-      boundKinaGain: calculatedBoundKinaGain.value,
+      kinaGain: finalKinaGain,
+      boundKinaGain: finalBoundKinaGain,
       createdAt: nowStr,
       updatedAt: nowStr,
     });
@@ -1789,28 +2034,18 @@ const handleExecuteConsume = async () => {
     runLogs: charLogs,
   };
 
-  const confirmed = await $confirm?.(
-    `确定要消耗${calculatedEnergyCost?.value || 0}点奥德吗？`,
-    "提示",
-    {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      type: "warning",
-    }
-  );
-  console.log(
-    `🔍 [GroupCharacterPanel:1340] %c 消耗---confirmed: `,
-    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-    confirmed
-  );
-  if (!confirmed) return;
   // 更新本地表单状态
   gameplayCharForm.value = updatedCharacter;
+  consumeForm.value.calcInput = 1;
 
   console.log(
-    `🔍 [GroupCharacterPanel] %c 消耗奥德与各副本类型收益计算更新: `,
+    `🔍 [GroupCharacterPanel] %c 批量消耗奥德与各副本类型收益计算更新: `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     {
+      addRunsCount,
+      totalCostEnergy,
+      finalKinaGain,
+      finalBoundKinaGain,
       updatedCharacter,
       newGroups,
     }
@@ -3397,8 +3632,8 @@ defineExpose({
                         <span
                           class="text-xs font-black text-amber-600 dark:text-amber-400"
                         >
-                          最终消耗奥德:
-                          {{ calculatedEnergyCost }}
+                          消耗奥德:
+                          {{ singleEnergyCost }}
                           点
                         </span>
                       </div>
@@ -3455,8 +3690,11 @@ defineExpose({
                         </button>
                       </div>
                     </div>
-                    <div class="pt-2 flex flex-col gap-2">
-                      <!--  动态提示条（根据当前选中的 Tab 实时切换说明） -->
+
+                    <div
+                      class="pt-2 flex flex-col gap-2"
+                      v-if="consumeForm.dungeonType != 'sanctuary'"
+                    >
                       <div
                         class="flex items-start gap-2 px-3 py-2.5 rounded-xl text-[11px] font-medium transition-all"
                         :class="
@@ -3466,29 +3704,26 @@ defineExpose({
                         "
                       >
                         <div class="flex flex-col gap-0.5 leading-relaxed">
-                          <!-- 核心安全提示：强调必须先选好副本 -->
                           <span
                             class="text-[10px] font-bold flex items-center gap-1 text-rose-600 dark:text-rose-400 bg-rose-50/80 dark:bg-rose-950/40 px-2 py-0.5 rounded-md border border-rose-200/60 dark:border-rose-900/50 w-fit"
                           >
                             <span
                               class="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"
                             ></span>
-                            请务必先选中对应的目标副本和难度，再进行输入计算，以防数据匹配错误。
+                            请务必先选中对应的目标副本和难度，再进行输入计算。
                           </span>
-
-                          <!-- 状态说明 -->
                           <span v-if="consumeForm?.activeCalcTab === 'runs'">
                             <strong>[ 消耗次数计算 ]</strong>
-                            输入计划挑战的次数，系统将自动换算<strong>总消耗奥德</strong>与<strong>预计获得吉纳（绑/非绑）</strong>。
+                            输入或点击快捷按钮选择打怪次数，自动换算总奥德与吉纳。
                           </span>
                           <span v-else>
                             <strong>[ 消耗奥德计算 ]</strong>
-                            输入准备消耗的奥德数量，系统将自动换算<strong>可刷副本次数</strong>与<strong>预计获得吉纳（绑/非绑）</strong>。
+                            输入或点击快捷按钮选择奥德数，自动换算可刷次数与吉纳。
                           </span>
                         </div>
                       </div>
 
-                      <!-- 同一行布局：左侧 Tab，右侧输入框与按钮 -->
+                      <!-- 同一行布局：左侧 Tab，右侧输入框与快捷按钮 -->
                       <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                         <!-- 左侧：Tab 切换按钮组 -->
                         <div
@@ -3523,7 +3758,7 @@ defineExpose({
                             @click="
                               () => {
                                 consumeForm.activeCalcTab = 'energy';
-                                consumeForm.calcInput = calculatedEnergyCost;
+                                consumeForm.calcInput = singleEnergyCost;
                               }
                             "
                           >
@@ -3531,33 +3766,75 @@ defineExpose({
                           </button>
                         </div>
 
-                        <!-- 右侧：对应 Tab 的输入框与操作区（自适应撑满剩余空间） -->
+                        <!-- 右侧：输入框与动态快捷增加按钮组 -->
                         <div class="flex items-center gap-2 flex-1 w-full min-w-0">
                           <div class="relative flex-1 min-w-0">
                             <input
-                              v-model="consumeForm.calcInput"
-                              placeholder="请输入准备消耗的数..."
+                              type="number"
+                              v-model.number="consumeForm.calcInput"
+                              :placeholder="
+                                consumeForm?.activeCalcTab === 'runs'
+                                  ? '请输入打怪次数...'
+                                  : '请输入消耗奥德数...'
+                              "
                               class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:border-amber-500 dark:focus:border-amber-400 transition-all"
                             />
+                          </div>
+
+                          <!-- 快捷输入小标签按钮组（根据当前 Tab 动态渲染） -->
+                          <div class="flex items-center gap-1 shrink-0">
+                            <!-- 状态一：次数计算的快捷按钮 (+1, +2, +5, +10) -->
+                            <template v-if="consumeForm?.activeCalcTab === 'runs'">
+                              <button
+                                v-for="inc in [1, 2, 5, 10]"
+                                :key="inc"
+                                type="button"
+                                @click="
+                                  consumeForm.calcInput =
+                                    (Number(consumeForm.calcInput) || 0) + inc
+                                "
+                                class="px-2 py-1.5 text-[10px] font-bold bg-slate-100 dark:bg-slate-800 hover:bg-[#45a6d5] hover:text-white dark:hover:bg-sky-600 text-slate-600 dark:text-slate-300 rounded-lg transition-all cursor-pointer active:scale-95"
+                              >
+                                +{{ inc }}
+                              </button>
+                            </template>
+
+                            <!-- 状态二：奥德计算的快捷按钮 (基于 singleEnergyCost 倍数，如 +40, +80, +120, +160) -->
+                            <template v-else>
+                              <button
+                                v-for="mult in [2, 4, 6, 8]"
+                                :key="mult"
+                                type="button"
+                                @click="consumeForm.calcInput = singleEnergyCost * mult"
+                                class="px-2 py-1.5 text-[10px] font-bold bg-slate-100 dark:bg-slate-800 hover:bg-amber-500 hover:text-white dark:hover:bg-amber-600 text-slate-600 dark:text-slate-300 rounded-lg transition-all cursor-pointer active:scale-95"
+                                :title="`增加到 ${singleEnergyCost * mult} 点奥德`"
+                              >
+                                +{{ singleEnergyCost * mult }}
+                              </button>
+                            </template>
                           </div>
                         </div>
                       </div>
                     </div>
-                    <!-- 6. 收益面板展示（受挑战次数衰减影响，且单倍基础消耗对应减半收益） -->
+                    <!-- 6. 收益面板展示（支持根据当前计算模式与输入数值实时联动） -->
                     <div
                       class="p-4 bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/60 rounded-2xl space-y-2"
                     >
                       <div
                         class="text-xs font-black text-amber-800 dark:text-amber-300 flex items-center justify-between"
                       >
-                        <span>
-                          预计吉纳总收益 (已乘衰减
-                          {{ currentDecayRate * 100 }}%):
+                        <span v-if="consumeForm.activeCalcTab === 'runs'">
+                          预计累计吉纳总收益 (基于
+                          {{ consumeForm.calcInput || 0 }} 次挑战):
+                        </span>
+                        <span v-else>
+                          预计累计吉纳总收益 (消耗 {{ consumeForm.calcInput || 0 }} 点奥德
+                          / 可刷 {{ currentCalculationResult.possibleRuns }} 次):
                         </span>
                         <span
                           class="text-sm font-black text-amber-700 dark:text-amber-400"
                         >
-                          {{ calculatedTotalGain }} 万
+                          {{ currentCalculationResult.totalGain }} 万
                         </span>
                       </div>
                       <div
@@ -3566,13 +3843,13 @@ defineExpose({
                         <div>
                           基纳:
                           <span class="font-black text-amber-900 dark:text-amber-200"
-                            >{{ calculatedKinaGain }} 万</span
+                            >{{ currentCalculationResult.totalKina }} 万</span
                           >
                         </div>
                         <div>
                           绑定基纳:
                           <span class="font-black text-amber-900 dark:text-amber-200"
-                            >{{ calculatedBoundKinaGain }} 万</span
+                            >{{ currentCalculationResult.totalBoundKina }} 万</span
                           >
                         </div>
                       </div>

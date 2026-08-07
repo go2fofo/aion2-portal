@@ -288,7 +288,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           gameplayBadgeClass,
           'absolute -top-[1px] -right-[1px] bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-500 dark:to-indigo-500 text-white font-black rounded-bl-3xl rounded-tr-3xl shadow-[0_4px_16px_-4px_rgba(147,51,234,0.6)] hover:shadow-[0_6px_20px_-4px_rgba(147,51,234,0.8)] hover:scale-105 transition-all tracking-wider z-20 flex items-center active:scale-95',
         ]"
-        @click="emit('click-gameplay', char,'consume')"
+        @click="emit('click-gameplay', char, 'consume')"
       >
         <!-- 小图标点缀 -->
         <svg
@@ -610,8 +610,6 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         <div
           class="p-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl flex flex-col gap-2 transition-all shadow-xs"
         >
-         
-
           <!-- 绑/非绑分别统计展示（左右并排） -->
           <div class="grid grid-cols-2 gap-2 pt-0.5">
             <!-- 1. 非绑吉纳 -->
@@ -639,36 +637,90 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
             </div>
           </div>
         </div>
-        <!-- ================= 3. 圣域副本 (角色独立，每周三5点重置) ================= -->
+        <!-- ================= 3. 圣域副本 ================= -->
         <div
           v-if="
             currentMode !== 'simple' && (currentMode !== 'custom' || fields.showSanctuary)
           "
-          class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-2 transition-all hover:bg-slate-50 dark:hover:bg-slate-800 text-xs"
+          class="bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-2 transition-all"
         >
-          <div
-            class="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400"
-          >
-            <span class="flex items-center gap-1.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> 圣域副本
+          <!-- 顶栏标题提示 -->
+          <!-- <div class="flex items-center justify-between px-1">
+            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              圣域副本挑战
+              <span class="text-[10px] font-normal opacity-75">（点击可快捷消耗）</span>
             </span>
-          </div>
+          </div> -->
 
           <!-- 遍历 sanctuary 中的所有 Boss 配置 -->
-          <div class="grid grid-cols-3 gap-1.5 pt-1">
+          <!-- @click="emit('task-click', char, bossKey, 'globalSanctuary')" -->
+          <!-- @dblclick="emit('task-click', char, bossKey, 'globalSanctuary')" -->
+
+          <div class="grid grid-cols-3 gap-2">
             <div
               v-for="(maxLimit, bossKey) in char.sanctuary || { s1: 1, s2: 1, s3: 1 }"
               :key="bossKey"
-              class="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/50 rounded-xl px-2 py-1.5 flex flex-col items-center justify-center gap-0.5"
+              class="group relative rounded-xl p-2 flex flex-col items-center justify-center gap-1.5 transition-all border cursor-pointer select-none"
+              @click="emit('task-click', char, bossKey, 'consumeSanctuary')"
+              :class="[
+                // 根据剩余次数判断样式：如果打满了则置灰，未打满则呈现可交互的高亮样式
+                (char.sanctuaryRuns?.[bossKey] || 0) >= maxLimit
+                  ? 'bg-slate-100/80 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-700/40 opacity-60'
+                  : 'bg-white dark:bg-slate-900/80 border-slate-200 dark:border-slate-700/50 hover:border-[#45a6d5] dark:hover:border-sky-500 hover:shadow-2xs active:scale-95',
+              ]"
             >
-              <span
-                class="text-[10px] text-slate-400 dark:text-slate-500 font-semibold uppercase"
-                >{{ bossKey }}</span
-              >
-              <span class="text-[11px] font-bold text-slate-700 dark:text-slate-200">
-                剩余次数:
-                {{ char.sanctuary?.[bossKey] - (char.sanctuaryRuns?.[bossKey] || 0) }}
-              </span>
+              <!-- 上部：Boss 标题与 SVG 图标同行、剩余次数 -->
+              <div class="flex flex-col items-center gap-0.5">
+                <span
+                  class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 group-hover:text-[#45a6d5] dark:group-hover:text-sky-400 transition-colors flex items-center gap-1"
+                >
+                  <span>圣域 {{ bossKey }}</span>
+
+                  <!-- 已完成状态：打勾 SVG -->
+                  <template v-if="(char.sanctuaryRuns?.[bossKey] || 0) >= maxLimit">
+                    <svg
+                      class="w-3 h-3 shrink-0 text-emerald-600 dark:text-emerald-400"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                    >
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </template>
+
+                  <!-- 可挑战状态：闪电 SVG -->
+                  <template v-else>
+                    <svg
+                      class="w-3 h-3 shrink-0 text-[#45a6d5] dark:text-sky-400"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                    >
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                  </template>
+                </span>
+
+                <div
+                  class="text-[11px] font-black text-slate-700 dark:text-slate-200 flex items-baseline gap-0.5"
+                >
+                  <span class="text-[9px] font-normal text-slate-400">剩余</span>
+                  <span
+                    :class="
+                      (char.sanctuaryRuns?.[bossKey] || 0) >= maxLimit
+                        ? 'text-slate-400'
+                        : 'text-amber-600 dark:text-amber-400'
+                    "
+                  >
+                    {{ maxLimit - (char.sanctuaryRuns?.[bossKey] || 0) }}
+                  </span>
+                  <span class="text-[9px] font-normal text-slate-400"
+                    >/ {{ maxLimit }}</span
+                  >
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -679,9 +731,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showTasks)"
         class="grid grid-cols-3 gap-2 pt-1"
       >
-
-
-              <!-- 1. 噩梦副本 (角色独立，有存储次数) -->
+        <!-- 1. 噩梦副本 (角色独立，有存储次数) -->
         <button
           type="button"
           class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
@@ -710,7 +760,6 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
             </span>
           </div>
         </button>
-
 
         <!-- 2. 古树庆典 (服务器共享，每天5点恢复2次，上限14) -->
         <button
@@ -778,7 +827,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showTasks)"
         class="grid grid-cols-3 gap-2 pt-1"
       >
-          <!-- 1. 每日副本 (服务器共享，周三5点，固定14次+存储上限) -->
+        <!-- 1. 每日副本 (服务器共享，周三5点，固定14次+存储上限) -->
         <button
           type="button"
           class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
