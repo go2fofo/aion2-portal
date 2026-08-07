@@ -2276,7 +2276,7 @@ watch(
           class="px-3 py-1 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-black text-xs border border-sky-100 dark:border-sky-800/50 shadow-2xs flex items-center gap-1.5"
         >
           <span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
-          每天都会更新～当前版本：S3 0.0.5 最新版
+          每天都会更新～当前版本：AIon2 S3 v0.1.0 最新版
         </span>
       </div>
 
