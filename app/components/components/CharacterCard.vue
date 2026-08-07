@@ -414,604 +414,629 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         </div>
       </div>
 
-      <!-- ================= 模式一：基础数值指标（非 simple 模式或 custom 模式下显示） ================= -->
-      <div
-        v-if="
-          currentMode !== 'simple' && (currentMode !== 'custom' || fields.showCombatPower)
-        "
-        class="grid grid-cols-2 gap-3"
-        @click="emit('task-click', char, '', 'globalModifyCharacter')"
-      >
-        <div
-          class="bg-white dark:bg-slate-900/80 p-3 rounded-2xl border-2 border-yellow-100 dark:border-yellow-900/40 shadow-sm flex flex-col justify-between space-y-1"
-        >
-          <div
-            class="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase leading-none"
-          >
-            装等
-          </div>
-          <div class="text-yellow-600 dark:text-yellow-400 font-black text-xs">
-            {{ char.itemLevel || char.equipmentScore || "N/A" }}
-          </div>
-        </div>
-
-        <div
-          class="bg-white dark:bg-slate-900/80 p-3 rounded-2xl border-2 border-emerald-100 dark:border-emerald-900/40 shadow-sm flex flex-col justify-between space-y-1"
-        >
-          <div
-            class="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase leading-none"
-          >
-            战斗力
-          </div>
-          <div class="text-emerald-700 dark:text-emerald-400 font-black text-xs">
-            {{ formatCombatPower(char.combatPower) }}
-          </div>
-        </div>
-      </div>
-      <!-- ================= 奥德能量进度 ================= -->
-      <div
-        v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showEnergy)"
-        class="p-3.5 bg-gradient-to-br from-slate-50/90 to-slate-100/60 dark:from-slate-800/80 dark:to-slate-900/80 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2.5 shadow-sm transition-all hover:shadow dark:hover:border-slate-600"
-      >
-        <!-- 头部：标题与数值概览 -->
-        <div
-          class="flex items-center justify-between text-xs"
-          @click="emit('task-click', char, '', 'globalSimpleEnergy')"
-        >
-          <span
-            class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5"
-          >
-            <span
-              class="w-2 h-2 rounded-full bg-gradient-to-r from-[#45a6d5] to-amber-500 shadow-sm"
-            ></span>
-            奥德能量
-          </span>
-          <div class="flex items-center gap-1 text-xs font-black">
-            <span
-              class="text-[#45a6d5] dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-1.5 py-0.5 rounded-md border border-sky-100 dark:border-sky-900"
-              title="基础奥德"
-              >{{ char.energy || 0 }}</span
-            >
-            <span class="text-slate-300 dark:text-slate-600 font-normal">+</span>
-            <span
-              class="text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded-md border border-amber-100 dark:border-amber-900"
-              title="存储奥德"
-              >{{ char.storedEnergy || 0 }}</span
-            >
-            <span class="text-slate-400 dark:text-slate-500 font-medium ml-0.5"
-              >/ {{ getGroup(char.group).premiumMember ? 840 : 560 }}</span
-            >
-          </div>
-        </div>
-
-        <!-- 组合进度条主体 -->
-        <div
-          class="w-full bg-slate-200/70 dark:bg-slate-700/80 h-2.5 rounded-full overflow-hidden flex p-0.5 border border-slate-200 dark:border-slate-600 shadow-inner"
-          @click="emit('task-click', char, '', 'globalSimpleEnergy')"
-        >
-          <!-- 基础奥德进度条 -->
-          <div
-            class="bg-gradient-to-r from-[#3998c7] to-[#45a6d5] dark:from-[#2e82ab] dark:to-[#3894c2] h-full rounded-l-full transition-all duration-500 relative"
-            :style="{
-              width: `${Math.min(
-                100,
-                Math.max(0, ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100)
-              )}%`,
-            }"
-            :title="`基础奥德: ${char.energy || 0}`"
-          ></div>
-          <!-- 存储奥德进度条 -->
-          <div
-            class="bg-gradient-to-r from-amber-400 to-amber-500 dark:from-amber-500 dark:to-amber-600 h-full rounded-r-full transition-all duration-500 relative opacity-95"
-            :style="{
-              width: `${Math.min(
-                100 -
-                  Math.min(
-                    100,
-                    ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100
-                  ),
-                ((char.storedEnergy || 0) / (char.premiumMember ? 840 : 560)) * 100
-              )}%`,
-            }"
-            :title="`存储奥德: ${char.storedEnergy || 0}`"
-          ></div>
-        </div>
-
-        <!-- ================= 底部：自适应弹性流式布局（变换奥德 + 商店奥德 + 总计） ================= -->
-        <div
-          class="flex flex-wrap items-center justify-between gap-2 pt-1 px-0.5 text-[10px] font-semibold text-slate-400 dark:text-slate-500"
-        >
-          <!-- 左侧包裹区：内部卡片自适应内容宽度，空间不够时自动换行 -->
-          <div class="flex items-center gap-2 flex-wrap flex-1 min-w-0">
-            <!-- 1. 变换奥德 (Material Char Od) -->
-            <div
-              class="p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all hover:border-amber-400/50 hover:bg-amber-50/30 dark:hover:bg-amber-950/30 cursor-pointer shrink-0"
-              @click="emit('task-click', char, 'materialCharOd', 'exchangeCharOD')"
-            >
-              <div class="flex items-center gap-1.5 min-w-0">
-                <div class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></div>
-                <span
-                  class="font-bold text-slate-700 dark:text-slate-200 text-[11px] truncate"
-                  >变换奥德</span
-                >
-              </div>
-              <div class="flex items-center gap-1 font-black text-[11px] shrink-0">
-                <span
-                  :class="
-                    (char.materialCharOd || 0) >= 4
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-amber-600 dark:text-amber-400'
-                  "
-                >
-                  {{ char.materialCharOd || 0 }}
-                </span>
-                <span class="text-slate-300 dark:text-slate-600 font-normal">/ 4</span>
-                <span
-                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
-                  :class="
-                    (char.materialCharOd || 0) >= 4
-                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/80'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/50 dark:border-slate-700'
-                  "
-                >
-                  <template v-if="(char.materialCharOd || 0) >= 4">✓</template>
-                  <template v-else>
-                    <svg
-                      class="w-2 h-2"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="3"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
-                    </svg>
-                  </template>
-                </span>
-              </div>
-            </div>
-
-            <!-- 商店奥德兑换 -->
-            <div
-              class="p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 dark:hover:bg-sky-950/30 cursor-pointer shrink-0"
-              @click="emit('task-click', char, 'breezeCharOd', 'exchangeCharOD')"
-              v-if="getGroup(char.group)?.premiumMember"
-            >
-              <div class="flex items-center gap-1.5 min-w-0">
-                <div class="w-1.5 h-1.5 rounded-full bg-[#45a6d5] shrink-0"></div>
-                <span
-                  class="font-bold text-slate-700 dark:text-slate-200 text-[11px] truncate"
-                  >商店奥德</span
-                >
-              </div>
-              <div class="flex items-center gap-1 font-black text-[11px] shrink-0">
-                <span
-                  :class="
-                    (char.breezeCharOd || 0) >= 4
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-[#45a6d5] dark:text-sky-400'
-                  "
-                >
-                  {{ char.breezeCharOd || 0 }}
-                </span>
-                <span class="text-slate-300 dark:text-slate-600 font-normal"
-                  >/ {{ char.breezeCharOd || 4 }}</span
-                >
-                <span
-                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
-                  :class="
-                    (char.breezeCharOd || 0) >= 4
-                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/80'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/50 dark:border-slate-700'
-                  "
-                >
-                  <template v-if="(char.breezeCharOd || 0) >= 4">✓</template>
-                  <template v-else>
-                    <svg
-                      class="w-2 h-2"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="3"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
-                    </svg>
-                  </template>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 右侧：总计点数（自动靠右，绝不挤压卡片） -->
-          <span class="text-slate-500 dark:text-slate-400 shrink-0">
-            总计:
-            <strong class="text-slate-700 dark:text-slate-200 font-bold">
-              {{ (char.energy || 0) + (char.storedEnergy || 0) }}
-            </strong>
-            点
-          </span>
-        </div>
-      </div>
-      <!-- ================= 副本及核心进度区 ================= -->
-      <div
-        v-if="
-          currentMode !== 'simple' && (currentMode !== 'custom' || fields.showDungeons)
-        "
-        class="space-y-2 text-xs"
-      >
-        <!-- ================= 远征与超越副本卡片 ================= -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 transition-all">
-          <!-- 1. 远征副本 -->
-          <div
-            class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-1.5 transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
-          >
-            <!-- 头部：标题与圆点 -->
-            <div
-              class="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400"
-            >
-              <span class="flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#45a6d5]"></span> 远征副本
-              </span>
-            </div>
-
-            <!-- 主体数据：今日已刷 (字号加大凸显) -->
-            <div class="font-black text-sm text-[#45a6d5] dark:text-sky-400 px-0.5">
-              今日已刷: {{ getTodayRunCount(char, "expedition") }} 次
-            </div>
-
-            <!-- 底部说明：奥德可刷 (字号缩小，去掉了内边距使其左对齐) -->
-            <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
-              <span>
-                奥德可刷:
-                <strong class="text-[#45a6d5] dark:text-sky-400 text-[11px]">{{
-                  calcRunsByEnergy(char, "expedition")
-                }}</strong>
-                次
-              </span>
-            </div>
-          </div>
-
-          <!-- 2. 超越副本 -->
-          <div
-            class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-1.5 transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
-          >
-            <!-- 头部：标题与圆点 -->
-            <div
-              class="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400"
-            >
-              <span class="flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> 超越副本
-              </span>
-            </div>
-
-            <!-- 主体数据：今日已刷 (字号加大凸显) -->
-            <div class="font-black text-sm text-purple-600 dark:text-purple-400 px-0.5">
-              今日已刷: {{ getTodayRunCount(char, "surpass") }} 次
-            </div>
-
-            <!-- 底部说明：奥德可刷 (字号缩小，去掉了内边距使其左对齐) -->
-            <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
-              <span>
-                奥德可刷:
-                <strong class="text-purple-500 dark:text-purple-400 text-[11px]">{{
-                  calcRunsByEnergy(char, "surpass")
-                }}</strong>
-                次
-              </span>
-            </div>
-          </div>
-        </div>
-        <!-- ================= 今日获取吉纳统计卡片 ================= -->
-        <div
-          class="p-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl flex flex-col gap-2 transition-all shadow-xs"
-        >
-          <!-- 绑/非绑分别统计展示（左右并排） -->
-          <div class="grid grid-cols-2 gap-2 pt-0.5">
-            <!-- 1. 非绑吉纳 -->
-            <div
-              class="p-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl flex flex-col items-center justify-center border border-slate-100 dark:border-slate-800"
-            >
-              <span class="text-[10px] text-slate-400 dark:text-slate-400 mb-0.5"
-                >非绑吉纳</span
-              >
-              <span class="text-xs font-black text-amber-600 dark:text-amber-400">
-                {{ getTodayKinaStats(char.runLogs).unbound }}
-              </span>
-            </div>
-
-            <!-- 2. 绑金吉纳 -->
-            <div
-              class="p-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl flex flex-col items-center justify-center border border-slate-100 dark:border-slate-800"
-            >
-              <span class="text-[10px] text-slate-400 dark:text-slate-400 mb-0.5"
-                >绑定吉纳</span
-              >
-              <span class="text-xs font-black text-emerald-600 dark:text-emerald-400">
-                {{ getTodayKinaStats(char.runLogs).bound }}
-              </span>
-            </div>
-          </div>
-        </div>
-        <!-- ================= 3. 圣域副本 ================= -->
+      <!-- 默认模式下显示的卡片 -->
+      <template v-if="currentMode == 'default'">
+        <!-- ================= 模式一：基础数值指标（非 simple 模式或 custom 模式下显示） ================= -->
         <div
           v-if="
-            currentMode !== 'simple' && (currentMode !== 'custom' || fields.showSanctuary)
+            currentMode !== 'simple' &&
+            (currentMode !== 'custom' || fields.showCombatPower)
           "
-          class="bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-2 transition-all"
+          class="grid grid-cols-2 gap-3"
+          @click="emit('task-click', char, '', 'globalModifyCharacter')"
         >
-          <!-- 顶栏标题提示 -->
-          <!-- <div class="flex items-center justify-between px-1">
+          <div
+            class="bg-white dark:bg-slate-900/80 p-3 rounded-2xl border-2 border-yellow-100 dark:border-yellow-900/40 shadow-sm flex flex-col justify-between space-y-1"
+          >
+            <div
+              class="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase leading-none"
+            >
+              装等
+            </div>
+            <div class="text-yellow-600 dark:text-yellow-400 font-black text-xs">
+              {{ char.itemLevel || char.equipmentScore || "N/A" }}
+            </div>
+          </div>
+
+          <div
+            class="bg-white dark:bg-slate-900/80 p-3 rounded-2xl border-2 border-emerald-100 dark:border-emerald-900/40 shadow-sm flex flex-col justify-between space-y-1"
+          >
+            <div
+              class="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase leading-none"
+            >
+              战斗力
+            </div>
+            <div class="text-emerald-700 dark:text-emerald-400 font-black text-xs">
+              {{ formatCombatPower(char.combatPower) }}
+            </div>
+          </div>
+        </div>
+        <!-- ================= 奥德能量进度 ================= -->
+        <div
+          v-if="
+            currentMode !== 'simple' && (currentMode !== 'custom' || fields.showEnergy)
+          "
+          class="p-3.5 bg-gradient-to-br from-slate-50/90 to-slate-100/60 dark:from-slate-800/80 dark:to-slate-900/80 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2.5 shadow-sm transition-all hover:shadow dark:hover:border-slate-600"
+        >
+          <!-- 头部：标题与数值概览 -->
+          <div
+            class="flex items-center justify-between text-xs"
+            @click="emit('task-click', char, '', 'globalSimpleEnergy')"
+          >
+            <span
+              class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5"
+            >
+              <span
+                class="w-2 h-2 rounded-full bg-gradient-to-r from-[#45a6d5] to-amber-500 shadow-sm"
+              ></span>
+              奥德能量
+            </span>
+            <div class="flex items-center gap-1 text-xs font-black">
+              <span
+                class="text-[#45a6d5] dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-1.5 py-0.5 rounded-md border border-sky-100 dark:border-sky-900"
+                title="基础奥德"
+                >{{ char.energy || 0 }}</span
+              >
+              <span class="text-slate-300 dark:text-slate-600 font-normal">+</span>
+              <span
+                class="text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded-md border border-amber-100 dark:border-amber-900"
+                title="存储奥德"
+                >{{ char.storedEnergy || 0 }}</span
+              >
+              <span class="text-slate-400 dark:text-slate-500 font-medium ml-0.5"
+                >/ {{ getGroup(char.group).premiumMember ? 840 : 560 }}</span
+              >
+            </div>
+          </div>
+
+          <!-- 组合进度条主体 -->
+          <div
+            class="w-full bg-slate-200/70 dark:bg-slate-700/80 h-2.5 rounded-full overflow-hidden flex p-0.5 border border-slate-200 dark:border-slate-600 shadow-inner"
+            @click="emit('task-click', char, '', 'globalSimpleEnergy')"
+          >
+            <!-- 基础奥德进度条 -->
+            <div
+              class="bg-gradient-to-r from-[#3998c7] to-[#45a6d5] dark:from-[#2e82ab] dark:to-[#3894c2] h-full rounded-l-full transition-all duration-500 relative"
+              :style="{
+                width: `${Math.min(
+                  100,
+                  Math.max(
+                    0,
+                    ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100
+                  )
+                )}%`,
+              }"
+              :title="`基础奥德: ${char.energy || 0}`"
+            ></div>
+            <!-- 存储奥德进度条 -->
+            <div
+              class="bg-gradient-to-r from-amber-400 to-amber-500 dark:from-amber-500 dark:to-amber-600 h-full rounded-r-full transition-all duration-500 relative opacity-95"
+              :style="{
+                width: `${Math.min(
+                  100 -
+                    Math.min(
+                      100,
+                      ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100
+                    ),
+                  ((char.storedEnergy || 0) / (char.premiumMember ? 840 : 560)) * 100
+                )}%`,
+              }"
+              :title="`存储奥德: ${char.storedEnergy || 0}`"
+            ></div>
+          </div>
+
+          <!-- ================= 底部：自适应弹性流式布局（变换奥德 + 商店奥德 + 总计） ================= -->
+          <div
+            class="flex flex-wrap items-center justify-between gap-2 pt-1 px-0.5 text-[10px] font-semibold text-slate-400 dark:text-slate-500"
+          >
+            <!-- 左侧包裹区：内部卡片自适应内容宽度，空间不够时自动换行 -->
+            <div class="flex items-center gap-2 flex-wrap flex-1 min-w-0">
+              <!-- 1. 变换奥德 (Material Char Od) -->
+              <div
+                class="p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all hover:border-amber-400/50 hover:bg-amber-50/30 dark:hover:bg-amber-950/30 cursor-pointer shrink-0"
+                @click="emit('task-click', char, 'materialCharOd', 'exchangeCharOD')"
+              >
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <div class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></div>
+                  <span
+                    class="font-bold text-slate-700 dark:text-slate-200 text-[11px] truncate"
+                    >变换奥德</span
+                  >
+                </div>
+                <div class="flex items-center gap-1 font-black text-[11px] shrink-0">
+                  <span
+                    :class="
+                      (char.materialCharOd || 0) >= 4
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-amber-600 dark:text-amber-400'
+                    "
+                  >
+                    {{ char.materialCharOd || 0 }}
+                  </span>
+                  <span class="text-slate-300 dark:text-slate-600 font-normal">/ 4</span>
+                  <span
+                    class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
+                    :class="
+                      (char.materialCharOd || 0) >= 4
+                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/80'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/50 dark:border-slate-700'
+                    "
+                  >
+                    <template v-if="(char.materialCharOd || 0) >= 4">✓</template>
+                    <template v-else>
+                      <svg
+                        class="w-2 h-2"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="3"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M20 12H4"
+                        />
+                      </svg>
+                    </template>
+                  </span>
+                </div>
+              </div>
+
+              <!-- 商店奥德兑换 -->
+              <div
+                class="p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 dark:hover:bg-sky-950/30 cursor-pointer shrink-0"
+                @click="emit('task-click', char, 'breezeCharOd', 'exchangeCharOD')"
+                v-if="getGroup(char.group)?.premiumMember"
+              >
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <div class="w-1.5 h-1.5 rounded-full bg-[#45a6d5] shrink-0"></div>
+                  <span
+                    class="font-bold text-slate-700 dark:text-slate-200 text-[11px] truncate"
+                    >商店奥德</span
+                  >
+                </div>
+                <div class="flex items-center gap-1 font-black text-[11px] shrink-0">
+                  <span
+                    :class="
+                      (char.breezeCharOd || 0) >= 4
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-[#45a6d5] dark:text-sky-400'
+                    "
+                  >
+                    {{ char.breezeCharOd || 0 }}
+                  </span>
+                  <span class="text-slate-300 dark:text-slate-600 font-normal"
+                    >/ {{ char.breezeCharOd || 4 }}</span
+                  >
+                  <span
+                    class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
+                    :class="
+                      (char.breezeCharOd || 0) >= 4
+                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/80'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/50 dark:border-slate-700'
+                    "
+                  >
+                    <template v-if="(char.breezeCharOd || 0) >= 4">✓</template>
+                    <template v-else>
+                      <svg
+                        class="w-2 h-2"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="3"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M20 12H4"
+                        />
+                      </svg>
+                    </template>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 右侧：总计点数（自动靠右，绝不挤压卡片） -->
+            <span class="text-slate-500 dark:text-slate-400 shrink-0">
+              总计:
+              <strong class="text-slate-700 dark:text-slate-200 font-bold">
+                {{ (char.energy || 0) + (char.storedEnergy || 0) }}
+              </strong>
+              点
+            </span>
+          </div>
+        </div>
+        <!-- ================= 副本及核心进度区 ================= -->
+        <div
+          v-if="
+            currentMode !== 'simple' && (currentMode !== 'custom' || fields.showDungeons)
+          "
+          class="space-y-2 text-xs"
+        >
+          <!-- ================= 远征与超越副本卡片 ================= -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 transition-all">
+            <!-- 1. 远征副本 -->
+            <div
+              class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-1.5 transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <!-- 头部：标题与圆点 -->
+              <div
+                class="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400"
+              >
+                <span class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#45a6d5]"></span> 远征副本
+                </span>
+              </div>
+
+              <!-- 主体数据：今日已刷 (字号加大凸显) -->
+              <div class="font-black text-sm text-[#45a6d5] dark:text-sky-400 px-0.5">
+                今日已刷: {{ getTodayRunCount(char, "expedition") }} 次
+              </div>
+
+              <!-- 底部说明：奥德可刷 (字号缩小，去掉了内边距使其左对齐) -->
+              <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                <span>
+                  奥德可刷:
+                  <strong class="text-[#45a6d5] dark:text-sky-400 text-[11px]">{{
+                    calcRunsByEnergy(char, "expedition")
+                  }}</strong>
+                  次
+                </span>
+              </div>
+            </div>
+
+            <!-- 2. 超越副本 -->
+            <div
+              class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-1.5 transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <!-- 头部：标题与圆点 -->
+              <div
+                class="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400"
+              >
+                <span class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> 超越副本
+                </span>
+              </div>
+
+              <!-- 主体数据：今日已刷 (字号加大凸显) -->
+              <div class="font-black text-sm text-purple-600 dark:text-purple-400 px-0.5">
+                今日已刷: {{ getTodayRunCount(char, "surpass") }} 次
+              </div>
+
+              <!-- 底部说明：奥德可刷 (字号缩小，去掉了内边距使其左对齐) -->
+              <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                <span>
+                  奥德可刷:
+                  <strong class="text-purple-500 dark:text-purple-400 text-[11px]">{{
+                    calcRunsByEnergy(char, "surpass")
+                  }}</strong>
+                  次
+                </span>
+              </div>
+            </div>
+          </div>
+          <!-- ================= 今日获取吉纳统计卡片 ================= -->
+          <div
+            class="p-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl flex flex-col gap-2 transition-all shadow-xs"
+          >
+            <!-- 绑/非绑分别统计展示（左右并排） -->
+            <div class="grid grid-cols-2 gap-2 pt-0.5">
+              <!-- 1. 非绑吉纳 -->
+              <div
+                class="p-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl flex flex-col items-center justify-center border border-slate-100 dark:border-slate-800"
+              >
+                <span class="text-[10px] text-slate-400 dark:text-slate-400 mb-0.5"
+                  >非绑吉纳</span
+                >
+                <span class="text-xs font-black text-amber-600 dark:text-amber-400">
+                  {{ getTodayKinaStats(char.runLogs).unbound }}
+                </span>
+              </div>
+
+              <!-- 2. 绑金吉纳 -->
+              <div
+                class="p-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl flex flex-col items-center justify-center border border-slate-100 dark:border-slate-800"
+              >
+                <span class="text-[10px] text-slate-400 dark:text-slate-400 mb-0.5"
+                  >绑定吉纳</span
+                >
+                <span class="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                  {{ getTodayKinaStats(char.runLogs).bound }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <!-- ================= 3. 圣域副本 ================= -->
+          <div
+            v-if="
+              currentMode !== 'simple' &&
+              (currentMode !== 'custom' || fields.showSanctuary)
+            "
+            class="bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-2 transition-all"
+          >
+            <!-- 顶栏标题提示 -->
+            <!-- <div class="flex items-center justify-between px-1">
             <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">
               圣域副本挑战
               <span class="text-[10px] font-normal opacity-75">（点击可快捷消耗）</span>
             </span>
           </div> -->
 
-          <!-- 遍历 sanctuary 中的所有 Boss 配置 -->
-          <!-- @click="emit('task-click', char, bossKey, 'globalSanctuary')" -->
-          <!-- @dblclick="emit('task-click', char, bossKey, 'globalSanctuary')" -->
+            <!-- 遍历 sanctuary 中的所有 Boss 配置 -->
+            <!-- @click="emit('task-click', char, bossKey, 'globalSanctuary')" -->
+            <!-- @dblclick="emit('task-click', char, bossKey, 'globalSanctuary')" -->
 
-          <div class="grid grid-cols-3 gap-2">
-            <div
-              v-for="(maxLimit, bossKey) in char.sanctuary || { s1: 1, s2: 1, s3: 1 }"
-              :key="bossKey"
-              class="group relative rounded-xl p-2 flex flex-col items-center justify-center gap-1.5 transition-all border cursor-pointer select-none"
-              @click="emit('task-click', char, bossKey, 'consumeSanctuary')"
-              :class="[
-                // 根据剩余次数判断样式：如果打满了则置灰，未打满则呈现可交互的高亮样式
-                (char.sanctuaryRuns?.[bossKey] || 0) >= maxLimit
-                  ? 'bg-slate-100/80 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-700/40 opacity-60'
-                  : 'bg-white dark:bg-slate-900/80 border-slate-200 dark:border-slate-700/50 hover:border-[#45a6d5] dark:hover:border-sky-500 hover:shadow-2xs active:scale-95',
-              ]"
-            >
-              <!-- 上部：Boss 标题与 SVG 图标同行、剩余次数 -->
-              <div class="flex flex-col items-center gap-0.5">
-                <span
-                  class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 group-hover:text-[#45a6d5] dark:group-hover:text-sky-400 transition-colors flex items-center gap-1"
-                >
-                  <span>圣域 {{ bossKey }}</span>
-
-                  <!-- 已完成状态：打勾 SVG -->
-                  <template v-if="(char.sanctuaryRuns?.[bossKey] || 0) >= maxLimit">
-                    <svg
-                      class="w-3 h-3 shrink-0 text-emerald-600 dark:text-emerald-400"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2.5"
-                    >
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  </template>
-
-                  <!-- 可挑战状态：闪电 SVG -->
-                  <template v-else>
-                    <svg
-                      class="w-3 h-3 shrink-0 text-[#45a6d5] dark:text-sky-400"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2.5"
-                    >
-                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                    </svg>
-                  </template>
-                </span>
-
-                <div
-                  class="text-[11px] font-black text-slate-700 dark:text-slate-200 flex items-baseline gap-0.5"
-                >
-                  <span class="text-[9px] font-normal text-slate-400">剩余</span>
+            <div class="grid grid-cols-3 gap-2">
+              <div
+                v-for="(maxLimit, bossKey) in char.sanctuary || { s1: 1, s2: 1, s3: 1 }"
+                :key="bossKey"
+                class="group relative rounded-xl p-2 flex flex-col items-center justify-center gap-1.5 transition-all border cursor-pointer select-none"
+                @click="emit('task-click', char, bossKey, 'consumeSanctuary')"
+                :class="[
+                  // 根据剩余次数判断样式：如果打满了则置灰，未打满则呈现可交互的高亮样式
+                  (char.sanctuaryRuns?.[bossKey] || 0) >= maxLimit
+                    ? 'bg-slate-100/80 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-700/40 opacity-60'
+                    : 'bg-white dark:bg-slate-900/80 border-slate-200 dark:border-slate-700/50 hover:border-[#45a6d5] dark:hover:border-sky-500 hover:shadow-2xs active:scale-95',
+                ]"
+              >
+                <!-- 上部：Boss 标题与 SVG 图标同行、剩余次数 -->
+                <div class="flex flex-col items-center gap-0.5">
                   <span
-                    :class="
-                      (char.sanctuaryRuns?.[bossKey] || 0) >= maxLimit
-                        ? 'text-slate-400'
-                        : 'text-amber-600 dark:text-amber-400'
-                    "
+                    class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 group-hover:text-[#45a6d5] dark:group-hover:text-sky-400 transition-colors flex items-center gap-1"
                   >
-                    {{ maxLimit - (char.sanctuaryRuns?.[bossKey] || 0) }}
+                    <span>圣域 {{ bossKey }}</span>
+
+                    <!-- 已完成状态：打勾 SVG -->
+                    <template v-if="(char.sanctuaryRuns?.[bossKey] || 0) >= maxLimit">
+                      <svg
+                        class="w-3 h-3 shrink-0 text-emerald-600 dark:text-emerald-400"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                      >
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </template>
+
+                    <!-- 可挑战状态：闪电 SVG -->
+                    <template v-else>
+                      <svg
+                        class="w-3 h-3 shrink-0 text-[#45a6d5] dark:text-sky-400"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                      >
+                        <polygon
+                          points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
+                        ></polygon>
+                      </svg>
+                    </template>
                   </span>
-                  <span class="text-[9px] font-normal text-slate-400"
-                    >/ {{ maxLimit }}</span
+
+                  <div
+                    class="text-[11px] font-black text-slate-700 dark:text-slate-200 flex items-baseline gap-0.5"
                   >
+                    <span class="text-[9px] font-normal text-slate-400">剩余</span>
+                    <span
+                      :class="
+                        (char.sanctuaryRuns?.[bossKey] || 0) >= maxLimit
+                          ? 'text-slate-400'
+                          : 'text-amber-600 dark:text-amber-400'
+                      "
+                    >
+                      {{ maxLimit - (char.sanctuaryRuns?.[bossKey] || 0) }}
+                    </span>
+                    <span class="text-[9px] font-normal text-slate-400"
+                      >/ {{ maxLimit }}</span
+                    >
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- ================= 共享玩法统一样式区（同一行：每日副本、古树庆典、次元袭击） ================= -->
-      <div
-        v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showTasks)"
-        class="grid grid-cols-3 gap-2 pt-1"
-      >
-        <!-- 1. 噩梦副本 (角色独立，有存储次数) -->
-        <button
-          type="button"
-          class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-          @click="emit('task-click', char, 'nightmareCount', 'weeklydaily')"
+        <!-- ================= 共享玩法统一样式区（同一行：每日副本、古树庆典、次元袭击） ================= -->
+        <div
+          v-if="
+            currentMode !== 'simple' && (currentMode !== 'custom' || fields.showTasks)
+          "
+          class="grid grid-cols-3 gap-2 pt-1"
         >
-          <div class="w-full flex items-center justify-between">
-            <span
-              class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-              >噩梦副本</span
-            >
-            <span
-              class="text-[8px] text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-1 rounded border border-purple-100 dark:border-purple-900/80"
-              >角色</span
-            >
-          </div>
-          <div class="w-full flex items-center justify-between text-[11px] font-black">
-            <span class="text-purple-600 dark:text-purple-400 tracking-tight">
-              剩余{{
-                getCharacterSharedTaskData(
-                  char,
-                  "nightmareCount",
-                  "storedNightmareCount",
-                  14
-                ).total
-              }}次
-            </span>
-          </div>
-        </button>
+          <!-- 1. 噩梦副本 (角色独立，有存储次数) -->
+          <button
+            type="button"
+            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
+            @click="emit('task-click', char, 'nightmareCount', 'weeklydaily')"
+          >
+            <div class="w-full flex items-center justify-between">
+              <span
+                class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
+                >噩梦副本</span
+              >
+              <span
+                class="text-[8px] text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-1 rounded border border-purple-100 dark:border-purple-900/80"
+                >角色</span
+              >
+            </div>
+            <div class="w-full flex items-center justify-between text-[11px] font-black">
+              <span class="text-purple-600 dark:text-purple-400 tracking-tight">
+                剩余{{
+                  getCharacterSharedTaskData(
+                    char,
+                    "nightmareCount",
+                    "storedNightmareCount",
+                    14
+                  ).total
+                }}次
+              </span>
+            </div>
+          </button>
 
-        <!-- 2. 古树庆典 (服务器共享，每天5点恢复2次，上限14) -->
-        <button
-          type="button"
-          class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-          @click="emit('task-click', char, 'minigameCount', 'weeklydaily')"
+          <!-- 2. 古树庆典 (服务器共享，每天5点恢复2次，上限14) -->
+          <button
+            type="button"
+            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
+            @click="emit('task-click', char, 'minigameCount', 'weeklydaily')"
+          >
+            <div class="w-full flex items-center justify-between">
+              <span
+                class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
+                >古树庆典</span
+              >
+              <span
+                class="text-[8px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1 rounded border border-amber-100 dark:border-amber-900/80"
+                >共享</span
+              >
+            </div>
+            <div class="w-full flex items-center justify-between text-[11px] font-black">
+              <span class="text-amber-600 dark:text-amber-400 tracking-tight">
+                剩余{{
+                  getGroupSharedTaskData(
+                    char.group,
+                    "minigameCount",
+                    "storedMinigameCount",
+                    14
+                  ).total
+                }}次
+              </span>
+            </div>
+          </button>
+
+          <!-- 3. 次元袭击 (服务器共享，每天5点恢复2次，上限14) -->
+          <button
+            type="button"
+            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
+            @click="emit('task-click', char, 'dimensionalCount', 'weeklydaily')"
+          >
+            <div class="w-full flex items-center justify-between">
+              <span
+                class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
+                >次元袭击</span
+              >
+              <span
+                class="text-[8px] text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-1 rounded border border-rose-100 dark:border-rose-900/80"
+                >共享</span
+              >
+            </div>
+            <div class="w-full flex items-center justify-between text-[11px] font-black">
+              <span class="text-rose-600 dark:text-rose-400 tracking-tight">
+                剩余{{
+                  getGroupSharedTaskData(
+                    char.group,
+                    "dimensionalCount",
+                    "storedDimensionalCount",
+                    14
+                  ).total
+                }}次
+              </span>
+            </div>
+          </button>
+        </div>
+
+        <!-- ================= 角色/共享玩法统一样式区（同一行：噩梦副本、觉醒、战场） ================= -->
+        <div
+          v-if="
+            currentMode !== 'simple' && (currentMode !== 'custom' || fields.showTasks)
+          "
+          class="grid grid-cols-3 gap-2 pt-1"
         >
-          <div class="w-full flex items-center justify-between">
-            <span
-              class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-              >古树庆典</span
-            >
-            <span
-              class="text-[8px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1 rounded border border-amber-100 dark:border-amber-900/80"
-              >共享</span
-            >
-          </div>
-          <div class="w-full flex items-center justify-between text-[11px] font-black">
-            <span class="text-amber-600 dark:text-amber-400 tracking-tight">
-              剩余{{
-                getGroupSharedTaskData(
-                  char.group,
-                  "minigameCount",
-                  "storedMinigameCount",
-                  14
-                ).total
-              }}次
-            </span>
-          </div>
-        </button>
+          <!-- 1. 每日副本 (服务器共享，周三5点，固定14次+存储上限) -->
+          <button
+            type="button"
+            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
+            @click="emit('task-click', char, 'dailyRuns', 'weeklydaily')"
+          >
+            <div class="w-full flex items-center justify-between">
+              <span
+                class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
+                >每日副本</span
+              >
+              <span
+                class="text-[8px] text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/60 px-1 rounded border border-cyan-100 dark:border-cyan-900/80"
+                >共享</span
+              >
+            </div>
+            <div class="w-full flex items-center justify-between text-[11px] font-black">
+              <span class="text-cyan-600 dark:text-cyan-400 tracking-tight">
+                剩余{{
+                  getGroupSharedTaskData(char.group, "dailyRuns", "storedDailyRuns", 14)
+                    .total
+                }}次
+              </span>
+            </div>
+          </button>
+          <!-- 2. 觉醒 (角色独立，上限30次或3次，带存储) -->
+          <button
+            type="button"
+            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
+            @click="emit('task-click', char, 'awakening', 'weeklydaily')"
+          >
+            <div class="w-full flex items-center justify-between">
+              <span
+                class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
+                >觉醒</span
+              >
+              <span
+                class="text-[8px] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-1 rounded border border-indigo-100 dark:border-indigo-900/80"
+                >角色</span
+              >
+            </div>
+            <div class="w-full flex items-center justify-between text-[11px] font-black">
+              <span class="text-indigo-600 dark:text-indigo-400 tracking-tight">
+                剩余{{
+                  getCharacterSharedTaskData(char, "awakening", "storedAwakening", 30)
+                    .total
+                }}次
+              </span>
+            </div>
+          </button>
 
-        <!-- 3. 次元袭击 (服务器共享，每天5点恢复2次，上限14) -->
-        <button
-          type="button"
-          class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-          @click="emit('task-click', char, 'dimensionalCount', 'weeklydaily')"
+          <!-- 3. 战场 (角色独立，无存储字段) -->
+          <button
+            type="button"
+            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
+            @click="emit('task-click', char, 'battlefield', 'weeklydaily')"
+          >
+            <div class="w-full flex items-center justify-between">
+              <span
+                class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
+                >战场</span
+              >
+              <span
+                class="text-[8px] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1 rounded border border-emerald-100 dark:border-emerald-900/80"
+                >角色</span
+              >
+            </div>
+            <div class="w-full flex items-center justify-between text-[11px] font-black">
+              <span class="text-emerald-600 dark:text-emerald-400 tracking-tight">
+                剩余{{ char.battlefield }}次
+              </span>
+            </div>
+          </button>
+        </div>
+
+        <!-- ================= 模式五：备注输入框 ================= -->
+        <div
+          v-if="
+            currentMode !== 'simple' && (currentMode !== 'custom' || fields.showNotes)
+          "
         >
-          <div class="w-full flex items-center justify-between">
-            <span
-              class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-              >次元袭击</span
-            >
-            <span
-              class="text-[8px] text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-1 rounded border border-rose-100 dark:border-rose-900/80"
-              >共享</span
-            >
-          </div>
-          <div class="w-full flex items-center justify-between text-[11px] font-black">
-            <span class="text-rose-600 dark:text-rose-400 tracking-tight">
-              剩余{{
-                getGroupSharedTaskData(
-                  char.group,
-                  "dimensionalCount",
-                  "storedDimensionalCount",
-                  14
-                ).total
-              }}次
-            </span>
-          </div>
-        </button>
-      </div>
+          <textarea
+            :value="char.note || ''"
+            :disabled="char.locked"
+            placeholder="点击添加备注信息..."
+            rows="2"
+            @change="(e) => emit('text-change', char, 'note', e.target.value)"
+            class="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 p-2.5 rounded-2xl text-xs font-bold text-slate-700 outline-none focus:border-[#45a6d5] resize-none disabled:bg-slate-100"
+          ></textarea>
+        </div>
 
-      <!-- ================= 角色/共享玩法统一样式区（同一行：噩梦副本、觉醒、战场） ================= -->
-      <div
-        v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showTasks)"
-        class="grid grid-cols-3 gap-2 pt-1"
-      >
-        <!-- 1. 每日副本 (服务器共享，周三5点，固定14次+存储上限) -->
-        <button
-          type="button"
-          class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-          @click="emit('task-click', char, 'dailyRuns', 'weeklydaily')"
-        >
-          <div class="w-full flex items-center justify-between">
-            <span
-              class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-              >每日副本</span
-            >
-            <span
-              class="text-[8px] text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/60 px-1 rounded border border-cyan-100 dark:border-cyan-900/80"
-              >共享</span
-            >
-          </div>
-          <div class="w-full flex items-center justify-between text-[11px] font-black">
-            <span class="text-cyan-600 dark:text-cyan-400 tracking-tight">
-              剩余{{
-                getGroupSharedTaskData(char.group, "dailyRuns", "storedDailyRuns", 14)
-                  .total
-              }}次
-            </span>
-          </div>
-        </button>
-        <!-- 2. 觉醒 (角色独立，上限30次或3次，带存储) -->
-        <button
-          type="button"
-          class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-          @click="emit('task-click', char, 'awakening', 'weeklydaily')"
-        >
-          <div class="w-full flex items-center justify-between">
-            <span
-              class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-              >觉醒</span
-            >
-            <span
-              class="text-[8px] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-1 rounded border border-indigo-100 dark:border-indigo-900/80"
-              >角色</span
-            >
-          </div>
-          <div class="w-full flex items-center justify-between text-[11px] font-black">
-            <span class="text-indigo-600 dark:text-indigo-400 tracking-tight">
-              剩余{{
-                getCharacterSharedTaskData(char, "awakening", "storedAwakening", 30)
-                  .total
-              }}次
-            </span>
-          </div>
-        </button>
-
-        <!-- 3. 战场 (角色独立，无存储字段) -->
-        <button
-          type="button"
-          class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-          @click="emit('task-click', char, 'battlefield', 'weeklydaily')"
-        >
-          <div class="w-full flex items-center justify-between">
-            <span
-              class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-              >战场</span
-            >
-            <span
-              class="text-[8px] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1 rounded border border-emerald-100 dark:border-emerald-900/80"
-              >角色</span
-            >
-          </div>
-          <div class="w-full flex items-center justify-between text-[11px] font-black">
-            <span class="text-emerald-600 dark:text-emerald-400 tracking-tight">
-              剩余{{ char.battlefield }}次
-            </span>
-          </div>
-        </button>
-      </div>
-
-      <!-- ================= 模式五：备注输入框 ================= -->
-      <div
-        v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showNotes)"
-      >
-        <textarea
-          :value="char.note || ''"
-          :disabled="char.locked"
-          placeholder="点击添加备注信息..."
-          rows="2"
-          @change="(e) => emit('text-change', char, 'note', e.target.value)"
-          class="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 p-2.5 rounded-2xl text-xs font-bold text-slate-700 outline-none focus:border-[#45a6d5] resize-none disabled:bg-slate-100"
-        ></textarea>
-      </div>
-
-      <!-- 底部操作与元信息标签（所有模式均展示） -->
-      <!-- <div
+        <!-- 底部操作与元信息标签（所有模式均展示） -->
+        <!-- <div
         class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700 text-[11px] font-bold text-slate-400"
       >
         <span>分组: {{ getGroupName(char.group) }}</span>
@@ -1033,6 +1058,8 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           </button>
         </div>
       </div> -->
+      </template>
+      <!-- 精简模式（懒人模式）模式下显示的卡片  -->
     </div>
   </div>
 </template>
