@@ -576,7 +576,11 @@ const loadData = async () => {
 const searchRaceId = ref(2);
 const customForm = ref({});
 const searchServerId = ref(2018);
-const searchServerOptions = computed(() => getServersByRace(customForm.value?.raceId|| globalPopupOp.value?.data?.raceId || searchRaceId.value));
+const searchServerOptions = computed(() =>
+  getServersByRace(
+    customForm.value?.raceId || globalPopupOp.value?.data?.raceId || searchRaceId.value
+  )
+);
 const filteredLegionMembers = computed(() => {
   const kw = legionKeyword.value.trim().toLowerCase();
   if (!kw) return legionMembers.value;
@@ -1866,24 +1870,30 @@ const handleGlobalPopupFill = (type) => {
 
       break;
     case "globalSimpleEnergy": // 简易版补充奥德直接替换
-      {
+      if (
+        (globalPopupOp.value?.data?.energy !== undefined &&
+          globalPopupOp.value?.data?.energy !== null) ||
+        (globalPopupOp.value?.data?.storedEnergy !== undefined &&
+          globalPopupOp.value?.data?.storedEnergy !== null)
+      ) {
+        let charItem = cloneDeep(globalPopupOp.value.targetChar);
+
         if (
-          globalPopupOp.value?.data?.energy ||
-          globalPopupOp.value?.data?.storedEnergy
+          globalPopupOp.value.data?.energy !== undefined &&
+          globalPopupOp.value.data?.energy !== null
         ) {
-          let charItem = cloneDeep(globalPopupOp.value.targetChar);
-
-          if (globalPopupOp.value.data?.energy) {
-            const nowIso = new Date().toISOString();
-            charItem.energy = globalPopupOp.value.data.energy;
-            charItem.lastEnergyUpdate = nowIso;
-          }
-          if (globalPopupOp.value.data?.storedEnergy) {
-            charItem.storedEnergy = globalPopupOp.value.data.storedEnergy;
-          }
-
-          groupCharacterPanelHandleUpdateCharacter(charItem);
+          const nowIso = new Date().toISOString();
+          charItem.energy = globalPopupOp.value.data.energy;
+          charItem.lastEnergyUpdate = nowIso;
         }
+        if (
+          globalPopupOp.value.data?.storedEnergy !== undefined &&
+          globalPopupOp.value.data?.storedEnergy !== null
+        ) {
+          charItem.storedEnergy = globalPopupOp.value.data.storedEnergy;
+        }
+
+        groupCharacterPanelHandleUpdateCharacter(charItem);
       }
 
       break;
@@ -1948,17 +1958,17 @@ const handleGlobalPopupFill = (type) => {
         };
 
         const maxVal = limits[field] || 0;
-        const currentVal = updatedChar[field] || 0;
+        const currentVal = globalPopupOp.value?.data[field] || 0;
 
         // 判断当前是否已达标（如果当前值小于上限，则视为未完成，点击后填满；反之清空）
         const isCompleted = currentVal >= maxVal;
         switch (field) {
           case "breezeCharOd":
-            newCharacter.breezeCharOd = isCompleted ? 0 : 4;
+            newCharacter.breezeCharOd = isCompleted ? 4 : currentVal;
             newCharacter.isBreezeCharOd = !isCompleted;
             break;
           case "materialCharOd":
-            newCharacter.materialCharOd = isCompleted ? 0 : 4;
+            newCharacter.materialCharOd = isCompleted ? 4 : currentVal;
             newCharacter.isMaterialCharOd = !isCompleted;
             break;
 
@@ -1966,6 +1976,11 @@ const handleGlobalPopupFill = (type) => {
             console.warn(`未知类型: ${field}`);
             return;
         }
+        console.log(
+          `🔍 [UsersAdmin:825] %c field====globalExchangeCharOD====角色奥德 商店和物质变换: `,
+          "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+          field
+        );
         console.log(
           `🔍 [UsersAdmin:825] %c newCharacter====globalExchangeCharOD====角色奥德 商店和物质变换: `,
           "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",

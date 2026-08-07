@@ -168,6 +168,34 @@ const getTodayRunCount = (char, type) => {
     .filter((log) => log.date === todayStr && log.type === type)
     .reduce((sum, log) => sum + (log.count || 0), 0);
 };
+
+/**
+ * 计算今日获取的吉纳（区分绑金与非绑）
+ * @param {Array} runLogs 运行日志数组
+ */
+const getTodayKinaStats = (runLogs) => {
+  if (!Array.isArray(runLogs)) return { unbound: 0, bound: 0 };
+
+  // 获取当前日期的标准字符串格式 (例如 "2026-08-07")
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  let unboundTotal = 0;
+  let boundTotal = 0;
+
+  runLogs.forEach((log) => {
+    // 匹配日期为今天的记录
+    if (log.date === todayStr) {
+      unboundTotal += Number(log.kinaGain || 0);
+      boundTotal += Number(log.boundKinaGain || 0);
+    }
+  });
+
+  return {
+    unbound: unboundTotal,
+    bound: boundTotal,
+  };
+};
+
 //  计算当前角色奥德能刷多少次 (基于基础能量 + 存储能量)
 const calcRunsByEnergy = (char, type) => {
   const totalEnergy = (char.energy || 0) + (char.storedEnergy || 0);
@@ -243,8 +271,6 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
   };
 };
 //================ 周常/日常 结束 =====================
-
-
 </script>
 
 <template>
@@ -422,120 +448,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           </div>
         </div>
       </div>
-
-      <!-- ================= 模式二：副本及核心进度区 ================= -->
-      <div
-        v-if="
-          currentMode !== 'simple' && (currentMode !== 'custom' || fields.showDungeons)
-        "
-        class="space-y-2 text-xs"
-      >
-        <!-- 1. 远征副本 -->
-        <div
-          class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-2 transition-all hover:bg-slate-50 dark:hover:bg-slate-800"
-        >
-          <div
-            class="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400"
-          >
-            <span class="flex items-center gap-1.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-[#45a6d5]"></span> 远征副本
-            </span>
-            <span class="font-black text-[#45a6d5] dark:text-sky-400">
-              今日已刷: {{ getTodayRunCount(char, "expedition") }} 次
-            </span>
-          </div>
-          <div
-            class="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500 font-medium px-2"
-          >
-            <span
-              >奥德可刷:
-              <strong class="text-[#45a6d5] dark:text-sky-400 text-[11px]">{{
-                calcRunsByEnergy(char, "expedition")
-              }}</strong>
-              次</span
-            >
-          </div>
-          <!-- 组内收益（读取 groups） -->
-          <div
-            class="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/50 rounded-xl px-2 py-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 flex items-center justify-between"
-          >
-            <span>组内收益:</span>
-            <span class="truncate">{{
-              getGroupDecayInfo(char.group, "expedition")
-            }}</span>
-          </div>
-        </div>
-
-        <!-- 2. 超越副本 -->
-        <div
-          class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-2 transition-all hover:bg-slate-50 dark:hover:bg-slate-800"
-        >
-          <div
-            class="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400"
-          >
-            <span class="flex items-center gap-1.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> 超越副本
-            </span>
-            <span class="font-black text-purple-600 dark:text-purple-400">
-              今日已刷: {{ getTodayRunCount(char, "surpass") }} 次
-            </span>
-          </div>
-          <div
-            class="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500 font-medium px-2"
-          >
-            <span
-              >奥德可刷:
-              <strong class="text-purple-500 dark:text-purple-400 text-[11px]">{{
-                calcRunsByEnergy(char, "surpass")
-              }}</strong>
-              次</span
-            >
-          </div>
-          <!-- 组内收益（读取 groups） -->
-          <div
-            class="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/50 rounded-xl px-2 py-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 flex items-center justify-between"
-          >
-            <span>组内收益:</span>
-            <span class="truncate">{{ getGroupDecayInfo(char.group, "surpass") }}</span>
-          </div>
-        </div>
-
-        <!-- ================= 3. 圣域副本 (角色独立，每周三5点重置) ================= -->
-        <div
-          v-if="
-            currentMode !== 'simple' && (currentMode !== 'custom' || fields.showSanctuary)
-          "
-          class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-2 transition-all hover:bg-slate-50 dark:hover:bg-slate-800 text-xs"
-        >
-          <div
-            class="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400"
-          >
-            <span class="flex items-center gap-1.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> 圣域副本
-            </span>
-          </div>
-
-          <!-- 遍历 sanctuary 中的所有 Boss 配置 -->
-          <div class="grid grid-cols-3 gap-1.5 pt-1">
-            <div
-              v-for="(maxLimit, bossKey) in char.sanctuary || { s1: 1, s2: 1, s3: 1 }"
-              :key="bossKey"
-              class="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/50 rounded-xl px-2 py-1.5 flex flex-col items-center justify-center gap-0.5"
-            >
-              <span
-                class="text-[10px] text-slate-400 dark:text-slate-500 font-semibold uppercase"
-                >{{ bossKey }}</span
-              >
-              <span class="text-[11px] font-bold text-slate-700 dark:text-slate-200">
-                剩余次数:
-                {{ char.sanctuary?.[bossKey] - (char.sanctuaryRuns?.[bossKey] || 0) }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ================= 模式三：奥德能量进度 ================= -->
+      <!-- ================= 奥德能量进度 ================= -->
       <div
         v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showEnergy)"
         class="p-3.5 bg-gradient-to-br from-slate-50/90 to-slate-100/60 dark:from-slate-800/80 dark:to-slate-900/80 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2.5 shadow-sm transition-all hover:shadow dark:hover:border-slate-600"
@@ -624,36 +537,180 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           </span>
         </div>
       </div>
+      <!-- ================= 副本及核心进度区 ================= -->
+      <div
+        v-if="
+          currentMode !== 'simple' && (currentMode !== 'custom' || fields.showDungeons)
+        "
+        class="space-y-2 text-xs"
+      >
+        <!-- ================= 远征与超越副本卡片 ================= -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 transition-all">
+          <!-- 1. 远征副本 -->
+          <div
+            class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-1.5 transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            <!-- 头部：标题与圆点 -->
+            <div
+              class="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400"
+            >
+              <span class="flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#45a6d5]"></span> 远征副本
+              </span>
+            </div>
+
+            <!-- 主体数据：今日已刷 (字号加大凸显) -->
+            <div class="font-black text-sm text-[#45a6d5] dark:text-sky-400 px-0.5">
+              今日已刷: {{ getTodayRunCount(char, "expedition") }} 次
+            </div>
+
+            <!-- 底部说明：奥德可刷 (字号缩小，去掉了内边距使其左对齐) -->
+            <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+              <span>
+                奥德可刷:
+                <strong class="text-[#45a6d5] dark:text-sky-400 text-[11px]">{{
+                  calcRunsByEnergy(char, "expedition")
+                }}</strong>
+                次
+              </span>
+            </div>
+          </div>
+
+          <!-- 2. 超越副本 -->
+          <div
+            class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-1.5 transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            <!-- 头部：标题与圆点 -->
+            <div
+              class="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400"
+            >
+              <span class="flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> 超越副本
+              </span>
+            </div>
+
+            <!-- 主体数据：今日已刷 (字号加大凸显) -->
+            <div class="font-black text-sm text-purple-600 dark:text-purple-400 px-0.5">
+              今日已刷: {{ getTodayRunCount(char, "surpass") }} 次
+            </div>
+
+            <!-- 底部说明：奥德可刷 (字号缩小，去掉了内边距使其左对齐) -->
+            <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+              <span>
+                奥德可刷:
+                <strong class="text-purple-500 dark:text-purple-400 text-[11px]">{{
+                  calcRunsByEnergy(char, "surpass")
+                }}</strong>
+                次
+              </span>
+            </div>
+          </div>
+        </div>
+        <!-- ================= 今日获取吉纳统计卡片 ================= -->
+        <div
+          class="p-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl flex flex-col gap-2 transition-all shadow-xs"
+        >
+         
+
+          <!-- 绑/非绑分别统计展示（左右并排） -->
+          <div class="grid grid-cols-2 gap-2 pt-0.5">
+            <!-- 1. 非绑吉纳 -->
+            <div
+              class="p-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl flex flex-col items-center justify-center border border-slate-100 dark:border-slate-800"
+            >
+              <span class="text-[10px] text-slate-400 dark:text-slate-400 mb-0.5"
+                >非绑吉纳</span
+              >
+              <span class="text-xs font-black text-amber-600 dark:text-amber-400">
+                {{ getTodayKinaStats(char.runLogs).unbound }}
+              </span>
+            </div>
+
+            <!-- 2. 绑金吉纳 -->
+            <div
+              class="p-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl flex flex-col items-center justify-center border border-slate-100 dark:border-slate-800"
+            >
+              <span class="text-[10px] text-slate-400 dark:text-slate-400 mb-0.5"
+                >绑定吉纳</span
+              >
+              <span class="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                {{ getTodayKinaStats(char.runLogs).bound }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <!-- ================= 3. 圣域副本 (角色独立，每周三5点重置) ================= -->
+        <div
+          v-if="
+            currentMode !== 'simple' && (currentMode !== 'custom' || fields.showSanctuary)
+          "
+          class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-2 transition-all hover:bg-slate-50 dark:hover:bg-slate-800 text-xs"
+        >
+          <div
+            class="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400"
+          >
+            <span class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> 圣域副本
+            </span>
+          </div>
+
+          <!-- 遍历 sanctuary 中的所有 Boss 配置 -->
+          <div class="grid grid-cols-3 gap-1.5 pt-1">
+            <div
+              v-for="(maxLimit, bossKey) in char.sanctuary || { s1: 1, s2: 1, s3: 1 }"
+              :key="bossKey"
+              class="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/50 rounded-xl px-2 py-1.5 flex flex-col items-center justify-center gap-0.5"
+            >
+              <span
+                class="text-[10px] text-slate-400 dark:text-slate-500 font-semibold uppercase"
+                >{{ bossKey }}</span
+              >
+              <span class="text-[11px] font-bold text-slate-700 dark:text-slate-200">
+                剩余次数:
+                {{ char.sanctuary?.[bossKey] - (char.sanctuaryRuns?.[bossKey] || 0) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ================= 共享玩法统一样式区（同一行：每日副本、古树庆典、次元袭击） ================= -->
       <div
         v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showTasks)"
         class="grid grid-cols-3 gap-2 pt-1"
       >
-        <!-- 1. 每日副本 (服务器共享，周三5点，固定14次+存储上限) -->
+
+
+              <!-- 1. 噩梦副本 (角色独立，有存储次数) -->
         <button
           type="button"
           class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-          @click="emit('task-click', char, 'dailyRuns', 'weeklydaily')"
+          @click="emit('task-click', char, 'nightmareCount', 'weeklydaily')"
         >
           <div class="w-full flex items-center justify-between">
             <span
               class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-              >每日副本</span
+              >噩梦副本</span
             >
             <span
-              class="text-[8px] text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/60 px-1 rounded border border-cyan-100 dark:border-cyan-900/80"
-              >共享</span
+              class="text-[8px] text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-1 rounded border border-purple-100 dark:border-purple-900/80"
+              >角色</span
             >
           </div>
           <div class="w-full flex items-center justify-between text-[11px] font-black">
-            <span class="text-cyan-600 dark:text-cyan-400 tracking-tight">
+            <span class="text-purple-600 dark:text-purple-400 tracking-tight">
               剩余{{
-                getGroupSharedTaskData(char.group, "dailyRuns", "storedDailyRuns", 14)
-                  .total
+                getCharacterSharedTaskData(
+                  char,
+                  "nightmareCount",
+                  "storedNightmareCount",
+                  14
+                ).total
               }}次
             </span>
           </div>
         </button>
+
 
         <!-- 2. 古树庆典 (服务器共享，每天5点恢复2次，上限14) -->
         <button
@@ -721,36 +778,31 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         v-if="currentMode !== 'simple' && (currentMode !== 'custom' || fields.showTasks)"
         class="grid grid-cols-3 gap-2 pt-1"
       >
-        <!-- 1. 噩梦副本 (角色独立，有存储次数) -->
+          <!-- 1. 每日副本 (服务器共享，周三5点，固定14次+存储上限) -->
         <button
           type="button"
           class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-          @click="emit('task-click', char, 'nightmareCount', 'weeklydaily')"
+          @click="emit('task-click', char, 'dailyRuns', 'weeklydaily')"
         >
           <div class="w-full flex items-center justify-between">
             <span
               class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-              >噩梦副本</span
+              >每日副本</span
             >
             <span
-              class="text-[8px] text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-1 rounded border border-purple-100 dark:border-purple-900/80"
-              >角色</span
+              class="text-[8px] text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/60 px-1 rounded border border-cyan-100 dark:border-cyan-900/80"
+              >共享</span
             >
           </div>
           <div class="w-full flex items-center justify-between text-[11px] font-black">
-            <span class="text-purple-600 dark:text-purple-400 tracking-tight">
+            <span class="text-cyan-600 dark:text-cyan-400 tracking-tight">
               剩余{{
-                getCharacterSharedTaskData(
-                  char,
-                  "nightmareCount",
-                  "storedNightmareCount",
-                  14
-                ).total
+                getGroupSharedTaskData(char.group, "dailyRuns", "storedDailyRuns", 14)
+                  .total
               }}次
             </span>
           </div>
         </button>
-
         <!-- 2. 觉醒 (角色独立，上限30次或3次，带存储) -->
         <button
           type="button"

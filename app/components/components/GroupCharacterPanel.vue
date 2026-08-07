@@ -1077,7 +1077,7 @@ const handleTaskClick = (char, field, tab) => {
         emit("update-character", updatedChar);
       } else {
         //发送给父组件
-        emit("task-click", char, "globalExchangeCharOD",field);
+        emit("task-click", char, "globalExchangeCharOD", field);
       }
 
     default:
@@ -2949,7 +2949,7 @@ defineExpose({
               >
               <span class="text-slate-300 dark:text-slate-600">|</span>
               <span
-                class="text-slate-500 dark:text-slate-400 font-medium truncate max-w-[100px]"
+                class="text-slate-500 dark:text-slate-400 font-medium truncate max-w-[250px]"
                 >{{ gameplayCharForm.serverName || "未知" }}</span
               >
 
@@ -4738,20 +4738,20 @@ defineExpose({
 
               <!-- ================= 3. 噩梦、觉醒战、战场消耗（一行三列布局） ================= -->
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <!-- ================= 噩梦消耗管理 ================= -->
+                <!-- ================= 每日副本消耗管理 ================= -->
                 <div
                   class="h-full flex flex-col justify-between p-4 bg-white dark:bg-slate-900 border-2 rounded-3xl space-y-4 shadow-sm transition-all"
-                  ref="nightmareSection"
+                  ref="dailyRunsSection"
                   :class="
-                    validationResult.invalidFields.includes('nightmareCount')
+                    validationResult.invalidFields.includes('dailyRuns')
                       ? 'border-red-500 bg-red-50/20 dark:bg-red-950/20'
                       : 'border-slate-200 dark:border-slate-800'
                   "
                 >
                   <template
                     v-if="
-                      (gameplayCharForm?.nightmareCount || 0) +
-                        (gameplayCharForm?.storedNightmareCount || 0) >
+                      (getCharGroup?.dailyRuns || 0) +
+                        (getCharGroup?.storedDailyRuns || 0) >
                       0
                     "
                   >
@@ -4760,28 +4760,29 @@ defineExpose({
                       class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
                     >
                       <div class="flex items-center gap-2.5">
+                        <!-- 动态呼吸圆点 -->
                         <div
-                          class="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm shadow-purple-500/50 animate-pulse"
+                          class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50 animate-pulse"
                         ></div>
                         <div
                           class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-100"
                         >
-                          <span>噩梦消耗</span>
+                          <span>每日副本消耗</span>
                         </div>
                       </div>
 
                       <!-- 动态错误提示或剩余次数 Badge -->
                       <span
-                        v-if="validationResult.invalidFields.includes('nightmareCount')"
+                        v-if="validationResult.invalidFields.includes('dailyRuns')"
                         class="text-[10px] text-red-500 dark:text-red-400 font-bold bg-red-50 dark:bg-red-950/80 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-900"
                       >
-                        {{ validationResult.errors.nightmareCount }}
+                        {{ validationResult.errors.dailyRuns || "异常" }}
                       </span>
                       <span
                         v-else
-                        class="text-[10px] px-2.5 py-1 rounded-full font-black bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-900/60 shadow-2xs"
+                        class="text-[10px] px-2.5 py-1 rounded-full font-black bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-900/60 shadow-2xs"
                       >
-                        剩余可消耗: {{ totalsRemainingNightmareCountRuns || 0 }}
+                        共享可消耗: {{ totalsRemainingDailyRunsCountRuns || 0 }}
                       </span>
                     </div>
 
@@ -4796,8 +4797,8 @@ defineExpose({
                         >
                           <span>角色消耗次数</span>
                           <span
-                            class="text-purple-600 dark:text-purple-400 font-black text-xs"
-                            >-{{ weeklydailyFormValues.nightmareCount || 0 }}</span
+                            class="text-amber-600 dark:text-amber-400 font-black text-xs"
+                            >-{{ weeklydailyFormValues.dailyRuns || 0 }}</span
                           >
                         </div>
 
@@ -4807,9 +4808,9 @@ defineExpose({
                             type="button"
                             class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 active:scale-95 text-slate-700 dark:text-slate-200 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             @click="
-                              weeklydailyFormValues.nightmareCount = Math.max(
+                              weeklydailyFormValues.dailyRuns = Math.max(
                                 0,
-                                (weeklydailyFormValues.nightmareCount || 0) - 1
+                                (weeklydailyFormValues.dailyRuns || 0) - 1
                               )
                             "
                           >
@@ -4817,18 +4818,18 @@ defineExpose({
                           </button>
 
                           <input
-                            v-model.number="weeklydailyFormValues.nightmareCount"
+                            v-model.number="weeklydailyFormValues.dailyRuns"
                             type="number"
                             min="0"
-                            class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-purple-400 transition-all"
+                            class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-amber-400 transition-all"
                           />
 
                           <button
                             type="button"
-                            class="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/80 active:scale-95 text-purple-700 dark:text-purple-300 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/80 active:scale-95 text-amber-700 dark:text-amber-300 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             @click="
-                              weeklydailyFormValues.nightmareCount =
-                                (weeklydailyFormValues.nightmareCount || 0) + 1
+                              weeklydailyFormValues.dailyRuns =
+                                (weeklydailyFormValues.dailyRuns || 0) + 1
                             "
                           >
                             +
@@ -4836,30 +4837,31 @@ defineExpose({
                         </div>
                       </div>
 
-                      <!-- 底部：快捷填充操作按钮 -->
+                      <!-- 底部：快捷操作按钮 (两列等宽排列) -->
                       <div class="grid grid-cols-2 gap-2 pt-0.5">
+                        <!-- 清空 -->
                         <button
                           type="button"
-                          class="py-2 px-2 bg-slate-50 dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-purple-950/40 active:scale-98 border border-slate-200 dark:border-slate-700/80 hover:border-purple-200 dark:hover:border-purple-800 rounded-xl text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 font-bold text-[11px] transition-all cursor-pointer text-center shadow-2xs flex items-center justify-center gap-1"
-                          @click="weeklydailyFormValues.nightmareCount += 2"
+                          class="py-2 px-1 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/40 active:scale-98 border border-slate-200 dark:border-slate-700/80 hover:border-red-200 dark:hover:border-red-800 rounded-xl text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 font-bold text-[11px] transition-all cursor-pointer text-center shadow-2xs flex items-center justify-center truncate"
+                          @click="weeklydailyFormValues.dailyRuns = 0"
                         >
-                          <span class="text-purple-500 font-black">+</span> 增加 2 次
+                          清空
                         </button>
-
+                        <!-- 全部 -->
                         <button
                           type="button"
-                          class="py-2 px-2 bg-gradient-to-r from-purple-600 to-purple-500 dark:from-purple-700 dark:to-purple-600 hover:from-purple-500 hover:to-purple-400 dark:hover:from-purple-600 dark:hover:to-purple-500 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-purple-600/25 rounded-xl flex items-center justify-center truncate"
+                          class="py-2 px-1 bg-gradient-to-r from-amber-600 to-amber-500 dark:from-amber-700 dark:to-amber-600 hover:from-amber-500 hover:to-amber-400 dark:hover:from-amber-600 dark:hover:to-amber-500 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-amber-600/25 rounded-xl flex items-center justify-center truncate"
                           @click="
-                            weeklydailyFormValues.nightmareCount +=
-                              totalsRemainingNightmareCountRuns || 0
+                            weeklydailyFormValues.dailyRuns =
+                              (weeklydailyFormValues.dailyRuns || 0) +
+                              (totalsRemainingDailyRunsCountRuns || 0)
                           "
                         >
-                          全部 ({{ totalsRemainingNightmareCountRuns || 0 }})
+                          全部 ({{ totalsRemainingDailyRunsCountRuns || 0 }})
                         </button>
                       </div>
                     </div>
                   </template>
-
                   <template v-else>
                     <div
                       class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
@@ -4871,7 +4873,7 @@ defineExpose({
                         <div
                           class="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500"
                         >
-                          <span>噩梦消耗</span>
+                          <span>每日副本消耗</span>
                         </div>
                       </div>
                       <span
@@ -4896,7 +4898,6 @@ defineExpose({
                     </div>
                   </template>
                 </div>
-
                 <!-- ================= 觉醒战消耗管理 ================= -->
                 <div
                   class="h-full flex flex-col justify-between p-4 bg-white dark:bg-slate-900 border-2 rounded-3xl space-y-4 shadow-sm transition-all"
@@ -5215,20 +5216,20 @@ defineExpose({
               </div>
               <!-- ================= 4. 每日副本、古树庆典、次元袭击（一行三列布局） ================= -->
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <!-- ================= 每日副本消耗管理 ================= -->
+                <!-- ================= 噩梦消耗管理 ================= -->
                 <div
                   class="h-full flex flex-col justify-between p-4 bg-white dark:bg-slate-900 border-2 rounded-3xl space-y-4 shadow-sm transition-all"
-                  ref="dailyRunsSection"
+                  ref="nightmareSection"
                   :class="
-                    validationResult.invalidFields.includes('dailyRuns')
+                    validationResult.invalidFields.includes('nightmareCount')
                       ? 'border-red-500 bg-red-50/20 dark:bg-red-950/20'
                       : 'border-slate-200 dark:border-slate-800'
                   "
                 >
                   <template
                     v-if="
-                      (getCharGroup?.dailyRuns || 0) +
-                        (getCharGroup?.storedDailyRuns || 0) >
+                      (gameplayCharForm?.nightmareCount || 0) +
+                        (gameplayCharForm?.storedNightmareCount || 0) >
                       0
                     "
                   >
@@ -5237,29 +5238,28 @@ defineExpose({
                       class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
                     >
                       <div class="flex items-center gap-2.5">
-                        <!-- 动态呼吸圆点 -->
                         <div
-                          class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50 animate-pulse"
+                          class="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm shadow-purple-500/50 animate-pulse"
                         ></div>
                         <div
                           class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-100"
                         >
-                          <span>每日副本消耗</span>
+                          <span>噩梦消耗</span>
                         </div>
                       </div>
 
                       <!-- 动态错误提示或剩余次数 Badge -->
                       <span
-                        v-if="validationResult.invalidFields.includes('dailyRuns')"
+                        v-if="validationResult.invalidFields.includes('nightmareCount')"
                         class="text-[10px] text-red-500 dark:text-red-400 font-bold bg-red-50 dark:bg-red-950/80 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-900"
                       >
-                        {{ validationResult.errors.dailyRuns || "异常" }}
+                        {{ validationResult.errors.nightmareCount }}
                       </span>
                       <span
                         v-else
-                        class="text-[10px] px-2.5 py-1 rounded-full font-black bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-900/60 shadow-2xs"
+                        class="text-[10px] px-2.5 py-1 rounded-full font-black bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-900/60 shadow-2xs"
                       >
-                        共享可消耗: {{ totalsRemainingDailyRunsCountRuns || 0 }}
+                        剩余可消耗: {{ totalsRemainingNightmareCountRuns || 0 }}
                       </span>
                     </div>
 
@@ -5274,8 +5274,8 @@ defineExpose({
                         >
                           <span>角色消耗次数</span>
                           <span
-                            class="text-amber-600 dark:text-amber-400 font-black text-xs"
-                            >-{{ weeklydailyFormValues.dailyRuns || 0 }}</span
+                            class="text-purple-600 dark:text-purple-400 font-black text-xs"
+                            >-{{ weeklydailyFormValues.nightmareCount || 0 }}</span
                           >
                         </div>
 
@@ -5285,9 +5285,9 @@ defineExpose({
                             type="button"
                             class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 active:scale-95 text-slate-700 dark:text-slate-200 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             @click="
-                              weeklydailyFormValues.dailyRuns = Math.max(
+                              weeklydailyFormValues.nightmareCount = Math.max(
                                 0,
-                                (weeklydailyFormValues.dailyRuns || 0) - 1
+                                (weeklydailyFormValues.nightmareCount || 0) - 1
                               )
                             "
                           >
@@ -5295,18 +5295,18 @@ defineExpose({
                           </button>
 
                           <input
-                            v-model.number="weeklydailyFormValues.dailyRuns"
+                            v-model.number="weeklydailyFormValues.nightmareCount"
                             type="number"
                             min="0"
-                            class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-amber-400 transition-all"
+                            class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-purple-400 transition-all"
                           />
 
                           <button
                             type="button"
-                            class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/80 active:scale-95 text-amber-700 dark:text-amber-300 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            class="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/80 active:scale-95 text-purple-700 dark:text-purple-300 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             @click="
-                              weeklydailyFormValues.dailyRuns =
-                                (weeklydailyFormValues.dailyRuns || 0) + 1
+                              weeklydailyFormValues.nightmareCount =
+                                (weeklydailyFormValues.nightmareCount || 0) + 1
                             "
                           >
                             +
@@ -5314,31 +5314,30 @@ defineExpose({
                         </div>
                       </div>
 
-                      <!-- 底部：快捷操作按钮 (两列等宽排列) -->
+                      <!-- 底部：快捷填充操作按钮 -->
                       <div class="grid grid-cols-2 gap-2 pt-0.5">
-                        <!-- 清空 -->
                         <button
                           type="button"
-                          class="py-2 px-1 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/40 active:scale-98 border border-slate-200 dark:border-slate-700/80 hover:border-red-200 dark:hover:border-red-800 rounded-xl text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 font-bold text-[11px] transition-all cursor-pointer text-center shadow-2xs flex items-center justify-center truncate"
-                          @click="weeklydailyFormValues.dailyRuns = 0"
+                          class="py-2 px-2 bg-slate-50 dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-purple-950/40 active:scale-98 border border-slate-200 dark:border-slate-700/80 hover:border-purple-200 dark:hover:border-purple-800 rounded-xl text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 font-bold text-[11px] transition-all cursor-pointer text-center shadow-2xs flex items-center justify-center gap-1"
+                          @click="weeklydailyFormValues.nightmareCount += 2"
                         >
-                          清空
+                          <span class="text-purple-500 font-black">+</span> 增加 2 次
                         </button>
-                        <!-- 全部 -->
+
                         <button
                           type="button"
-                          class="py-2 px-1 bg-gradient-to-r from-amber-600 to-amber-500 dark:from-amber-700 dark:to-amber-600 hover:from-amber-500 hover:to-amber-400 dark:hover:from-amber-600 dark:hover:to-amber-500 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-amber-600/25 rounded-xl flex items-center justify-center truncate"
+                          class="py-2 px-2 bg-gradient-to-r from-purple-600 to-purple-500 dark:from-purple-700 dark:to-purple-600 hover:from-purple-500 hover:to-purple-400 dark:hover:from-purple-600 dark:hover:to-purple-500 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-purple-600/25 rounded-xl flex items-center justify-center truncate"
                           @click="
-                            weeklydailyFormValues.dailyRuns =
-                              (weeklydailyFormValues.dailyRuns || 0) +
-                              (totalsRemainingDailyRunsCountRuns || 0)
+                            weeklydailyFormValues.nightmareCount +=
+                              totalsRemainingNightmareCountRuns || 0
                           "
                         >
-                          全部 ({{ totalsRemainingDailyRunsCountRuns || 0 }})
+                          全部 ({{ totalsRemainingNightmareCountRuns || 0 }})
                         </button>
                       </div>
                     </div>
                   </template>
+
                   <template v-else>
                     <div
                       class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
@@ -5350,7 +5349,7 @@ defineExpose({
                         <div
                           class="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500"
                         >
-                          <span>每日副本消耗</span>
+                          <span>噩梦消耗</span>
                         </div>
                       </div>
                       <span
