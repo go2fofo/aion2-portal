@@ -567,13 +567,13 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
 
           <!-- ================= 底部：自适应弹性流式布局（变换奥德 + 商店奥德 + 总计） ================= -->
           <div
-            class="flex flex-wrap items-center justify-between gap-2 pt-1 px-0.5 text-[10px] font-semibold text-slate-400 dark:text-slate-500"
+            class="flex flex-wrap items-center justify-between gap-2 pt-1 text-[10px] font-semibold text-slate-400 dark:text-slate-500"
           >
             <!-- 左侧包裹区：内部卡片自适应内容宽度，空间不够时自动换行 -->
             <div class="flex items-center gap-2 flex-wrap flex-1 min-w-0">
               <!-- 1. 变换奥德 (Material Char Od) -->
               <div
-                class="p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all hover:border-amber-400/50 hover:bg-amber-50/30 dark:hover:bg-amber-950/30 cursor-pointer shrink-0"
+                class="p-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all hover:border-amber-400/50 hover:bg-amber-50/30 dark:hover:bg-amber-950/30 cursor-pointer shrink-0"
                 @click="emit('task-click', char, 'materialCharOd', 'exchangeCharOD')"
               >
                 <div class="flex items-center gap-1.5 min-w-0">
@@ -624,7 +624,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
 
               <!-- 商店奥德兑换 -->
               <div
-                class="p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 dark:hover:bg-sky-950/30 cursor-pointer shrink-0"
+                class="p-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 dark:hover:bg-sky-950/30 cursor-pointer shrink-0"
                 @click="emit('task-click', char, 'breezeCharOd', 'exchangeCharOD')"
                 v-if="getGroup(char.group)?.premiumMember"
               >
