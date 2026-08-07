@@ -1469,6 +1469,8 @@ const consumeForm = ref({
   selectedDungeonIndex: Number(localStorage.getItem("aion2_last_dungeon_idx")) || 0,
   selectedDiffIndex: Number(localStorage.getItem("aion2_last_diff_idx")) || 0,
   multiplier: Number(localStorage.getItem("aion2_last_multiplier")) || 1,
+  activeCalcTab: Number(localStorage.getItem("aion2_last_activeCalcTab")) || "runs", //runs 根据次数计算，energy根据奥德计算
+  calcInput: 1,
 });
 // 动态绑定当前角色所属分组的远征或超越通关次数
 const currentActiveRuns = computed({
@@ -2786,7 +2788,7 @@ watch(
   (val) => {
     if (val) {
       console.log(
-        `] %c activeTab tab监听变化: `,
+        `:] %c activeTab tab监听变化: `,
         "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
         val
       );
@@ -3453,7 +3455,94 @@ defineExpose({
                         </button>
                       </div>
                     </div>
+                    <div class="pt-2 flex flex-col gap-2">
+                      <!--  动态提示条（根据当前选中的 Tab 实时切换说明） -->
+                      <div
+                        class="flex items-start gap-2 px-3 py-2.5 rounded-xl text-[11px] font-medium transition-all"
+                        :class="
+                          consumeForm?.activeCalcTab === 'runs'
+                            ? 'bg-sky-50/90 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60 text-sky-800 dark:text-sky-300 shadow-2xs'
+                            : 'bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-300 shadow-2xs'
+                        "
+                      >
+                        <div class="flex flex-col gap-0.5 leading-relaxed">
+                          <!-- 核心安全提示：强调必须先选好副本 -->
+                          <span
+                            class="text-[10px] font-bold flex items-center gap-1 text-rose-600 dark:text-rose-400 bg-rose-50/80 dark:bg-rose-950/40 px-2 py-0.5 rounded-md border border-rose-200/60 dark:border-rose-900/50 w-fit"
+                          >
+                            <span
+                              class="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"
+                            ></span>
+                            请务必先选中对应的目标副本和难度，再进行输入计算，以防数据匹配错误。
+                          </span>
 
+                          <!-- 状态说明 -->
+                          <span v-if="consumeForm?.activeCalcTab === 'runs'">
+                            <strong>[ 消耗次数计算 ]</strong>
+                            输入计划挑战的次数，系统将自动换算<strong>总消耗奥德</strong>与<strong>预计获得吉纳（绑/非绑）</strong>。
+                          </span>
+                          <span v-else>
+                            <strong>[ 消耗奥德计算 ]</strong>
+                            输入准备消耗的奥德数量，系统将自动换算<strong>可刷副本次数</strong>与<strong>预计获得吉纳（绑/非绑）</strong>。
+                          </span>
+                        </div>
+                      </div>
+
+                      <!-- 同一行布局：左侧 Tab，右侧输入框与按钮 -->
+                      <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                        <!-- 左侧：Tab 切换按钮组 -->
+                        <div
+                          class="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl shrink-0"
+                        >
+                          <button
+                            type="button"
+                            class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer"
+                            :class="
+                              consumeForm?.activeCalcTab === 'runs'
+                                ? 'bg-white dark:bg-slate-900 text-[#45a6d5] dark:text-sky-400 shadow-2xs'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                            "
+                            @click="
+                              () => {
+                                consumeForm.activeCalcTab = 'runs';
+                                consumeForm.calcInput = 1;
+                              }
+                            "
+                          >
+                            消耗次数计算
+                          </button>
+
+                          <button
+                            type="button"
+                            class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer"
+                            :class="
+                              consumeForm?.activeCalcTab === 'energy'
+                                ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-2xs'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                            "
+                            @click="
+                              () => {
+                                consumeForm.activeCalcTab = 'energy';
+                                consumeForm.calcInput = calculatedEnergyCost;
+                              }
+                            "
+                          >
+                            消耗奥德计算
+                          </button>
+                        </div>
+
+                        <!-- 右侧：对应 Tab 的输入框与操作区（自适应撑满剩余空间） -->
+                        <div class="flex items-center gap-2 flex-1 w-full min-w-0">
+                          <div class="relative flex-1 min-w-0">
+                            <input
+                              v-model="consumeForm.calcInput"
+                              placeholder="请输入准备消耗的数..."
+                              class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:border-amber-500 dark:focus:border-amber-400 transition-all"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     <!-- 6. 收益面板展示（受挑战次数衰减影响，且单倍基础消耗对应减半收益） -->
                     <div
                       class="p-4 bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/60 rounded-2xl space-y-2"
