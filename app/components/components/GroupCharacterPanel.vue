@@ -2085,16 +2085,6 @@ const filteredDungeonList = computed(() => {
       isFinished,
     };
   });
-  console.log(
-    `🔍 [GroupCharacterPanel:674] %c newList: `,
-    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-    newList
-  );
-  console.log(
-    `🔍 [GroupCharacterPanel:674] %c list: `,
-    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-    list
-  );
 
   return newList;
 });

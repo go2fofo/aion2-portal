@@ -483,3 +483,29 @@ export const scToTwMap = {
   "精灵星": "精靈星",
   "治愈星": "治癒星"
 };
+
+/**
+ * 日志日期解析函数：兼容标准 ISO 格式、日期字符串以及带有中文“下午/上午”的自定义格式
+ */
+/**
+ * 极其稳妥的日志时间戳获取方法（优先使用标准的 log.date，如 "2026-08-06"）
+ */
+export const parseLogTimestamp = (log) => {
+  if (!log) return 0;
+  
+  // 优先用标准的 date 字段 (YYYY-MM-DD)，它是万无一失的标准格式
+  if (log.date) {
+    const time = new Date(log.date).getTime();
+    if (!isNaN(time)) return time;
+  }
+
+  // 如果没有 date，再尝试解析 createdAt
+  if (log.createdAt) {
+    // 简单粗暴：把中文“下午/上午”及斜杠转换掉，或者直接靠标准解析
+    const cleanStr = log.createdAt.replace(/下午|上午/g, '').trim();
+    const time = new Date(cleanStr).getTime();
+    if (!isNaN(time)) return time;
+  }
+
+  return 0;
+};

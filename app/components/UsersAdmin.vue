@@ -21,7 +21,7 @@ import GroupCharacterPanel from "./components/GroupCharacterPanel.vue";
 import cloneDeep from "lodash/cloneDeep";
 import { dungeonDecayRules } from "./config/userAdmin";
 import { useGameRefresh } from "@/composables/useGameRefresh";
-import { characterClasses, twToScMap, scToTwMap } from "./config/userAdmin";
+import { characterClasses, twToScMap, parseLogTimestamp } from "./config/userAdmin";
 
 const client = useSupabaseClient();
 const user = useSupabaseUser();
@@ -482,6 +482,71 @@ const activeGroupKinaStats = computed(() => {
     total: (totalGain + totalBound).toFixed(1),
   };
 });
+
+
+/**
+ * 判断日志是否在本周三 05:00 ~ 下周三 05:00 周期内
+ */
+const isLogThisWeek = (log) => {
+  const logTimestamp = parseLogTimestamp(log);
+  if (!logTimestamp) return false;
+
+  const now = new Date();
+  const shiftedNow = new Date(now.getTime() - 5 * 60 * 60 * 1000);
+  const dayOfWeek = shiftedNow.getDay();
+  let diffToWednesday = dayOfWeek - 3;
+  if (diffToWednesday < 0) diffToWednesday += 7;
+
+  const currentWeekWednesday = new Date(shiftedNow);
+  currentWeekWednesday.setDate(shiftedNow.getDate() - diffToWednesday);
+  currentWeekWednesday.setHours(5, 0, 0, 0);
+
+  const startTime = currentWeekWednesday.getTime();
+  const endTime = startTime + 7 * 24 * 60 * 60 * 1000;
+
+  return logTimestamp >= startTime && logTimestamp < endTime;
+};
+
+// 4. 本周收益吉纳数（从 runLogs 过滤本周周期内并根据 activeTabGroup 归属分组计算）
+const activeWeekKinaStats = computed(() => {
+  let targetLogs = [];
+
+  const chars =
+    activeTabGroup.value === "all"
+      ? gameData.value.characters || []
+      : (gameData.value.characters || []).filter((c) => c.group === activeTabGroup.value);
+
+  // 收集目标角色下的 runLogs
+  chars.forEach((char) => {
+    if (char.runLogs && Array.isArray(char.runLogs)) {
+      targetLogs.push(...char.runLogs);
+    }
+  });
+
+  // 如果顶层也有全局 runLogs，一并纳入过滤
+  if (gameData.value.runLogs && Array.isArray(gameData.value.runLogs)) {
+    targetLogs = targetLogs.concat(gameData.value.runLogs);
+  }
+
+  // 💡 修复点：这里直接把整个 log 对象传进去，而不是传独立的参数
+  const weekLogs = targetLogs.filter((log) => isLogThisWeek(log));
+
+  let totalGain = 0;
+  let totalBound = 0;
+
+  weekLogs.forEach((log) => {
+    totalGain += Number(log.kinaGain || 0);
+    totalBound += Number(log.boundKinaGain || 0);
+  });
+
+  return {
+    kinaGain: totalGain.toFixed(1),
+    boundKinaGain: totalBound.toFixed(1),
+    total: (totalGain + totalBound).toFixed(1),
+  };
+});
+
+
 
 // 顶部统计面板结束
 
@@ -2169,6 +2234,17 @@ watch(
   },
   { deep: true, immediate: true }
 );
+watch(
+  () => getAtvTabGroup.value,
+  (newVal) => {
+    console.log(
+      `🔍 [UsersAdmin:1298] %c getAtvTabGroup切换后分组数据: `,
+      "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+      newVal
+    );
+  },
+  { deep: true, immediate: true }
+);
 </script>
 
 <template>
@@ -2325,57 +2401,129 @@ watch(
         </div>
       </div>
 
-      <!-- 2. 今日收益吉纳数（基于 runLogs 实时计算当前组或全部的绑定与非绑定） -->
-      <div
-        class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
-      >
-        <div>
-          <div class="flex items-center justify-between">
-            <div
-              class="text-slate-400 dark:text-slate-500 text-xs font-bold tracking-wider uppercase"
-            >
-              今日收益吉纳数 (万)
+      <!-- 📌 吉纳收益统计卡片（支持今日与本周双维展示） -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- ================= 1. 今日收益统计卡片 ================= -->
+        <div
+          class="bg-white dark:bg-slate-900/90 backdrop-blur-md p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+        >
+          <div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-2 h-2 rounded-full bg-[#45a6d5] shadow-xs shadow-[#45a6d5]/50"
+                ></div>
+                <span
+                  class="text-slate-400 dark:text-slate-400 text-xs font-bold tracking-wider uppercase"
+                >
+                  今日收益吉纳 (万)
+                </span>
+              </div>
+              <span
+                class="text-[10px] font-black px-2.5 py-0.5 rounded-lg bg-[#45a6d5]/10 dark:bg-[#45a6d5]/20 text-[#45a6d5] border border-[#45a6d5]/20 dark:border-[#45a6d5]/30"
+              >
+                {{
+                  activeTabGroup === "all"
+                    ? "全部汇总"
+                    : gameData?.groups?.find((g) => g?.id === activeTabGroup)?.name
+                }}
+              </span>
             </div>
-            <span
-              class="text-[10px] font-black px-2 py-0.5 rounded-md bg-[#45a6d5]/10 dark:bg-[#45a6d5]/20 text-[#45a6d5] border border-[#45a6d5]/20 dark:border-[#45a6d5]/30"
+
+            <!-- 总收益数字 -->
+            <div
+              class="text-3xl font-black mt-3 text-slate-800 dark:text-slate-100 tracking-tight flex items-baseline gap-1"
             >
-              {{
-                activeTabGroup === "all"
-                  ? "全部数据汇总"
-                  : gameData?.groups?.find((g) => g?.id === activeTabGroup)?.name
-              }}
-            </span>
+              <span class="text-[#45a6d5]">{{ activeGroupKinaStats.total }}</span>
+              <span class="text-xs font-bold text-slate-400">万吉纳</span>
+            </div>
           </div>
 
-          <!-- 总收益数字 -->
-          <div class="text-3xl font-black mt-2 text-[#45a6d5] tracking-tight">
-            {{ activeGroupKinaStats.total }}
+          <!-- 绑定与非绑定细分 -->
+          <div
+            class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs"
+          >
+            <div class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+              <span class="text-slate-500 dark:text-slate-400 font-medium">
+                非绑定:
+                <strong class="text-slate-700 dark:text-slate-200 font-black">{{
+                  activeGroupKinaStats.kinaGain
+                }}</strong
+                >万
+              </span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+              <span class="text-slate-500 dark:text-slate-400 font-medium">
+                绑定:
+                <strong class="text-slate-700 dark:text-slate-200 font-black">{{
+                  activeGroupKinaStats.boundKinaGain
+                }}</strong
+                >万
+              </span>
+            </div>
           </div>
         </div>
 
-        <!-- 绑定与非绑定细分 -->
+        <!-- ================= 2. 本周收益统计卡片 ================= -->
         <div
-          class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/80 flex items-center justify-between text-xs"
+          class="bg-white dark:bg-slate-900/90 backdrop-blur-md p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
         >
-          <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
-            <span class="text-slate-500 dark:text-slate-400 font-medium"
-              >非绑定:
-              <strong class="text-slate-800 dark:text-slate-200 font-black">{{
-                activeGroupKinaStats.kinaGain
-              }}</strong>
-              万</span
+          <div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-2 h-2 rounded-full bg-amber-500 shadow-xs shadow-amber-500/50"
+                ></div>
+                <span
+                  class="text-slate-400 dark:text-slate-400 text-xs font-bold tracking-wider uppercase"
+                >
+                  本周收益吉纳 (万)
+                </span>
+              </div>
+              <span
+                class="text-[10px] font-black px-2.5 py-0.5 rounded-lg bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 dark:border-amber-500/30"
+              >
+                周三周期
+              </span>
+            </div>
+
+            <!-- 总收益数字 -->
+            <div
+              class="text-3xl font-black mt-3 text-slate-800 dark:text-slate-100 tracking-tight flex items-baseline gap-1"
             >
+              <span class="text-amber-500 dark:text-amber-400">{{
+                activeWeekKinaStats.total
+              }}</span>
+              <span class="text-xs font-bold text-slate-400">万吉纳</span>
+            </div>
           </div>
-          <div class="flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-            <span class="text-slate-500 dark:text-slate-400 font-medium"
-              >绑定:
-              <strong class="text-slate-800 dark:text-slate-200 font-black">{{
-                activeGroupKinaStats.boundKinaGain
-              }}</strong>
-              万</span
-            >
+
+          <!-- 绑定与非绑定细分 -->
+          <div
+            class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs"
+          >
+            <div class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+              <span class="text-slate-500 dark:text-slate-400 font-medium">
+                非绑定:
+                <strong class="text-slate-700 dark:text-slate-200 font-black">{{
+                  activeWeekKinaStats.kinaGain
+                }}</strong
+                >万
+              </span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+              <span class="text-slate-500 dark:text-slate-400 font-medium">
+                绑定:
+                <strong class="text-slate-700 dark:text-slate-200 font-black">{{
+                  activeWeekKinaStats.boundKinaGain
+                }}</strong
+                >万
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -5907,14 +6055,7 @@ watch(
                 v-if="globalPopupOp.type == 'globalSanctuary'"
                 class="space-y-4 max-w-2xl mx-auto py-2 text-xs"
               >
-
-              <div>
-
-              </div>
-              
-
-              
-              
+                <div></div>
               </div>
             </div>
 

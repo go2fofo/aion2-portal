@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from "vue";
-import { dungeonDecayRules } from "../config/userAdmin";
+import { dungeonDecayRules,parseLogTimestamp } from "../config/userAdmin";
 
 // 1. 定义 Props
 const props = defineProps({
@@ -168,6 +168,7 @@ const getTodayRunCount = (char, type) => {
     .filter((log) => log.date === todayStr && log.type === type)
     .reduce((sum, log) => sum + (log.count || 0), 0);
 };
+
 /**
  * 获取角色本周某个类型的副本已刷次数（周期：周三凌晨 05:00 ~ 下周三凌晨 05:00）
  * @param {Object} char 角色对象
@@ -179,12 +180,9 @@ const getThisWeekRunCount = (char, type) => {
   const now = new Date();
 
   // 1. 计算当前时间属于本周的哪个“周三 05:00”锚点
-  // 我们可以先把当前时间减去 5 小时，这样可以让凌晨 5 点前后的时间更自然地归入前一天/当天进行判定
   const shiftedNow = new Date(now.getTime() - 5 * 60 * 60 * 1000);
   const dayOfWeek = shiftedNow.getDay(); // 0 是周日, 3 是周三
 
-  // 计算距离最近的“本周三”过去了几天 (周三为 3)
-  // 如果当前是周三 (dayOfWeek === 3)，则差 0 天；如果是周二 (2)，则上一个周三是 6 天前
   let diffToWednesday = dayOfWeek - 3;
   if (diffToWednesday < 0) {
     diffToWednesday += 7;
@@ -203,9 +201,8 @@ const getThisWeekRunCount = (char, type) => {
   // 4. 筛选出日志时间在 [本周三 05:00 ~ 下周三 05:00) 之间且类型匹配的记录，累加 count
   return char.runLogs
     .filter((log) => {
-      // 兼容两种日志时间字段：log.createdAt 或 log.date (如果是 YYYY-MM-DD 字符串，new Date 会转成当天 0点)
-      const logTimestamp = new Date(log.createdAt || log.date).getTime();
-      if (isNaN(logTimestamp)) return false;
+      const logTimestamp = parseLogTimestamp(log);
+      if (!logTimestamp) return false;
 
       return log.type === type && logTimestamp >= startTime && logTimestamp < endTime;
     })

@@ -178,6 +178,9 @@ const sanitizeGameData = (gameData: any) => {
     }
   });
 
+
+  
+
   return { gameData, hasModified };
 };
 
