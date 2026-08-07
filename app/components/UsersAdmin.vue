@@ -483,7 +483,6 @@ const activeGroupKinaStats = computed(() => {
   };
 });
 
-
 /**
  * 判断日志是否在本周三 05:00 ~ 下周三 05:00 周期内
  */
@@ -545,8 +544,6 @@ const activeWeekKinaStats = computed(() => {
     total: (totalGain + totalBound).toFixed(1),
   };
 });
-
-
 
 // 顶部统计面板结束
 
@@ -956,6 +953,13 @@ const getCharGroup = computed(() => {
 const getAtvTabGroup = computed(() => {
   let groupItem = gameData.value?.groups?.find((f) => f.id == activeTabGroup.value);
   return groupItem;
+});
+// 获取当前分组的组对应的角色数据
+const getAtvTabGroupChars = computed(() => {
+  let characters = gameData.value?.characters?.filter(
+    (f) => f.group == activeTabGroup.value
+  );
+  return characters;
 });
 
 // 获取同组其他角色共享的会员剩余天数（并顺便自动同步给当前表单）
@@ -1463,6 +1467,121 @@ const importGameData = (event) => {
 };
 
 //================ 设置按钮 结束 =====================");
+//================ 组内角色排序 开始================
+const groupCharSortOpen = ref(false);
+
+const openSortModal = () => {
+  groupCharSortOpen.value = true;
+};
+
+// 1. 获取当前组内的所有角色数组，并实现“主角色永远第一位”的复合排序
+const groupCharsList = computed(() => {
+  const chars = getAtvTabGroupChars.value || [];
+
+  // 拷贝一份进行排序，不直接污染原响应式数据
+  return [...chars].sort((a, b) => {
+    // 优先级 1：主角色永远排在最前面 (primaryAccount 为 true 的排在前面)
+    const aIsPrimary = a.primaryAccount ? 1 : 0;
+    const bIsPrimary = b.primaryAccount ? 1 : 0;
+    if (aIsPrimary !== bIsPrimary) {
+      return bIsPrimary - aIsPrimary; // 谁是主角色谁排前面
+    }
+
+    // 优先级 2：如果主角色状态相同，则按照各自的 sort 字段升序排列
+    return (a.sort ?? 0) - (b.sort ?? 0);
+  });
+});
+
+// 2. 拖拽开始
+const draggedIndex = ref(null);
+const onDragStart = (index, event) => {
+  draggedIndex.value = index;
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", index);
+};
+
+// 3. 拖拽经过
+const onDragOver = (index, event) => {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "move";
+};
+
+// 4. 拖拽放下并更新排序
+const onDrop = (targetIndex) => {
+  const sourceIndex = draggedIndex.value;
+  if (sourceIndex === null || sourceIndex === targetIndex) return;
+
+  const list = groupCharsList.value;
+  const [movedItem] = list.splice(sourceIndex, 1);
+  list.splice(targetIndex, 0, movedItem);
+
+  // 重新赋予全局最新的 sort 序号（并同步确保主角色的 sort 设为 0）
+  list.forEach((char, idx) => {
+    if (char.primaryAccount) {
+      char.sort = 0; // 主角色强制 sort 为 0
+    } else {
+      // 非主角色从 1 开始排，或者紧随其后
+      char.sort = idx;
+    }
+  });
+
+  draggedIndex.value = null;
+};
+
+const onDragEnd = () => {
+  draggedIndex.value = null;
+};
+
+// 5. 设置主角色方法
+const setPrimaryAccount = (targetChar) => {
+  const chars = getAtvTabGroupChars.value || [];
+
+  // 将该组内所有角色的 primaryAccount 先全部设为 false
+  chars.forEach((c) => {
+    c.primaryAccount = false;
+  });
+
+  // 将当前点击的角色设为主角色
+  targetChar.primaryAccount = true;
+
+  // 重新触发计算属性更新，主角色会瞬间自动排到第一位
+};
+
+// 6. 保存排序并同步回全局 gameData
+const saveCharacterSort = () => {
+  const currentGroupId = getAtvTabGroup.value?.id;
+  if (!currentGroupId) return;
+
+  // 获取排好序的最新列表（groupCharsList 已经是根据拖拽排好序的）
+  const sortedList = groupCharsList.value;
+
+  // 1. 同步更新内存中每个角色的 sort 字段值
+  sortedList.forEach((char, index) => {
+    char.sort = char.primaryAccount ? 0 : index; // 确保主角色 sort 为 0，其余按顺序排列
+  });
+
+  // 2. 如果你的 gameData 是响应式对象，可以在这里直接同步更新对应组内的角色数据
+  if (gameData && gameData.value && Array.isArray(gameData.value.groups)) {
+    const targetGroup = gameData.value.groups.find((g) => g.id === currentGroupId);
+    if (targetGroup) {
+      // 替换或更新组内的角色数组
+      targetGroup.characters = [...sortedList];
+    }
+  }
+
+  // 3. 关闭弹窗
+  groupCharSortOpen.value = false;
+
+  console.log(
+    `🔍 [UsersAdmin:1576] %c saveCharacterSort---gameData确定排序: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    gameData.value
+  );
+  saveData();
+};
+
+//================ 组内角色排序 结束 =====================
+
 // 点击刷新按钮的处理逻辑
 const handleSync = async () => {
   if (isRefreshing.value) return;
@@ -2276,7 +2395,7 @@ watch(
           class="px-3 py-1 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-black text-xs border border-sky-100 dark:border-sky-800/50 shadow-2xs flex items-center gap-1.5"
         >
           <span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
-          每天都会更新～当前版本：AIon2 S3 v0.1.0 最新版
+          每天都会更新～当前版本：AIon2 S3 v0.1.1 最新版
         </span>
       </div>
 
@@ -2621,6 +2740,28 @@ watch(
             />
           </svg>
           设置
+        </button>
+        <!-- 组内角色排序按钮 -->
+        <button
+          @click="openSortModal"
+          v-if="activeTabGroup != 'all' && getAtvTabGroup"
+          class="px-6 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700/80 font-black text-sm transition-all active:scale-95 flex items-center gap-2 border border-slate-200 dark:border-slate-700/60"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4 text-slate-500 dark:text-slate-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+            />
+          </svg>
+          组内角色排序
         </button>
         <!-- 刷新/同步数据 -->
         <button
@@ -6177,6 +6318,160 @@ watch(
                   确定
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+    <!-- 组内角色排序 -->
+    <Teleport to="body">
+      <Transition name="modal4">
+        <div
+          v-if="groupCharSortOpen"
+          class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+        >
+          <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+          <div
+            class="relative z-10 w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col max-h-[85vh]"
+          >
+            <!-- 弹窗头部 -->
+            <div
+              class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 shrink-0"
+            >
+              <div
+                class="font-black text-slate-800 dark:text-slate-100 text-lg flex items-center gap-2"
+              >
+                <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
+                角色排序
+              </div>
+              <button
+                class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                @click="groupCharSortOpen = false"
+              >
+                关闭
+              </button>
+            </div>
+
+            <!-- 弹窗主体内容 -->
+            <div class="p-6 space-y-3 overflow-y-auto custom-scroll flex-1">
+              <div
+                v-if="groupCharsList.length === 0"
+                class="text-center py-12 text-slate-400 font-bold text-sm"
+              >
+                当前组暂无角色可排序
+              </div>
+
+              <div class="text-xs text-slate-400 font-bold mb-2">
+                💡 提示：按住任意角色卡片上下拖拽即可调整排序位置，或点击右侧设为主角色。
+              </div>
+
+              <!-- 可拖拽的角色卡片列表 -->
+              <div
+                v-for="(char, index) in groupCharsList"
+                :key="char.id || index"
+                draggable="true"
+                @dragstart="onDragStart(index, $event)"
+                @dragover="onDragOver(index, $event)"
+                @drop="onDrop(index)"
+                @dragend="onDragEnd"
+                class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition-all shadow-sm cursor-grab active:cursor-grabbing select-none"
+                :class="{
+                  'opacity-40 border-dashed border-[#45a6d5]': draggedIndex === index,
+                }"
+              >
+                <!-- 左侧：拖拽手柄、序号与基本信息 -->
+                <div class="flex items-center gap-4">
+                  <!-- 拖拽抓手图标 -->
+                  <div
+                    class="text-slate-400 dark:text-slate-500 hover:text-slate-600 shrink-0"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 8h16M4 16h16"
+                      />
+                    </svg>
+                  </div>
+
+                  <!-- 序号徽章 -->
+                  <div
+                    class="w-8 h-8 rounded-xl bg-slate-200/60 dark:bg-slate-700 flex items-center justify-center font-black text-xs text-slate-600 dark:text-slate-300 shrink-0"
+                  >
+                    {{ index + 1 }}
+                  </div>
+
+                  <!-- 角色名称及职业 -->
+                  <div>
+                    <div
+                      class="font-black text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2"
+                    >
+                      {{ char.characterName || "未命名角色" }}
+                      <!-- 如果当前是主角色，显示一个小徽章 -->
+                      <span
+                        v-if="char?.primaryAccount"
+                        class="px-2 py-0.5 rounded-md bg-[#45a6d5]/10 text-[#45a6d5] font-black text-[10px]"
+                      >
+                        主角色
+                      </span>
+                    </div>
+                    <div class="text-xs text-slate-400 font-bold mt-0.5">
+                      职业: {{ char.className || char.job || "未知" }} | 排序值 (sort):
+                      {{ char.sort ?? 0 }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 右侧操作区：设置为主角色按钮 或 已是主角色状态 -->
+                <div class="shrink-0">
+                  <button
+                    v-if="!char?.primaryAccount"
+                    @click.stop="setPrimaryAccount(char)"
+                    class="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-[#45a6d5] dark:hover:text-[#45a6d5] font-black text-xs transition-all border border-slate-200 dark:border-slate-700 shadow-xs active:scale-95 cursor-pointer"
+                  >
+                    设为主角色
+                  </button>
+                  <div
+                    v-else
+                    class="px-3 py-1.5 rounded-xl bg-[#45a6d5]/10 text-[#45a6d5] font-black text-xs flex items-center gap-1"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-3.5 h-3.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2.5"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    当前主角色
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 弹窗底部操作按钮 -->
+            <div
+              class="px-8 py-5 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-end gap-4 z-10"
+              @click="saveCharacterSort"
+            >
+              <button
+                type="button"
+                class="px-8 py-3 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-all shadow-md shadow-sky-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                确定排序
+              </button>
             </div>
           </div>
         </div>

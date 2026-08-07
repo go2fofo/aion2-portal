@@ -921,21 +921,35 @@ const emit = defineEmits([
 
 const { $confirm, $alert } = useNuxtApp();
 
-// 根据 activeTabGroup 过滤当前展示的角色列表
+// 根据 activeTabGroup 过滤当前展示的角色列表，并自动应用 sort 排序及主角色置顶
 const filteredCharacters = computed(() => {
   const characters = props.gameData?.characters || [];
   const groups = props.gameData?.groups || [];
   const tab = props.activeTabGroup;
 
-  if (tab === "all") {
-    return characters;
-  }
-  if (tab === "default") {
-    return characters.filter((c) => !c.group || !groups.some((g) => g.id === c.group));
-  }
-  return characters.filter((c) => Number(c.group) === Number(tab));
-});
+  let result = [];
 
+  if (tab === "all") {
+    result = characters;
+  } else if (tab === "default") {
+    result = characters.filter((c) => !c.group || !groups.some((g) => g.id === c.group));
+  } else {
+    result = characters.filter((c) => Number(c.group) === Number(tab));
+  }
+
+  // 🎯 在过滤后的结果上统一进行排序
+  return [...result].sort((a, b) => {
+    // 优先级 1：主角色永远排在最前面
+    const aIsPrimary = a.primaryAccount ? 1 : 0;
+    const bIsPrimary = b.primaryAccount ? 1 : 0;
+    if (aIsPrimary !== bIsPrimary) {
+      return bIsPrimary - aIsPrimary;
+    }
+    
+    // 优先级 2：按照各自的 sort 字段升序排列
+    return (a.sort ?? 0) - (b.sort ?? 0);
+  });
+});
 // 获取当前 Tab 的标题名称
 const currentTabTitle = computed(() => {
   const tab = props.activeTabGroup;
