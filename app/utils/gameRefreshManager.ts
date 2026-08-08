@@ -48,6 +48,15 @@ export const executeRulesByDictionary = (gameData: any) => {
 
   let hasChanges = false;
 
+  // 建立一个分组查找映射表，方便角色快速找到自己所属的分组
+  const groupMap = new Map();
+  if (Array.isArray(gameData.groups)) {
+    gameData.groups.forEach((g: any) => {
+      groupMap.set(g.id, g);
+      if (g.sort !== undefined) groupMap.set(g.sort, g);
+    });
+  }
+
   gameRulesDictionary.forEach((rule: any) => {
     const { dimension, refreshType } = rule;
 
@@ -56,7 +65,6 @@ export const executeRulesByDictionary = (gameData: any) => {
     // ==========================================
     if (dimension === "server" && Array.isArray(gameData.groups)) {
       gameData.groups.forEach((group: any) => {
-        // 兼容兜底：如果规则指定的时间字段在数据里找不到，降级使用 lastUpdatedAt
         const timeField = rule.lastTimeField || "lastUpdatedAt";
         const lastTimeStr = group[timeField] || group.lastUpdatedAt || 0;
         const lastTime = lastTimeStr ? new Date(lastTimeStr).getTime() : 0;
@@ -64,14 +72,13 @@ export const executeRulesByDictionary = (gameData: any) => {
         // 1. 每周三 5点 重置类规则
         if (refreshType === "weekly") {
           const lastPeriod = getWeekPeriodTimestamp(lastTime);
-          // 只要上次更新的所属周期 < 当前周三5点周期，就代表本周还没重置过
           if (lastPeriod < currentWednesday5am) {
             if (rule.action) {
               rule.action(group, gameData.characters);
             } else if (rule.targetField) {
               setNestedProperty(group, rule.targetField, rule.resetValue);
             }
-            group[timeField] = new Date(now).toISOString();
+            group[timeField] = now;
             hasChanges = true;
           }
         }
@@ -81,8 +88,9 @@ export const executeRulesByDictionary = (gameData: any) => {
           if (rule.action) {
             rule.action(group);
           } else if (rule.incrementCount !== undefined) {
-            // 计算距离上次更新过去了几天
-            const daysPassed = Math.floor((today5amTime - Math.min(lastTime, today5amTime)) / (24 * 3600 * 1000));
+            const effectiveLastTime = Math.max(lastTime, group.createdAt || 0);
+            const daysPassed = Math.floor((today5amTime - Math.min(effectiveLastTime, today5amTime)) / (24 * 3600 * 1000));
+            
             if (daysPassed > 0) {
               const addTotal = daysPassed * rule.incrementCount;
               const currentCount = getNestedProperty(group, rule.targetField!) || 0;
@@ -93,7 +101,6 @@ export const executeRulesByDictionary = (gameData: any) => {
               let newCurrent = currentCount + addTotal;
               let currentStored = storedField ? (getNestedProperty(group, storedField) || 0) : 0;
 
-              // 如果超过主上限，溢出部分存入存储池，主上限卡死
               if (newCurrent > max) {
                 const overflow = newCurrent - max;
                 newCurrent = max;
@@ -111,7 +118,7 @@ export const executeRulesByDictionary = (gameData: any) => {
             setNestedProperty(group, rule.targetField!, rule.resetValue);
           }
 
-          group[timeField] = new Date(now).toISOString();
+          group[timeField] = now;
           hasChanges = true;
         }
       });
@@ -122,13 +129,23 @@ export const executeRulesByDictionary = (gameData: any) => {
     // ==========================================
     if (dimension === "character" && Array.isArray(gameData.characters)) {
       gameData.characters.forEach((char: any) => {
-        if (rule.condition && !rule.condition(char)) return;
+        // 💡 核心修改：通过角色的 group 属性找到对应的分组对象，将会员状态绑定到判断中
+        const ownerGroup = groupMap.get(char.group) || {};
+        
+        // 构造一个包含分组会员信息的虚拟上下文，供 rule.condition 使用（如 char.premiumMember 实际上去读 group.premiumMember）
+        const ruleContext = {
+          ...char,
+          premiumMember: !!ownerGroup.premiumMember
+        };
+
+        // 🔒 严格校验：会员/非会员互斥条件
+        if (rule.condition && !rule.condition(ruleContext)) return;
 
         const timeField = rule.lastTimeField || "createDate";
         const lastTimeStr = char[timeField] || char.createDate || 0;
         const lastTime = lastTimeStr ? new Date(lastTimeStr).getTime() : 0;
 
-        // 1. 时间间隔动态恢复类规则（如奥德能量：每3小时恢复）
+        // 1. 时间间隔动态恢复类规则（如奥德能量：每3小时恢复，会员上限高、增量多）
         if (refreshType === "interval" && rule.intervalHours && rule.increment) {
           const hoursPassed = (now - lastTime) / (3600 * 1000);
           if (hoursPassed >= rule.intervalHours) {
@@ -136,7 +153,8 @@ export const executeRulesByDictionary = (gameData: any) => {
             const added = intervals * rule.increment;
             
             const currentVal = char[rule.targetField!] || 0;
-            const maxVal = rule.maxValue || 560;
+            // 💡 联动：根据会员状态自动匹配上限（会员 840，非会员 560）
+            const maxVal = ownerGroup.premiumMember ? 840 : (rule.maxValue || 560);
             const storedMax = rule.storedMaxValue || 2000;
             const storedField = rule.storedTargetField || "storedEnergy";
 
@@ -152,9 +170,8 @@ export const executeRulesByDictionary = (gameData: any) => {
             char[rule.targetField!] = total;
             char[storedField] = currentStored;
 
-            // 保留未满一个周期的余数时间，确保计时精准
             const consumedHours = intervals * rule.intervalHours;
-            char[timeField] = new Date(lastTime + consumedHours * 3600 * 1000).toISOString();
+            char[timeField] = lastTime + consumedHours * 3600 * 1000;
             hasChanges = true;
           }
         }
@@ -162,7 +179,9 @@ export const executeRulesByDictionary = (gameData: any) => {
         // 2. 每天 5点 恢复类规则（如噩梦副本）
         if (refreshType === "daily" && lastTime < today5amTime) {
           if (rule.incrementCount !== undefined) {
-            const daysPassed = Math.floor((today5amTime - Math.min(lastTime, today5amTime)) / (24 * 3600 * 1000));
+            const effectiveLastTime = Math.max(lastTime, char.createDate || 0);
+            const daysPassed = Math.floor((today5amTime - Math.min(effectiveLastTime, today5amTime)) / (24 * 3600 * 1000));
+            
             if (daysPassed > 0) {
               const addTotal = daysPassed * rule.incrementCount;
               const currentCount = char[rule.targetField!] || 0;
@@ -187,25 +206,26 @@ export const executeRulesByDictionary = (gameData: any) => {
               }
             }
           }
-          char[timeField] = new Date(now).toISOString();
+          char[timeField] = now;
           hasChanges = true;
         }
 
         // 3. 每周三 5点 重置/恢复类规则（如觉醒战、战场、圣域）
         if (refreshType === "weekly") {
           const lastPeriod = getWeekPeriodTimestamp(lastTime);
-          // 采用周期比较，彻底免疫时间戳带有秒数/毫秒数导致的误判
           if (lastPeriod < currentWednesday5am) {
-            if (rule.incrementCount !== undefined) {
-              const max = rule.maxValue || rule.maxCount || 3;
-              char[rule.targetField!] = Math.min(
-                max,
-                (char[rule.targetField!] || 0) + rule.incrementCount,
-              );
-            } else if (rule.resetValue !== undefined) {
-              setNestedProperty(char, rule.targetField!, rule.resetValue);
+            if ((char.createDate || 0) < currentWednesday5am) {
+              if (rule.incrementCount !== undefined) {
+                const max = rule.maxValue || rule.maxCount || 3;
+                char[rule.targetField!] = Math.min(
+                  max,
+                  (char[rule.targetField!] || 0) + rule.incrementCount,
+                );
+              } else if (rule.resetValue !== undefined) {
+                setNestedProperty(char, rule.targetField!, rule.resetValue);
+              }
             }
-            char[timeField] = new Date(now).toISOString();
+            char[timeField] = now;
             hasChanges = true;
           }
         }

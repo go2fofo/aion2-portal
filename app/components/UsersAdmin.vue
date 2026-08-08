@@ -34,8 +34,8 @@ const defGameData = {
       id: 1,
       name: "分组1",
       sort: 1,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
       runs: 0,
       transcendRuns: 0,
       runLogs: [],
@@ -44,8 +44,8 @@ const defGameData = {
       id: 2,
       name: "分组2",
       sort: 2,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
       runs: 0,
       transcendRuns: 0,
       runLogs: [],
@@ -54,8 +54,8 @@ const defGameData = {
       id: 3,
       name: "分组3",
       sort: 3,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
       runs: 0,
       transcendRuns: 0,
       runLogs: [],
@@ -64,8 +64,8 @@ const defGameData = {
       id: 4,
       name: "分组4",
       sort: 4,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
       runs: 0,
       transcendRuns: 0,
       runLogs: [],
@@ -74,8 +74,8 @@ const defGameData = {
       id: 5,
       name: "分组5",
       sort: 5,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
       runs: 0,
       transcendRuns: 0,
       runLogs: [],
@@ -1058,7 +1058,7 @@ const handleSaveCharacter = async () => {
     return;
   }
 
-  // 校验分组内主账号唯一性（适配 group 可能是 id 或 index 的安全查找）
+  // 校验分组内主账号唯一性
   if (newCharForm.value.primaryAccount) {
     const targetGroupObj = gameData.value?.groups?.find(
       (g) => g.id === selectedGroup || g.sort === selectedGroup
@@ -1081,17 +1081,16 @@ const handleSaveCharacter = async () => {
 
   const nowIso = Date.now();
 
-  // 💡 构造一个安全的“过去时间”（例如：当前时间往前推 7 天，或者固定设为一个过去的周三时间）
-  // 这样可以确保新号的周常/副本时间戳绝对早于本周三 5 点，建号时就能正常参与重置/发次数
-  const safePastDate = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+  // 💡 必须是纯数字时间戳（当前时间往前推 7 天），确保新号建号时能正常参与周常/日常刷新
+  const safePastDate = nowIso - 7 * 24 * 3600 * 1000;
 
   const newChar = {
-    id: new Date().getTime(),
+    id: Date.now(),
 
-    // ==================== 1. 能量与物资相关时间戳（从当前建号时刻开始计时） ====================
+    // ==================== 1. 能量与物资相关时间戳 ====================
     energy: 0,
     storedEnergy: 0,
-    lastEnergyUpdate: nowIso, // 奥德能量最后更新时间，供解释器时间间隔计算使用
+    lastEnergyUpdate: nowIso,
     isMaterialCharOd: false,
     materialCharOdDate: nowIso,
 
@@ -1101,39 +1100,35 @@ const handleSaveCharacter = async () => {
     breezeEnergyPurchased: false,
     breezeEnergyPurchasedDate: nowIso,
 
-    // ==================== 2. 副本与次数进度及时间戳（使用 safePastDate 确保能正常触发周常/日常刷新） ====================
-    /** 每周远征副本通关次数 */
+    // ==================== 2. 副本与次数进度及时间戳（纯数字过去时间戳） ====================
     runs: 0,
-    /** 每周超越副本通关次数 */
     transcendRuns: 0,
 
     nightmareCount: 0,
     storedNightmareCount: 0,
-    lastNightmareUpdate: safePastDate, // 噩梦副本最后更新时间（改用过去时间）
+    lastNightmareUpdate: safePastDate,
 
-    /** 角色觉醒战次数，当前角色每周三5点更新，固定3次*/
     awakening: 0,
-    /** 觉醒战补充次数 角色独立*/
     storedAwakening: 0,
-    /** 觉醒战最后更新时间 */
-    lastAwakeningUpdate: safePastDate, // 觉醒战最后更新时间（改用过去时间）
+    lastAwakeningUpdate: safePastDate,
 
-    /** 战场玩法的次数 */
     battlefield: 0,
-    lastBattlefieldUpdate: safePastDate, // 战场最后更新时间（改用过去时间）
+    lastBattlefieldUpdate: safePastDate,
 
     // ==================== 3. 圣域及其他日常时间戳补齐 ====================
     sanctuary: { s1: 1, s2: 1, s3: 1 },
-    lastSanctuaryRunsUpdate: safePastDate, // 圣域最后更新时间（改用过去时间）
+    lastSanctuaryRunsUpdate: safePastDate,
 
     dailySignIn: false,
-    dailySignInDate: nowIso, // 每日签到状态及时间
+    dailySignInDate: nowIso,
 
     dailyMission: false,
-    dailyMissionDate: nowIso, // 每日任务完成状态及时间
-    lastDailyMissionUpdate: nowIso, // 每日任务最后更新时间
+    dailyMissionDate: nowIso,
+    lastDailyMissionUpdate: nowIso,
 
     createDate: nowIso,
+
+    sort: newCharForm.value.primaryAccount ? 0 : (gameData.value?.characters?.filter(c => Number(c.group) === Number(selectedGroup)).length || 0),
 
     ...newCharForm.value,
   };
@@ -1147,28 +1142,22 @@ const handleSaveCharacter = async () => {
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     newCharForm.value
   );
-  console.log(
-    `🔍 [UsersAdmin:624] %c newChar提交: `,
-    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-    newChar
-  );
 
-  debugger;
-  gameData.value?.characters?.unshift(newChar);
-  gameData.value.characterCount = gameData.value?.characters?.length || 0;
+  // 将新角色插入到全局角色列表头部
+  gameData.value.characters.unshift(newChar);
+  gameData.value.characterCount = gameData.value.characters.length;
 
   showAddCharModal.value = false;
 
-  // 查找对应索引并更新分组附加数据
-  if (newCharGroupForm.value?.id) {
+// 查找对应索引并更新分组附加数据
+  if (newCharGroupForm.value?.id && Array.isArray(gameData.value?.groups)) {
     const targetId = newCharGroupForm.value.id;
     const index = gameData.value.groups.findIndex((g) => g.id === targetId);
 
-    if (gameData.value?.groups && index !== -1) {
+    if (index !== -1) {
       const originalGroup = gameData.value.groups[index];
       const form = newCharGroupForm.value || {};
 
-      // 批量解构出临时输入字段
       const {
         storedDailyRunsInput,
         storedMinigameCountInput,
@@ -1177,27 +1166,24 @@ const handleSaveCharacter = async () => {
         ...formWithoutInput
       } = form;
 
-      // 检查该分组是否已经配置过这些核心日常/副本次数（通过检查属性是否存在或是否有时间戳）
+      // 检查该分组是否已经配置过核心日常/副本次数
       const hasConfiguredBefore =
         "dimensionalCount" in originalGroup ||
         "dailyRuns" in originalGroup ||
         "minigameCount" in originalGroup ||
         !!originalGroup.lastUpdatedAt;
 
-      // 如果分组之前已经配置过了，我们只更新基础表单里允许修改的备注/非核心字段，
-      // 绝不重置或覆盖已有的次数、存储池和时间戳！
       if (hasConfiguredBefore) {
+        // 🔒 如果分组已经存在：只允许更新名称、备注等非核心基础字段，
+        // 绝不合并 formWithoutInput 里的副本次数，彻底防止把消耗完的 0 又重新覆盖掉！
         gameData.value.groups[index] = {
           ...originalGroup,
-          ...formWithoutInput, // 仅合并基础信息（如组名等）
-          // 主账号 ID 保护：如果没有则补上
-          primaryAccountID:
-            !originalGroup?.primaryAccountID && primaryAccountID
-              ? newChar?.characterId
-              : originalGroup?.primaryAccountID,
+          name: form.name ?? originalGroup.name,
+          remark: form.remark ?? originalGroup.remark,
+          // 如果还有其他需要允许修改的“非副本次数”基础字段，可以在这里手动按需更新
         };
       } else {
-        // 如果是该分组第一次配置，才完整初始化各项初始次数、增量和时间戳
+        // 🌟 仅在分组首次创建配置时，才初始化各项次数和纯数字时间戳
         const newStoredDailyRuns = Number(storedDailyRunsInput) || 0;
         const newStoredMinigameCount = Number(storedMinigameCountInput) || 0;
         const newStoredDimensional = Number(storedDimensionalCountInput) || 0;
@@ -1205,9 +1191,8 @@ const handleSaveCharacter = async () => {
         gameData.value.groups[index] = {
           ...originalGroup,
           ...formWithoutInput,
-          //会员开通时间赋值
 
-          // 仅在首次配置时赋予初始时间戳
+          // 仅在首次配置时赋予纯数字时间戳
           lastDailyRunsUpdate: nowIso,
           lastMinigameUpdate: nowIso,
           lastDimensionalUpdate: nowIso,
@@ -1219,7 +1204,6 @@ const handleSaveCharacter = async () => {
           primaryAccountID: primaryAccountID ? newChar?.characterId : undefined,
         };
 
-        // 判断有没有开启会员
         if (form.premiumMember) {
           gameData.value.groups[index].premiumMemberDay = form.premiumMemberDay;
           gameData.value.groups[index].premiumStartTime = calculatedStartTime(
@@ -1234,11 +1218,10 @@ const handleSaveCharacter = async () => {
   }
 
   console.log(
-    `🔍 [UsersAdmin:624] %c gameData 提交: `,
+    `🔍 [UsersAdmin:624] %c 添加角色=====gameData 提交: `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     gameData.value
   );
-  debugger;
 
   await saveData();
 };
@@ -1356,8 +1339,8 @@ const saveGroup = async () => {
     gameData.value.groups.push({
       id: nextId,
       name: name,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
       runs: 0,
       transcendRuns: 0,
       runLogs: [],
@@ -1661,7 +1644,63 @@ const groupCharacterPanelHandleUpdateGroup = async (updatedGroupsOrSingleGroup) 
 
   await saveData();
 };
+// 分组角色卡片列表删除角色事件处理
+// 分组角色卡片列表删除角色事件处理
+const groupCharacterPanelHandleDeleteCharacter = async (delChar) => {
+  if (!delChar || !gameData.value) return;
 
+  const charId = delChar.id;
+
+  //  从全局 characters 数组中移除
+  if (Array.isArray(gameData.value.characters)) {
+    gameData.value.characters = gameData.value.characters.filter(
+      (c) => c.id !== charId
+    );
+  }
+
+
+  // 如果被删除的角色恰好是主角色，且同组内还有其他角色，自动将剩余的第一个角色设为主角色
+  const currentGroupId = delChar.group;
+  if (currentGroupId && Array.isArray(gameData.value.characters)) {
+    const remainingGroupChars = gameData.value.characters.filter(
+      (c) => Number(c.group) === Number(currentGroupId)
+    );
+    // 如果组内还有人，且当前没有主角色了，把第一个设为主
+    const hasPrimary = remainingGroupChars.some((c) => c.primaryAccount);
+    if (!hasPrimary && remainingGroupChars.length > 0) {
+      remainingGroupChars[0].primaryAccount = true;
+    }
+  }
+
+  //  重新校准剩余角色的 sort 顺序（保持 0, 1, 2... 连续）
+  if (Array.isArray(gameData.value.characters)) {
+    // 按组分类重新整理 sort
+    const groupsMap = new Map();
+    gameData.value.characters.forEach((c) => {
+      const gId = c.group || 'default';
+      if (!groupsMap.has(gId)) groupsMap.set(gId, []);
+      groupsMap.get(gId).push(c);
+    });
+
+    groupsMap.forEach((chars) => {
+      // 内部先按原 sort 排序，主角色置顶
+      chars.sort((a, b) => {
+        const aPrimary = a.primaryAccount ? 1 : 0;
+        const bPrimary = b.primaryAccount ? 1 : 0;
+        if (aPrimary !== bPrimary) return bPrimary - aPrimary;
+        return (a.sort ?? 0) - (b.sort ?? 0);
+      });
+      // 重新赋予连贯的 sort 值
+      chars.forEach((c, idx) => {
+        c.sort = c.primaryAccount ? 0 : idx;
+      });
+    });
+  }
+
+
+  // 执行持久化保存
+  await saveData();
+};
 // 分组角色卡片列表切换任务事件处理
 const groupCharacterPanelHandleToggleTask = async (char, field) => {
   const updatedChar = { ...char, [field]: !char[field] };
@@ -1737,10 +1776,11 @@ const totalGroupStoredDimensionalCount = computed(() => {
 //============================组角色卡片列表事件处理/开结束============================
 
 // 签到按钮点击事件处理
-const handleSignInSignIn = async (group) => {
-  let newAtvTabGroup = group ? { ...group } : { ...getAtvTabGroup.value };
+const handleSignInSignIn = async (gGroup) => {
+  let newAtvTabGroup = { ...gGroup };
   newAtvTabGroup.dailySignIn = !newAtvTabGroup?.dailySignIn;
   newAtvTabGroup.dailySignInDate = Date.now();
+  
   await groupCharacterPanelHandleUpdateGroup(newAtvTabGroup);
 };
 
@@ -2943,7 +2983,7 @@ watch(
                   : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/25 shadow-md'
               "
               :disabled="getAtvTabGroup?.dailySignIn"
-              @click="handleSignInSignIn"
+              @click="() => handleSignInSignIn(getAtvTabGroup)"
             >
               {{ getAtvTabGroup?.dailySignIn ? "✓ 已签到" : "立即签到" }}
             </button>
@@ -3507,6 +3547,7 @@ watch(
       @toggle-task="groupCharacterPanelHandleToggleTask"
       @task-click="groupCharacterPanelHandleClickTask"
       @consume-energy="groupCharacterPanelHandleConsumeEnergy"
+      @delete-character="groupCharacterPanelHandleDeleteCharacter"
     />
     <!-- 极宽卡片式新增角色弹窗 (蓝白色调) -->
     <Teleport to="body">

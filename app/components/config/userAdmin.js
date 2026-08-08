@@ -460,6 +460,7 @@ export const characterClasses = [
   { id: 6, name: "魔道星", twName: "魔道星" },
   { id: 7, name: "精灵星", twName: "精靈星" },
   { id: 8, name: "治愈星", twName: "治癒星" },
+  { id: 8, name: "杀星", twName: "殺星" },
 ];
 // 简繁互转映射表（如果以后职业增多，也可以引入成熟的库如 'china-conversion'，目前只有7个职业直接写映射最省事高效）
 export const twToScMap = {
@@ -471,6 +472,7 @@ export const twToScMap = {
   "魔道星": "魔道星",
   "精靈星": "精灵星",
   "治癒星": "治愈星",
+  "殺星": "杀星",
 };
 
 export const scToTwMap = {
@@ -481,7 +483,8 @@ export const scToTwMap = {
   "弓星": "弓星",
   "魔道星": "魔道星",
   "精灵星": "精靈星",
-  "治愈星": "治癒星"
+  "治愈星": "治癒星",
+  "杀星": "殺星",
 };
 
 /**

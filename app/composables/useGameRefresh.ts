@@ -466,7 +466,7 @@ export const useGameRefresh = () => {
         console.log(
           `🔍 [useGameRefresh:170] %c executeRulesByDictionary有规则变动: `,
           "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-          hasRulesModified,
+          gameData,
         );
       }
       //  有变动则持久化并同步

@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from "vue";
-import { dungeonDecayRules,parseLogTimestamp } from "../config/userAdmin";
+import { dungeonDecayRules, parseLogTimestamp } from "../config/userAdmin";
 
 // 1. 定义 Props
 const props = defineProps({
@@ -1084,28 +1084,28 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         </div>
 
         <!-- 底部操作与元信息标签（所有模式均展示） -->
-        <!-- <div
-        class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700 text-[11px] font-bold text-slate-400"
-      >
-        <span>分组: {{ getGroupName(char.group) }}</span>
+        <div
+          class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700/60 text-[11px] font-bold text-slate-400"
+        >
+          <!-- <span>分组: {{ getGroupName(char.group) }}</span> -->
 
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            class="px-3 py-1 rounded-xl transition-all font-black text-[10px]"
-            :class="
-              char.locked
-                ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
-                : 'bg-red-50 text-red-600 hover:bg-red-100'
-            "
-            :disabled="char.locked"
-            @click="emit('delete', char)"
-            :title="char.locked ? '角色已锁定，无法删除（需先解锁）' : '删除角色'"
-          >
-            删除
-          </button>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              class="px-3 py-1 rounded-xl transition-all font-black text-[10px] cursor-pointer"
+              :class="
+                char.locked
+                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed'
+                  : 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50'
+              "
+              :disabled="char.locked"
+              @click="emit('delete', char)"
+              :title="char.locked ? '角色已锁定，无法删除（需先解锁）' : '删除角色'"
+            >
+              删除
+            </button>
+          </div>
         </div>
-      </div> -->
       </template>
       <!-- 精简模式（懒人模式）模式下显示的卡片  -->
     </div>

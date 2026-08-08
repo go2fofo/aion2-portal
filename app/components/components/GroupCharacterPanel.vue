@@ -2205,8 +2205,8 @@ const scrollToSection = (key) => {
 const weeklydailyFormValues = ref(cloneDeep(defaultWeeklydailyFormValues));
 // 噩梦剩余次数：角色统计
 const totalsRemainingNightmareCountRuns = computed(() => {
-  const storedNightmareCount = gameplayCharForm.value?.storedNightmareCount;
-  const nightmareCount = gameplayCharForm.value?.nightmareCount;
+  const storedNightmareCount = gameplayCharForm.value?.storedNightmareCount || 0;
+  const nightmareCount = gameplayCharForm.value?.nightmareCount || 0;
   // 当前表单里输入的数值
   const currentNightmareCount = weeklydailyFormValues.value.nightmareCount;
 
@@ -2216,8 +2216,8 @@ const totalsRemainingNightmareCountRuns = computed(() => {
 });
 // 觉醒战剩余次数：角色统计
 const totalsRemainingAwakeningCountRuns = computed(() => {
-  const storedAwakeningCount = gameplayCharForm.value?.storedAwakening;
-  const awakeningCount = gameplayCharForm.value?.awakening;
+  const storedAwakeningCount = gameplayCharForm.value?.storedAwakening || 0;
+  const awakeningCount = gameplayCharForm.value?.awakening || 0;
   // 当前表单里输入的数值
   const currentAwakeningCount = weeklydailyFormValues.value.awakening;
 
@@ -2227,8 +2227,8 @@ const totalsRemainingAwakeningCountRuns = computed(() => {
 });
 // 每日副本剩余次数：角色统计
 const totalsRemainingDailyRunsCountRuns = computed(() => {
-  const storedDailyCount = Number(getCharGroup.value?.storedDailyRuns);
-  const dailyRuns = Number(getCharGroup.value?.dailyRuns);
+  const storedDailyCount = Number(getCharGroup.value?.storedDailyRuns || 0);
+  const dailyRuns = Number(getCharGroup.value?.dailyRuns || 0);
 
   // 当前表单里输入的数值
   const currentDailyRunsCount = weeklydailyFormValues.value.dailyRuns;
@@ -2239,8 +2239,8 @@ const totalsRemainingDailyRunsCountRuns = computed(() => {
 });
 // 古树庆典小游戏剩余次数：角色统计
 const totalsRemainingMinigameCountRuns = computed(() => {
-  const storedMinigameCount = Number(getCharGroup.value?.storedMinigameCount);
-  const minigameCount = Number(getCharGroup.value?.minigameCount);
+  const storedMinigameCount = Number(getCharGroup.value?.storedMinigameCount || 0) ;
+  const minigameCount = Number(getCharGroup.value?.minigameCount || 0);
 
   // 当前表单里输入的数值
   const currentMinigameCount = weeklydailyFormValues.value.minigameCount;
@@ -2252,8 +2252,8 @@ const totalsRemainingMinigameCountRuns = computed(() => {
 
 //次元袭击剩余次数：角色统计
 const totalsRemainingDimensionalCountRuns = computed(() => {
-  const storedDimensionalCount = Number(getCharGroup.value?.storedDimensionalCount);
-  const dimensionalCount = Number(getCharGroup.value?.dimensionalCount);
+  const storedDimensionalCount = Number(getCharGroup.value?.storedDimensionalCount || 0);
+  const dimensionalCount = Number(getCharGroup.value?.dimensionalCount || 0);
 
   // 当前表单里输入的数值
   const currentDimensionalCount = weeklydailyFormValues.value.dimensionalCount;
@@ -2270,7 +2270,8 @@ const hasWeeklyDailyValues = computed(() => {
     weeklydailyFormValues.value.minigameCount > 0 ||
     weeklydailyFormValues.value.awakening > 0 ||
     weeklydailyFormValues.value.nightmareCount > 0 ||
-    weeklydailyFormValues.value.dailyRuns > 0
+    weeklydailyFormValues.value.dailyRuns > 0 ||
+    weeklydailyFormValues.value.battlefield > 0
   );
 });
 
@@ -3774,7 +3775,7 @@ defineExpose({
                         <div class="flex items-center gap-2 flex-1 w-full min-w-0">
                           <div class="relative flex-1 min-w-0">
                             <input
-                              type="number"
+                              
                               v-model.number="consumeForm.calcInput"
                               :placeholder="
                                 consumeForm?.activeCalcTab === 'runs'
@@ -5189,7 +5190,7 @@ defineExpose({
 
                           <input
                             v-model.number="weeklydailyFormValues.dailyRuns"
-                            type="number"
+                            
                             min="0"
                             class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-amber-400 transition-all"
                           />
@@ -5348,7 +5349,7 @@ defineExpose({
 
                           <input
                             v-model.number="weeklydailyFormValues.awakening"
-                            type="number"
+                            
                             min="0"
                             class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-purple-400 transition-all"
                           />
@@ -5505,7 +5506,7 @@ defineExpose({
 
                           <input
                             v-model.number="weeklydailyFormValues.battlefield"
-                            type="number"
+                            
                             min="0"
                             class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-purple-400 transition-all"
                           />
@@ -5666,7 +5667,7 @@ defineExpose({
 
                           <input
                             v-model.number="weeklydailyFormValues.nightmareCount"
-                            type="number"
+                            
                             min="0"
                             class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-purple-400 transition-all"
                           />
@@ -5826,7 +5827,7 @@ defineExpose({
 
                           <input
                             v-model.number="weeklydailyFormValues.minigameCount"
-                            type="number"
+                            
                             min="0"
                             class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-amber-400 transition-all"
                           />
@@ -5988,7 +5989,7 @@ defineExpose({
 
                           <input
                             v-model.number="weeklydailyFormValues.dimensionalCount"
-                            type="number"
+                            
                             min="0"
                             class="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-amber-400 transition-all"
                           />
