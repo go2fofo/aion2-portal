@@ -199,7 +199,7 @@
         </div>
       </div>
 
-      <div class="w-[95%] md:w-[90%] px-4 md:px-6 pb-20 relative">
+      <div class="w-[100%] px-1 md:px-6 pb-20 relative">
         <!-- 移动端侧边悬浮 Tab 菜单 (优化版) -->
         <div class="md:hidden">
           <!-- 悬浮触发按钮 (小鸟造型) -->
@@ -327,7 +327,7 @@
           </button>
         </div>
 
-        <div class="panel-cartoon min-h-[360px] p-4 relative overflow-hidden">
+        <div class="panel-cartoon min-h-[360px] relative overflow-hidden">
           <div
             class="absolute -bottom-6 -right-6 text-[8rem] opacity-5 pointer-events-none italic font-black"
           >
