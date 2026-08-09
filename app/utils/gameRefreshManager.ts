@@ -36,8 +36,6 @@ const getToday5amTimestamp = (): number => {
   return today5am.getTime();
 };
 
-
-
 /**
  * 【核心】通用规则解释执行器：读取 gameRulesDictionary 并自动刷新游戏数据
  */
@@ -89,17 +87,23 @@ export const executeRulesByDictionary = (gameData: any) => {
             rule.action(group);
           } else if (rule.incrementCount !== undefined) {
             const effectiveLastTime = Math.max(lastTime, group.createdAt || 0);
-            const daysPassed = Math.floor((today5amTime - Math.min(effectiveLastTime, today5amTime)) / (24 * 3600 * 1000));
-            
+            const daysPassed = Math.floor(
+              (today5amTime - Math.min(effectiveLastTime, today5amTime)) /
+                (24 * 3600 * 1000),
+            );
+
             if (daysPassed > 0) {
               const addTotal = daysPassed * rule.incrementCount;
-              const currentCount = getNestedProperty(group, rule.targetField!) || 0;
+              const currentCount =
+                getNestedProperty(group, rule.targetField!) || 0;
               const max = rule.maxCount || 14;
               const storedMax = rule.storedMaxCount || 30;
               const storedField = rule.storedTargetField;
 
               let newCurrent = currentCount + addTotal;
-              let currentStored = storedField ? (getNestedProperty(group, storedField) || 0) : 0;
+              let currentStored = storedField
+                ? getNestedProperty(group, storedField) || 0
+                : 0;
 
               if (newCurrent > max) {
                 const overflow = newCurrent - max;
@@ -129,32 +133,50 @@ export const executeRulesByDictionary = (gameData: any) => {
     // ==========================================
     if (dimension === "character" && Array.isArray(gameData.characters)) {
       gameData.characters.forEach((char: any) => {
-        // 💡 核心修改：通过角色的 group 属性找到对应的分组对象，将会员状态绑定到判断中
         const ownerGroup = groupMap.get(char.group) || {};
-        
-        // 构造一个包含分组会员信息的虚拟上下文，供 rule.condition 使用（如 char.premiumMember 实际上去读 group.premiumMember）
+
         const ruleContext = {
           ...char,
-          premiumMember: !!ownerGroup.premiumMember
+          premiumMember: !!ownerGroup.premiumMember,
         };
 
-        // 🔒 严格校验：会员/非会员互斥条件
         if (rule.condition && !rule.condition(ruleContext)) return;
 
         const timeField = rule.lastTimeField || "createDate";
         const lastTimeStr = char[timeField] || char.createDate || 0;
         const lastTime = lastTimeStr ? new Date(lastTimeStr).getTime() : 0;
 
-        // 1. 时间间隔动态恢复类规则（如奥德能量：每3小时恢复，会员上限高、增量多）
-        if (refreshType === "interval" && rule.intervalHours && rule.increment) {
-          const hoursPassed = (now - lastTime) / (3600 * 1000);
-          if (hoursPassed >= rule.intervalHours) {
-            const intervals = Math.floor(hoursPassed / rule.intervalHours);
-            const added = intervals * rule.increment;
-            
+        // 1. 固定整点触发类规则（如奥德能量：固定 2点, 5点, 8点, 11点, 14点, 17点, 20点, 23点）
+        if (refreshType === "interval" && rule.increment) {
+          // 有效基准时间：防止新号刚建好时把历史时间算进来
+          const effectiveLastTime = Math.max(lastTime, char.createDate || 0);
+
+          // 计算从有效上次更新时间到当前，跨越了多少个整点（3小时一个档位）
+          // 我们以每天凌晨 2 点作为3小时循环的绝对锚点基准
+          const anchorBase = new Date(effectiveLastTime);
+          anchorBase.setHours(2, 0, 0, 0);
+          let anchorTime = anchorBase.getTime();
+          if (anchorTime > effectiveLastTime) {
+            anchorTime -= 3 * 3600 * 1000;
+          }
+
+          let periodsPassed = 0;
+          const threeHoursMs = 3 * 3600 * 1000;
+
+          // 往后推演，统计有多少个 3 小时整点介于 effectiveLastTime 和 now 之间
+          while (anchorTime + threeHoursMs <= now) {
+            anchorTime += threeHoursMs;
+            if (anchorTime > effectiveLastTime) {
+              periodsPassed++;
+            }
+          }
+
+          if (periodsPassed > 0) {
+            const added = periodsPassed * rule.increment;
             const currentVal = char[rule.targetField!] || 0;
-            // 💡 联动：根据会员状态自动匹配上限（会员 840，非会员 560）
-            const maxVal = ownerGroup.premiumMember ? 840 : (rule.maxValue || 560);
+            const maxVal = ownerGroup.premiumMember
+              ? 840
+              : rule.maxValue || 560;
             const storedMax = rule.storedMaxValue || 2000;
             const storedField = rule.storedTargetField || "storedEnergy";
 
@@ -170,8 +192,8 @@ export const executeRulesByDictionary = (gameData: any) => {
             char[rule.targetField!] = total;
             char[storedField] = currentStored;
 
-            const consumedHours = intervals * rule.intervalHours;
-            char[timeField] = lastTime + consumedHours * 3600 * 1000;
+            // 更新时间戳为最新对齐的整点时间（或者直接设为 now）
+            char[timeField] = now;
             hasChanges = true;
           }
         }
@@ -180,8 +202,11 @@ export const executeRulesByDictionary = (gameData: any) => {
         if (refreshType === "daily" && lastTime < today5amTime) {
           if (rule.incrementCount !== undefined) {
             const effectiveLastTime = Math.max(lastTime, char.createDate || 0);
-            const daysPassed = Math.floor((today5amTime - Math.min(effectiveLastTime, today5amTime)) / (24 * 3600 * 1000));
-            
+            const daysPassed = Math.floor(
+              (today5amTime - Math.min(effectiveLastTime, today5amTime)) /
+                (24 * 3600 * 1000),
+            );
+
             if (daysPassed > 0) {
               const addTotal = daysPassed * rule.incrementCount;
               const currentCount = char[rule.targetField!] || 0;
@@ -190,7 +215,7 @@ export const executeRulesByDictionary = (gameData: any) => {
               const storedField = rule.storedTargetField;
 
               let newCurrent = currentCount + addTotal;
-              let currentStored = storedField ? (char[storedField] || 0) : 0;
+              let currentStored = storedField ? char[storedField] || 0 : 0;
 
               if (newCurrent > max) {
                 const overflow = newCurrent - max;
@@ -238,7 +263,9 @@ export const executeRulesByDictionary = (gameData: any) => {
 
 // 辅助方法：支持点号路径（如 "sanctuaryRuns.s1"）读写深层对象属性
 function getNestedProperty(obj: any, path: string) {
-  return path.split(".").reduce((prev, curr) => (prev ? prev[curr] : null), obj);
+  return path
+    .split(".")
+    .reduce((prev, curr) => (prev ? prev[curr] : null), obj);
 }
 
 function setNestedProperty(obj: any, path: string, value: any) {
