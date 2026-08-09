@@ -120,9 +120,20 @@ const characterValidationRules = [
   {
     field: "energy",
     label: "基础奥德能量",
-    validate: (form) => {
+    validate: (form, context) => {
+      console.log(
+        `🔍 [UsersAdmin:124] %c form,context: `,
+        "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+        form,
+        context
+      );
       const val = Number(form.energy) || 0;
-      const maxLimit = form.premiumMember ? 840 : 560;
+      const maxLimit =
+        form.premiumMember ||
+        newCharGroupForm.value?.premiumMember ||
+        context?.groups?.premiumMember
+          ? 840
+          : 560;
       return val <= maxLimit;
     },
     message: () => "特级会员状态下能量上限为840，未开通上限为560，当前值超出限制",
@@ -899,11 +910,11 @@ const confirmAddCustomCharacter = async () => {
       storedNightmareCount: 0,
       lastNightmareUpdate: safePastDate, // 噩梦副本最后更新时间（使用过去时间）
 
-      awakening: 0,
+      awakening: 3,
       storedAwakening: 0,
       lastAwakeningUpdate: safePastDate, // 觉醒战最后更新时间（使用过去时间）
 
-      battlefield: 0,
+      battlefield: 3,
       lastBattlefieldUpdate: safePastDate, // 战场最后更新时间（使用过去时间，确保本周能正常刷新）
 
       sanctuary: { s1: 1, s2: 1, s3: 1 },
@@ -1104,7 +1115,7 @@ const handleSaveCharacter = async () => {
     runs: 0,
     transcendRuns: 0,
 
-    nightmareCount: 0,
+    nightmareCount: 3,
     storedNightmareCount: 0,
     lastNightmareUpdate: safePastDate,
 
@@ -1128,7 +1139,11 @@ const handleSaveCharacter = async () => {
 
     createDate: nowIso,
 
-    sort: newCharForm.value.primaryAccount ? 0 : (gameData.value?.characters?.filter(c => Number(c.group) === Number(selectedGroup)).length || 0),
+    sort: newCharForm.value.primaryAccount
+      ? 0
+      : gameData.value?.characters?.filter(
+          (c) => Number(c.group) === Number(selectedGroup)
+        ).length || 0,
 
     ...newCharForm.value,
   };
@@ -1149,7 +1164,7 @@ const handleSaveCharacter = async () => {
 
   showAddCharModal.value = false;
 
-// 查找对应索引并更新分组附加数据
+  // 查找对应索引并更新分组附加数据
   if (newCharGroupForm.value?.id && Array.isArray(gameData.value?.groups)) {
     const targetId = newCharGroupForm.value.id;
     const index = gameData.value.groups.findIndex((g) => g.id === targetId);
@@ -1653,11 +1668,8 @@ const groupCharacterPanelHandleDeleteCharacter = async (delChar) => {
 
   //  从全局 characters 数组中移除
   if (Array.isArray(gameData.value.characters)) {
-    gameData.value.characters = gameData.value.characters.filter(
-      (c) => c.id !== charId
-    );
+    gameData.value.characters = gameData.value.characters.filter((c) => c.id !== charId);
   }
-
 
   // 如果被删除的角色恰好是主角色，且同组内还有其他角色，自动将剩余的第一个角色设为主角色
   const currentGroupId = delChar.group;
@@ -1677,7 +1689,7 @@ const groupCharacterPanelHandleDeleteCharacter = async (delChar) => {
     // 按组分类重新整理 sort
     const groupsMap = new Map();
     gameData.value.characters.forEach((c) => {
-      const gId = c.group || 'default';
+      const gId = c.group || "default";
       if (!groupsMap.has(gId)) groupsMap.set(gId, []);
       groupsMap.get(gId).push(c);
     });
@@ -1696,7 +1708,6 @@ const groupCharacterPanelHandleDeleteCharacter = async (delChar) => {
       });
     });
   }
-
 
   // 执行持久化保存
   await saveData();
@@ -1780,7 +1791,7 @@ const handleSignInSignIn = async (gGroup) => {
   let newAtvTabGroup = { ...gGroup };
   newAtvTabGroup.dailySignIn = !newAtvTabGroup?.dailySignIn;
   newAtvTabGroup.dailySignInDate = Date.now();
-  
+
   await groupCharacterPanelHandleUpdateGroup(newAtvTabGroup);
 };
 
@@ -3871,7 +3882,17 @@ watch(
                           v-else
                           class="w-full h-[50px] flex items-center justify-between px-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700/80 cursor-pointer select-none transition-all hover:border-[#45a6d5] box-border"
                           @click="
-                            newCharGroupForm.premiumMember = !newCharGroupForm.premiumMember
+                            () => {
+                              newCharGroupForm.premiumMember = !newCharGroupForm.premiumMember;
+                              if (!newCharGroupForm?.premiumMember) {
+                                newCharGroupForm.premiumMemberDay = 0;
+                                newCharGroupForm.premiumStartTime = '';
+                                newCharGroupForm.premiumEndTime = '';
+                                newCharForm.energy = 560;
+                              } else {
+                                newCharForm.energy = 840;
+                              }
+                            }
                           "
                         >
                           <span
