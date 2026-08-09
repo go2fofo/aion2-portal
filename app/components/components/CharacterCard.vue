@@ -449,6 +449,14 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
                 <span>·</span>
                 <span class="truncate">{{ char.serverName }}</span>
               </template>
+              <!-- <template v-if="char.combatPower">
+                <span>·</span>
+                <span class="truncate"> {{ char.itemLevel || char.equipmentScore || "N/A" }}</span>
+              </template> -->
+              <template v-if="char.combatPower">
+                <span>·</span>
+                <span class="truncate"> {{ formatCombatPower(char.combatPower) }}</span>
+              </template>
             </div>
           </div>
         </div>
@@ -456,25 +464,27 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
 
       <!-- 默认模式下显示的卡片 -->
       <template v-if="currentMode == 'default'">
-        <!-- ================= 模式一：基础数值指标（非 simple 模式或 custom 模式下显示） ================= -->
+        <!-- =================  ================= -->
+        <!-- @click="emit('task-click', char, '', 'globalModifyCharacter')" -->
+
         <div
           v-if="
             currentMode !== 'simple' &&
             (currentMode !== 'custom' || fields.showCombatPower)
           "
           class="grid grid-cols-2 gap-3"
-          @click="emit('task-click', char, '', 'globalModifyCharacter')"
         >
           <div
             class="bg-white dark:bg-slate-900/80 p-3 rounded-2xl border-2 border-yellow-100 dark:border-yellow-900/40 shadow-sm flex flex-col justify-between space-y-1"
+            @click="emit('task-click', char, 'kinaGain', 'globalKinaGain')"
           >
             <div
               class="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase leading-none"
             >
-              装等
+              角色存放吉纳（万）
             </div>
             <div class="text-yellow-600 dark:text-yellow-400 font-black text-xs">
-              {{ char.itemLevel || char.equipmentScore || "N/A" }}
+              {{ char.kinaGain || 0 }}
             </div>
           </div>
 
@@ -484,10 +494,10 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
             <div
               class="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase leading-none"
             >
-              战斗力
+              角色存放绑定吉纳（万）
             </div>
             <div class="text-emerald-700 dark:text-emerald-400 font-black text-xs">
-              {{ formatCombatPower(char.combatPower) }}
+              {{ char.boundKinaGain || 0 }}
             </div>
           </div>
         </div>

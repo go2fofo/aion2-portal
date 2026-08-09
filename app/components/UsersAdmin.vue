@@ -2038,6 +2038,7 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType) => {
     globalModifyCharacter: "角色信息修改",
     globalExchangeCharOD: "奥德兑换",
     globalSanctuary: "圣域",
+    globalKinaGain: "吉纳",
   };
   switch (gType) {
     case "globalModifyCharacter": //角色信息修改
@@ -2045,6 +2046,7 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType) => {
     case "globalSimpleEnergy": //简化版奥德能量设置补充
     case "globalExchangeCharOD": //角色奥德 商店和物质变换
     case "globalSanctuary": //圣域处理
+    case "globalKinaGain": //角色吉纳修改
       globalPopupOpen.value = true;
       let newGlobalPopupOp = {
         type: gType,
@@ -2061,6 +2063,7 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType) => {
       switch (gType) {
         case "globalSimpleEnergy": //简化版奥德能量设置补充
         case "globalExchangeCharOD": //角色奥德 商店和物质变换
+        case "globalKinaGain": //角色吉纳修改
           newGlobalPopupOp.height = "40vh";
         default:
           break;
@@ -2086,6 +2089,25 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType) => {
 //通用弹框按钮完成触发
 const handleGlobalPopupFill = (type) => {
   switch (type) {
+    case "premiumMember": // 开通会员
+      {
+        if (!globalPopupOp.value.data?.premiumMemberDay) return;
+
+        let group = cloneDeep(getAtvTabGroup.value);
+
+        group.premiumMemberDay = globalPopupOp.value.data?.premiumMemberDay;
+        group.premiumMember = true;
+        // group.premiumMemberDay = globalPopupOp.data?.premiumMemberDay;
+        group.premiumStartTime = calculatedStartTime(
+          globalPopupOp.value.data?.premiumMemberDay
+        );
+        group.premiumEndTime = calculatedEndTime(
+          globalPopupOp.value.data?.premiumMemberDay
+        );
+        groupCharacterPanelHandleUpdateGroup(group);
+      }
+
+      break;
     case "premiumMember": // 开通会员
       {
         if (!globalPopupOp.value.data?.premiumMemberDay) return;
@@ -2228,6 +2250,25 @@ const handleGlobalPopupFill = (type) => {
       }
 
       break;
+    case "globalKinaGain": {
+      //角色存量吉纳
+      try {
+        // 严格按照你提供的数据结构进行组装
+        const newCharacter = {
+          ...cloneDeep(globalPopupOp.value?.targetChar),
+        };
+        let field = globalPopupOp.value?.fieldType;
+        const currentVal = globalPopupOp.value?.data[field] || 0;
+        newCharacter[field] = currentVal;
+
+        groupCharacterPanelHandleUpdateCharacter(newCharacter);
+      } catch (e) {
+        $alert("修改失败", e?.message || String(e));
+      } finally {
+      }
+
+      break;
+    }
     default:
       break;
   }
@@ -6251,6 +6292,23 @@ watch(
 
                 <!-- 按钮 -->
               </div>
+              <!-- 吉纳 -->
+              <div v-if="globalPopupOp.type == 'globalKinaGain'">
+                <div class="space-y-1.5">
+                  <div class="flex items-center justify-between text-xs">
+                    <label class="font-bold text-slate-600 dark:text-slate-300"
+                      >角色存量吉纳(万)</label
+                    >
+                  </div>
+                  <div class="relative">
+                    <input
+                      v-model.number="globalPopupOp.data.kinaGain"
+                      class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-800 dark:text-slate-100 text-sm transition-all"
+                      placeholder="请输入"
+                    />
+                  </div>
+                </div>
+              </div>
 
               <!-- ================= 圣域================= -->
               <div
@@ -6332,6 +6390,15 @@ watch(
                 @click="handleGlobalPopupFill('globalModifyCharacter')"
               >
                 确认修改角色
+              </button>
+              <!-- 修改角色吉纳 -->
+              <button
+                type="button"
+                v-if="globalPopupOp.type === 'globalKinaGain'"
+                class="px-6 py-2.5 rounded-2xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-colors cursor-pointer shadow-sm active:scale-95"
+                @click="handleGlobalPopupFill('globalKinaGain')"
+              >
+                确认修改
               </button>
               <!-- 奥德兑换 -->
               <div
