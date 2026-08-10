@@ -2052,6 +2052,7 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType) => {
         type: gType,
         fieldType,
         name: getGlobalPopupOpName[gType],
+        formData: {}, //存放附加值
         data: {
           ...cloneDeep(char),
         },
@@ -2061,10 +2062,18 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType) => {
 
       // 修改弹框默认高度
       switch (gType) {
-        // case "globalSimpleEnergy": //简化版奥德能量设置补充
         case "globalExchangeCharOD": //角色奥德 商店和物质变换
         case "globalKinaGain": //角色吉纳修改
           newGlobalPopupOp.height = "40vh";
+          break;
+        case "globalSimpleEnergy": //简化版奥德能量设置补充
+          newGlobalPopupOp.formData = {
+            bigOdCount: 0,
+            smallOdCount: 0,
+          };
+          newGlobalPopupOp.height = "80vh";
+          break;
+
         default:
           break;
       }
@@ -2108,34 +2117,18 @@ const handleGlobalPopupFill = (type) => {
       }
 
       break;
-    case "premiumMember": // 开通会员
-      {
-        if (!globalPopupOp.value.data?.premiumMemberDay) return;
-
-        let group = cloneDeep(getAtvTabGroup.value);
-
-        group.premiumMemberDay = globalPopupOp.value.data?.premiumMemberDay;
-        group.premiumMember = true;
-        // group.premiumMemberDay = globalPopupOp.data?.premiumMemberDay;
-        group.premiumStartTime = calculatedStartTime(
-          globalPopupOp.value.data?.premiumMemberDay
-        );
-        group.premiumEndTime = calculatedEndTime(
-          globalPopupOp.value.data?.premiumMemberDay
-        );
-        groupCharacterPanelHandleUpdateGroup(group);
-      }
-
-      break;
     case "globalSimpleEnergy": // 简易版补充奥德直接替换
       if (
         (globalPopupOp.value?.data?.energy !== undefined &&
           globalPopupOp.value?.data?.energy !== null) ||
         (globalPopupOp.value?.data?.storedEnergy !== undefined &&
-          globalPopupOp.value?.data?.storedEnergy !== null)
+          globalPopupOp.value?.data?.storedEnergy !== null) ||
+        globalPopupOp.value?.formData
       ) {
         let charItem = cloneDeep(globalPopupOp.value.targetChar);
+        let formData = globalPopupOp.value.formData || {};
 
+        // 1. 更新能量与存储能量
         if (
           globalPopupOp.value.data?.energy !== undefined &&
           globalPopupOp.value.data?.energy !== null
@@ -2143,13 +2136,47 @@ const handleGlobalPopupFill = (type) => {
           charItem.energy = globalPopupOp.value.data.energy;
           charItem.lastEnergyUpdate = Date.now();
         }
-        if (
-          globalPopupOp.value.data?.storedEnergy !== undefined &&
-          globalPopupOp.value.data?.storedEnergy !== null
-        ) {
-          charItem.storedEnergy = globalPopupOp.value.data.storedEnergy;
+        if (totalsStoredEnergyCount.value) {
+          charItem.storedEnergy = totalsStoredEnergyCount.value;
         }
 
+        if (formData?.isBreezeCharOdUsed) {
+          charItem.isBreezeCharOd = true;
+          charItem.breezeCharOd = 4;
+          charItem.breezeCharOdDate = Date.now();
+          charItem.isBreezeCharOdUsed = true;
+        }
+
+        if (formData?.isMaterialCharOdUsed) {
+          charItem.isMaterialCharOd = true;
+          charItem.materialCharOd = 4;
+          charItem.materialCharOdDate = Date.now();
+          charItem.isMaterialCharOdUsed = true;
+        }
+
+        // 如果你的表单里还维护了账号级的状态，也可以在这里同步更新（需要确保 groupItem 存在）
+        let groupItem = cloneDeep(globalPopupOp.value.targetGroup);
+        if (groupItem) {
+          if (formData.isMaterialAccountOdUsed) {
+            groupItem.isMaterialAccountOdUsed = formData.isMaterialAccountOdUsed;
+            groupItem.isMaterialAccountOd = formData.isMaterialAccountOdUsed;
+            groupItem.materialAccountOd = 16;
+          }
+          if (formData.isBreezeAccountOdUsed) {
+            groupItem.isBreezeAccountOdUsed = formData.isBreezeAccountOdUsed;
+            groupItem.isBreezeAccountOd = formData.isBreezeAccountOdUsed;
+            groupItem.breezeAccountOd = 16;
+          }
+          groupCharacterPanelHandleUpdateGroup(groupItem); // 保存账号组
+        }
+
+        console.log(
+          `🔍 [UsersAdmin:2178] %c 通用组件===快捷补充奥德能量====globalSimpleEnergy: `,
+          "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+          { charItem, groupItem }
+        );
+
+        // 3. 保存角色数据
         groupCharacterPanelHandleUpdateCharacter(charItem);
       }
 
@@ -2222,11 +2249,11 @@ const handleGlobalPopupFill = (type) => {
         switch (field) {
           case "breezeCharOd":
             newCharacter.breezeCharOd = isCompleted ? 4 : currentVal;
-            newCharacter.isBreezeCharOd = !isCompleted;
+            newCharacter.isBreezeCharOd = !!isCompleted;
             break;
           case "materialCharOd":
             newCharacter.materialCharOd = isCompleted ? 4 : currentVal;
-            newCharacter.isMaterialCharOd = !isCompleted;
+            newCharacter.isMaterialCharOd = !!isCompleted;
             break;
 
           default:
@@ -2280,6 +2307,28 @@ const handleCloseGlobalPopup = (data) => {
   globalPopupOpen.value = false;
   globalPopupOp.value = cloneDeep(defaultGlobalPopupOp);
 };
+
+// 计算大奥德提供的总点数 (每个40点)
+const bigOdTotalPoints = computed(() => {
+  return (globalPopupOp.value?.formData?.bigOdCount || 0) * 40;
+});
+
+// 计算小奥德提供的总点数 (每个10点)
+const smallOdTotalPoints = computed(() => {
+  return (globalPopupOp.value?.formData?.smallOdCount || 0) * 10;
+});
+
+// 计算本次总共补充的奥德能量之和
+const totalSupplementPoints = computed(() => {
+  let total = bigOdTotalPoints.value + smallOdTotalPoints.value;
+  return total;
+});
+//计算补充奥德和已存奥德之和
+const totalsStoredEnergyCount = computed(() => {
+  let total =
+    (globalPopupOp.value?.data?.storedEnergy || 0) + totalSupplementPoints.value;
+  return total;
+});
 
 //================ 通用弹框 结束 =====================
 /**
@@ -2455,6 +2504,17 @@ watch(
   },
   { deep: true, immediate: true }
 );
+watch(
+  () => globalPopupOp.value,
+  (newVal) => {
+    console.log(
+      `🔍 [UsersAdmin:1298] %c globalPopupOp通用组件数据: `,
+      "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+      newVal
+    );
+  },
+  { deep: true, immediate: true }
+);
 </script>
 
 <template>
@@ -2487,7 +2547,7 @@ watch(
           class="px-3 py-1 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-black text-xs border border-sky-100 dark:border-sky-800/50 shadow-2xs flex items-center gap-1.5"
         >
           <span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
-          每天都会更新～当前版本：AIon2 S3 v0.1.1 最新版
+          每天都会更新～当前版本：AIon2 S3 v0.1.5 最新版
         </span>
       </div>
 
@@ -3236,7 +3296,7 @@ watch(
 
           <!-- 第二部分：指标网格（高密度排列8项兑换与周常） -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-            <!-- 1. 账号奥德 -->
+            <!-- 1. 物质变换账号奥德 -->
             <div
               class="p-2 border rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-95"
               :class="
@@ -3253,7 +3313,7 @@ watch(
                     ? 'text-emerald-700 dark:text-emerald-300'
                     : 'text-slate-500 dark:text-slate-400'
                 "
-                >账号奥德</span
+                >物质变换账号奥德</span
               >
               <div class="flex items-center gap-1 font-black text-xs">
                 <span
@@ -5948,7 +6008,7 @@ watch(
             </div>
             <!-- 弹窗表单主体 -->
             <div
-              class="p-6 space-y-6 overflow-y-auto custom-scroll flex-1 bg-slate-50 dark:bg-slate-800/50"
+              class="p-2 space-y-6 overflow-y-auto custom-scroll flex-1 bg-slate-50 dark:bg-slate-800/50"
             >
               <!-- 开通会员 -->
               <div
@@ -6045,24 +6105,8 @@ watch(
               <!-- 奥德能量设置，可补充可改基础值 -->
               <div
                 v-if="globalPopupOp.type == 'globalSimpleEnergy'"
-                class="space-y-5 max-w-lg mx-auto py-2"
+                class="space-y-6 max-w-lg mx-auto py-2"
               >
-                <!-- 头部：极简状态提示 -->
-                <div
-                  class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800 text-xs"
-                >
-                  <span class="font-bold text-slate-400 dark:text-slate-500"
-                    >当前分组状态</span
-                  >
-                  <span class="font-black text-slate-700 dark:text-slate-200">
-                    {{
-                      globalPopupOp?.targetGroup?.premiumMember
-                        ? "特级会员 (上限 840)"
-                        : "基础模式 (上限 560)"
-                    }}
-                  </span>
-                </div>
-
                 <!-- 主体：输入参数区 -->
                 <div class="space-y-4">
                   <!-- 1. 基础上限设置 -->
@@ -6071,12 +6115,10 @@ watch(
                       <label class="font-bold text-slate-600 dark:text-slate-300"
                         >基础能量上限</label
                       >
-                      <span class="text-[11px] text-slate-400 dark:text-slate-500"
-                        >默认
-                        {{
-                          globalPopupOp?.targetGroup?.premiumMember ? "840" : "560"
-                        }}</span
-                      >
+                      <span class="text-[11px] text-slate-400 dark:text-slate-500">
+                        默认
+                        {{ globalPopupOp?.targetGroup?.premiumMember ? "840" : "560" }}
+                      </span>
                     </div>
                     <div class="relative">
                       <input
@@ -6086,8 +6128,9 @@ watch(
                       />
                       <span
                         class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-slate-500"
-                        >点</span
                       >
+                        点
+                      </span>
                     </div>
                   </div>
 
@@ -6109,8 +6152,415 @@ watch(
                       />
                       <span
                         class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-slate-500"
-                        >点</span
                       >
+                        点
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 高对比渐变发光卡片 -->
+                <div
+                  class="rounded-2xl border transition-all duration-300 shadow-sm p-3"
+                  :class="[
+                    totalsStoredEnergyCount > 2000
+                      ? 'bg-rose-50/90 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 shadow-rose-500/10'
+                      : totalsStoredEnergyCount >= 1400
+                      ? 'bg-amber-50/90 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800'
+                      : 'bg-sky-50/90 dark:bg-sky-950/40 border-sky-300 dark:border-sky-800',
+                  ]"
+                >
+                  <!-- 头部：标题与高亮数字徽章 -->
+                  <div class="flex items-center justify-between gap-2 mb-2.5">
+                    <div class="flex items-center gap-2">
+                      <span class="text-base">⚡</span>
+                      <span
+                        class="font-extrabold text-xs text-slate-700 dark:text-slate-100 tracking-wide"
+                      >
+                        合计补充奥德能量
+                      </span>
+                    </div>
+
+                    <!-- 强对比胶囊数值徽章 -->
+                    <div
+                      class="px-3 py-1 rounded-full font-black text-xs text-white shadow-md transition-all flex items-center gap-1"
+                      :class="[
+                        totalsStoredEnergyCount > 2000
+                          ? 'bg-gradient-to-r from-rose-500 to-red-600 shadow-rose-500/40 animate-pulse'
+                          : totalsStoredEnergyCount >= 1400
+                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-amber-500/30'
+                          : 'bg-gradient-to-r from-sky-500 to-blue-600 shadow-sky-500/30',
+                      ]"
+                    >
+                      <span class="text-sm font-extrabold">{{
+                        totalsStoredEnergyCount
+                      }}</span>
+                      <span class="text-[10px] opacity-80">/ 2000 点</span>
+                    </div>
+                  </div>
+
+                  <!-- 进度条（高饱和度鲜艳渐变） -->
+                  <div
+                    class="w-full h-3 bg-slate-200/80 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-300/40 dark:border-slate-700"
+                  >
+                    <div
+                      class="h-full rounded-full transition-all duration-500 shadow-inner"
+                      :class="[
+                        totalsStoredEnergyCount > 2000
+                          ? 'bg-gradient-to-r from-rose-500 via-red-500 to-rose-600'
+                          : totalsStoredEnergyCount >= 1400
+                          ? 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-500'
+                          : 'bg-gradient-to-r from-emerald-400 via-sky-400 to-blue-500',
+                      ]"
+                      :style="{
+                        width:
+                          Math.min((totalsStoredEnergyCount / 2000) * 100, 100) + '%',
+                      }"
+                    ></div>
+                  </div>
+
+                  <!-- 超额警告文案 -->
+                  <div
+                    v-if="totalsStoredEnergyCount > 2000"
+                    class="mt-2.5 px-2 py-1 rounded-lg bg-rose-500/10 dark:bg-rose-500/20 text-[11px] font-black text-rose-600 dark:text-rose-400 flex items-center gap-1.5"
+                  >
+                    <span>🚨</span>
+                    <span
+                      >已超出存储上限
+                      {{ totalsStoredEnergyCount - 2000 }} 点，请注意！</span
+                    >
+                  </div>
+                </div>
+
+                <!-- 快捷兑换并使用区块 -->
+                <div class="space-y-3 border-t border-slate-100 dark:border-slate-800">
+                  <!-- 计数器卡片网格 -->
+                  <div class="grid grid-cols-2 gap-3">
+                    <!-- 大奥德计数器 -->
+                    <div
+                      class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2.5 shadow-sm"
+                    >
+                      <div
+                        class="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-300"
+                      >
+                        <span
+                          >大奥德
+                          <span class="text-[10px] text-slate-400">(+40点)</span></span
+                        >
+                        <span class="text-amber-600 dark:text-amber-400 font-black"
+                          >+{{ bigOdTotalPoints }}点</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <!-- 减号按钮：限制不能低于已勾选的快捷包总数 -->
+                        <button
+                          type="button"
+                          class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black flex items-center justify-center transition-all cursor-pointer active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+                          @click="
+                            () => {
+                              const minLimit =
+                                (globalPopupOp.formData.isBreezeCharOdUsed ? 4 : 0) +
+                                (globalPopupOp.formData.isMaterialCharOdUsed ? 4 : 0) +
+                                (globalPopupOp.formData.isMaterialAccountOdUsed
+                                  ? 16
+                                  : 0) +
+                                (globalPopupOp.formData.isBreezeAccountOdUsed ? 16 : 0);
+                              globalPopupOp.formData.bigOdCount = Math.max(
+                                minLimit,
+                                (globalPopupOp.formData.bigOdCount || 0) - 1
+                              );
+                            }
+                          "
+                          :disabled="
+                            (globalPopupOp.formData.bigOdCount || 0) <=
+                            (globalPopupOp.formData.isBreezeCharOdUsed ? 4 : 0) +
+                              (globalPopupOp.formData.isMaterialCharOdUsed ? 4 : 0) +
+                              (globalPopupOp.formData.isMaterialAccountOdUsed ? 16 : 0) +
+                              (globalPopupOp.formData.isBreezeAccountOdUsed ? 16 : 0)
+                          "
+                        >
+                          -
+                        </button>
+
+                        <!-- 输入框：失焦或修改时自动修正，不能低于已勾选底线 -->
+                        <input
+                          v-model.number="globalPopupOp.formData.bigOdCount"
+                          @change="
+                            () => {
+                              const minLimit =
+                                (globalPopupOp.formData.isBreezeCharOdUsed ? 4 : 0) +
+                                (globalPopupOp.formData.isMaterialCharOdUsed ? 4 : 0) +
+                                (globalPopupOp.formData.isMaterialAccountOdUsed
+                                  ? 16
+                                  : 0) +
+                                (globalPopupOp.formData.isBreezeAccountOdUsed ? 16 : 0);
+                              if ((globalPopupOp.formData.bigOdCount || 0) < minLimit) {
+                                globalPopupOp.formData.bigOdCount = minLimit;
+                              }
+                            }
+                          "
+                          min="0"
+                          class="w-full min-w-0 px-2 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 dark:text-slate-200 outline-none"
+                        />
+
+                        <!-- 加号按钮 -->
+                        <button
+                          type="button"
+                          class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/80 text-amber-700 dark:text-amber-400 font-black flex items-center justify-center transition-all cursor-pointer active:scale-95 disabled:opacity-50 shrink-0"
+                          @click="
+                            globalPopupOp.formData.bigOdCount =
+                              (globalPopupOp.formData.bigOdCount || 0) + 1
+                          "
+                          :disabled="totalsStoredEnergyCount > 2000"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- 小奥德计数器保持不变 -->
+                    <div
+                      class="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2.5 shadow-sm"
+                    >
+                      <div
+                        class="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-300"
+                      >
+                        <span
+                          >小奥德
+                          <span class="text-[10px] text-slate-400">(+10点)</span></span
+                        >
+                        <span class="text-sky-600 dark:text-sky-400 font-black"
+                          >+{{ smallOdTotalPoints }}点</span
+                        >
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <button
+                          type="button"
+                          class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
+                          @click="
+                            globalPopupOp.formData.smallOdCount = Math.max(
+                              0,
+                              (globalPopupOp.formData.smallOdCount || 0) - 1
+                            )
+                          "
+                        >
+                          -
+                        </button>
+                        <input
+                          v-model.number="globalPopupOp.formData.smallOdCount"
+                          min="0"
+                          class="w-full min-w-0 px-2 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 dark:text-slate-200 outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/80 text-sky-700 dark:text-sky-400 font-black flex items-center justify-center transition-all cursor-pointer active:scale-95 disabled:opacity-50 shrink-0"
+                          @click="
+                            globalPopupOp.formData.smallOdCount =
+                              (globalPopupOp.formData.smallOdCount || 0) + 1
+                          "
+                          :disabled="totalsStoredEnergyCount > 2000"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 提示文本 -->
+                  <div
+                    class="p-3 bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/50 rounded-xl text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2"
+                  >
+                    <span class="text-sm">💡</span>
+                    <div class="leading-relaxed">
+                      <span class="font-bold">操作提示：</span>
+                      已勾选的快捷限购项会设定数量底线，若想减少数量，请先取消对应的勾选状态。同时确定补充后默认兑换和消耗，账号奥德则不提供给其他角色使用。
+                    </div>
+                  </div>
+
+                  <!-- 限购参考标签说明区：切换式追加按钮 -->
+                  <div class="space-y-2 pt-1 text-[11px]">
+                    <!-- 1. 角色大奥德限购组 -->
+                    <div
+                      class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                    >
+                      <span class="font-bold text-slate-600 dark:text-slate-300"
+                        >角色大奥德限购快捷选择</span
+                      >
+                      <div class="flex items-center gap-1.5 font-bold">
+                        <!-- 角色商店 (4个) -->
+                        <button
+                          type="button"
+                          v-if="globalPopupOp?.targetGroup?.premiumMember"
+                          class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer active:scale-95 text-[11px] shadow-sm flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+                          :class="[
+                            globalPopupOp?.targetChar?.isBreezeCharOd
+                              ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-300/40'
+                              : globalPopupOp.formData.isBreezeCharOdUsed
+                              ? 'bg-amber-500 text-white shadow-amber-500/20 ring-2 ring-amber-400/40'
+                              : 'bg-amber-100/70 hover:bg-amber-200 dark:bg-amber-950/60 dark:hover:bg-amber-900/80 text-amber-800 dark:text-amber-300 border border-amber-300/50',
+                          ]"
+                          :disabled="globalPopupOp?.targetChar?.isBreezeCharOd"
+                          @click="
+                            () => {
+                              if (globalPopupOp?.targetChar?.isBreezeCharOd) return;
+
+                              globalPopupOp.formData.isBreezeCharOdUsed = !globalPopupOp
+                                .formData.isBreezeCharOdUsed;
+                              globalPopupOp.formData.bigOdCount =
+                                (globalPopupOp.formData.bigOdCount || 0) +
+                                (globalPopupOp.formData.isBreezeCharOdUsed ? 4 : -4);
+                              globalPopupOp.formData.bigOdCount = Math.max(
+                                0,
+                                globalPopupOp.formData.bigOdCount
+                              );
+                            }
+                          "
+                        >
+                          <span>
+                            {{
+                              globalPopupOp?.targetChar?.isBreezeCharOd
+                                ? "已消耗过"
+                                : globalPopupOp.formData.isBreezeCharOdUsed
+                                ? "✓ 已选"
+                                : "+"
+                            }}
+                            商店 4个
+                          </span>
+                        </button>
+
+                        <!-- 角色变换 (4个) -->
+                        <button
+                          type="button"
+                          class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer active:scale-95 text-[11px] shadow-sm flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+                          :class="[
+                            globalPopupOp?.targetChar?.isMaterialCharOd
+                              ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-300/40'
+                              : globalPopupOp.formData.isMaterialCharOdUsed
+                              ? 'bg-amber-500 text-white shadow-amber-500/20 ring-2 ring-amber-400/40'
+                              : 'bg-amber-100/70 hover:bg-amber-200 dark:bg-amber-950/60 dark:hover:bg-amber-900/80 text-amber-800 dark:text-amber-300 border border-amber-300/50',
+                          ]"
+                          :disabled="globalPopupOp?.targetChar?.isMaterialCharOd"
+                          @click="
+                            () => {
+                              if (globalPopupOp?.targetChar?.isMaterialCharOd) return;
+
+                              globalPopupOp.formData.isMaterialCharOdUsed = !globalPopupOp
+                                .formData.isMaterialCharOdUsed;
+                              globalPopupOp.formData.bigOdCount =
+                                (globalPopupOp.formData.bigOdCount || 0) +
+                                (globalPopupOp.formData.isMaterialCharOdUsed ? 4 : -4);
+                              globalPopupOp.formData.bigOdCount = Math.max(
+                                0,
+                                globalPopupOp.formData.bigOdCount
+                              );
+                            }
+                          "
+                        >
+                          <span>
+                            {{
+                              globalPopupOp?.targetChar?.isMaterialCharOd
+                                ? "已消耗过"
+                                : globalPopupOp.formData.isMaterialCharOdUsed
+                                ? "✓ 已选"
+                                : "+"
+                            }}
+                            变换 4个
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- 2. 账号大奥德限购组 -->
+                    <div
+                      class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                    >
+                      <span class="font-bold text-slate-600 dark:text-slate-300"
+                        >账号大奥德限购快捷选择</span
+                      >
+                      <div class="flex items-center gap-1.5 font-bold">
+                        <!-- 账号商店 (16个) -->
+                        <button
+                          type="button"
+                          v-if="globalPopupOp?.targetGroup?.premiumMember"
+                          class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer active:scale-95 text-[11px] shadow-sm flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+                          :class="[
+                            globalPopupOp?.targetGroup?.isMaterialAccountOd
+                              ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-300/40'
+                              : globalPopupOp.formData.isMaterialAccountOdUsed
+                              ? 'bg-amber-500 text-white shadow-amber-500/20 ring-2 ring-amber-400/40'
+                              : 'bg-amber-100/70 hover:bg-amber-200 dark:bg-amber-950/60 dark:hover:bg-amber-900/80 text-amber-800 dark:text-amber-300 border border-amber-300/50',
+                          ]"
+                          :disabled="globalPopupOp?.targetGroup?.isMaterialAccountOd"
+                          @click="
+                            () => {
+                              if (globalPopupOp?.targetGroup?.isMaterialAccountOd) return;
+
+                              globalPopupOp.formData.isMaterialAccountOdUsed = !globalPopupOp
+                                .formData.isMaterialAccountOdUsed;
+                              globalPopupOp.formData.bigOdCount =
+                                (globalPopupOp.formData.bigOdCount || 0) +
+                                (globalPopupOp.formData.isMaterialAccountOdUsed
+                                  ? 16
+                                  : -16);
+                              globalPopupOp.formData.bigOdCount = Math.max(
+                                0,
+                                globalPopupOp.formData.bigOdCount
+                              );
+                            }
+                          "
+                        >
+                          <span>
+                            {{
+                              globalPopupOp?.targetGroup?.isMaterialAccountOd
+                                ? "已消耗过"
+                                : globalPopupOp.formData.isMaterialAccountOdUsed
+                                ? "✓ 已选"
+                                : "+"
+                            }}
+                            商店 16个
+                          </span>
+                        </button>
+
+                        <!-- 账号变换 (16个) -->
+                        <button
+                          type="button"
+                          class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer active:scale-95 text-[11px] shadow-sm flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+                          :class="[
+                            globalPopupOp?.targetGroup?.isBreezeAccountOd
+                              ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-300/40'
+                              : globalPopupOp.formData.isBreezeAccountOdUsed
+                              ? 'bg-amber-500 text-white shadow-amber-500/20 ring-2 ring-amber-400/40'
+                              : 'bg-amber-100/70 hover:bg-amber-200 dark:bg-amber-950/60 dark:hover:bg-amber-900/80 text-amber-800 dark:text-amber-300 border border-amber-300/50',
+                          ]"
+                          :disabled="globalPopupOp?.targetGroup?.isBreezeAccountOd"
+                          @click="
+                            () => {
+                              if (globalPopupOp?.targetGroup?.isBreezeAccountOd) return;
+
+                              globalPopupOp.formData.isBreezeAccountOdUsed = !globalPopupOp
+                                .formData.isBreezeAccountOdUsed;
+                              globalPopupOp.formData.bigOdCount =
+                                (globalPopupOp.formData.bigOdCount || 0) +
+                                (globalPopupOp.formData.isBreezeAccountOdUsed ? 16 : -16);
+                              globalPopupOp.formData.bigOdCount = Math.max(
+                                0,
+                                globalPopupOp.formData.bigOdCount
+                              );
+                            }
+                          "
+                        >
+                          <span>
+                            {{
+                              globalPopupOp?.targetGroup?.isBreezeAccountOd
+                                ? "已消耗过"
+                                : globalPopupOp.formData.isBreezeAccountOdUsed
+                                ? "✓ 已选"
+                                : "+"
+                            }}
+                            变换 16个
+                          </span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -6377,7 +6827,22 @@ watch(
                 <button
                   type="button"
                   class="py-3 px-3 rounded-xl bg-[#45a6d5] hover:bg-[#3b95c0] text-white font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center shadow-sm truncate"
-                  @click="handleGlobalPopupFill('globalSimpleEnergy')"
+                  :disabled="
+                    totalsStoredEnergyCount > 2000 ||
+                    globalPopupOp.data.energy >
+                      (globalPopupOp?.targetGroup?.premiumMember ? 840 : 560)
+                  "
+                  @click="
+                    () => {
+                      if (
+                        totalsStoredEnergyCount > 2000 ||
+                        globalPopupOp.data.energy >
+                          (globalPopupOp?.targetGroup?.premiumMember ? 840 : 560)
+                      )
+                        return;
+                      handleGlobalPopupFill('globalSimpleEnergy');
+                    }
+                  "
                 >
                   确定补充
                 </button>

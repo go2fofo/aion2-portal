@@ -34,7 +34,7 @@ export const gameRulesDictionary = [
     description:
       "角色单独：会员状态下，每3小时自动恢复15点奥德能量，能量上限为840点，补充上限为2000点。",
   },
-  {
+{
     id: "energy_transform_char_4",
     name: "奥德能量（物质变换-角色）4个大奥德",
     dimension: "character",
@@ -43,17 +43,28 @@ export const gameRulesDictionary = [
     refreshType: "weekly",
     cron: "0 5 * * 3",
     resetValue: false,
+    action: (char: any) => {
+      char.isMaterialCharOd = false;
+      char.isMaterialCharOdUsed = false;
+      char.materialCharOd = 0;
+      char.materialCharOdDate = "";
+    },
     description: "角色单独：物质变换角色奥德能量，于每周三5点重置状态。",
   },
   {
     id: "energy_transform_server_16",
     name: "奥德能量（物质变换-账号组）16个大奥德",
     dimension: "server",
-    targetField: "isBreezeAccountOd", // 对应结构中的 breezeAccountOd / isBreezeAccountOd
+    targetField: "isBreezeAccountOd",
     lastTimeField: "lastUpdatedAt",
     refreshType: "weekly",
     cron: "0 5 * * 3",
     resetValue: false,
+    action: (group: any) => {
+      group.isBreezeAccountOd = false;
+      group.isBreezeAccountOdUsed = false;
+      group.breezeAccountOd = 0;
+    },
     description: "服务器共享：物质变换账号奥德能量，于每周三5点重置状态。",
   },
   {
@@ -66,9 +77,13 @@ export const gameRulesDictionary = [
     cron: "0 5 * * 3",
     action: (group: any) => {
       group.isMaterialAccountOd = false;
+      group.isMaterialAccountOdUsed = false;
       group.materialAccountOd = 0;
+
+      
       group.isBreezeReviveStone = false;
       group.breezeReviveStone = 0;
+      
       group.isBreezeRiftTicket = false;
       group.breezeRiftTicket = 0;
       group.isBreezeDailyTicket = false;
@@ -78,6 +93,28 @@ export const gameRulesDictionary = [
     },
     description:
       "服务器共享：微风商会商店周限购项目（奥德能量、复活石、未知缝隙卷、完成卷等），于每周三5点重置。",
+  },
+  {
+    id: "energy_breeze_shop_weekly_char",
+    name: "角色微风商店上限兑换管理（商店奥德/变换奥德）",
+    dimension: "character",
+    targetField: null,
+    lastTimeField: "lastUpdatedAt",
+    refreshType: "weekly",
+    cron: "0 5 * * 3",
+    action: (char: any) => {
+      char.isBreezeCharOd = false;
+      char.isBreezeCharOdUsed = false;
+      char.breezeCharOdCount = 0;
+
+      char.isMaterialCharOd = false;
+      char.isMaterialCharOdUsed = false;
+      char.materialCharOdCount = 0;
+      // char.isBreezeCharReviveStone = false;
+      // char.breezeCharReviveStoneCount = 0;
+    },
+    description:
+      "角色维度：微风商会商店周限购项目（角色奥德能量、等），于每周三5点重置。",
   },
 
   // ==================== 2. 副本与收益衰减规则 ====================
