@@ -1053,7 +1053,7 @@ const handleTaskClick = async (char, field, tab) => {
       break;
     case "consumeSanctuary": //消耗奥德跳转到圣域
       await handleClickGameplay(char, "consume");
-      consumeForm.value.dungeonType = type;
+      consumeForm.value.dungeonType = 'sanctuary';
       consumeForm.value.calcInput = 1;
       consumeForm.value.activeCalcTab = "runs";
       break;
