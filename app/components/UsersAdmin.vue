@@ -2034,7 +2034,7 @@ const handleOpenGlobalPopup = (type, name) => {
 //用于通用项 点击触发事件，可随意拓展，目前只做了角色卡片内点击触发
 const groupCharacterPanelHandleClickTask = async (char, gType, fieldType) => {
   const getGlobalPopupOpName = {
-    globalSimpleEnergy: "奥德补充",
+    globalSimpleEnergy: "快捷奥德补充/修改",
     globalModifyCharacter: "角色信息修改",
     globalExchangeCharOD: "奥德兑换",
     globalSanctuary: "圣域",
@@ -2061,7 +2061,7 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType) => {
 
       // 修改弹框默认高度
       switch (gType) {
-        case "globalSimpleEnergy": //简化版奥德能量设置补充
+        // case "globalSimpleEnergy": //简化版奥德能量设置补充
         case "globalExchangeCharOD": //角色奥德 商店和物质变换
         case "globalKinaGain": //角色吉纳修改
           newGlobalPopupOp.height = "40vh";

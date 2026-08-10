@@ -235,7 +235,58 @@ const getTodayKinaStats = (runLogs) => {
     bound: boundTotal,
   };
 };
+/**
+ * 计算本周获取的吉纳（区分绑金与非绑）
+ * 周期：从本周三凌晨 5:00 开始，到下周三凌晨 5:00 结束
+ * @param {Array} runLogs 运行日志数组
+ */
+const getThisWeekKinaStats = (runLogs) => {
+  if (!Array.isArray(runLogs)) return { unbound: 0, bound: 0 };
 
+  // 1. 获取当前周三 5点 的时间戳（作为周期起点）
+  const getWednesday5amTimestamp = (date = new Date()) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const hour = d.getHours();
+    let diffDays = day - 3; // 星期三是 3
+    if (diffDays < 0 || (diffDays === 0 && hour < 5)) {
+      diffDays += 7;
+    }
+    d.setDate(d.getDate() - diffDays);
+    d.setHours(5, 0, 0, 0);
+    return d.getTime();
+  };
+
+  const now = Date.now();
+  const weekStart = getWednesday5amTimestamp(new Date(now));
+  const weekEnd = weekStart + 7 * 24 * 3600 * 1000; // 下周三 5点（7天后的毫秒数）
+
+  let unboundTotal = 0;
+  let boundTotal = 0;
+
+  runLogs.forEach((log) => {
+    // 兼容日志里存的是数字时间戳、日期字符串或 Date 对象
+    let logTime = 0;
+    if (typeof log.date === "number") {
+      logTime = log.date;
+    } else if (typeof log.date === "string" || log.date instanceof Date) {
+      logTime = new Date(log.date).getTime();
+    } else if (log.timestamp) {
+      logTime = log.timestamp;
+    }
+
+    // 判断日志时间是否落在 [本周三5点, 下周三5点) 这个区间内
+    if (logTime >= weekStart && logTime < weekEnd) {
+      unboundTotal += Number(log.kinaGain || 0);
+      boundTotal += Number(log.boundKinaGain || 0);
+    }
+  });
+
+  return {
+    unbound: unboundTotal,
+    bound: boundTotal,
+  };
+};
 //  计算当前角色奥德能刷多少次 (基于基础能量 + 存储能量)
 const calcRunsByEnergy = (char, type) => {
   const totalEnergy = (char.energy || 0) + (char.storedEnergy || 0);
@@ -506,7 +557,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           v-if="
             currentMode !== 'simple' && (currentMode !== 'custom' || fields.showEnergy)
           "
-          class="p-3.5 bg-gradient-to-br from-slate-50/90 to-slate-100/60 dark:from-slate-800/80 dark:to-slate-900/80 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2.5 shadow-sm transition-all hover:shadow dark:hover:border-slate-600"
+          class="p-3.5 bg-gradient-to-br from-slate-50/90 to-slate-100/60 dark:from-slate-800/80 dark:to-slate-900/80 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2.5 shadow-sm cursor-pointer transition-all hover:shadow dark:hover:border-slate-600"
         >
           <!-- 头部：标题与数值概览 -->
           <div
@@ -708,7 +759,8 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 transition-all">
             <!-- 1. 远征副本 -->
             <div
-              class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-1.5 transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
+              class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-1.5 transition-all hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer active:scale-[0.98]"
+              @click="emit('task-click', char, 'expedition', 'consumExpedition')"
             >
               <!-- 头部：标题与圆点 -->
               <div
@@ -719,30 +771,16 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
                 </span>
               </div>
 
-              <!-- 主体数据：今日已刷 (字号加大凸显) -->
-              <!-- <div class="font-black text-sm text-[#45a6d5] dark:text-sky-400 px-0.5">
-                今日已刷: {{ getTodayRunCount(char, "expedition") }} 次
-              </div> -->
               <!-- 主体数据：本周已刷 (字号加大凸显) -->
               <div class="font-black text-sm text-[#45a6d5] dark:text-sky-400 px-0.5">
                 本周已刷: {{ getThisWeekRunCount(char, "expedition") }} 次
-              </div>
-
-              <!-- 底部说明：奥德可刷 (字号缩小，去掉了内边距使其左对齐) -->
-              <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
-                <span>
-                  奥德可刷:
-                  <strong class="text-[#45a6d5] dark:text-sky-400 text-[11px]">{{
-                    calcRunsByEnergy(char, "expedition")
-                  }}</strong>
-                  次
-                </span>
               </div>
             </div>
 
             <!-- 2. 超越副本 -->
             <div
-              class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-1.5 transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
+              class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-1.5 transition-all hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer active:scale-[0.98]"
+              @click="emit('task-click', char, 'surpass', 'consumSurpass')"
             >
               <!-- 头部：标题与圆点 -->
               <div
@@ -753,24 +791,9 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
                 </span>
               </div>
 
-              <!-- 主体数据：今日已刷 (字号加大凸显) -->
-              <!-- <div class="font-black text-sm text-purple-600 dark:text-purple-400 px-0.5">
-                今日已刷: {{ getTodayRunCount(char, "surpass") }} 次
-              </div> -->
               <!-- 主体数据：本周已刷 (字号加大凸显) -->
-              <div class="font-black text-sm text-[#45a6d5] dark:text-sky-400 px-0.5">
+              <div class="font-black text-sm text-purple-600 dark:text-purple-400 px-0.5">
                 本周已刷: {{ getThisWeekRunCount(char, "surpass") }} 次
-              </div>
-
-              <!-- 底部说明：奥德可刷 (字号缩小，去掉了内边距使其左对齐) -->
-              <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
-                <span>
-                  奥德可刷:
-                  <strong class="text-purple-500 dark:text-purple-400 text-[11px]">{{
-                    calcRunsByEnergy(char, "surpass")
-                  }}</strong>
-                  次
-                </span>
               </div>
             </div>
           </div>
@@ -785,10 +808,10 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
                 class="p-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl flex flex-col items-center justify-center border border-slate-100 dark:border-slate-800"
               >
                 <span class="text-[10px] text-slate-400 dark:text-slate-400 mb-0.5"
-                  >非绑吉纳</span
+                  >本周已获得非绑吉纳（万）</span
                 >
                 <span class="text-xs font-black text-amber-600 dark:text-amber-400">
-                  {{ getTodayKinaStats(char.runLogs).unbound }}
+                  {{ getThisWeekKinaStats(char.runLogs).unbound }}
                 </span>
               </div>
 
@@ -797,10 +820,10 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
                 class="p-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl flex flex-col items-center justify-center border border-slate-100 dark:border-slate-800"
               >
                 <span class="text-[10px] text-slate-400 dark:text-slate-400 mb-0.5"
-                  >绑定吉纳</span
+                  >本周已获得绑定吉纳（万）</span
                 >
                 <span class="text-xs font-black text-emerald-600 dark:text-emerald-400">
-                  {{ getTodayKinaStats(char.runLogs).bound }}
+                  {{ getThisWeekKinaStats(char.runLogs).bound }}
                 </span>
               </div>
             </div>
