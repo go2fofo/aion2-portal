@@ -1331,7 +1331,6 @@ const totalSupplementPoints = computed(() => {
 //计算补充奥德和已存奥德之和
 const totalsStoredEnergyCount = computed(() => {
   let total =
-    (gameplayCharForm.value?.storedEnergy || 0) +
     (supplementFormValues.value?.storedEnergy || 0) +
     totalSupplementPoints.value;
 
