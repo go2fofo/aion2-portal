@@ -2136,7 +2136,10 @@ const handleGlobalPopupFill = (type) => {
           charItem.energy = globalPopupOp.value.data.energy;
           charItem.lastEnergyUpdate = Date.now();
         }
-        if (totalsStoredEnergyCount.value) {
+        if (
+          totalsStoredEnergyCount.value !== undefined &&
+          totalsStoredEnergyCount.value !== null
+        ) {
           charItem.storedEnergy = totalsStoredEnergyCount.value;
         }
 
