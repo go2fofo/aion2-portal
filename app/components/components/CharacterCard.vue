@@ -925,8 +925,30 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           v-if="
             currentMode !== 'simple' && (currentMode !== 'custom' || fields.showTasks)
           "
-          class="grid grid-cols-3 gap-2 pt-1"
+          class="grid grid-cols-4 gap-2 pt-1"
         >
+          <!-- 1. 每日使命 -->
+          <button
+            type="button"
+            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
+            @click="emit('task-click', char, 'dailyTaskCount', 'weeklydaily')"
+          >
+            <div class="w-full flex items-center justify-between">
+              <span
+                class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
+                >每日使命</span
+              >
+              <span
+                class="text-[8px] text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1 rounded border border-slate-200 dark:border-slate-700"
+                >角色</span
+              >
+            </div>
+            <div class="w-full flex items-center justify-between text-[11px] font-black">
+              <span class="text-slate-700 dark:text-slate-300 tracking-tight">
+                剩余{{ char?.dailyTaskCount || 0 }}次
+              </span>
+            </div>
+          </button>
           <!-- 1. 噩梦副本 (角色独立，有存储次数) -->
           <button
             type="button"
@@ -1023,7 +1045,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           v-if="
             currentMode !== 'simple' && (currentMode !== 'custom' || fields.showTasks)
           "
-          class="grid grid-cols-3 gap-2 pt-1"
+          class="grid grid-cols-4 gap-2 pt-1"
         >
           <!-- 1. 每日副本 (服务器共享，周三5点，固定14次+存储上限) -->
           <button
@@ -1095,6 +1117,53 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
             <div class="w-full flex items-center justify-between text-[11px] font-black">
               <span class="text-emerald-600 dark:text-emerald-400 tracking-tight">
                 剩余{{ char.battlefield }}次
+              </span>
+            </div>
+          </button>
+          <!-- 深渊回廊 -->
+          <button
+            type="button"
+            class="p-2 border rounded-xl flex flex-col items-start gap-1.5 transition-all text-left shadow-sm group cursor-pointer active:scale-95"
+            :class="[
+              char?.isCloister
+                ? 'bg-slate-50/60 dark:bg-slate-900/40 border-slate-200/70 dark:border-slate-800 opacity-75'
+                : 'bg-teal-50/50 dark:bg-teal-950/30 border-teal-200/80 dark:border-teal-900/60 hover:bg-teal-100/60 dark:hover:bg-teal-900/40',
+            ]"
+            @click="emit('task-click', char, 'isCloister', 'isCloister')"
+          >
+            <div class="w-full flex items-center justify-between">
+              <span
+                class="font-bold text-[10px] truncate transition-colors"
+                :class="
+                  char?.isCloister
+                    ? 'text-slate-400 dark:text-slate-500 line-through'
+                    : 'text-slate-700 dark:text-slate-200'
+                "
+                >深渊回廊</span
+              >
+              <span
+                class="text-[8px] px-1 rounded border transition-colors"
+                :class="[
+                  char?.isCloister
+                    ? 'text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+                    : 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 border-teal-100 dark:border-teal-900/80',
+                ]"
+                >角色</span
+              >
+            </div>
+
+            <!-- 状态指示文案 -->
+            <div class="w-full flex items-center justify-between text-[11px] font-black">
+              <span
+                class="tracking-tight flex items-center gap-1"
+                :class="
+                  char?.isCloister
+                    ? 'text-slate-400 dark:text-slate-500 font-normal'
+                    : 'text-teal-600 dark:text-teal-400'
+                "
+              >
+                <span>{{ char?.isCloister ? "✓" : "⚡" }}</span>
+                <span>{{ char?.isCloister ? "已完成" : "未完成" }}</span>
               </span>
             </div>
           </button>

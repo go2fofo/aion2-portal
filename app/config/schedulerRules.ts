@@ -34,7 +34,7 @@ export const gameRulesDictionary = [
     description:
       "角色单独：会员状态下，每3小时自动恢复15点奥德能量，能量上限为840点，补充上限为2000点。",
   },
-{
+  {
     id: "energy_transform_char_4",
     name: "奥德能量（物质变换-角色）4个大奥德",
     dimension: "character",
@@ -80,10 +80,9 @@ export const gameRulesDictionary = [
       group.isMaterialAccountOdUsed = false;
       group.materialAccountOd = 0;
 
-      
       group.isBreezeReviveStone = false;
       group.breezeReviveStone = 0;
-      
+
       group.isBreezeRiftTicket = false;
       group.breezeRiftTicket = 0;
       group.isBreezeDailyTicket = false;
@@ -311,5 +310,14 @@ export const gameRulesDictionary = [
       group.isRegionBCount = false;
     },
     description: "服务器共享：地区指令书，于每周三5点重置。",
+  },
+  // ==================== 深渊回廊 ====================
+  {
+    id: "artifact_cloister_reset",
+    dimension: "character",
+    refreshType: "artifact-cloister-fixed",
+    targetField: "isCloister", // 需要重置的目标字段
+    resetValue: false, // 重置为未完成
+    lastTimeField: "cloisterUpdateTime", // 记录最后一次操作/重置的时间戳
   },
 ];

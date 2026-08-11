@@ -1043,6 +1043,17 @@ const handleTaskClick = async (char, field, tab) => {
   );
 
   switch (tab) {
+    case "isCloister": //深渊回廊状态切换
+      if (char?.isCloister) return;
+      const updatedCharacter = {
+        ...cloneDeep(char),
+      };
+
+      updatedCharacter.isCloister = true;
+      updatedCharacter.cloisterUpdateTime = Date.now();
+      // 触发父组件更新事件
+      emit("update-character", updatedCharacter);
+      break;
     case "weeklydaily":
     case "exchange":
       //tab
@@ -1053,14 +1064,14 @@ const handleTaskClick = async (char, field, tab) => {
       break;
     case "consumeSanctuary": //消耗奥德跳转到圣域
       await handleClickGameplay(char, "consume");
-      consumeForm.value.dungeonType = 'sanctuary';
+      consumeForm.value.dungeonType = "sanctuary";
       consumeForm.value.calcInput = 1;
       consumeForm.value.activeCalcTab = "runs";
       break;
     case "consumExpedition": //消耗奥德跳转到远征
     case "consumSurpass": //消耗奥德跳转到超越
       await handleClickGameplay(char, "consume");
-      await handleSelectDungeonType(field)
+      await handleSelectDungeonType(field);
 
       break;
 
@@ -1331,8 +1342,7 @@ const totalSupplementPoints = computed(() => {
 //计算补充奥德和已存奥德之和
 const totalsStoredEnergyCount = computed(() => {
   let total =
-    (supplementFormValues.value?.storedEnergy || 0) +
-    totalSupplementPoints.value;
+    (supplementFormValues.value?.storedEnergy || 0) + totalSupplementPoints.value;
 
   return total;
 });

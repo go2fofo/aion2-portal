@@ -48,7 +48,31 @@ const getDaily5amTimestamp = (timestamp: number): number => {
   }
   return fiveAm.getTime();
 };
+/**
+ * 获取当前时间点之前（或刚好等于）最近的一个“周三或周六 22:10”的时间戳
+ */
+function getLatestArtifactCloisterResetTarget(currentTime: any) {
+  let checkDate = new Date(currentTime);
+  checkDate.setHours(22, 10, 0, 0);
 
+  // 如果当前时间还没到今天22:10，先把指针拨回昨天
+  if (currentTime < checkDate.getTime()) {
+    checkDate.setDate(checkDate.getDate() - 1);
+  }
+
+  // 往回最多推 7 天，找到最近的周三(3)或周六(6)
+  for (let i = 0; i < 7; i++) {
+    const day = checkDate.getDay();
+    if (day === 3 || day === 6) {
+      if (checkDate.getTime() <= currentTime) {
+        return checkDate.getTime();
+      }
+    }
+    checkDate.setDate(checkDate.getDate() - 1);
+    checkDate.setHours(22, 10, 0, 0);
+  }
+  return 0;
+}
 /**
  * 【核心】通用规则解释执行器：读取 gameRulesDictionary 并自动刷新游戏数据
  */
@@ -83,7 +107,10 @@ export const executeRulesByDictionary = (gameData: any) => {
         // 1. 每周三 5点 重置类规则（服务器共享）- 💡 纯锚点周期比对
         if (refreshType === "weekly") {
           const lastPeriod = getWeekPeriodTimestamp(lastTime);
-          if (lastPeriod < currentWednesday5am && (group.createdAt || 0) < currentWednesday5am) {
+          if (
+            lastPeriod < currentWednesday5am &&
+            (group.createdAt || 0) < currentWednesday5am
+          ) {
             if (rule.action) {
               rule.action(group, gameData.characters);
             } else if (rule.targetField) {
@@ -100,14 +127,20 @@ export const executeRulesByDictionary = (gameData: any) => {
             rule.action(group);
           } else if (rule.incrementCount !== undefined) {
             const lastDailyPeriod = getDaily5amTimestamp(lastTime);
-            if (lastDailyPeriod < today5amTime && (group.createdAt || 0) < today5amTime) {
-              const currentCount = getNestedProperty(group, rule.targetField!) || 0;
+            if (
+              lastDailyPeriod < today5amTime &&
+              (group.createdAt || 0) < today5amTime
+            ) {
+              const currentCount =
+                getNestedProperty(group, rule.targetField!) || 0;
               const max = rule.maxCount || 14;
               const storedMax = rule.storedMaxCount || 30;
               const storedField = rule.storedTargetField;
 
               let newCurrent = currentCount + rule.incrementCount;
-              let currentStored = storedField ? (getNestedProperty(group, storedField) || 0) : 0;
+              let currentStored = storedField
+                ? getNestedProperty(group, storedField) || 0
+                : 0;
 
               if (newCurrent > max) {
                 const overflow = newCurrent - max;
@@ -197,11 +230,14 @@ export const executeRulesByDictionary = (gameData: any) => {
           }
         }
 
-        // 2. 每天 5点 固定恢复类规则（如噩梦副本）- 纯锚点周期比对
+        // 2. 每天 5点 固定恢复类规则（如噩梦副本）
         if (refreshType === "daily") {
           const lastDailyPeriod = getDaily5amTimestamp(lastTime);
-          
-          if (lastDailyPeriod < today5amTime && (char.createDate || 0) < today5amTime) {
+
+          if (
+            lastDailyPeriod < today5amTime &&
+            (char.createDate || 0) < today5amTime
+          ) {
             if (rule.incrementCount !== undefined) {
               const currentCount = char[rule.targetField!] || 0;
               const max = rule.maxCount || 14;
@@ -232,11 +268,14 @@ export const executeRulesByDictionary = (gameData: any) => {
           }
         }
 
-        // 3. 每周三 5点 重置/恢复类规则（如觉醒战、战场、圣域）- 💡 已改造成纯锚点周期比对
+        // 3. 每周三 5点 重置/恢复类规则（如觉醒战、战场、圣域）
         if (refreshType === "weekly") {
           const lastPeriod = getWeekPeriodTimestamp(lastTime);
 
-          if (lastPeriod < currentWednesday5am && (char.createDate || 0) < currentWednesday5am) {
+          if (
+            lastPeriod < currentWednesday5am &&
+            (char.createDate || 0) < currentWednesday5am
+          ) {
             if (rule.incrementCount !== undefined) {
               const max = rule.maxValue || rule.maxCount || 3;
               char[rule.targetField!] = Math.min(
@@ -248,6 +287,29 @@ export const executeRulesByDictionary = (gameData: any) => {
             }
 
             char[timeField] = now;
+            hasChanges = true;
+          }
+        }
+        // 4. 每周三、周六 22:10 固定时间重置类规则
+        if (refreshType === "artifact-cloister-fixed") {
+          const effectiveLastTime = Math.max(lastTime, char.createDate || 0);
+
+          // 获取当前周期对应的那个“周三/周六 22:10”的绝对时间戳
+          const currentResetTarget = getLatestArtifactCloisterResetTarget(now);
+
+          // 如果上次更新时间小于这个重置目标点，且角色创建时间也在该点之前，说明需要重置
+          if (
+            effectiveLastTime < currentResetTarget &&
+            (char.createDate || 0) < currentResetTarget
+          ) {
+            if (rule.action) {
+              rule.action(char);
+            } else if (rule.resetValue !== undefined) {
+              setNestedProperty(char, rule.targetField!, rule.resetValue);
+            }
+
+            // 更新最后重置/更新时间为当前周期锚点（或者设为 now 均可）
+            char[timeField] = currentResetTarget;
             hasChanges = true;
           }
         }
