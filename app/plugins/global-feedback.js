@@ -1,7 +1,16 @@
+/*
+ * @Author: fofo
+ * @Date: 2026-02-12 15:25:06
+ * @LastEditTime: 2026-08-12 10:56:37
+ * @LastEditors: fofo
+ * @Description: 
+ * @FilePath: /aion2-portal/app/plugins/global-feedback.js
+ */
 import { defineNuxtPlugin } from '#app'
 import { reactive } from 'vue'
 
 export default defineNuxtPlugin((nuxtApp) => {
+  const config = useRuntimeConfig()
   // 全局响应式状态
   const feedbackState = reactive({
     dialog: {
@@ -46,7 +55,8 @@ export default defineNuxtPlugin((nuxtApp) => {
         }
       },
       // 暴露状态给组件使用
-      feedbackState
+      feedbackState,
+      version:config.public.appVersion
     }
   }
 })

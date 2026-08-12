@@ -974,7 +974,9 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
                     "storedNightmareCount",
                     14
                   ).total
-                }}次
+                }}次（{{ char?.nightmareCount || 0 }}/{{
+                  char?.storedNightmareCount || 0
+                }}）
               </span>
             </div>
           </button>
@@ -1004,7 +1006,9 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
                     "storedMinigameCount",
                     14
                   ).total
-                }}次
+                }}次（{{ getGroup(char.group)?.minigameCount || 0 }}/{{
+                  getGroup(char.group)?.storedMinigameCount || 0
+                }}）
               </span>
             </div>
           </button>
@@ -1068,7 +1072,9 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
                 剩余{{
                   getGroupSharedTaskData(char.group, "dailyRuns", "storedDailyRuns", 14)
                     .total
-                }}次
+                }}次（{{ getGroup(char.group)?.dailyRuns || 0 }}/{{
+                  getGroup(char.group)?.storedDailyRuns || 0
+                }}）
               </span>
             </div>
           </button>

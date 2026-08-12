@@ -92,7 +92,6 @@ const defGameData = {
 };
 // 游戏数据结构 参考 docs/多角色管理模块相关.md
 const gameData = ref(cloneDeep(defGameData));
-
 const groupOpen = ref(false);
 const settingsOpen = ref(false);
 const pickerOpen = ref(false);
@@ -100,7 +99,7 @@ const pickerOpenOther = ref({
   type: "",
 });
 const pickerTab = ref("search");
-const { $alert, $confirm, $loading } = useNuxtApp();
+const { $alert, $confirm, $loading, $version } = useNuxtApp();
 const isRefreshing = ref(false);
 
 // 控制新增角色弹窗状态
@@ -1450,13 +1449,13 @@ const importGameData = (event) => {
       if (parsedData && typeof parsedData === "object") {
         gameData.value = parsedData;
         await saveData();
-        alert("数据导入并持久化成功！");
+        $alert("数据导入并持久化成功！");
       } else {
-        alert("导入的文件格式不正确！");
+        $alert("导入的文件格式不正确！");
       }
     } catch (error) {
       console.error("解析 JSON 文件失败:", error);
-      alert("解析文件失败，请确保是有效的 JSON 备份文件。");
+      $alert("解析文件失败，请确保是有效的 JSON 备份文件。");
     } finally {
       event.target.value = "";
     }
@@ -2550,7 +2549,7 @@ watch(
           class="px-3 py-1 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-black text-xs border border-sky-100 dark:border-sky-800/50 shadow-2xs flex items-center gap-1.5"
         >
           <span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
-          每天都会更新～当前版本：AIon2 S3 v0.1.6 最新版
+          每天都会更新～当前版本：{{ $version }} 最新版
         </span>
       </div>
 

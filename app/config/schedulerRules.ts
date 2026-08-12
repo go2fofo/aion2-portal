@@ -48,6 +48,7 @@ export const gameRulesDictionary = [
       char.isMaterialCharOdUsed = false;
       char.materialCharOd = 0;
       char.materialCharOdDate = "";
+      return true;
     },
     description: "角色单独：物质变换角色奥德能量，于每周三5点重置状态。",
   },
@@ -64,6 +65,7 @@ export const gameRulesDictionary = [
       group.isBreezeAccountOd = false;
       group.isBreezeAccountOdUsed = false;
       group.breezeAccountOd = 0;
+      return true;
     },
     description: "服务器共享：物质变换账号奥德能量，于每周三5点重置状态。",
   },
@@ -111,6 +113,7 @@ export const gameRulesDictionary = [
       char.materialCharOdCount = 0;
       // char.isBreezeCharReviveStone = false;
       // char.breezeCharReviveStoneCount = 0;
+      return true;
     },
     description:
       "角色维度：微风商会商店周限购项目（角色奥德能量、等），于每周三5点重置。",
@@ -133,6 +136,7 @@ export const gameRulesDictionary = [
       });
       group.runs = 0;
       group.transcendRuns = 0;
+      return true;
     },
     description:
       "服务器共享：副本收益衰减规则（征服与超越），于每周三5点重置各角色及分组通关次数。",
@@ -153,18 +157,19 @@ export const gameRulesDictionary = [
     },
     description: "服务器共享：每日签到状态，于每天5点重置为未签到状态。",
   },
-{
+  {
     id: "mission_daily_char",
     name: "每日任务（角色每日5点重置）",
-    dimension: "character",                // 改为角色单独维度
-    targetField: "dailyTaskCount",         // 重置的目标次数字段
-    lastTimeField: "dailyMissionDate",     // 记录最后一次更新/重置的时间字段
-    refreshType: "daily",                  // 每天刷新
+    dimension: "character", // 改为角色单独维度
+    targetField: "dailyTaskCount", // 重置的目标次数字段
+    lastTimeField: "dailyMissionDate", // 记录最后一次更新/重置的时间字段
+    refreshType: "daily", // 每天刷新
     cron: "0 5 * * *",
-    resetValue: 0,                         // 每天5点重置为 0 次
+    resetValue: 0, // 每天5点重置为 0 次
     action: (char: any) => {
-      char.dailyTaskCount = 0;             // 次数重置为 0
-      char.dailyMission = false;           // 如果任务完成状态也需要重置，可在这里一并处理
+      char.dailyTaskCount = 0; // 次数重置为 0
+      char.dailyMission = false; // 如果任务完成状态也需要重置，可在这里一并处理
+      return true;
     },
     description: "角色单独：每日任务，于每天5点重置完成状态并恢复/重置为0次。",
   },
@@ -213,7 +218,6 @@ export const gameRulesDictionary = [
     description:
       "角色单独：噩梦副本，于每天5点恢复2次，上限14次，补充上限30次。",
   },
-  
 
   // ==================== 4. 每周三刷新项目====================
   {
@@ -243,39 +247,21 @@ export const gameRulesDictionary = [
     description: "角色单独：战场玩法，于每周三5点重置。",
   },
   {
-    id: "sanctuary_1",
-    name: "圣域1深渊重铸：卢德莱",
+    id: "sanctuary_weekly_reset",
+    name: "圣域副本全系列周重置",
     dimension: "character",
-    targetField: "sanctuaryRuns.s1",
+    targetField: "sanctuaryRuns",
     lastTimeField: "lastSanctuaryRunsUpdate",
-    resetValue: 0,
     refreshType: "weekly",
     cron: "0 5 * * 3",
-    description: "角色单独：圣域1深渊重铸：卢德莱，于每周三5点重置次数。",
+    action: (char: any, now: any) => {
+      // 整体清空圣域完成次数动态字典
+      char.sanctuaryRuns = {};
+      char.lastSanctuaryRunsUpdate = now;
+      // 如果还需要顺便重置其他相关联的字段，也可以在这里一并处理
+    },
   },
-  {
-    id: "sanctuary_2",
-    name: "圣域2侵蚀净化所",
-    dimension: "character",
-    targetField: "sanctuaryRuns.s2",
-    lastTimeField: "lastSanctuaryRunsUpdate",
-    resetValue: 0,
-    refreshType: "weekly",
-    cron: "0 5 * * 3",
-    description: "角色单独：圣域2侵蚀净化所，于每周三5点重置次数。",
-  },
-  {
-    id: "sanctuary_3",
-    name: "圣域3穆斯费尔尔圣杯",
-    dimension: "character",
-    targetField: "sanctuaryRuns.s3",
-    lastTimeField: "lastSanctuaryRunsUpdate",
-    resetValue: 0,
-    refreshType: "weekly",
-    cron: "0 5 * * 3",
-    description: "角色单独：圣域3穆斯费尔尔圣杯，于每周三5点重置次数。",
-  },
-// ==================== 9. 每日副本服务器共享周重置（每周三5点重置并恢复14次） ====================
+  // ==================== 9. 每日副本服务器共享周重置（每周三5点重置并恢复14次） ====================
   {
     id: "daily_runs_server_weekly",
     name: "每日副本（服务器共享周重置）",
@@ -283,13 +269,14 @@ export const gameRulesDictionary = [
     targetField: "dailyRuns",
     storedTargetField: "storedDailyRuns",
     lastTimeField: "lastDailyRunsUpdate",
-    maxCount: 14,             // 每周基础恢复上限 14 次
-    storedMaxCount: 30,       // 补充次数上限 30 次
+    maxCount: 14, // 每周基础恢复上限 14 次
+    storedMaxCount: 30, // 补充次数上限 30 次
     refreshType: "weekly",
     cron: "0 5 * * 3",
-    incrementCount: 14,      
-    resetValue: 14,      
-    description: "服务器共享：每日副本挑战次数，于每周三5点重置/恢复14次，补充次数上限30次。",
+    incrementCount: 14,
+    resetValue: 14,
+    description:
+      "服务器共享：每日副本挑战次数，于每周三5点重置/恢复14次，补充次数上限30次。",
   },
   // ==================== 5. 指令书管理（本地/深渊/地区） ====================
   {
@@ -310,6 +297,7 @@ export const gameRulesDictionary = [
       group.midAbyssSkilled = 0;
       group.midAbyssSpecial = 0;
       group.isMidAbyss = false;
+      return true;
     },
     description:
       "服务器共享：深渊指令书（下层与中层），于每周三5点重置购买状态与数量。",
@@ -327,6 +315,7 @@ export const gameRulesDictionary = [
       group.regionBCount = 0;
       group.isRegionACount = false;
       group.isRegionBCount = false;
+      return true;
     },
     description: "服务器共享：地区指令书，于每周三5点重置。",
   },

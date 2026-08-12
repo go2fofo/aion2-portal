@@ -1,8 +1,8 @@
 /*
  * @Author: whq
  * @Date: 2026-02-08 09:11:19
- * @LastEditTime: 2026-02-11 17:01:22
- * @LastEditors: whq
+ * @LastEditTime: 2026-08-12 10:55:36
+ * @LastEditors: fofo
  * @Description:
  * @FilePath: /aion2-portal/nuxt.config.ts
  */
@@ -41,7 +41,7 @@ export default defineNuxtConfig({
     // 例如：首页静态化，后台页面只在客户端渲染
     // '/': { prerender: true },
     // '/admin/**': { ssr: false },
-    '/api/**': { cors: true }, // 允许 API 跨域
+    "/api/**": { cors: true }, // 允许 API 跨域
   },
   // Supabase 配置
   supabase: {
@@ -49,9 +49,16 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     // 生产环境 Vercel 建议显式映射 process.env
-    deepseekApiKey: process.env.NUXT_DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY || '',
-    openaiApiKey: process.env.NUXT_OPENAI_API_KEY || process.env.OPENAI_API_KEY || '',
-    geminiApiKey: process.env.NUXT_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '',
+    deepseekApiKey:
+      process.env.NUXT_DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY || "",
+    openaiApiKey:
+      process.env.NUXT_OPENAI_API_KEY || process.env.OPENAI_API_KEY || "",
+    geminiApiKey:
+      process.env.NUXT_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "",
+    public: {
+      // 格式：AIon2 S3 v0.1.7 (20260812)
+      appVersion: `AIon2 S3 v0.1.7 (${new Date().toISOString().slice(0, 10).replace(/-/g, "")})`,
+    },
   },
   tailwindcss: {
     // 强制开启查看器，运行后访问 /_tailwind 检查样式

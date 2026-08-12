@@ -23,7 +23,6 @@ const getWeekPeriodTimestamp = (timestamp: number): number => {
   return getWednesday5amTimestamp(new Date(timestamp));
 };
 
-
 /**
  * 获取指定时间所在日期的 5 点时间戳
  * @param {Number} [baseTime=Date.now()] - 基准时间戳
@@ -32,7 +31,7 @@ const getToday5amTimestamp = (baseTime: number = Date.now()): number => {
   const date = new Date(baseTime);
   const today5am = new Date(date);
   today5am.setHours(5, 0, 0, 0);
-  
+
   // 如果基准时间还没到当天 5 点，说明它属于“上一天”的 5 点
   if (date.getTime() < today5am.getTime()) {
     today5am.setDate(today5am.getDate() - 1);
@@ -318,16 +317,24 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
             lastPeriod < currentWednesday5am &&
             (char.createDate || 0) < currentWednesday5am
           ) {
-            if (rule.incrementCount !== undefined) {
+            // 优先支持自定义 action 逻辑（完美适配圣域字典清空、复杂对象重置等定制需求）
+            if (typeof rule.action === "function") {
+              rule.action(char, now);
+            }
+            // 常规数字累加
+            else if (rule.incrementCount !== undefined) {
               const max = rule.maxValue || rule.maxCount || 3;
               char[rule.targetField!] = Math.min(
                 max,
                 (char[rule.targetField!] || 0) + rule.incrementCount,
               );
-            } else if (rule.resetValue !== undefined) {
+            }
+            // 标准重置值兜底
+            else if (rule.resetValue !== undefined) {
               setNestedProperty(char, rule.targetField!, rule.resetValue);
             }
 
+            // 统一更新时间和变更标记
             char[timeField] = now;
             hasChanges = true;
           }
