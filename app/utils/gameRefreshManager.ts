@@ -23,19 +23,22 @@ const getWeekPeriodTimestamp = (timestamp: number): number => {
   return getWednesday5amTimestamp(new Date(timestamp));
 };
 
+
 /**
- * 获取今天 5 点的时间戳
+ * 获取指定时间所在日期的 5 点时间戳
+ * @param {Number} [baseTime=Date.now()] - 基准时间戳
  */
-const getToday5amTimestamp = (): number => {
-  const now = new Date();
-  const today5am = new Date(now);
+const getToday5amTimestamp = (baseTime: number = Date.now()): number => {
+  const date = new Date(baseTime);
+  const today5am = new Date(date);
   today5am.setHours(5, 0, 0, 0);
-  if (now.getTime() < today5am.getTime()) {
+  
+  // 如果基准时间还没到当天 5 点，说明它属于“上一天”的 5 点
+  if (date.getTime() < today5am.getTime()) {
     today5am.setDate(today5am.getDate() - 1);
   }
   return today5am.getTime();
 };
-
 /**
  * 获取某个时间戳对应的“当天 5 点的时间戳”（用于每日固定周期判断）
  */
@@ -76,9 +79,9 @@ function getLatestArtifactCloisterResetTarget(currentTime: any) {
 /**
  * 【核心】通用规则解释执行器：读取 gameRulesDictionary 并自动刷新游戏数据
  */
-export const executeRulesByDictionary = (gameData: any) => {
-  const now = Date.now();
-  const today5amTime = getToday5amTimestamp();
+export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
+  const now = mockNow !== undefined ? mockNow : Date.now();
+  const today5amTime = getToday5amTimestamp(now); // 建议让时间获取函数也支持传入当前时间戳（见下方说明）
   const currentWednesday5am = getWednesday5amTimestamp(new Date(now));
 
   let hasChanges = false;
@@ -101,23 +104,62 @@ export const executeRulesByDictionary = (gameData: any) => {
     if (dimension === "server" && Array.isArray(gameData.groups)) {
       gameData.groups.forEach((group: any) => {
         const timeField = rule.lastTimeField || "lastUpdatedAt";
-        const lastTimeStr = group[timeField] || group.lastUpdatedAt || 0;
-        const lastTime = lastTimeStr ? new Date(lastTimeStr).getTime() : 0;
+        const lastTimeVal =
+          group[timeField] !== undefined
+            ? group[timeField]
+            : group.lastUpdatedAt || 0;
+        const lastTime =
+          typeof lastTimeVal === "number"
+            ? lastTimeVal
+            : new Date(lastTimeVal).getTime();
 
-        // 1. 每周三 5点 重置类规则（服务器共享）- 💡 纯锚点周期比对
+        // 1. 每周三 5点 重置类规则（服务器共享）
         if (refreshType === "weekly") {
+          const timeField = rule.lastTimeField || "lastUpdatedAt";
+
+          // 💡 如果原本没有该字段，标记一下是首次初始化，需要触发本次刷新
+          const isFirstInit =
+            group[timeField] === undefined ||
+            group[timeField] === null ||
+            group[timeField] === "";
+
+          if (isFirstInit) {
+            group[timeField] = 0; // 设为 0，确保下面的 lastPeriod 计算远小于当前周三，从而必然触发第一次重置！
+          }
+
+          const lastTimeVal = group[timeField];
+          const lastTime =
+            typeof lastTimeVal === "number"
+              ? lastTimeVal
+              : new Date(lastTimeVal).getTime();
+
           const lastPeriod = getWeekPeriodTimestamp(lastTime);
+
           if (
             lastPeriod < currentWednesday5am &&
             (group.createdAt || 0) < currentWednesday5am
           ) {
-            if (rule.action) {
-              rule.action(group, gameData.characters);
-            } else if (rule.targetField) {
+            if (rule.incrementCount !== undefined && rule.targetField) {
+              const max = rule.maxValue || rule.maxCount || 14;
+              const currentCount =
+                getNestedProperty(group, rule.targetField) || 0;
+
+              setNestedProperty(
+                group,
+                rule.targetField,
+                Math.min(max, currentCount + rule.incrementCount),
+              );
+            } else if (rule.resetValue !== undefined && rule.targetField) {
               setNestedProperty(group, rule.targetField, rule.resetValue);
+            } else if (rule.action) {
+              rule.action(group, gameData.characters);
             }
+
             group[timeField] = now;
             hasChanges = true;
+          } else if (isFirstInit) {
+            // 如果虽然是首次初始化，但因为创建时间等原因没进上面的重置，也把时间更新为 now 避免重复判定
+            group[timeField] = now;
           }
         }
 

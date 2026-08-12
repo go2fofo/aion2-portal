@@ -945,7 +945,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
             </div>
             <div class="w-full flex items-center justify-between text-[11px] font-black">
               <span class="text-slate-700 dark:text-slate-300 tracking-tight">
-                剩余{{ char?.dailyTaskCount || 0 }}次
+                剩余{{ 5 - char?.dailyTaskCount || 0 }}次
               </span>
             </div>
           </button>

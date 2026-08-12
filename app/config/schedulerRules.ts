@@ -149,21 +149,24 @@ export const gameRulesDictionary = [
     cron: "0 5 * * *",
     action: (group: any) => {
       group.dailySignIn = false;
-      // 如果需要顺便清空或记录日期，也可以在这里处理
       // group.dailySignInDate = "";
     },
     description: "服务器共享：每日签到状态，于每天5点重置为未签到状态。",
   },
-  {
-    id: "mission_daily",
-    name: "使命任务",
-    dimension: "server",
-    targetField: "dailyMission",
-    lastTimeField: "lastUpdatedAt",
-    refreshType: "daily",
+{
+    id: "mission_daily_char",
+    name: "每日任务（角色每日5点重置）",
+    dimension: "character",                // 改为角色单独维度
+    targetField: "dailyTaskCount",         // 重置的目标次数字段
+    lastTimeField: "dailyMissionDate",     // 记录最后一次更新/重置的时间字段
+    refreshType: "daily",                  // 每天刷新
     cron: "0 5 * * *",
-    resetValue: false,
-    description: "服务器共享：使命任务，于每天5点重置完成状态。",
+    resetValue: 0,                         // 每天5点重置为 0 次
+    action: (char: any) => {
+      char.dailyTaskCount = 0;             // 次数重置为 0
+      char.dailyMission = false;           // 如果任务完成状态也需要重置，可在这里一并处理
+    },
+    description: "角色单独：每日任务，于每天5点重置完成状态并恢复/重置为0次。",
   },
   {
     id: "ancient_tree",
@@ -210,8 +213,9 @@ export const gameRulesDictionary = [
     description:
       "角色单独：噩梦副本，于每天5点恢复2次，上限14次，补充上限30次。",
   },
+  
 
-  // ==================== 4. 每周三刷新项目（觉醒战、战场、圣域） ====================
+  // ==================== 4. 每周三刷新项目====================
   {
     id: "awakening_battle",
     name: "觉醒战",
@@ -271,7 +275,22 @@ export const gameRulesDictionary = [
     cron: "0 5 * * 3",
     description: "角色单独：圣域3穆斯费尔尔圣杯，于每周三5点重置次数。",
   },
-
+// ==================== 9. 每日副本服务器共享周重置（每周三5点重置并恢复14次） ====================
+  {
+    id: "daily_runs_server_weekly",
+    name: "每日副本（服务器共享周重置）",
+    dimension: "server",
+    targetField: "dailyRuns",
+    storedTargetField: "storedDailyRuns",
+    lastTimeField: "lastDailyRunsUpdate",
+    maxCount: 14,             // 每周基础恢复上限 14 次
+    storedMaxCount: 30,       // 补充次数上限 30 次
+    refreshType: "weekly",
+    cron: "0 5 * * 3",
+    incrementCount: 14,      
+    resetValue: 14,      
+    description: "服务器共享：每日副本挑战次数，于每周三5点重置/恢复14次，补充次数上限30次。",
+  },
   // ==================== 5. 指令书管理（本地/深渊/地区） ====================
   {
     id: "abyss_instruction",

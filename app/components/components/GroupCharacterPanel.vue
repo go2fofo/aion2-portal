@@ -3031,6 +3031,31 @@ watch(
   }
 );
 watch(
+  () => filteredDungeonList.value,
+  (val) => {
+    if (val) {
+      console.log(
+        `🔍 [GroupCharacterPanel:530] %c filteredDungeonList监听数据: `,
+        "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+        val
+      );
+    }
+  }
+);
+watch(
+  () => consumeForm.value,
+  (val) => {
+    if (val) {
+      console.log(
+        `🔍 [GroupCharacterPanel:530] %c consumeForm监听数据: `,
+        "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+        val
+      );
+    }
+  }
+);
+
+watch(
   () => validationResult.value,
   (val) => {
     if (val) {
@@ -3514,7 +3539,7 @@ defineExpose({
                   <template
                     v-if="
                       !(
-                        consumeForm.dungeonType === 'sanctuary' &&
+                        consumeForm.dungeonType == 'sanctuary' &&
                         filteredDungeonList[consumeForm.selectedDungeonIndex]?.isFinished
                       )
                     "

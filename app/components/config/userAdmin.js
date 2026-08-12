@@ -4,6 +4,26 @@ export const KinahOdSate = {
   expedition: [
     {
       stars: 6,
+      name: "被蚕食的德乌斯研究基地",
+      difficulties: [
+        {
+          mode: "困难",
+          energy: 60,
+          kina: 360,
+          boundKina: 0,
+          total: 360,
+        },
+        {
+          mode: "普通",
+          energy: 40,
+          kina: 201,
+          boundKina: 0,
+          total: 201,
+        },
+      ],
+    },
+    {
+      stars: 6,
       name: "堕落守护者之城",
       difficulties: [
         {
@@ -202,6 +222,40 @@ export const KinahOdSate = {
 
   // 超越副本
   surpass: [
+       {
+      stars: 4,
+      name: "诺伊兰隐藏的遗产",
+      difficulties: [
+        {
+          mode: "阶段4",
+          energy: 60,
+          kina: 420,
+          boundKina: 0,
+          total: 420,
+        },
+        {
+          mode: "阶段3",
+          energy: 40,
+          kina: 240,
+          boundKina: 0,
+          total: 240,
+        },
+        {
+          mode: "阶段2",
+          energy: 40,
+          kina: 201,
+          boundKina: 0,
+          total: 201,
+        },
+        {
+          mode: "阶段1",
+          energy: 40,
+          kina: 171,
+          boundKina: 0,
+          total: 171,
+        },
+      ],
+    },
     {
       stars: 4,
       name: "深渊角窟",
@@ -495,7 +549,7 @@ export const scToTwMap = {
  */
 export const parseLogTimestamp = (log) => {
   if (!log) return 0;
-  
+
   // 优先用标准的 date 字段 (YYYY-MM-DD)，它是万无一失的标准格式
   if (log.date) {
     const time = new Date(log.date).getTime();
