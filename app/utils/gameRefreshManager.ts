@@ -80,7 +80,7 @@ function getLatestArtifactCloisterResetTarget(currentTime: any) {
  */
 export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
   const now = mockNow !== undefined ? mockNow : Date.now();
-  const today5amTime = getToday5amTimestamp(now); // 建议让时间获取函数也支持传入当前时间戳（见下方说明）
+  const today5amTime = getToday5amTimestamp(now);
   const currentWednesday5am = getWednesday5amTimestamp(new Date(now));
 
   let hasChanges = false;
@@ -102,39 +102,33 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
     // ==========================================
     if (dimension === "server" && Array.isArray(gameData.groups)) {
       gameData.groups.forEach((group: any) => {
+        let groupChanged = false;
         const timeField = rule.lastTimeField || "lastUpdatedAt";
         const lastTimeVal =
           group[timeField] !== undefined
             ? group[timeField]
             : group.lastUpdatedAt || 0;
-        const lastTime =
+        let lastTime =
           typeof lastTimeVal === "number"
             ? lastTimeVal
             : new Date(lastTimeVal).getTime();
 
-        // 1. 每周三 5点 重置类规则（服务器共享）
+        // 1. 每周三 5点 重置类规则（服务器共享）- 改造成多周追赶循环
         if (refreshType === "weekly") {
-          const timeField = rule.lastTimeField || "lastUpdatedAt";
-
-          // 💡 如果原本没有该字段，标记一下是首次初始化，需要触发本次刷新
           const isFirstInit =
             group[timeField] === undefined ||
             group[timeField] === null ||
             group[timeField] === "";
 
           if (isFirstInit) {
-            group[timeField] = 0; // 设为 0，确保下面的 lastPeriod 计算远小于当前周三，从而必然触发第一次重置！
+            lastTime = 0; // 设为 0 确保触发第一次全量追赶
           }
 
-          const lastTimeVal = group[timeField];
-          const lastTime =
-            typeof lastTimeVal === "number"
-              ? lastTimeVal
-              : new Date(lastTimeVal).getTime();
+          let lastPeriod = getWeekPeriodTimestamp(lastTime);
+          const oneWeekMs = 7 * 24 * 3600 * 1000;
 
-          const lastPeriod = getWeekPeriodTimestamp(lastTime);
-
-          if (
+          // 循环追赶多个漏掉的周
+          while (
             lastPeriod < currentWednesday5am &&
             (group.createdAt || 0) < currentWednesday5am
           ) {
@@ -151,27 +145,37 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
             } else if (rule.resetValue !== undefined && rule.targetField) {
               setNestedProperty(group, rule.targetField, rule.resetValue);
             } else if (rule.action) {
-              rule.action(group, gameData.characters);
+              rule.action(group, now, gameData.characters);
             }
 
-            group[timeField] = now;
+            groupChanged = true;
+            // 时间指针向后推一周，防止死循环
+            lastPeriod += oneWeekMs;
+            if (rule.action) break; // 自定义 action 视为一次性全量，通常跑一次即可
+          }
+
+          if (groupChanged || isFirstInit) {
+            group[timeField] = currentWednesday5am; // 对齐到最近一次周三
             hasChanges = true;
-          } else if (isFirstInit) {
-            // 如果虽然是首次初始化，但因为创建时间等原因没进上面的重置，也把时间更新为 now 避免重复判定
-            group[timeField] = now;
           }
         }
 
-        // 2. 每天 5点 恢复/重置类规则（服务器共享）
-        if (refreshType === "daily" && lastTime < today5amTime) {
-          if (rule.action) {
-            rule.action(group);
-          } else if (rule.incrementCount !== undefined) {
-            const lastDailyPeriod = getDaily5amTimestamp(lastTime);
-            if (
-              lastDailyPeriod < today5amTime &&
-              (group.createdAt || 0) < today5amTime
-            ) {
+        // 2. 每天 5点 恢复/重置类规则（服务器共享）- 已有的 while 逻辑
+        if (refreshType === "daily") {
+          let currentLastTime = lastTime || group.createdAt || now;
+          let lastDailyPeriod = getDaily5amTimestamp(currentLastTime);
+          const oneDayMs = 24 * 60 * 60 * 1000;
+          let dailyChanged = false;
+
+          while (
+            lastDailyPeriod < today5amTime &&
+            (group.createdAt || 0) < today5amTime
+          ) {
+            if (rule.action) {
+              rule.action(group);
+              dailyChanged = true;
+              break; 
+            } else if (rule.incrementCount !== undefined) {
               const currentCount =
                 getNestedProperty(group, rule.targetField!) || 0;
               const max = rule.maxCount || 14;
@@ -195,18 +199,22 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
               if (storedField) {
                 setNestedProperty(group, storedField, currentStored);
               }
+              dailyChanged = true;
+            } else if (rule.resetValue !== undefined) {
+              setNestedProperty(group, rule.targetField!, rule.resetValue);
+              dailyChanged = true;
             }
-          } else if (rule.resetValue !== undefined) {
-            setNestedProperty(group, rule.targetField!, rule.resetValue);
+
+            lastDailyPeriod += oneDayMs;
           }
 
-          group[timeField] = now;
-          hasChanges = true;
+          if (dailyChanged || lastTime === 0) {
+            group[timeField] = today5amTime;
+            hasChanges = true;
+          }
         }
-        if (hasChanges) {
-          // 如果有修改统一修改时间
 
-          // lastUpdatedAt
+        if (groupChanged || hasChanges) {
           group.lastUpdatedAt = now;
         }
       });
@@ -217,6 +225,7 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
     // ==========================================
     if (dimension === "character" && Array.isArray(gameData.characters)) {
       gameData.characters.forEach((char: any) => {
+        let charChanged = false;
         const ownerGroup = groupMap.get(char.group) || {};
 
         const ruleContext = {
@@ -228,9 +237,9 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
 
         const timeField = rule.lastTimeField || "createDate";
         const lastTimeStr = char[timeField] || char.createDate || 0;
-        const lastTime = lastTimeStr ? new Date(lastTimeStr).getTime() : 0;
+        let lastTime = lastTimeStr ? new Date(lastTimeStr).getTime() : 0;
 
-        // 1. 固定整点触发类规则（如奥德能量：固定 2点, 5点, 8点, 11点, 14点, 17点, 20点, 23点）
+        // 1. 固定整点触发类规则（如奥德能量：每 3 小时）本身自带 periodsPassed 循环，无需改动
         if (refreshType === "interval" && rule.increment) {
           const effectiveLastTime = Math.max(lastTime, char.createDate || 0);
 
@@ -273,15 +282,18 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
             char[storedField] = currentStored;
 
             char[timeField] = now;
+            charChanged = true;
             hasChanges = true;
           }
         }
 
-        // 2. 每天 5点 固定恢复类规则（如噩梦副本）
+        // 2. 每天 5点 固定恢复类规则（如噩梦副本）- 改造成多天追赶循环
         if (refreshType === "daily") {
-          const lastDailyPeriod = getDaily5amTimestamp(lastTime);
+          let lastDailyPeriod = getDaily5amTimestamp(lastTime);
+          const oneDayMs = 24 * 60 * 60 * 1000;
+          let dailyCharChanged = false;
 
-          if (
+          while (
             lastDailyPeriod < today5amTime &&
             (char.createDate || 0) < today5amTime
           ) {
@@ -306,53 +318,61 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
               if (storedField) {
                 char[storedField] = currentStored;
               }
+              dailyCharChanged = true;
             } else if (rule.resetValue !== undefined) {
               setNestedProperty(char, rule.targetField!, rule.resetValue);
+              dailyCharChanged = true;
             }
 
-            char[timeField] = now;
+            lastDailyPeriod += oneDayMs;
+          }
+
+          if (dailyCharChanged) {
+            char[timeField] = today5amTime;
+            charChanged = true;
             hasChanges = true;
           }
         }
 
-        // 3. 每周三 5点 重置/恢复类规则（如觉醒战、战场、圣域）
+        // 3. 每周三 5点 重置/恢复类规则 - 改造成多周追赶循环
         if (refreshType === "weekly") {
-          const lastPeriod = getWeekPeriodTimestamp(lastTime);
+          let lastPeriod = getWeekPeriodTimestamp(lastTime);
+          const oneWeekMs = 7 * 24 * 3600 * 1000;
+          let weeklyCharChanged = false;
 
-          if (
+          while (
             lastPeriod < currentWednesday5am &&
             (char.createDate || 0) < currentWednesday5am
           ) {
-            // 优先支持自定义 action 逻辑（完美适配圣域字典清空、复杂对象重置等定制需求）
             if (typeof rule.action === "function") {
               rule.action(char, now);
-            }
-            // 常规数字累加
-            else if (rule.incrementCount !== undefined) {
+            } else if (rule.incrementCount !== undefined) {
               const max = rule.maxValue || rule.maxCount || 3;
               char[rule.targetField!] = Math.min(
                 max,
                 (char[rule.targetField!] || 0) + rule.incrementCount,
               );
-            }
-            // 标准重置值兜底
-            else if (rule.resetValue !== undefined) {
+            } else if (rule.resetValue !== undefined) {
               setNestedProperty(char, rule.targetField!, rule.resetValue);
             }
 
-            // 统一更新时间和变更标记
-            char[timeField] = now;
+            weeklyCharChanged = true;
+            lastPeriod += oneWeekMs;
+            if (typeof rule.action === "function") break; // 自定义 action 跑一次即可
+          }
+
+          if (weeklyCharChanged) {
+            char[timeField] = currentWednesday5am;
+            charChanged = true;
             hasChanges = true;
           }
         }
+
         // 4. 每周三、周六 22:10 固定时间重置类规则
         if (refreshType === "artifact-cloister-fixed") {
           const effectiveLastTime = Math.max(lastTime, char.createDate || 0);
-
-          // 获取当前周期对应的那个“周三/周六 22:10”的绝对时间戳
           const currentResetTarget = getLatestArtifactCloisterResetTarget(now);
 
-          // 如果上次更新时间小于这个重置目标点，且角色创建时间也在该点之前，说明需要重置
           if (
             effectiveLastTime < currentResetTarget &&
             (char.createDate || 0) < currentResetTarget
@@ -363,14 +383,13 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
               setNestedProperty(char, rule.targetField!, rule.resetValue);
             }
 
-            // 更新最后重置/更新时间为当前周期锚点（或者设为 now 均可）
             char[timeField] = currentResetTarget;
+            charChanged = true;
             hasChanges = true;
           }
         }
-           if (hasChanges) {
-          // 如果有修改统一修改时间
-          // lastUpdatedAt
+
+        if (charChanged) {
           char.lastUpdatedAt = now;
         }
       });

@@ -43,7 +43,7 @@ export const gameRulesDictionary = [
     refreshType: "weekly",
     cron: "0 5 * * 3",
     resetValue: false,
-    action: (char: any,now: any) => {
+    action: (char: any, now: any) => {
       char.isMaterialCharOd = false;
       char.isMaterialCharOdUsed = false;
       char.materialCharOd = 0;
@@ -61,7 +61,7 @@ export const gameRulesDictionary = [
     refreshType: "weekly",
     cron: "0 5 * * 3",
     resetValue: false,
-    action: (group: any,now: any) => {
+    action: (group: any, now: any) => {
       group.isBreezeAccountOd = false;
       group.isBreezeAccountOdUsed = false;
       group.breezeAccountOd = 0;
@@ -138,10 +138,10 @@ export const gameRulesDictionary = [
     name: "副本收益衰减规则（征服/超越）",
     dimension: "server",
     targetField: null,
-    lastTimeField: "lastUpdatedAt",
+    lastTimeField: "lastTranscendRunsUpdate",
     refreshType: "weekly",
     cron: "0 5 * * 3",
-    action: (group: any, characters: any[]) => {
+    action: (group: any, now: any, characters: any[]) => {
       // 组内所有角色的通关次数归零
       characters.forEach((char) => {
         char.runs = 0;
@@ -149,6 +149,7 @@ export const gameRulesDictionary = [
       });
       group.runs = 0;
       group.transcendRuns = 0;
+      group.lastTranscendRunsUpdate = now;
       return true;
     },
     description:
