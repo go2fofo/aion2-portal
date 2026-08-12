@@ -866,8 +866,6 @@ const confirmAddCustomCharacter = async () => {
   $loading.show("正在添加自定义角色...");
   try {
     const nowIso = Date.now();
-    // 💡 构造一个安全的“过去时间”（往前推 7 天），确保新加的角色能正常参与周常/副本刷新
-    const nowIso = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
 
     // 严格按照你提供的数据结构进行组装
     const newCustomCharacter = {
