@@ -867,7 +867,7 @@ const confirmAddCustomCharacter = async () => {
   try {
     const nowIso = Date.now();
     // 💡 构造一个安全的“过去时间”（往前推 7 天），确保新加的角色能正常参与周常/副本刷新
-    const safePastDate = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+    const nowIso = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
 
     // 严格按照你提供的数据结构进行组装
     const newCustomCharacter = {
@@ -907,17 +907,17 @@ const confirmAddCustomCharacter = async () => {
       transcendRuns: 0,
       nightmareCount: 0,
       storedNightmareCount: 0,
-      lastNightmareUpdate: safePastDate, // 噩梦副本最后更新时间（使用过去时间）
+      lastNightmareUpdate: nowIso, // 噩梦副本最后更新时间（使用过去时间）
 
       awakening: 3,
       storedAwakening: 0,
-      lastAwakeningUpdate: safePastDate, // 觉醒战最后更新时间（使用过去时间）
+      lastAwakeningUpdate: nowIso, // 觉醒战最后更新时间（使用过去时间）
 
       battlefield: 3,
-      lastBattlefieldUpdate: safePastDate, // 战场最后更新时间（使用过去时间，确保本周能正常刷新）
+      lastBattlefieldUpdate: nowIso, // 战场最后更新时间（使用过去时间，确保本周能正常刷新）
 
       sanctuary: { s1: 1, s2: 1, s3: 1 },
-      lastSanctuaryRunsUpdate: safePastDate, // 圣域最后更新时间
+      lastSanctuaryRunsUpdate: nowIso, // 圣域最后更新时间
 
       energy: 0,
       storedEnergy: 0,
@@ -1091,9 +1091,6 @@ const handleSaveCharacter = async () => {
 
   const nowIso = Date.now();
 
-  // 💡 必须是纯数字时间戳（当前时间往前推 7 天），确保新号建号时能正常参与周常/日常刷新
-  const safePastDate = nowIso - 7 * 24 * 3600 * 1000;
-
   const newChar = {
     id: Date.now(),
 
@@ -1116,18 +1113,17 @@ const handleSaveCharacter = async () => {
 
     nightmareCount: 3,
     storedNightmareCount: 0,
-    lastNightmareUpdate: safePastDate,
+    lastNightmareUpdate: nowIso,
 
     awakening: 0,
     storedAwakening: 0,
-    lastAwakeningUpdate: safePastDate,
+    lastAwakeningUpdate: nowIso,
 
     battlefield: 0,
-    lastBattlefieldUpdate: safePastDate,
+    lastBattlefieldUpdate: nowIso,
 
     // ==================== 3. 圣域及其他日常时间戳补齐 ====================
     sanctuary: { s1: 1, s2: 1, s3: 1 },
-    lastSanctuaryRunsUpdate: safePastDate,
 
     dailySignIn: false,
     dailySignInDate: nowIso,
@@ -1136,7 +1132,10 @@ const handleSaveCharacter = async () => {
     dailyMissionDate: nowIso,
     lastDailyMissionUpdate: nowIso,
 
+    lastBreezeShopWeeklyCharUpdate: nowIso,
+    lastRegionInstructionUpdate: nowIso,
     createDate: nowIso,
+    lastUpdatedAt: nowIso,
 
     sort: newCharForm.value.primaryAccount
       ? 0
@@ -1211,7 +1210,10 @@ const handleSaveCharacter = async () => {
           lastMinigameUpdate: nowIso,
           lastDimensionalUpdate: nowIso,
           lastUpdatedAt: nowIso,
-
+          lastBreezeShopWeeklyUpdate: nowIso,
+          lastAbyssInstructionUpdate: nowIso,
+          lastUpdatedAt: nowIso,
+          createDate: nowIso,
           storedDailyRuns: newStoredDailyRuns,
           storedMinigameCount: newStoredMinigameCount,
           storedDimensionalCount: newStoredDimensional,
