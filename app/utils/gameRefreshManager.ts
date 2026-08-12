@@ -203,6 +203,12 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
           group[timeField] = now;
           hasChanges = true;
         }
+        if (hasChanges) {
+          // 如果有修改统一修改时间
+
+          // lastUpdatedAt
+          group.lastUpdatedAt = now;
+        }
       });
     }
 
@@ -361,6 +367,11 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
             char[timeField] = currentResetTarget;
             hasChanges = true;
           }
+        }
+           if (hasChanges) {
+          // 如果有修改统一修改时间
+          // lastUpdatedAt
+          char.lastUpdatedAt = now;
         }
       });
     }

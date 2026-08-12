@@ -43,11 +43,11 @@ export const gameRulesDictionary = [
     refreshType: "weekly",
     cron: "0 5 * * 3",
     resetValue: false,
-    action: (char: any) => {
+    action: (char: any,now: any) => {
       char.isMaterialCharOd = false;
       char.isMaterialCharOdUsed = false;
       char.materialCharOd = 0;
-      char.materialCharOdDate = "";
+      char.materialCharOdDate = now;
       return true;
     },
     description: "角色单独：物质变换角色奥德能量，于每周三5点重置状态。",
@@ -56,15 +56,17 @@ export const gameRulesDictionary = [
     id: "energy_transform_server_16",
     name: "奥德能量（物质变换-账号组）16个大奥德",
     dimension: "server",
-    targetField: "isBreezeAccountOd",
-    lastTimeField: "lastUpdatedAt",
+    targetField: null,
+    lastTimeField: "breezeAccountOdDate",
     refreshType: "weekly",
     cron: "0 5 * * 3",
     resetValue: false,
-    action: (group: any) => {
+    action: (group: any,now: any) => {
       group.isBreezeAccountOd = false;
       group.isBreezeAccountOdUsed = false;
       group.breezeAccountOd = 0;
+      group.breezeAccountOdDate = now;
+
       return true;
     },
     description: "服务器共享：物质变换账号奥德能量，于每周三5点重置状态。",
@@ -74,10 +76,11 @@ export const gameRulesDictionary = [
     name: "微风商店上限兑换管理（奥德/复活石/卷轴）",
     dimension: "server",
     targetField: null,
-    lastTimeField: "lastUpdatedAt",
+    // 【关键】改用独立的专属时间字段，避免被其他操作频繁覆盖
+    lastTimeField: "lastBreezeShopWeeklyUpdate",
     refreshType: "weekly",
     cron: "0 5 * * 3",
-    action: (group: any) => {
+    action: (group: any, now: any) => {
       group.isMaterialAccountOd = false;
       group.isMaterialAccountOdUsed = false;
       group.materialAccountOd = 0;
@@ -91,6 +94,11 @@ export const gameRulesDictionary = [
       group.breezeDailyTicket = 0;
       group.isBreezeNightmareTicket = false;
       group.breezeNightmareTicket = 0;
+
+      // 【关键】显式更新该规则的专属时间戳
+      group.lastBreezeShopWeeklyUpdate = now;
+
+      return true; // 告知执行器确有变更
     },
     description:
       "服务器共享：微风商会商店周限购项目（奥德能量、复活石、未知缝隙卷、完成卷等），于每周三5点重置。",
@@ -100,19 +108,24 @@ export const gameRulesDictionary = [
     name: "角色微风商店上限兑换管理（商店奥德/变换奥德）",
     dimension: "character",
     targetField: null,
-    lastTimeField: "lastUpdatedAt",
+    // 【修改 1】使用独立的专属时间字段，防止被日常操作频繁覆盖
+    lastTimeField: "lastBreezeShopWeeklyCharUpdate",
     refreshType: "weekly",
     cron: "0 5 * * 3",
-    action: (char: any) => {
+    action: (char: any, now: any) => {
       char.isBreezeCharOd = false;
       char.isBreezeCharOdUsed = false;
-      char.breezeCharOdCount = 0;
+      char.breezeCharOd = 0;
 
       char.isMaterialCharOd = false;
       char.isMaterialCharOdUsed = false;
-      char.materialCharOdCount = 0;
+      char.materialCharOd = 0;
       // char.isBreezeCharReviveStone = false;
       // char.breezeCharReviveStoneCount = 0;
+
+      // 【修改 3】显式写入专属时间戳，确保不会重复触发或漏触发
+      char.lastBreezeShopWeeklyCharUpdate = now;
+
       return true;
     },
     description:
@@ -257,6 +270,11 @@ export const gameRulesDictionary = [
     action: (char: any, now: any) => {
       // 整体清空圣域完成次数动态字典
       char.sanctuaryRuns = {};
+      char.sanctuary = {
+        s1: 1,
+        s2: 1,
+        s3: 1,
+      };
       char.lastSanctuaryRunsUpdate = now;
       // 如果还需要顺便重置其他相关联的字段，也可以在这里一并处理
     },
@@ -284,10 +302,12 @@ export const gameRulesDictionary = [
     name: "深渊指令书（下层 & 中层）",
     dimension: "server",
     targetField: null,
-    lastTimeField: "lastUpdatedAt",
+    // 【修改】使用独立的专属时间字段
+    lastTimeField: "lastAbyssInstructionUpdate",
     refreshType: "weekly",
     cron: "0 5 * * 3",
-    action: (group: any) => {
+    // 【修改】接收 now 参数
+    action: (group: any, now: any) => {
       group.lowerAbyssNormal = 0;
       group.lowerAbyssSkilled = 0;
       group.lowerAbyssElite = 0;
@@ -297,6 +317,9 @@ export const gameRulesDictionary = [
       group.midAbyssSkilled = 0;
       group.midAbyssSpecial = 0;
       group.isMidAbyss = false;
+
+      // 【修改】显式写入专属时间戳
+      group.lastAbyssInstructionUpdate = now;
       return true;
     },
     description:
@@ -307,14 +330,19 @@ export const gameRulesDictionary = [
     name: "地区指令书（A & B）",
     dimension: "server",
     targetField: null,
-    lastTimeField: "lastUpdatedAt",
+    // 【修改】使用独立的专属时间字段
+    lastTimeField: "lastRegionInstructionUpdate",
     refreshType: "weekly",
     cron: "0 5 * * 3",
-    action: (group: any) => {
+    // 【修改】接收 now 参数
+    action: (group: any, now: any) => {
       group.regionACount = 0;
       group.regionBCount = 0;
       group.isRegionACount = false;
       group.isRegionBCount = false;
+
+      // 【修改】显式写入专属时间戳
+      group.lastRegionInstructionUpdate = now;
       return true;
     },
     description: "服务器共享：地区指令书，于每周三5点重置。",
