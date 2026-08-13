@@ -160,7 +160,7 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
           }
         }
 
-        // 2. 每天 5点 恢复/重置类规则（服务器共享）- 已有的 while 逻辑
+        // 2. 每天 5点 恢复/重置类规则（服务器共享）
         if (refreshType === "daily") {
           let currentLastTime = lastTime || group.createdAt || now;
           let lastDailyPeriod = getDaily5amTimestamp(currentLastTime);
@@ -174,31 +174,19 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
             if (rule.action) {
               rule.action(group);
               dailyChanged = true;
-              break; 
+              break;
             } else if (rule.incrementCount !== undefined) {
               const currentCount =
                 getNestedProperty(group, rule.targetField!) || 0;
               const max = rule.maxCount || 14;
-              const storedMax = rule.storedMaxCount || 30;
-              const storedField = rule.storedTargetField;
 
+              // 核心修改：加上每天的恢复量，如果超出上限直接等于最大值（丢弃溢出，不存 storedField）
               let newCurrent = currentCount + rule.incrementCount;
-              let currentStored = storedField
-                ? getNestedProperty(group, storedField) || 0
-                : 0;
-
               if (newCurrent > max) {
-                const overflow = newCurrent - max;
                 newCurrent = max;
-                if (storedField) {
-                  currentStored = Math.min(storedMax, currentStored + overflow);
-                }
               }
 
               setNestedProperty(group, rule.targetField!, newCurrent);
-              if (storedField) {
-                setNestedProperty(group, storedField, currentStored);
-              }
               dailyChanged = true;
             } else if (rule.resetValue !== undefined) {
               setNestedProperty(group, rule.targetField!, rule.resetValue);
@@ -334,35 +322,38 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
           }
         }
 
-        // 3. 每周三 5点 重置/恢复类规则 - 改造成多周追赶循环
-        if (refreshType === "weekly") {
-          let lastPeriod = getWeekPeriodTimestamp(lastTime);
-          const oneWeekMs = 7 * 24 * 3600 * 1000;
-          let weeklyCharChanged = false;
+        // 2. 每天 5点 固定恢复类规则
+        if (refreshType === "daily") {
+          let lastDailyPeriod = getDaily5amTimestamp(lastTime);
+          const oneDayMs = 24 * 60 * 60 * 1000;
+          let dailyCharChanged = false;
 
           while (
-            lastPeriod < currentWednesday5am &&
-            (char.createDate || 0) < currentWednesday5am
+            lastDailyPeriod < today5amTime &&
+            (char.createDate || 0) < today5amTime
           ) {
-            if (typeof rule.action === "function") {
-              rule.action(char, now);
-            } else if (rule.incrementCount !== undefined) {
-              const max = rule.maxValue || rule.maxCount || 3;
-              char[rule.targetField!] = Math.min(
-                max,
-                (char[rule.targetField!] || 0) + rule.incrementCount,
-              );
+            if (rule.incrementCount !== undefined) {
+              const currentCount = char[rule.targetField!] || 0;
+              const max = rule.maxCount || 14;
+
+              // 核心修改：加上每天的恢复量，如果超出上限直接等于最大值（丢弃溢出，不存 storedField）
+              let newCurrent = currentCount + rule.incrementCount;
+              if (newCurrent > max) {
+                newCurrent = max;
+              }
+
+              char[rule.targetField!] = newCurrent;
+              dailyCharChanged = true;
             } else if (rule.resetValue !== undefined) {
               setNestedProperty(char, rule.targetField!, rule.resetValue);
+              dailyCharChanged = true;
             }
 
-            weeklyCharChanged = true;
-            lastPeriod += oneWeekMs;
-            if (typeof rule.action === "function") break; // 自定义 action 跑一次即可
+            lastDailyPeriod += oneDayMs;
           }
 
-          if (weeklyCharChanged) {
-            char[timeField] = currentWednesday5am;
+          if (dailyCharChanged) {
+            char[timeField] = today5amTime;
             charChanged = true;
             hasChanges = true;
           }

@@ -975,9 +975,9 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
                     14
                   ).total
                 }}次
-                <!-- （{{ char?.nightmareCount || 0 }}/{{
+                <!-- ({{ char?.nightmareCount || 0 }}/{{
                   char?.storedNightmareCount || 0
-                }}） -->
+                }}) -->
               </span>
             </div>
           </button>
