@@ -2358,29 +2358,30 @@ const handleCardConfigModeChange = async (modeType) => {
   switch (modeType) {
     case "default":
       {
-        const confirmed = await $confirm(
-          "切换确认",
-          `确定要切换到 <span class="text-[#45a6d5] font-black">标准模式</span> 吗？<br>
-                 <span class="text-xs text-slate-400 mt-1 inline-block">提示：该模式下内容可通过 <b class="text-slate-600 dark:text-slate-300">点击进入详情</b> 进行修改。</span>`
-        );
-        if (!confirmed) return;
+        // const confirmed = await $confirm(
+        //   "切换确认",
+        //   `确定要切换到 <span class="text-[#45a6d5] font-black">标准模式</span> 吗？<br>
+        //          <span class="text-xs text-slate-400 mt-1 inline-block">提示：该模式下内容可通过 <b class="text-slate-600 dark:text-slate-300">点击进入详情</b> 进行修改。</span>`
+        // );
+        // if (!confirmed) return;
         cardConfig.mode = modeType;
       }
 
       break;
     case "simple":
       {
-        const confirmed = await $confirm(
-          "切换确认",
-          `确定要切换到 <span class="text-[#f9b11d] font-black">懒人模式</span> 吗？<br>
-                 <span class="text-xs text-slate-400 mt-1 inline-block">⚡ 提示：该模式下内容可通过 <b class="text-slate-600 dark:text-slate-300">双击在当前页面</b> 进行即时修改。</span>`
-        );
-        if (!confirmed) return;
+        // const confirmed = await $confirm(
+        //   "切换确认",
+        //   `确定要切换到 <span class="text-[#f9b11d] font-black">懒人模式</span> 吗？<br>
+        //          <span class="text-xs text-slate-400 mt-1 inline-block">⚡ 提示：该模式下内容可通过 <b class="text-slate-600 dark:text-slate-300">双击在当前页面</b> 进行即时修改。</span>`
+        // );
+        // if (!confirmed) return;
         cardConfig.mode = modeType;
       }
       break;
 
     default:
+         cardConfig.mode = modeType;
       break;
   }
 };

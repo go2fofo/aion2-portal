@@ -514,14 +514,14 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
       </div>
 
       <!-- 默认模式下显示的卡片 -->
-      <template v-if="currentMode == 'default'">
+      <template v-if="currentMode == 'default' || currentMode == 'custom'">
         <!-- =================  ================= -->
         <!-- @click="emit('task-click', char, '', 'globalModifyCharacter')" -->
 
         <div
           v-if="
-            currentMode !== 'simple' &&
-            (currentMode !== 'custom' || fields.showCombatPower)
+            currentMode == 'default' ||
+            (currentMode == 'custom' && fields.showCombatPower)
           "
           class="grid grid-cols-2 gap-3"
         >
@@ -555,7 +555,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         <!-- ================= 奥德能量进度 ================= -->
         <div
           v-if="
-            currentMode !== 'simple' && (currentMode !== 'custom' || fields.showEnergy)
+            currentMode == 'default' || (currentMode == 'custom' && fields.showEnergy)
           "
           class="p-3.5 bg-gradient-to-br from-slate-50/90 to-slate-100/60 dark:from-slate-800/80 dark:to-slate-900/80 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2.5 shadow-sm cursor-pointer transition-all hover:shadow dark:hover:border-slate-600"
         >
@@ -751,7 +751,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         <!-- ================= 副本及核心进度区 ================= -->
         <div
           v-if="
-            currentMode !== 'simple' && (currentMode !== 'custom' || fields.showDungeons)
+            currentMode == 'default' || (currentMode == 'custom' && fields.showDungeons)
           "
           class="space-y-2 text-xs"
         >
@@ -922,9 +922,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
 
         <!-- ================= 共享玩法统一样式区（同一行：每日副本、古树庆典、次元袭击） ================= -->
         <div
-          v-if="
-            currentMode !== 'simple' && (currentMode !== 'custom' || fields.showTasks)
-          "
+          v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showTasks)"
           class="grid grid-cols-4 gap-2 pt-1"
         >
           <!-- 1. 每日使命 -->
@@ -1048,9 +1046,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
 
         <!-- ================= 角色/共享玩法统一样式区（同一行：噩梦副本、觉醒、战场） ================= -->
         <div
-          v-if="
-            currentMode !== 'simple' && (currentMode !== 'custom' || fields.showTasks)
-          "
+          v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showTasks)"
           class="grid grid-cols-4 gap-2 pt-1"
         >
           <!-- 1. 每日副本 (服务器共享，周三5点，固定14次+存储上限) -->
@@ -1180,9 +1176,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
 
         <!-- ================= 模式五：备注输入框 ================= -->
         <div
-          v-if="
-            currentMode !== 'simple' && (currentMode !== 'custom' || fields.showNotes)
-          "
+          v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showNotes)"
         >
           <textarea
             :value="char.note || ''"
@@ -1219,6 +1213,201 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
         </div>
       </template>
       <!-- 精简模式（懒人模式）模式下显示的卡片  -->
+      <template v-if="currentMode == 'simple'">
+        <!-- ================= 奥德能量进度 ================= -->
+        <div
+          class="p-3.5 bg-gradient-to-br from-slate-50/90 to-slate-100/60 dark:from-slate-800/80 dark:to-slate-900/80 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2.5 shadow-sm cursor-pointer transition-all hover:shadow dark:hover:border-slate-600"
+        >
+          <!-- 头部：标题与数值概览 -->
+          <div
+            class="flex items-center justify-between text-xs"
+            @click="emit('task-click', char, '', 'globalSimpleEnergy')"
+          >
+            <span
+              class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5"
+            >
+              <span
+                class="w-2 h-2 rounded-full bg-gradient-to-r from-[#45a6d5] to-amber-500 shadow-sm"
+              ></span>
+              奥德能量
+            </span>
+            <div class="flex items-center gap-1 text-xs font-black">
+              <span
+                class="text-[#45a6d5] dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-1.5 py-0.5 rounded-md border border-sky-100 dark:border-sky-900"
+                title="基础奥德"
+                >{{ char.energy || 0 }}</span
+              >
+              <span class="text-slate-300 dark:text-slate-600 font-normal">+</span>
+              <span
+                class="text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded-md border border-amber-100 dark:border-amber-900"
+                title="存储奥德"
+                >{{ char.storedEnergy || 0 }}</span
+              >
+              <span class="text-slate-400 dark:text-slate-500 font-medium ml-0.5"
+                >/ {{ getGroup(char.group).premiumMember ? 840 : 560 }}</span
+              >
+            </div>
+          </div>
+
+          <!-- 组合进度条主体 -->
+          <div
+            class="w-full bg-slate-200/70 dark:bg-slate-700/80 h-2.5 rounded-full overflow-hidden flex p-0.5 border border-slate-200 dark:border-slate-600 shadow-inner"
+            @click="emit('task-click', char, '', 'globalSimpleEnergy')"
+          >
+            <!-- 基础奥德进度条 -->
+            <div
+              class="bg-gradient-to-r from-[#3998c7] to-[#45a6d5] dark:from-[#2e82ab] dark:to-[#3894c2] h-full rounded-l-full transition-all duration-500 relative"
+              :style="{
+                width: `${Math.min(
+                  100,
+                  Math.max(
+                    0,
+                    ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100
+                  )
+                )}%`,
+              }"
+              :title="`基础奥德: ${char.energy || 0}`"
+            ></div>
+            <!-- 存储奥德进度条 -->
+            <div
+              class="bg-gradient-to-r from-amber-400 to-amber-500 dark:from-amber-500 dark:to-amber-600 h-full rounded-r-full transition-all duration-500 relative opacity-95"
+              :style="{
+                width: `${Math.min(
+                  100 -
+                    Math.min(
+                      100,
+                      ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100
+                    ),
+                  ((char.storedEnergy || 0) / (char.premiumMember ? 840 : 560)) * 100
+                )}%`,
+              }"
+              :title="`存储奥德: ${char.storedEnergy || 0}`"
+            ></div>
+          </div>
+
+          <!-- ================= 底部：自适应弹性流式布局（变换奥德 + 商店奥德 + 总计） ================= -->
+          <div
+            class="flex flex-wrap items-center justify-between gap-2 pt-1 text-[10px] font-semibold text-slate-400 dark:text-slate-500"
+          >
+            <!-- 左侧包裹区：内部卡片自适应内容宽度，空间不够时自动换行 -->
+            <div class="flex items-center gap-2 flex-wrap flex-1 min-w-0">
+              <!-- 1. 变换奥德 (Material Char Od) -->
+              <div
+                class="p-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all hover:border-amber-400/50 hover:bg-amber-50/30 dark:hover:bg-amber-950/30 cursor-pointer shrink-0"
+                @click="emit('task-click', char, 'materialCharOd', 'exchangeCharOD')"
+              >
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <div class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></div>
+                  <span
+                    class="font-bold text-slate-700 dark:text-slate-200 text-[11px] truncate"
+                    >变换奥德</span
+                  >
+                </div>
+                <div class="flex items-center gap-1 font-black text-[11px] shrink-0">
+                  <span
+                    :class="
+                      (char.materialCharOd || 0) >= 4
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-amber-600 dark:text-amber-400'
+                    "
+                  >
+                    {{ char.materialCharOd || 0 }}
+                  </span>
+                  <span class="text-slate-300 dark:text-slate-600 font-normal">/ 4</span>
+                  <span
+                    class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
+                    :class="
+                      (char.materialCharOd || 0) >= 4
+                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/80'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/50 dark:border-slate-700'
+                    "
+                  >
+                    <template v-if="(char.materialCharOd || 0) >= 4">✓</template>
+                    <template v-else>
+                      <svg
+                        class="w-2 h-2"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="3"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M20 12H4"
+                        />
+                      </svg>
+                    </template>
+                  </span>
+                </div>
+              </div>
+
+              <!-- 商店奥德兑换 -->
+              <div
+                class="p-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 dark:hover:bg-sky-950/30 cursor-pointer shrink-0"
+                @click="emit('task-click', char, 'breezeCharOd', 'exchangeCharOD')"
+                v-if="getGroup(char.group)?.premiumMember"
+              >
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <div class="w-1.5 h-1.5 rounded-full bg-[#45a6d5] shrink-0"></div>
+                  <span
+                    class="font-bold text-slate-700 dark:text-slate-200 text-[11px] truncate"
+                    >商店奥德</span
+                  >
+                </div>
+                <div class="flex items-center gap-1 font-black text-[11px] shrink-0">
+                  <span
+                    :class="
+                      (char.breezeCharOd || 0) >= 4
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-[#45a6d5] dark:text-sky-400'
+                    "
+                  >
+                    {{ char.breezeCharOd || 0 }}
+                  </span>
+                  <span class="text-slate-300 dark:text-slate-600 font-normal"
+                    >/ {{ char.breezeCharOd || 4 }}</span
+                  >
+                  <span
+                    class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
+                    :class="
+                      (char.breezeCharOd || 0) >= 4
+                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/80'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/50 dark:border-slate-700'
+                    "
+                  >
+                    <template v-if="(char.breezeCharOd || 0) >= 4">✓</template>
+                    <template v-else>
+                      <svg
+                        class="w-2 h-2"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="3"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M20 12H4"
+                        />
+                      </svg>
+                    </template>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 右侧：总计点数（自动靠右，绝不挤压卡片） -->
+            <span class="text-slate-500 dark:text-slate-400 shrink-0">
+              总计:
+              <strong class="text-slate-700 dark:text-slate-200 font-bold">
+                {{ (char.energy || 0) + (char.storedEnergy || 0) }}
+              </strong>
+              点
+            </span>
+          </div>
+        </div>
+      </template>
     </div>
   </div>
 </template>
