@@ -1588,6 +1588,7 @@ const handleSync = async () => {
     const updated = await executeDataRefresh();
     if (updated) {
       console.log("数据已更新并同步");
+      gameData.value = updated;
       // 可选：配合你的 UI 提示，例如 $alert 或 message 提示
     } else {
       console.log("当前数据已是最新");
@@ -2381,7 +2382,7 @@ const handleCardConfigModeChange = async (modeType) => {
       break;
 
     default:
-         cardConfig.mode = modeType;
+      cardConfig.mode = modeType;
       break;
   }
 };

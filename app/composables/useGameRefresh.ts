@@ -472,7 +472,7 @@ export const useGameRefresh = () => {
       //  有变动则持久化并同步
       if (hasModified || hasRulesModified) {
         await saveGameData(gameData);
-        return true;
+        return gameData;
       }
 
       return false;
