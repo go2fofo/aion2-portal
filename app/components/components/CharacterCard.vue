@@ -1099,6 +1099,9 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
                   getCharacterSharedTaskData(char, "awakening", "storedAwakening", 30)
                     .total
                 }}次
+                   （{{ getGroup(char.group)?.awakening || 0 }}/{{
+                  getGroup(char.group)?.storedAwakening || 0
+                }}）
               </span>
             </div>
           </button>
