@@ -239,10 +239,10 @@ export const gameRulesDictionary = [
     name: "觉醒战",
     dimension: "character",
     targetField: "awakening",
-    storedTargetField: "storedAwakening",
+    // storedTargetField: "storedAwakening",
     lastTimeField: "lastAwakeningUpdate",
     maxCount: 3,
-    storedMaxCount: 30,
+    // storedMaxCount: 30,
     refreshType: "weekly",
     cron: "0 5 * * 3",
     incrementCount: 3,
@@ -278,6 +278,7 @@ export const gameRulesDictionary = [
       };
       char.lastSanctuaryRunsUpdate = now;
       // 如果还需要顺便重置其他相关联的字段，也可以在这里一并处理
+      return true;
     },
   },
   // ==================== 9. 每日副本服务器共享周重置（每周三5点重置并恢复14次） ====================
@@ -286,10 +287,10 @@ export const gameRulesDictionary = [
     name: "每日副本（服务器共享周重置）",
     dimension: "server",
     targetField: "dailyRuns",
-    storedTargetField: "storedDailyRuns",
+    // storedTargetField: "storedDailyRuns",
     lastTimeField: "lastDailyRunsUpdate",
     maxCount: 14, // 每周基础恢复上限 14 次
-    storedMaxCount: 30, // 补充次数上限 30 次
+    // storedMaxCount: 30, // 补充次数上限 30 次
     refreshType: "weekly",
     cron: "0 5 * * 3",
     incrementCount: 14,
