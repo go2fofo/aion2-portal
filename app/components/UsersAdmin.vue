@@ -2032,7 +2032,7 @@ const handleOpenGlobalPopup = (type, name) => {
   globalPopupOp.value.name = name;
 };
 //用于通用项 点击触发事件，可随意拓展，目前只做了角色卡片内点击触发
-const groupCharacterPanelHandleClickTask = async (char, gType, fieldType) => {
+const groupCharacterPanelHandleClickTask = async (char, gType, fieldType, clickType) => {
   const getGlobalPopupOpName = {
     globalSimpleEnergy: "快捷奥德补充/修改",
     globalModifyCharacter: "角色信息修改",
@@ -2058,6 +2058,7 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType) => {
         },
         targetChar: char,
         targetGroup: getGroupById(char?.group),
+        clickType,
       };
 
       // 修改弹框默认高度
@@ -2079,7 +2080,53 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType) => {
       }
       globalPopupOp.value = newGlobalPopupOp;
       break;
+    case "globalDbClick": {
+      globalPopupOpen.value = true;
+      let targetGroup = await getGroupById(char?.group);
+      let fieldMap = {
+        // 角色--噩梦副本
+        nightmareCount: {
+          nightmareCount: char?.nightmareCount || 0,
+          storedNightmareCount: char?.storedNightmareCount || 0,
+        },
+        // 角色--觉醒副本
+        awakening: {
+          awakening: char?.awakening || 0,
+          storedAwakening: char?.storedAwakening || 0,
+        },
+        // 账号--每日副本
+        dailyRuns: {
+          dailyRuns: targetGroup?.dailyRuns || 0,
+          storedDailyRuns: targetGroup?.storedDailyRuns || 0,
+        },
+        // 账号--古树庆典小游戏
+        minigameCount: {
+          minigameCount: targetGroup?.minigameCount || 0,
+          storedMinigameCount: targetGroup?.storedMinigameCount || 0,
+        },
+      };
+      const getGlobalPopupOpFieldName = {
+        nightmareCount: "快捷操作噩梦副本",
+        awakening: "快捷操作觉醒",
+        dailyRuns: "快捷操作每日副本",
+        minigameCount: "快捷操作古树庆典小游戏",
+      };
 
+      // 双击点击触发
+      globalPopupOpen.value = true;
+      let newGlobalPopupOp = {
+        type: "globalDbClick",
+        fieldType,
+        name: getGlobalPopupOpFieldName[fieldType],
+        formData: fieldMap[fieldType], //存放附加值
+        data: {},
+        targetChar: char,
+        targetGroup,
+        clickType,
+      };
+      globalPopupOp.value = newGlobalPopupOp;
+      break;
+    }
     default:
       break;
   }
@@ -2295,6 +2342,41 @@ const handleGlobalPopupFill = (type) => {
       } catch (e) {
         $alert("修改失败", e?.message || String(e));
       } finally {
+      }
+
+      break;
+    }
+
+    case "globalDbClick": {
+      const fieldType = globalPopupOp.value?.fieldType;
+      const formData = globalPopupOp.value?.formData || {};
+
+      switch (fieldType) {
+        case "nightmareCount":
+        case "awakening": {
+          const newCharacter = cloneDeep(globalPopupOp.value?.targetChar);
+          if (newCharacter) {
+            for (const key in formData) {
+              newCharacter[key] = formData[key];
+            }
+            groupCharacterPanelHandleUpdateCharacter(newCharacter);
+          }
+          break;
+        }
+        case "dailyRuns":
+        case "minigameCount": {
+          let newGroup = cloneDeep(globalPopupOp.value.targetGroup);
+          if (newGroup) {
+            for (const key in formData) {
+              newGroup[key] = formData[key];
+            }
+            groupCharacterPanelHandleUpdateGroup(newGroup);
+          }
+          break;
+        }
+
+        default:
+          break;
       }
 
       break;
@@ -5742,7 +5824,7 @@ watch(
                             : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                         "
                       >
-                        懒人模式（一键快捷）
+                        精简
                       </button>
                       <button
                         @click="handleCardConfigModeChange('custom')"
@@ -6764,6 +6846,68 @@ watch(
                 </div>
               </div>
 
+              <!-- ================= 通用双击触发================= -->
+              <div
+                v-if="globalPopupOp.type == 'globalDbClick'"
+                class="space-y-4 max-w-lg mx-auto py-2 text-xs"
+              >
+                <div class="space-y-4">
+                  <template v-for="(value, key) in globalPopupOp.formData" :key="key">
+                    <!-- 动态渲染每个字段 -->
+                    <div class="space-y-1.5">
+                      <!-- 标签说明 -->
+                      <div class="flex items-center justify-between text-xs">
+                        <label class="font-bold text-slate-600 dark:text-slate-300">
+                          {{
+                            key === "nightmareCount"
+                              ? "噩梦副本当前次数"
+                              : key === "storedNightmareCount"
+                              ? "噩梦副本身存储值"
+                              : key === "awakening"
+                              ? "觉醒战当前次数"
+                              : key === "storedAwakening"
+                              ? "觉醒战存储值"
+                              : key === "dailyRuns"
+                              ? "每日副本当前次数"
+                              : key === "storedDailyRuns"
+                              ? "每日副本存储值"
+                              : key === "minigameCount"
+                              ? "小游戏当前次数"
+                              : key === "storedMinigameCount"
+                              ? "小游戏存储值"
+                              : key
+                          }}
+                        </label>
+                        <span class="text-[11px] text-slate-400 dark:text-slate-500">
+                          {{ key.includes("stored") ? "存储数值" : "当前主数值" }}
+                        </span>
+                      </div>
+
+                      <!-- 带后缀的输入框 -->
+                      <div class="relative">
+                        <input
+                          v-model.number="globalPopupOp.formData[key]"
+                          class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-800 dark:text-slate-100 text-sm transition-all"
+                          placeholder="请输入数值"
+                        />
+                        <span
+                          class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-slate-500"
+                        >
+                          次
+                        </span>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+
+                <!-- 底部温馨提示 -->
+                <div
+                  class="pt-2 text-right text-[11px] text-slate-400 dark:text-slate-500"
+                >
+                  修改后点击确定保存即可同步更新数据。
+                </div>
+              </div>
+
               <!-- ================= 圣域================= -->
               <div
                 v-if="globalPopupOp.type == 'globalSanctuary'"
@@ -6916,6 +7060,15 @@ watch(
                   确定
                 </button>
               </div>
+              <!-- 通用 -->
+              <button
+                type="button"
+                v-if="globalPopupOp.type === 'globalDbClick'"
+                class="px-6 py-2.5 rounded-2xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-colors cursor-pointer shadow-sm active:scale-95"
+                @click="handleGlobalPopupFill('globalDbClick')"
+              >
+                确认修改
+              </button>
             </div>
           </div>
         </div>

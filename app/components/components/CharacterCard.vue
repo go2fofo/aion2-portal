@@ -362,6 +362,31 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
   };
 };
 //================ 周常/日常 结束 =====================
+
+let clickTimer = null;
+
+const handleTaskClickWithDblClick = (char, field, type) => {
+  if (clickTimer) {
+    // ===========================
+    // 触发了双击（在 250ms 内点了第二下）
+    // ===========================
+    clearTimeout(clickTimer);
+    clickTimer = null;
+
+    // 执行你的双击逻辑
+    emit("task-click", char, field, type, "dbclick");
+  } else {
+    // ===========================
+    // 第一次点击，启动延时等待是否会有第二次点击
+    // ===========================
+    clickTimer = setTimeout(() => {
+      clickTimer = null;
+
+      // 延时结束后如果没有双击，则执行你的单击逻辑
+      emit("task-click", char, field, type);
+    }, 250); // 250毫秒是绝大多数用户的舒适双击间隔
+  }
+};
 </script>
 
 <template>
@@ -920,16 +945,16 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
           </div>
         </div>
 
-        <!-- ================= 共享玩法统一样式区（同一行：每日副本、古树庆典、次元袭击） ================= -->
+        <!-- ================= 共享玩法统一样式区 1 ================= -->
         <div
           v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showTasks)"
-          class="grid grid-cols-4 gap-2 pt-1"
+          class="grid grid-cols-4 gap-2"
         >
           <!-- 1. 每日使命 -->
           <button
             type="button"
             class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-            @click="emit('task-click', char, 'dailyTaskCount', 'weeklydaily')"
+            @click="handleTaskClickWithDblClick(char, 'dailyTaskCount', 'weeklydaily')"
           >
             <div class="w-full flex items-center justify-between">
               <span
@@ -941,77 +966,14 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
                 >角色</span
               >
             </div>
-            <div class="w-full flex items-center justify-between text-[11px] font-black">
+            <div class="w-full flex items-center justify-between text-[10px] font-black">
               <span class="text-slate-700 dark:text-slate-300 tracking-tight">
                 剩余{{ 5 - char?.dailyTaskCount || 0 }}次
               </span>
             </div>
           </button>
-          <!-- 1. 噩梦副本 (角色独立，有存储次数) -->
-          <button
-            type="button"
-            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-            @click="emit('task-click', char, 'nightmareCount', 'weeklydaily')"
-          >
-            <div class="w-full flex items-center justify-between">
-              <span
-                class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-                >噩梦副本</span
-              >
-              <span
-                class="text-[8px] text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-1 rounded border border-purple-100 dark:border-purple-900/80"
-                >角色</span
-              >
-            </div>
-            <div class="w-full flex items-center justify-between text-[11px] font-black">
-              <span class="text-purple-600 dark:text-purple-400 tracking-tight">
-                剩余{{
-                  getCharacterSharedTaskData(
-                    char,
-                    "nightmareCount",
-                    "storedNightmareCount",
-                    14
-                  ).total
-                }}次 ({{ char?.nightmareCount || 0 }}/{{
-                  char?.storedNightmareCount || 0
-                }})
-              </span>
-            </div>
-          </button>
 
-          <!-- 2. 古树庆典 (服务器共享，每天5点恢复2次，上限14) -->
-          <button
-            type="button"
-            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-            @click="emit('task-click', char, 'minigameCount', 'weeklydaily')"
-          >
-            <div class="w-full flex items-center justify-between">
-              <span
-                class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-                >古树庆典</span
-              >
-              <span
-                class="text-[8px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1 rounded border border-amber-100 dark:border-amber-900/80"
-                >共享</span
-              >
-            </div>
-            <div class="w-full flex items-center justify-between text-[11px] font-black">
-              <span class="text-amber-600 dark:text-amber-400 tracking-tight">
-                剩余{{
-                  getGroupSharedTaskData(
-                    char.group,
-                    "minigameCount",
-                    "storedMinigameCount",
-                    14
-                  ).total
-                }}次 （{{ getGroup(char.group)?.minigameCount || 0 }}/{{
-                  getGroup(char.group)?.storedMinigameCount || 0
-                }}）
-              </span>
-            </div>
-          </button>
-
-          <!-- 3. 次元袭击 (服务器共享，每天5点恢复2次，上限14) -->
+          <!-- 次元袭击 (服务器共享，每天5点恢复2次，上限14) -->
           <button
             type="button"
             class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
@@ -1027,7 +989,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
                 >共享</span
               >
             </div>
-            <div class="w-full flex items-center justify-between text-[11px] font-black">
+            <div class="w-full flex items-center justify-between text-[10px] font-black">
               <span class="text-rose-600 dark:text-rose-400 tracking-tight">
                 剩余{{
                   getGroupSharedTaskData(
@@ -1040,66 +1002,6 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
               </span>
             </div>
           </button>
-        </div>
-
-        <!-- ================= 角色/共享玩法统一样式区（同一行：噩梦副本、觉醒、战场） ================= -->
-        <div
-          v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showTasks)"
-          class="grid grid-cols-4 gap-2 pt-1"
-        >
-          <!-- 1. 每日副本 (服务器共享，周三5点，固定14次+存储上限) -->
-          <button
-            type="button"
-            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-            @click="emit('task-click', char, 'dailyRuns', 'weeklydaily')"
-          >
-            <div class="w-full flex items-center justify-between">
-              <span
-                class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-                >每日副本</span
-              >
-              <span
-                class="text-[8px] text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/60 px-1 rounded border border-cyan-100 dark:border-cyan-900/80"
-                >共享</span
-              >
-            </div>
-            <div class="w-full flex items-center justify-between text-[11px] font-black">
-              <span class="text-cyan-600 dark:text-cyan-400 tracking-tight">
-                剩余{{
-                  getGroupSharedTaskData(char.group, "dailyRuns", "storedDailyRuns", 14)
-                    .total
-                }}次 （{{ getGroup(char.group)?.dailyRuns || 0 }}/{{
-                  getGroup(char.group)?.storedDailyRuns || 0
-                }}）
-              </span>
-            </div>
-          </button>
-          <!-- 2. 觉醒 (角色独立，上限30次或3次，带存储) -->
-          <button
-            type="button"
-            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-            @click="emit('task-click', char, 'awakening', 'weeklydaily')"
-          >
-            <div class="w-full flex items-center justify-between">
-              <span
-                class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-                >觉醒</span
-              >
-              <span
-                class="text-[8px] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-1 rounded border border-indigo-100 dark:border-indigo-900/80"
-                >角色</span
-              >
-            </div>
-            <div class="w-full flex items-center justify-between text-[11px] font-black">
-              <span class="text-indigo-600 dark:text-indigo-400 tracking-tight">
-                剩余{{
-                  getCharacterSharedTaskData(char, "awakening", "storedAwakening", 30)
-                    .total
-                }}次 （{{ char.awakening || 0 }}/{{ char?.storedAwakening || 0 }}）
-              </span>
-            </div>
-          </button>
-
           <!-- 3. 战场 (角色独立，无存储字段) -->
           <button
             type="button"
@@ -1116,7 +1018,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
                 >角色</span
               >
             </div>
-            <div class="w-full flex items-center justify-between text-[11px] font-black">
+            <div class="w-full flex items-center justify-between text-[10px] font-black">
               <span class="text-emerald-600 dark:text-emerald-400 tracking-tight">
                 剩余{{ char.battlefield }}次
               </span>
@@ -1155,7 +1057,7 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
             </div>
 
             <!-- 状态指示文案 -->
-            <div class="w-full flex items-center justify-between text-[11px] font-black">
+            <div class="w-full flex items-center justify-between text-[10px] font-black">
               <span
                 class="tracking-tight flex items-center gap-1"
                 :class="
@@ -1166,6 +1068,141 @@ const getCharacterSharedTaskData = (char, metricKey, storedKey, maxLimit = 14) =
               >
                 <span>{{ char?.isCloister ? "✓" : "⚡" }}</span>
                 <span>{{ char?.isCloister ? "已完成" : "未完成" }}</span>
+              </span>
+            </div>
+          </button>
+        </div>
+
+        <!-- ================= 共享玩法统一样式区 2 ================= -->
+        <div
+          class="inline-flex items-center gap-2 px-2 py-1 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-lg text-xs text-slate-500 dark:text-slate-400 select-none"
+        >
+          <span class="text-indigo-500 dark:text-indigo-400">💡</span>
+          <span
+            >提示：下方卡片支持
+            <strong
+              class="text-slate-700 dark:text-slate-200 font-medium underline decoration-indigo-400/50 underline-offset-2"
+              >双击</strong
+            >
+            快捷修改内容</span
+          >
+        </div>
+        <div
+          v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showTasks)"
+          class="grid grid-cols-4 gap-2"
+        >
+          <!-- 1. 每日副本 (服务器共享，周三5点，固定14次+存储上限) -->
+          <button
+            type="button"
+            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
+            @click="handleTaskClickWithDblClick(char, 'dailyRuns', 'weeklydaily')"
+          >
+            <div class="w-full flex items-center justify-between">
+              <span
+                class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
+                >每日副本</span
+              >
+              <span
+                class="text-[8px] text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/60 px-1 rounded border border-cyan-100 dark:border-cyan-900/80"
+                >共享</span
+              >
+            </div>
+            <div class="w-full flex items-center justify-between text-[10px] font-black">
+              <span class="text-cyan-600 dark:text-cyan-400 tracking-tight">
+                剩余{{
+                  getGroupSharedTaskData(char.group, "dailyRuns", "storedDailyRuns", 14)
+                    .total
+                }}次 ({{ getGroup(char.group)?.dailyRuns || 0 }}/{{
+                  getGroup(char.group)?.storedDailyRuns || 0
+                }})
+              </span>
+            </div>
+          </button>
+          <!-- 2. 觉醒 (角色独立，上限30次或3次，带存储) -->
+          <button
+            type="button"
+            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
+            @click="handleTaskClickWithDblClick(char, 'awakening', 'weeklydaily')"
+          >
+            <div class="w-full flex items-center justify-between">
+              <span
+                class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
+                >觉醒</span
+              >
+              <span
+                class="text-[8px] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-1 rounded border border-indigo-100 dark:border-indigo-900/80"
+                >角色</span
+              >
+            </div>
+            <div class="w-full flex items-center justify-between text-[10px] font-black">
+              <span class="text-indigo-600 dark:text-indigo-400 tracking-tight">
+                剩余{{
+                  getCharacterSharedTaskData(char, "awakening", "storedAwakening", 30)
+                    .total
+                }}次 ({{ char.awakening || 0 }}/{{ char?.storedAwakening || 0 }})
+              </span>
+            </div>
+          </button>
+          <!-- 噩梦副本 (角色独立，有存储次数) -->
+          <button
+            type="button"
+            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
+            @click="handleTaskClickWithDblClick(char, 'nightmareCount', 'weeklydaily')"
+          >
+            <div class="w-full flex items-center justify-between">
+              <span
+                class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
+                >噩梦副本</span
+              >
+              <span
+                class="text-[8px] text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-1 rounded border border-purple-100 dark:border-purple-900/80"
+                >角色</span
+              >
+            </div>
+            <div class="w-full flex items-center justify-between text-[10px] font-black">
+              <span class="text-purple-600 dark:text-purple-400 tracking-tight">
+                剩余{{
+                  getCharacterSharedTaskData(
+                    char,
+                    "nightmareCount",
+                    "storedNightmareCount",
+                    14
+                  ).total
+                }}次 ({{ char?.nightmareCount || 0 }}/{{
+                  char?.storedNightmareCount || 0
+                }})
+              </span>
+            </div>
+          </button>
+
+          <!-- 古树庆典 (服务器共享，每天5点恢复2次，上限14) -->
+          <button
+            type="button"
+            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
+            @click="handleTaskClickWithDblClick(char, 'minigameCount', 'weeklydaily')"
+          >
+            <div class="w-full flex items-center justify-between">
+              <span
+                class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
+                >古树庆典</span
+              >
+              <span
+                class="text-[8px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1 rounded border border-amber-100 dark:border-amber-900/80"
+                >共享</span
+              >
+            </div>
+            <div class="w-full flex items-center justify-between text-[10px] font-black">
+              <span class="text-amber-600 dark:text-amber-400 tracking-tight">
+                剩余{{
+                  getGroupSharedTaskData(
+                    char.group,
+                    "minigameCount",
+                    "storedMinigameCount",
+                    14
+                  ).total
+                }}次 ({{ getGroup(char.group)?.minigameCount || 0 }}/{{
+                  getGroup(char.group)?.storedMinigameCount || 0
+                }})
               </span>
             </div>
           </button>

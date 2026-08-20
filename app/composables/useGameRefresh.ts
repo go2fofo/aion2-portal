@@ -488,10 +488,17 @@ export const useGameRefresh = () => {
   const initAutoRefreshTimer = () => {
     if (timer) clearInterval(timer);
 
-    timer = setInterval(async () => {
-      console.log("[GameRefresh] 执行后台定时刷新监测...");
-      await executeDataRefresh();
-    }, 60 * 1000); // 每 60 秒触发一次
+    // 1. 初始化时立即执行一次刷新
+    executeDataRefresh();
+
+    // 2. 设置 3 小时一次的轮询
+    timer = setInterval(
+      async () => {
+        console.log("[GameRefresh] 执行后台定时刷新监测...");
+        await executeDataRefresh();
+      },
+      3 * 60 * 60 * 1000,
+    );
   };
 
   /**

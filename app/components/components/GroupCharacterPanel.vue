@@ -1025,7 +1025,7 @@ const handleToggleTask = (char, field) => {
   const updatedChar = { ...char, [field]: !char[field] };
   emit("update-character", updatedChar);
 };
-const handleTaskClick = async (char, field, tab) => {
+const handleTaskClick = async (char, field, tab, clickType) => {
   console.log(
     `🔍 [GroupCharacterPanel:713] %c handleTaskClickk--char: `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
@@ -1040,6 +1040,11 @@ const handleTaskClick = async (char, field, tab) => {
     `🔍 [GroupCharacterPanel:713] %c handleTaskClickk--tab: `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     tab
+  );
+  console.log(
+    `🔍 [GroupCharacterPanel:713] %c handleTaskClickk--clickType: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    clickType
   );
 
   switch (tab) {
@@ -1056,11 +1061,16 @@ const handleTaskClick = async (char, field, tab) => {
       break;
     case "weeklydaily":
     case "exchange":
-      //tab
-      handleClickGameplay(char, tab);
-      nextTick(() => {
-        scrollToSection(field);
-      });
+      if (clickType == "dbclick") {
+        //发送给父组件
+        emit("task-click", char, "globalDbClick", field, "dbclick");
+      } else {
+        //tab
+        handleClickGameplay(char, tab);
+        nextTick(() => {
+          scrollToSection(field);
+        });
+      }
       break;
     case "consumeSanctuary": //消耗奥德跳转到圣域
       await handleClickGameplay(char, "consume");
