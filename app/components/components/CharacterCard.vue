@@ -948,10 +948,10 @@ const handleTaskClickWithDblClick = (char, field, type) => {
         <!-- ================= 共享玩法统一样式区 1 ================= -->
         <div
           v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showTasks)"
-          class="grid grid-cols-4 gap-2"
+          class="grid grid-cols-3 gap-2"
         >
           <!-- 1. 每日使命 -->
-          <button
+          <!-- <button
             type="button"
             class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
             @click="handleTaskClickWithDblClick(char, 'dailyTaskCount', 'weeklydaily')"
@@ -971,7 +971,7 @@ const handleTaskClickWithDblClick = (char, field, type) => {
                 剩余{{ 5 - char?.dailyTaskCount || 0 }}次
               </span>
             </div>
-          </button>
+          </button> -->
 
           <!-- 次元袭击 (服务器共享，每天5点恢复2次，上限14) -->
           <button

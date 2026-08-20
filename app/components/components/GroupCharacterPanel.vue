@@ -811,11 +811,6 @@ const validationRules = computed(() => {
 });
 // 日周任务 表单内的控制 默认值
 const defaultWeeklydailyFormValues = {
-  /** 每日任务完成状态及时间 */
-  dailyMission: false,
-  /** 每日任务完成次数 */
-  dailyTaskCount: 0,
-  dailyMissionDate: "",
   // 每日副本消耗
   dailyRuns: 0,
   //噩梦消耗
@@ -1178,24 +1173,7 @@ const handleClickGameplay = (char, tab, gGroup) => {
   //补充奥德
   supplementFormValues.value = cloneDeep(defaultSupplementFormValues);
 
-  if (
-    !gameplayCharForm.value?.dailyMission &&
-    (gameplayCharForm.value?.dailyTaskCount || 0) < 5
-  ) {
-    // 未完成且次数小于5：同步当前的次数
-    weeklydailyFormValues.value = {
-      ...cloneDeep(defaultWeeklydailyFormValues),
-      dailyTaskCount: gameplayCharForm.value?.dailyTaskCount || 0,
-      dailyMission: false,
-    };
-  } else {
-    // 已完成或次数已满：清空或归零该项的表单值
-    weeklydailyFormValues.value = {
-      ...cloneDeep(defaultWeeklydailyFormValues),
-      dailyTaskCount: 5,
-      dailyMission: true,
-    };
-  }
+
   validationResult.value = cloneDeep(defaultValidationResult);
 
   nextTick(() => {
@@ -2373,19 +2351,7 @@ const handleExecuteWeeklyDaily = () => {
   if (battlefield && battlefield > 0) {
     updatedCharacter.battlefield -= battlefield;
   }
-  //每日任务是否完成.如果完成了五次就说明每日任务已经完成了
-  // 每日任务次数累加与状态联动
-  if (dailyTaskCount && dailyTaskCount > 0) {
-    // 累加次数
-    updatedCharacter.dailyTaskCount =
-      (updatedCharacter?.dailyTaskCount || 0) + dailyTaskCount;
-    updatedCharacter.dailyMission = false;
-    // 如果达到或超过 5 次，则判定每日使命已完成，并将上限锁定在 5
-    if (updatedCharacter.dailyTaskCount >= 5) {
-      updatedCharacter.dailyTaskCount = 5;
-      updatedCharacter.dailyMission = true;
-    }
-  }
+
 
   const groupId = getCharGroup.value?.id;
   const newGroups = props.gameData?.groups?.map((g) => {
@@ -2474,11 +2440,6 @@ const handleExecuteWeeklyDaily = () => {
   );
   debugger;
 
-  weeklydailyFormValues.value = {
-    ...weeklydailyFormValues.value,
-    dailyTaskCount: gameplayCharForm.value?.dailyTaskCount || 0,
-    dailyMission: false,
-  };
 
   // 触发父组件更新事件
   emit("update-character", updatedCharacter);
@@ -2743,26 +2704,6 @@ const tabClick = (tab) => {
     case "consume": //消耗奥德
       break;
     case "supplement": //游玩补充
-      break;
-    case "weeklydaily": //日/周常任务
-      if (
-        !gameplayCharForm.value?.dailyMission &&
-        (gameplayCharForm.value?.dailyTaskCount || 0) < 5
-      ) {
-        // 未完成且次数小于5：同步当前的次数
-        weeklydailyFormValues.value = {
-          ...weeklydailyFormValues.value,
-          dailyTaskCount: gameplayCharForm.value?.dailyTaskCount || 0,
-          dailyMission: false,
-        };
-      } else {
-        // 已完成或次数已满：清空或归零该项的表单值
-        weeklydailyFormValues.value = {
-          ...weeklydailyFormValues.value,
-          dailyTaskCount: 5,
-          dailyMission: true,
-        };
-      }
       break;
     case "exchange": //周兑换
       exchangeFormValues.value = cloneDeep(defaultExchangeFormValues);
@@ -3369,20 +3310,6 @@ defineExpose({
 
               <!-- 右侧精致微型卡片流 -->
               <div class="flex items-center gap-2 shrink-0">
-                <!-- 每日使命 -->
-                <div
-                  class="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl"
-                >
-                  <span class="text-slate-400 dark:text-slate-500 font-medium">使命</span>
-                  <span class="font-black text-slate-700 dark:text-slate-200">
-                    {{
-                      weeklydailyFormValues.dailyMission
-                        ? "已完成"
-                        : `${weeklydailyFormValues?.dailyTaskCount || 0}次`
-                    }}
-                  </span>
-                </div>
-
                 <!-- 噩梦 -->
                 <div
                   class="flex items-center gap-1.5 px-2.5 py-1 border rounded-xl transition-all"
@@ -4998,168 +4925,6 @@ defineExpose({
               v-if="gameplayCharForm?.characterId && activeTab == 'weeklydaily'"
               class="space-y-6"
             >
-              <!-- ================= 独立高频每日任务中心 ================= -->
-              <div
-                class="w-full group relative overflow-hidden p-5 border rounded-3xl transition-all duration-300 shadow-xs"
-                :class="
-                  gameplayCharForm.dailyMission
-                    ? 'bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent dark:from-emerald-950/20 dark:via-emerald-950/10 border-emerald-500/30 dark:border-emerald-800/60'
-                    : 'bg-gradient-to-br from-sky-500/10 via-sky-500/5 to-transparent dark:from-sky-950/20 dark:via-sky-950/10 border-sky-500/20 dark:border-sky-900/60 hover:border-sky-500/40 dark:hover:border-sky-700/80'
-                "
-              >
-                <!-- 背景装饰光晕：根据完成状态动态变色 -->
-                <div
-                  class="absolute -right-10 -bottom-10 w-32 h-32 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500 pointer-events-none"
-                  :class="
-                    gameplayCharForm.dailyMission
-                      ? 'bg-emerald-500/10 dark:bg-emerald-500/5'
-                      : 'bg-sky-500/10 dark:bg-sky-500/5'
-                  "
-                ></div>
-
-                <div
-                  class="relative flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap"
-                >
-                  <!-- 左侧：图标与文本说明 -->
-                  <div class="flex items-center gap-4 min-w-0 flex-1">
-                    <div
-                      class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md shrink-0 transform group-hover:-rotate-6 transition-transform duration-300"
-                      :class="
-                        gameplayCharForm.dailyMission
-                          ? 'bg-gradient-to-tr from-emerald-600 to-emerald-400 dark:from-emerald-700 dark:to-emerald-500 shadow-emerald-500/30'
-                          : 'bg-gradient-to-tr from-sky-600 to-sky-400 dark:from-sky-700 dark:to-sky-500 shadow-sky-500/30'
-                      "
-                    >
-                      <!-- 动态图标：未完成时显示时钟，已完成时显示对勾 -->
-                      <svg
-                        v-if="!gameplayCharForm.dailyMission"
-                        class="w-6 h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2.5"
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <svg
-                        v-else
-                        class="w-6 h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="3"
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    </div>
-
-                    <!-- 文本信息：标题与副标题 -->
-                    <div class="space-y-1 min-w-0">
-                      <div class="flex items-center gap-2">
-                        <h3
-                          class="text-xs font-black tracking-wide uppercase text-slate-800 dark:text-slate-100 truncate"
-                        >
-                          日常每日使命任务
-                        </h3>
-                        <span
-                          v-if="gameplayCharForm.dailyMission"
-                          class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-800 shrink-0"
-                        >
-                          今日已达成
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- 右侧动态控制区：已完成 vs 未完成操作面板 -->
-                  <div class="flex items-center gap-3 shrink-0 ml-auto sm:ml-0">
-                    <!-- 状态 A：已完成时的专属优雅占位样式（无输入框与按钮） -->
-                    <template v-if="gameplayCharForm.dailyMission">
-                      <div
-                        class="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900/90 border border-emerald-500/20 dark:border-emerald-800/80 text-xs font-black text-emerald-700 dark:text-emerald-400 shadow-2xs"
-                      >
-                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <span>已完成 (5/5)</span>
-                      </div>
-                    </template>
-
-                    <!-- 状态 B：未完成时的步进器与快捷拉满操作区 -->
-                    <template v-else>
-                      <!-- 进度文字提示 -->
-                      <div
-                        class="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-slate-900/80 border border-sky-500/20 dark:border-sky-900/80 text-[11px] font-bold text-sky-700 dark:text-sky-400 shadow-2xs"
-                      >
-                        <span
-                          class="w-2 h-2 rounded-full bg-sky-500 animate-pulse"
-                        ></span>
-                        <span
-                          >已完成 {{ weeklydailyFormValues.dailyTaskCount || 0 }} /
-                          5</span
-                        >
-                      </div>
-
-                      <!-- 步进器按钮组 -->
-                      <div
-                        class="flex items-center gap-1.5 bg-white dark:bg-slate-900/90 p-1.5 border border-sky-500/20 dark:border-sky-900/80 rounded-2xl shadow-2xs"
-                      >
-                        <button
-                          type="button"
-                          class="w-7 h-7 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 text-slate-700 dark:text-slate-200 font-black text-xs flex items-center justify-center transition-all cursor-pointer"
-                          @click="
-                            weeklydailyFormValues.dailyTaskCount = Math.max(
-                              0,
-                              (weeklydailyFormValues.dailyTaskCount || 0) - 1
-                            )
-                          "
-                        >
-                          -
-                        </button>
-
-                        <input
-                          v-model.number="weeklydailyFormValues.dailyTaskCount"
-                          min="0"
-                          max="5"
-                          class="w-9 text-center font-black text-xs text-sky-700 dark:text-sky-400 bg-transparent outline-none"
-                        />
-
-                        <button
-                          type="button"
-                          class="w-7 h-7 rounded-xl bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/80 active:scale-95 text-sky-700 dark:text-sky-400 font-black text-xs flex items-center justify-center transition-all cursor-pointer"
-                          @click="
-                            weeklydailyFormValues.dailyTaskCount = Math.min(
-                              5,
-                              (weeklydailyFormValues.dailyTaskCount || 0) + 1
-                            )
-                          "
-                        >
-                          +
-                        </button>
-                      </div>
-
-                      <!-- 一键拉满快捷按钮 -->
-                      <button
-                        type="button"
-                        class="px-4 py-2.5 bg-gradient-to-r from-sky-600 to-sky-500 dark:from-sky-700 dark:to-sky-600 hover:from-sky-500 hover:to-sky-400 dark:hover:from-sky-600 dark:hover:to-sky-500 active:scale-95 text-white font-black text-xs rounded-2xl shadow-md shadow-sky-600/25 transition-all duration-200 cursor-pointer flex items-center gap-1.5"
-                        @click="
-                          weeklydailyFormValues.dailyTaskCount = 5;
-                          weeklydailyFormValues.dailyMission = true;
-                        "
-                      >
-                        <span>拉满</span>
-                      </button>
-                    </template>
-                  </div>
-                </div>
-              </div>
-
               <!-- ================= 3. 噩梦、觉醒战、战场消耗（一行三列布局） ================= -->
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <!-- ================= 每日副本消耗管理 ================= -->
