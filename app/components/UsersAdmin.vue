@@ -1794,6 +1794,15 @@ const handleSignInSignIn = async (gGroup) => {
 
   await groupCharacterPanelHandleUpdateGroup(newAtvTabGroup);
 };
+// 每日任务完成
+const handleToggleDailyMission = async (gGroup) => {
+  let newAtvTabGroup = { ...gGroup };
+  newAtvTabGroup.dailyMission = !newAtvTabGroup?.dailyMission;
+  newAtvTabGroup.dailyTaskCount = 5;
+  newAtvTabGroup.dailyMissionDate = Date.now();
+
+  await groupCharacterPanelHandleUpdateGroup(newAtvTabGroup);
+};
 
 onMounted(async () => {
   await loadData();
@@ -3125,13 +3134,13 @@ watch(
       <div
         class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-xs flex flex-col lg:flex-row gap-3.5 items-stretch"
       >
-        <!-- ================= 左侧：重新深度设计的签到卡片（层次感与视觉吸睛度拉满） ================= -->
+        <!-- ================= 账号综合活跃与签到/任务中心 ================= -->
         <div
-          class="lg:w-80 p-4 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white dark:from-indigo-950/40 dark:via-purple-950/20 dark:to-slate-900 border border-indigo-200/80 dark:border-indigo-900/60 rounded-xl flex flex-col justify-between gap-3.5 shrink-0 shadow-xs relative overflow-hidden"
+          class="lg:w-[420px] p-4 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white dark:from-indigo-950/40 dark:via-purple-950/20 dark:to-slate-900 border border-indigo-200/80 dark:border-indigo-900/60 rounded-xl flex flex-col justify-between gap-3.5 shrink-0 shadow-xs relative overflow-hidden"
         >
           <!-- 背景装饰微光 -->
           <div
-            class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-xl pointer-events-none"
+            class="absolute -right-6 -bottom-6 w-28 h-28 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-xl pointer-events-none"
           ></div>
 
           <!-- 顶栏：图标与标题 -->
@@ -3140,44 +3149,46 @@ watch(
               <div
                 class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-black text-xs shadow-md shadow-indigo-500/25 shrink-0"
               >
-                签
+                活跃
               </div>
               <div class="min-w-0">
                 <div
                   class="text-xs font-black text-slate-800 dark:text-slate-100 tracking-wide truncate"
                 >
-                  每日/每周签到中心
+                  每日活跃与签到中心
                 </div>
                 <div class="text-[10px] text-slate-400 dark:text-slate-400 truncate">
-                  保持出勤，领取活跃奖励
+                  保持出勤，轻松清日常任务与账号签到
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- 底栏：当前状态与交互按钮 -->
-          <div
-            class="flex items-center justify-between gap-3 pt-2 border-t border-indigo-100/60 dark:border-indigo-900/50"
-          >
-            <div class="flex items-center gap-1.5 text-xs font-bold">
-              <span class="text-[10px] text-slate-400 dark:text-slate-500">状态:</span>
-              <span
-                :class="
-                  getAtvTabGroup?.dailySignIn
-                    ? 'text-emerald-600 dark:text-emerald-400 font-black'
-                    : 'text-amber-600 dark:text-amber-400 font-black'
-                "
-              >
-                {{ getAtvTabGroup?.dailySignIn ? "今日已完成签到" : "待签到" }}
-              </span>
-            </div>
-
+          <!-- 底栏：操作按钮组（签到按钮 + 任务快捷触发按钮） -->
+          <div class="flex items-center justify-between gap-3">
+            <!-- 每日任务快捷切换/完成按钮 -->
             <button
               type="button"
-              class="px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-sm active:scale-95 shrink-0"
+              class="flex-1 px-4 py-2 rounded-xl text-xs font-bold transition-all border shadow-xs active:scale-95 text-center truncate cursor-pointer"
+              :class="
+                getAtvTabGroup?.dailyMission
+                  ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 shadow-emerald-500/5'
+                  : 'bg-indigo-600 hover:bg-indigo-500 text-white border-transparent shadow-indigo-500/25 shadow-md'
+              "
+              @click="
+                () => handleToggleDailyMission && handleToggleDailyMission(getAtvTabGroup)
+              "
+            >
+              {{ getAtvTabGroup?.dailyMission ? "✓ 已完成每日任务" : "完成每日任务" }}
+            </button>
+
+            <!-- 签到按钮 -->
+            <button
+              type="button"
+              class="flex-1 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-sm active:scale-95 text-center truncate"
               :class="
                 getAtvTabGroup?.dailySignIn
-                  ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 shadow-emerald-500/5'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
                   : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/25 shadow-md'
               "
               :disabled="getAtvTabGroup?.dailySignIn"
@@ -3187,7 +3198,6 @@ watch(
             </button>
           </div>
         </div>
-
         <!-- ================= 特级会员状态管理卡片 ================= -->
         <div
           class="lg:w-80 p-4 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-white dark:from-amber-950/40 dark:via-orange-950/20 dark:to-slate-900 border border-amber-200/80 dark:border-amber-900/60 rounded-xl flex flex-col justify-between gap-3.5 shrink-0 shadow-xs relative overflow-hidden"
