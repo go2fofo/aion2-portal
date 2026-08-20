@@ -164,43 +164,58 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
           }
         }
 
-        // 2. 每天 5点 恢复/重置类规则（服务器共享）
+        // 2. 每天 5点 恢复/重置类规则（服务器共享）- 优化版
         if (refreshType === "daily") {
-          let currentLastTime = lastTime || group.createdAt || now;
-          let lastDailyPeriod = getDaily5amTimestamp(currentLastTime);
+          // 安全获取上次更新时间，若不存在则降级为 group.createDate，再没有则为 0（代表全量追赶）
+          let lastTime = group[timeField];
+          const isFirstInit =
+            lastTime === undefined || lastTime === null || lastTime === "";
+
+          if (isFirstInit) {
+            lastTime = 0;
+          }
+
+          let lastDailyPeriod = getDaily5amTimestamp(lastTime);
           const oneDayMs = 24 * 60 * 60 * 1000;
           let dailyChanged = false;
 
+          // 安全阀：防止异常情况下陷入无限循环（最多允许追赶 365 天）
+          let safetyCounter = 0;
+
           while (
             lastDailyPeriod < today5amTime &&
-            (group.createdAt || 0) < today5amTime
+            (group.createdAt || 0) < today5amTime &&
+            safetyCounter < 365
           ) {
             if (rule.action) {
               rule.action(group);
               dailyChanged = true;
               break;
-            } else if (rule.incrementCount !== undefined) {
+            } else if (rule.incrementCount !== undefined && rule.targetField) {
               const currentCount =
-                getNestedProperty(group, rule.targetField!) || 0;
+                getNestedProperty(group, rule.targetField) || 0;
               const max = rule.maxCount || 14;
 
-              // 核心修改：加上每天的恢复量，如果超出上限直接等于最大值（丢弃溢出，不存 storedField）
+              // 每天恢复固定量，超出上限直接截断为 max
               let newCurrent = currentCount + rule.incrementCount;
               if (newCurrent > max) {
                 newCurrent = max;
               }
 
-              setNestedProperty(group, rule.targetField!, newCurrent);
+              setNestedProperty(group, rule.targetField, newCurrent);
               dailyChanged = true;
-            } else if (rule.resetValue !== undefined) {
-              setNestedProperty(group, rule.targetField!, rule.resetValue);
+            } else if (rule.resetValue !== undefined && rule.targetField) {
+              setNestedProperty(group, rule.targetField, rule.resetValue);
               dailyChanged = true;
             }
 
+            // 时间指针向后推一天
             lastDailyPeriod += oneDayMs;
+            safetyCounter++;
           }
 
-          if (dailyChanged || lastTime === 0) {
+          // 只要发生过变动，或者原本字段压根不存在（首次初始化），就更新时间戳
+          if (dailyChanged || isFirstInit) {
             group[timeField] = today5amTime;
             hasChanges = true;
           }
