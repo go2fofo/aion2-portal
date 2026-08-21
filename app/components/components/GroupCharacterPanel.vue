@@ -3094,7 +3094,7 @@ defineExpose({
         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 backdrop-blur-sm"
       >
         <div
-          class="relative w-full max-w-5xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-[2.5rem] shadow-2xl overflow-hidden text-slate-800 flex flex-col h-[90vh]"
+          class="relative w-full max-w-5xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-[2.5rem] shadow-2xl overflow-hidden text-slate-800 flex flex-col max-h-[90vh]"
         >
           <!-- 弹窗头部 -->
           <div
@@ -3404,7 +3404,7 @@ defineExpose({
 
           <!-- 弹窗表单主体 -->
           <div
-            class="p-3 space-y-6 overflow-y-auto custom-scroll flex-1 bg-slate-50 dark:bg-slate-800/50"
+            class="p-3 space-y-6 overflow-y-auto custom-scroll flex-1 bg-slate-50 dark:bg-slate-800/50 min-h-0"
           >
             <!-- 第一个分组：消耗奥德分组内容 -->
             <div v-if="activeTab === 'consume'" class="space-y-6">
