@@ -1173,7 +1173,6 @@ const handleClickGameplay = (char, tab, gGroup) => {
   //补充奥德
   supplementFormValues.value = cloneDeep(defaultSupplementFormValues);
 
-
   validationResult.value = cloneDeep(defaultValidationResult);
 
   nextTick(() => {
@@ -2352,7 +2351,6 @@ const handleExecuteWeeklyDaily = () => {
     updatedCharacter.battlefield -= battlefield;
   }
 
-
   const groupId = getCharGroup.value?.id;
   const newGroups = props.gameData?.groups?.map((g) => {
     if (g.id === groupId) {
@@ -2439,7 +2437,6 @@ const handleExecuteWeeklyDaily = () => {
     newGroups
   );
   debugger;
-
 
   // 触发父组件更新事件
   emit("update-character", updatedCharacter);
@@ -2690,8 +2687,8 @@ const watchFieldLimit = (sourceGetter, fieldName, extraCondition) => {
 
       validationResult.value = {
         ...validationResult.value,
-        isValid: Object.keys(newErrors).length === 0,
-        errors: newErrors,
+        isValid: newInvalidFields?.length ? Object.keys(newErrors).length === 0 : true,
+        errors: newInvalidFields?.length ? newErrors : [],
         invalidFields: newInvalidFields,
       };
     }
@@ -5041,8 +5038,7 @@ defineExpose({
                           class="py-2 px-1 bg-gradient-to-r from-amber-600 to-amber-500 dark:from-amber-700 dark:to-amber-600 hover:from-amber-500 hover:to-amber-400 dark:hover:from-amber-600 dark:hover:to-amber-500 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-amber-600/25 rounded-xl flex items-center justify-center truncate"
                           @click="
                             weeklydailyFormValues.dailyRuns =
-                              (weeklydailyFormValues.dailyRuns || 0) +
-                              (totalsRemainingDailyRunsCountRuns || 0)
+                              totalsRemainingDailyRunsCountRuns || 0
                           "
                         >
                           全部 ({{ totalsRemainingDailyRunsCountRuns || 0 }})
@@ -5197,7 +5193,7 @@ defineExpose({
                           type="button"
                           class="py-2 px-2 bg-gradient-to-r from-purple-600 to-purple-500 dark:from-purple-700 dark:to-purple-600 hover:from-purple-500 hover:to-purple-400 dark:hover:from-purple-600 dark:hover:to-purple-500 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-purple-600/25 rounded-xl flex items-center justify-center truncate"
                           @click="
-                            weeklydailyFormValues.awakening +=
+                            weeklydailyFormValues.awakening =
                               totalsRemainingAwakeningCountRuns || 0
                           "
                         >
@@ -5353,7 +5349,7 @@ defineExpose({
                           type="button"
                           class="py-2 px-2 bg-gradient-to-r from-purple-600 to-purple-500 dark:from-purple-700 dark:to-purple-600 hover:from-purple-500 hover:to-purple-400 dark:hover:from-purple-600 dark:hover:to-purple-500 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-purple-600/25 rounded-xl flex items-center justify-center truncate"
                           @click="
-                            weeklydailyFormValues.battlefield +=
+                            weeklydailyFormValues.battlefield =
                               gameplayCharForm.battlefield || 0
                           "
                         >
@@ -5513,7 +5509,7 @@ defineExpose({
                           type="button"
                           class="py-2 px-2 bg-gradient-to-r from-purple-600 to-purple-500 dark:from-purple-700 dark:to-purple-600 hover:from-purple-500 hover:to-purple-400 dark:hover:from-purple-600 dark:hover:to-purple-500 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-purple-600/25 rounded-xl flex items-center justify-center truncate"
                           @click="
-                            weeklydailyFormValues.nightmareCount +=
+                            weeklydailyFormValues.nightmareCount =
                               totalsRemainingNightmareCountRuns || 0
                           "
                         >
@@ -5674,8 +5670,7 @@ defineExpose({
                           class="py-2 px-1 bg-gradient-to-r from-amber-600 to-amber-500 dark:from-amber-700 dark:to-amber-600 hover:from-amber-500 hover:to-amber-400 dark:hover:from-amber-600 dark:hover:to-amber-500 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-amber-600/25 rounded-xl flex items-center justify-center truncate"
                           @click="
                             weeklydailyFormValues.minigameCount =
-                              (weeklydailyFormValues.minigameCount || 0) +
-                              (totalsRemainingMinigameCountRuns || 0)
+                              totalsRemainingMinigameCountRuns || 0
                           "
                         >
                           全部 ({{ totalsRemainingMinigameCountRuns || 0 }})
@@ -5835,8 +5830,7 @@ defineExpose({
                           class="py-2 px-1 bg-gradient-to-r from-amber-600 to-amber-500 dark:from-amber-700 dark:to-amber-600 hover:from-amber-500 hover:to-amber-400 dark:hover:from-amber-600 dark:hover:to-amber-500 active:scale-98 text-white font-black text-[11px] transition-all cursor-pointer text-center shadow-sm shadow-amber-600/25 rounded-xl flex items-center justify-center truncate"
                           @click="
                             weeklydailyFormValues.dimensionalCount =
-                              (weeklydailyFormValues.dimensionalCount || 0) +
-                              (totalsRemainingDimensionalCountRuns || 0)
+                              totalsRemainingDimensionalCountRuns || 0
                           "
                         >
                           全部 ({{ totalsRemainingDimensionalCountRuns || 0 }})

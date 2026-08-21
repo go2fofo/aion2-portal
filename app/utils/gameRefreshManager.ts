@@ -113,12 +113,12 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
             ? lastTimeVal
             : new Date(lastTimeVal).getTime();
 
-        // 1. 每周三 5点 重置类规则（服务器共享）- 加上了严密的上限截断保护
+        // 1. 每周三 5点 重置类规则（服务器共享
         if (refreshType === "weekly") {
+          // 安全获取上次更新时间
+          let lastTime = group[timeField];
           const isFirstInit =
-            group[timeField] === undefined ||
-            group[timeField] === null ||
-            group[timeField] === "";
+            lastTime === undefined || lastTime === null || lastTime === "";
 
           if (isFirstInit) {
             lastTime = 0; // 设为 0 确保触发第一次全量追赶
@@ -133,10 +133,20 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
             lastPeriod < currentWednesday5am &&
             (group.createdAt || 0) < currentWednesday5am
           ) {
+            // ==================== 核心修复点 ====================
+            // 如果该分组的共享时间戳已经是本周三（或之后），说明本周已经初始化过，
+            // 绝对不能再重复执行重置或累加，保护玩家的操作！
+            if (lastTime >= currentWednesday5am && !isFirstInit) {
+              break;
+            }
+            // ====================================================
+
             if (rule.action) {
               rule.action(group, now, gameData.characters);
+              serverWeeklyChanged = true;
             } else if (rule.resetValue !== undefined && rule.targetField) {
               setNestedProperty(group, rule.targetField, rule.resetValue);
+              serverWeeklyChanged = true;
             } else if (rule.incrementCount !== undefined && rule.targetField) {
               const max = rule.maxValue || rule.maxCount || 14;
               const currentCount =
@@ -149,17 +159,17 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
               }
 
               setNestedProperty(group, rule.targetField, newCurrent);
+              serverWeeklyChanged = true;
             }
 
-            serverWeeklyChanged = true;
             // 时间指针向后推一周，防止死循环
             lastPeriod += oneWeekMs;
-            if (rule.action) break; // 自定义 action 视为一次性全量，通常跑一次即可
+            if (rule.action) break;
           }
 
+          // 只有在真正发生了跨周改变，或者首次初始化时，才更新时间戳
           if (serverWeeklyChanged || isFirstInit) {
-            group[timeField] = currentWednesday5am; // 对齐到最近一次周三
-            groupChanged = true;
+            group[timeField] = currentWednesday5am;
             hasChanges = true;
           }
         }
@@ -341,7 +351,7 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
           }
         }
 
-        // 3. 每周三 5点 重置类规则 - 修正周常累加与上限逻辑
+        // 3. 每周三 5点 重置类规则
         if (refreshType === "weekly") {
           const isFirstInit =
             char[timeField] === undefined ||
@@ -361,36 +371,41 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
             lastPeriod < currentWednesday5am &&
             (char.createdAt || 0) < currentWednesday5am
           ) {
+            // ==================== 核心修复点 ====================
+            // 如果数据里的时间戳已经属于当前周三（或者更新），说明本周已经初始化/处理过了，
+            // 绝对不能再重复执行重置，防止把玩家手动消耗掉的次数（比如战场打到 0）又刷回满额！
+            if (lastTime >= currentWednesday5am && !isFirstInit) {
+              break;
+            }
+            // ====================================================
+
             if (rule.action) {
               rule.action(char, now, gameData.characters);
+              weeklyCharChanged = true;
             } else if (rule.resetValue !== undefined) {
+              // 注意：这里如果是重置类（如战场重置为 3），跨周时才赋初始值
               setNestedProperty(char, rule.targetField!, rule.resetValue);
+              weeklyCharChanged = true;
             } else if (rule.incrementCount !== undefined && rule.targetField) {
               const max = rule.maxValue || rule.maxCount || 3;
               const currentCount =
                 getNestedProperty(char, rule.targetField) || 0;
-
-              // 觉醒战这类周常，一般是每周三刷新恢复。
-              // 如果是“每周恢复固定次数”，应使用下面这种“不超过最大值”的严格累加，或者直接刷新到满额：
-              // 方案 A（严格累加但不超上限）：
               let newCurrent = currentCount + rule.incrementCount;
               if (newCurrent > max) {
-                newCurrent = max; // 或者直接设为 max，视游戏具体设计而定
+                newCurrent = max;
               }
               setNestedProperty(char, rule.targetField, newCurrent);
-
-              // 方案 B（如果游戏设定是每周三直接回满到 max，可以改成下面这行）：
-              // setNestedProperty(char, rule.targetField, max);
+              weeklyCharChanged = true;
             }
 
-            weeklyCharChanged = true;
             // 时间指针向后推一周，防止死循环
             lastPeriod += oneWeekMs;
             if (rule.action) break;
           }
 
+          // 只有在真正发生了跨周改变，或者首次初始化时，才把时间戳更新为当前周三
           if (weeklyCharChanged || isFirstInit) {
-            char[timeField] = currentWednesday5am; // 对齐到最近一次周三
+            char[timeField] = now;;
             charChanged = true;
             hasChanges = true;
           }
