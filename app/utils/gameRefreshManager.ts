@@ -372,9 +372,9 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
             (char.createdAt || 0) < currentWednesday5am
           ) {
             // ==================== 核心修复点 ====================
-            // 如果数据里的时间戳已经属于当前周三（或者更新），说明本周已经初始化/处理过了，
-            // 绝对不能再重复执行重置，防止把玩家手动消耗掉的次数（比如战场打到 0）又刷回满额！
-            if (lastTime >= currentWednesday5am && !isFirstInit) {
+            // 只有当“没有自定义 action”且“时间戳已经是本周三或之后”时，才拦截。
+            // 这样像圣域这种带 rule.action 的周常就可以正常执行重置！
+            if (!rule.action && lastTime >= currentWednesday5am && !isFirstInit) {
               break;
             }
             // ====================================================
@@ -403,9 +403,9 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
             if (rule.action) break;
           }
 
-          // 只有在真正发生了跨周改变，或者首次初始化时，才把时间戳更新为当前周三
+          // 只有在真正发生了跨周改变，或者首次初始化时，才更新时间戳
           if (weeklyCharChanged || isFirstInit) {
-            char[timeField] = now;;
+            char[timeField] = now; // 统一更新为本周三 5点，或者用 now
             charChanged = true;
             hasChanges = true;
           }
