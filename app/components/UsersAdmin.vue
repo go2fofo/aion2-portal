@@ -5879,6 +5879,16 @@ watch(
                         />
                         显示副本
                       </label>
+                         <label
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          v-model="cardConfig.customFields.showSanctuary"
+                          class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#45a6d5] focus:ring-[#45a6d5]"
+                        />
+                        显示圣域
+                      </label>
                       <label
                         class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
                       >
