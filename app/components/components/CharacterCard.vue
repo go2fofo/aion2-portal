@@ -46,6 +46,7 @@ const props = defineProps({
 const emit = defineEmits([
   "click-gameplay",
   "toggle-lock",
+  "toggle-refresh",
   "toggle-task",
   "text-change",
   "delete",
@@ -102,7 +103,27 @@ const gameplayIconClass = computed(() => {
     return "w-3 h-3"; // 5列及以上：微型图标
   }
 });
+// 计算几天前的通用方法
+const getDaysAgoText = (timestamp) => {
+  if (!timestamp) {
+    return "";
+  }
 
+  const now = Date.now();
+  const diffTime = now - Number(timestamp);
+
+  if (diffTime < 0) {
+    return "刚刚";
+  }
+
+  const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  if (days === 0) {
+    return "今天";
+  }
+
+  return `${days}天前`;
+};
 //  当前模式判断辅助
 const currentMode = computed(() => props.config?.mode || "default");
 const fields = computed(() => props.config?.customFields || {});
@@ -496,13 +517,11 @@ const handleTaskClickWithDblClick = (char, field, type) => {
           </div>
 
           <!-- 角色基本信息（增加 min-w-0 与 truncate 防止挤压换行） -->
-          <div
-            class="min-w-0 flex-1 cursor-pointer select-none"
-            @click="emit('task-click', char, '', 'globalModifyCharacter')"
-          >
+          <div class="min-w-0 flex-1 cursor-pointer select-none">
             <!-- 角色名称与职业标签 -->
             <div
               class="text-xs font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5"
+              @click="emit('task-click', char, '', 'globalModifyCharacter')"
             >
               <span class="truncate max-w-[110px]">{{
                 char.characterName || "未命名角色"
@@ -512,11 +531,55 @@ const handleTaskClickWithDblClick = (char, field, type) => {
               >
                 {{ char.className || "选择职业" }}
               </span>
+              <!-- 角色刷新与最后更新时间显示区域 -->
+              <div
+                class="flex items-center gap-2"
+                v-if="typeof char.characterId === 'string'"
+              >
+                <!-- 刷新角色按钮 -->
+                <button
+                  type="button"
+                  class="relative w-7 h-7 rounded-lg bg-slate-100 hover:bg-sky-50 dark:bg-slate-800 dark:hover:bg-sky-950/40 text-slate-500 hover:text-[#45a6d5] dark:text-slate-400 dark:hover:text-sky-400 flex items-center justify-center transition-all cursor-pointer active:scale-95 group shadow-2xs"
+                  :class="{
+                    'pointer-events-none opacity-60 bg-sky-50 dark:bg-sky-950/40 text-[#45a6d5] dark:text-sky-400':
+                      char.isRefreshing,
+                  }"
+                  :disabled="char.isRefreshing"
+                  @click.stop="emit('toggle-refresh', char)"
+                  :title="char.isRefreshing ? '正在刷新...' : '刷新角色数据'"
+                >
+                  <!-- SVG 刷新图标 -->
+                  <svg
+                    class="w-3.5 h-3.5 transition-transform duration-300"
+                    :class="{
+                      'animate-spin': char.isRefreshing,
+                      'group-hover:rotate-180': !char.isRefreshing,
+                    }"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                </button>
+                <!-- 最后更新时间提示 -->
+                <span
+                  class="text-[10px] font-medium tracking-wide text-sky-600/70 dark:text-sky-400/60"
+                >
+                  {{ getDaysAgoText(char?.profileLastUpdatedAt) }}
+                </span>
+              </div>
             </div>
 
             <!-- 等级、种族、服务器（极简紧凑） -->
             <div
               class="text-[9px] font-bold text-slate-400 dark:text-slate-400 mt-0.5 flex items-center gap-1 truncate"
+              @click="emit('task-click', char, '', 'globalModifyCharacter')"
             >
               <span>Lv.{{ char.characterLevel || 1 }}</span>
               <span>·</span>

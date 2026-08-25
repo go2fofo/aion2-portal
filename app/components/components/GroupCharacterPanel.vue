@@ -459,6 +459,7 @@ const emit = defineEmits([
   "update-character",
   "delete-character",
   "toggle-lock",
+  "toggle-refresh",
   "sign-in-click",
   "toggle-task",
   "play-consumption",
@@ -2614,6 +2615,7 @@ defineExpose({
       :format-combat-power="formatCombatPower"
       @click-gameplay="handleClickGameplay"
       @toggle-lock="(char) => emit('toggle-lock', char)"
+      @toggle-refresh="(char) => emit('toggle-refresh', char)"
       @toggle-task="handleToggleTask"
       @task-click="handleTaskClick"
       @text-change="handleTextChange"

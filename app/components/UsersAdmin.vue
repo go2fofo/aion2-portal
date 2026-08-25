@@ -1582,6 +1582,7 @@ const saveCharacterSort = () => {
 // 点击刷新按钮的处理逻辑
 const handleSync = async () => {
   if (isRefreshing.value) return;
+  $loading.show("正在更新角色...");
   isRefreshing.value = true;
 
   try {
@@ -1599,6 +1600,7 @@ const handleSync = async () => {
       isRefreshing.value = false;
     }, 500);
   }
+  $loading.hide();
 };
 
 //============================组角色卡片列表事件处理/开始============================
@@ -1616,6 +1618,35 @@ const groupCharacterPanelHandleToggleLock = async (char) => {
   // 默认不锁定，取反切换
   char.locked = !char.locked;
   await groupCharacterPanelHandleUpdateCharacter(char);
+};
+//刷新角色
+const groupCharacterPanelHandleToggleRefresh = async (char) => {
+  $loading.show("角色更新中...");
+  console.log(
+    `🔍 [UsersAdmin:1623] %c 刷新角色 char: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    char
+  );
+
+  // 字符串的才是接口上的id
+  if (typeof char.characterId === "string") {
+    let profile;
+    try {
+      profile = await fetchCharacterInfo(char.characterId, char.serverId);
+      console.log(
+        `🔍 [UsersAdmin:1623] %c 刷新角色 profile: `,
+        "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+        profile
+      );
+      char = {
+        ...char,
+        ...profile,
+        profileLastUpdatedAt: Date.now(),
+      };
+      await groupCharacterPanelHandleUpdateCharacter(char);
+    } catch (error) {}
+  }
+  $loading.hide();
 };
 // 分组签到事件处理
 
@@ -3750,6 +3781,7 @@ watch(
       :cardConfig="cardConfig"
       @character-delete="groupCharacterPanelHandleDelete"
       @toggle-lock="groupCharacterPanelHandleToggleLock"
+      @toggle-refresh="groupCharacterPanelHandleToggleRefresh"
       @update-character="groupCharacterPanelHandleUpdateCharacter"
       @update-groups="groupCharacterPanelHandleUpdateGroup"
       @toggle-task="groupCharacterPanelHandleToggleTask"
@@ -5879,7 +5911,7 @@ watch(
                         />
                         显示副本
                       </label>
-                         <label
+                      <label
                         class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
                       >
                         <input
