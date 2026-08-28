@@ -438,8 +438,8 @@ export const KinahOdSate = {
         {
           mode: "默认",
           energy: 80,
-          kina: 200,
-          boundKina: 200,
+          kina: 0,
+          boundKina: 400,
           total: 400,
         },
       ],
