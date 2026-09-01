@@ -296,7 +296,9 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
             }
 
             char[rule.targetField!] = total;
-            char[storedField] = currentStored;
+            if (storedField != "storedEnergy") {
+              char[storedField] = currentStored;
+            }
 
             char[timeField] = now;
             charChanged = true;
@@ -374,7 +376,11 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
             // ==================== 核心修复点 ====================
             // 只有当“没有自定义 action”且“时间戳已经是本周三或之后”时，才拦截。
             // 这样像圣域这种带 rule.action 的周常就可以正常执行重置！
-            if (!rule.action && lastTime >= currentWednesday5am && !isFirstInit) {
+            if (
+              !rule.action &&
+              lastTime >= currentWednesday5am &&
+              !isFirstInit
+            ) {
               break;
             }
             // ====================================================

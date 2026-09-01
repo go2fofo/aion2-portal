@@ -283,7 +283,6 @@ const sanitizeGameData = (gameData: any) => {
           `[DataMigration] 分组 [${group.name || group.id}] 的会员已过期，已自动重置`,
         );
 
-        // 相关组下的角色处理...
         gameData.characters.forEach((char: any) => {
           if (char.energy > 560 && char.group == group.id) {
             char.energy = 560;
@@ -460,6 +459,13 @@ export const useGameRefresh = () => {
         JSON.parse(JSON.stringify(loadGameDataRes)),
       );
 
+      console.log(
+        `🔍 [useGameRefresh:170] %c sanitizeGameData1111: `,
+        "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+        gameData,
+      );
+
+      debugger;
       //表示有规则变动触发刷新
       let hasRulesModified = executeRulesByDictionary(gameData);
       if (hasRulesModified) {
@@ -469,6 +475,7 @@ export const useGameRefresh = () => {
           gameData,
         );
       }
+       debugger;
       //  有变动则持久化并同步
       if (hasModified || hasRulesModified) {
         await saveGameData(gameData);

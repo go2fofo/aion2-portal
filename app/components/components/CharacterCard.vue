@@ -1010,6 +1010,19 @@ const handleTaskClickWithDblClick = (char, field, type) => {
 
         <!-- ================= 共享玩法统一样式区 1 ================= -->
         <div
+          class="inline-flex items-center gap-2 px-2 py-1 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-lg text-xs text-slate-500 dark:text-slate-400 select-none"
+        >
+          <span class="text-indigo-500 dark:text-indigo-400">💡</span>
+          <span
+            >提示：下方卡片支持
+            <strong
+              class="text-slate-700 dark:text-slate-200 font-medium underline decoration-indigo-400/50 underline-offset-2"
+              >双击</strong
+            >
+            快捷修改内容</span
+          >
+        </div>
+        <div
           v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showTasks)"
           class="grid grid-cols-3 gap-2"
         >
@@ -1037,6 +1050,8 @@ const handleTaskClickWithDblClick = (char, field, type) => {
           </button> -->
 
           <!-- 次元袭击 (服务器共享，每天5点恢复2次，上限14) -->
+            <!-- @click="emit('task-click', char, 'dimensionalCount', 'weeklydaily')" -->
+
           <button
             type="button"
             class="p-2 border rounded-xl flex flex-col items-start gap-1 transition-all text-left shadow-sm group cursor-pointer active:scale-95"
@@ -1050,7 +1065,7 @@ const handleTaskClickWithDblClick = (char, field, type) => {
                 ? 'bg-slate-50/60 dark:bg-slate-900/40 border-slate-200/70 dark:border-slate-800 opacity-75'
                 : 'bg-rose-50/30 dark:bg-rose-950/20 border-rose-200/50 dark:border-rose-900/40 hover:bg-rose-50/60 dark:hover:bg-rose-900/30',
             ]"
-            @click="emit('task-click', char, 'dimensionalCount', 'weeklydaily')"
+             @click="handleTaskClickWithDblClick(char, 'dimensionalCount', 'weeklydaily')"
           >
             <template
               v-if="
@@ -1083,7 +1098,9 @@ const handleTaskClickWithDblClick = (char, field, type) => {
                       "storedDimensionalCount",
                       14
                     ).total
-                  }}次
+                  }}次({{ getGroup(char.group)?.dimensionalCount || 0 }}/{{
+                    getGroup(char.group)?.storedDimensionalCount || 0
+                  }})
                 </span>
               </div>
             </template>
@@ -1110,6 +1127,8 @@ const handleTaskClickWithDblClick = (char, field, type) => {
             </template>
           </button>
           <!--  战场 (角色独立，无存储字段) -->
+          <!-- @click="emit('task-click', char, 'battlefield', 'weeklydaily')" -->
+
           <button
             type="button"
             class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
@@ -1118,7 +1137,7 @@ const handleTaskClickWithDblClick = (char, field, type) => {
                 ? 'bg-slate-50/60 dark:bg-slate-900/40 border-slate-200/70 dark:border-slate-800 opacity-75'
                 : 'bg-emerald-50/30 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-900/40 hover:bg-emerald-50/60 dark:hover:bg-emerald-900/30',
             ]"
-            @click="emit('task-click', char, 'battlefield', 'weeklydaily')"
+            @click="handleTaskClickWithDblClick(char, 'battlefield', 'weeklydaily')"
           >
             <template v-if="char?.battlefield != 0">
               <div class="w-full flex items-center justify-between">
@@ -1211,19 +1230,7 @@ const handleTaskClickWithDblClick = (char, field, type) => {
         </div>
 
         <!-- ================= 共享玩法统一样式区 2 ================= -->
-        <div
-          class="inline-flex items-center gap-2 px-2 py-1 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-lg text-xs text-slate-500 dark:text-slate-400 select-none"
-        >
-          <span class="text-indigo-500 dark:text-indigo-400">💡</span>
-          <span
-            >提示：下方卡片支持
-            <strong
-              class="text-slate-700 dark:text-slate-200 font-medium underline decoration-indigo-400/50 underline-offset-2"
-              >双击</strong
-            >
-            快捷修改内容</span
-          >
-        </div>
+
         <div
           v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showTasks)"
           class="grid grid-cols-4 gap-2"

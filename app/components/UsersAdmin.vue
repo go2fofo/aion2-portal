@@ -1449,6 +1449,8 @@ const importGameData = (event) => {
       if (parsedData && typeof parsedData === "object") {
         gameData.value = parsedData;
         await saveData();
+        await handleSync();
+
         $alert("数据导入并持久化成功！");
       } else {
         $alert("导入的文件格式不正确！");
@@ -2071,6 +2073,26 @@ const handleOpenGlobalPopup = (type, name) => {
   globalPopupOp.value.type = type;
   globalPopupOp.value.name = name;
 };
+
+// 定义字段与中文名称的映射字典
+const keyNameMap = {
+  nightmareCount: "噩梦副本当前次数",
+  storedNightmareCount: "噩梦副本身存储值",
+  awakening: "觉醒战当前次数",
+  storedAwakening: "觉醒战存储值",
+  dailyRuns: "每日副本当前次数",
+  storedDailyRuns: "每日副本存储值",
+  minigameCount: "小游戏当前次数",
+  storedMinigameCount: "小游戏存储值",
+  battlefield: "战场当前次数",
+  storedBattlefield: "战场存储值",
+  dimensionalCount: "次元袭击当前次数",
+  storedDimensionalCount: "次元袭击存储值",
+};
+// 根据字段名获取中文名称
+const getLabelByKey = (key) => {
+  return keyNameMap[key] || key;
+};
 //用于通用项 点击触发事件，可随意拓展，目前只做了角色卡片内点击触发
 const groupCharacterPanelHandleClickTask = async (char, gType, fieldType, clickType) => {
   const getGlobalPopupOpName = {
@@ -2124,6 +2146,11 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType, clickT
       globalPopupOpen.value = true;
       let targetGroup = await getGroupById(char?.group);
       let fieldMap = {
+        // 角色--战场
+        battlefield: {
+          battlefield: char?.battlefield || 0,
+        },
+
         // 角色--噩梦副本
         nightmareCount: {
           nightmareCount: char?.nightmareCount || 0,
@@ -2144,12 +2171,19 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType, clickT
           minigameCount: targetGroup?.minigameCount || 0,
           storedMinigameCount: targetGroup?.storedMinigameCount || 0,
         },
+        //账号--次元袭击
+        dimensionalCount: {
+          dimensionalCount: targetGroup?.dimensionalCount || 0,
+          storedDimensionalCount: targetGroup?.storedDimensionalCount || 0,
+        },
       };
       const getGlobalPopupOpFieldName = {
         nightmareCount: "快捷操作噩梦副本",
         awakening: "快捷操作觉醒",
         dailyRuns: "快捷操作每日副本",
         minigameCount: "快捷操作古树庆典小游戏",
+        battlefield: "快捷操作战场",
+        dimensionalCount: "快捷操作次元袭击",
       };
 
       // 双击点击触发
@@ -2392,6 +2426,7 @@ const handleGlobalPopupFill = (type) => {
       const formData = globalPopupOp.value?.formData || {};
 
       switch (fieldType) {
+        case "battlefield":
         case "nightmareCount":
         case "awakening": {
           const newCharacter = cloneDeep(globalPopupOp.value?.targetChar);
@@ -2404,6 +2439,7 @@ const handleGlobalPopupFill = (type) => {
           break;
         }
         case "dailyRuns":
+        case "dimensionalCount":
         case "minigameCount": {
           let newGroup = cloneDeep(globalPopupOp.value.targetGroup);
           if (newGroup) {
@@ -6910,25 +6946,7 @@ watch(
                       <!-- 标签说明 -->
                       <div class="flex items-center justify-between text-xs">
                         <label class="font-bold text-slate-600 dark:text-slate-300">
-                          {{
-                            key === "nightmareCount"
-                              ? "噩梦副本当前次数"
-                              : key === "storedNightmareCount"
-                              ? "噩梦副本身存储值"
-                              : key === "awakening"
-                              ? "觉醒战当前次数"
-                              : key === "storedAwakening"
-                              ? "觉醒战存储值"
-                              : key === "dailyRuns"
-                              ? "每日副本当前次数"
-                              : key === "storedDailyRuns"
-                              ? "每日副本存储值"
-                              : key === "minigameCount"
-                              ? "小游戏当前次数"
-                              : key === "storedMinigameCount"
-                              ? "小游戏存储值"
-                              : key
-                          }}
+                          {{ getLabelByKey(key) }}
                         </label>
                         <span class="text-[11px] text-slate-400 dark:text-slate-500">
                           {{ key.includes("stored") ? "存储数值" : "当前主数值" }}

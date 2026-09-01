@@ -4,7 +4,7 @@ import { formatCombatPower } from "~/utils/formatCombatPower";
 import CharacterCard from "./CharacterCard.vue";
 import cloneDeep from "lodash/cloneDeep";
 
-import { KinahOdSate,dungeonDecayRules } from "../config/userAdmin.js";
+import { KinahOdSate, dungeonDecayRules } from "../config/userAdmin.js";
 
 // 游玩补充验证规则配置数组
 const supplementValidationRules = [
@@ -1990,6 +1990,7 @@ const handleExecuteWeeklyDaily = () => {
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     newGroups
   );
+  weeklydailyFormValues.value = cloneDeep(defaultWeeklydailyFormValues);
   debugger;
 
   // 触发父组件更新事件
