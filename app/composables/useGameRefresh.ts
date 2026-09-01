@@ -475,7 +475,7 @@ export const useGameRefresh = () => {
           gameData,
         );
       }
-       debugger;
+      debugger;
       //  有变动则持久化并同步
       if (hasModified || hasRulesModified) {
         await saveGameData(gameData);
@@ -491,21 +491,66 @@ export const useGameRefresh = () => {
 
   /**
    * 启动自动刷新定时器（每分钟执行一次跨天/跨周/能量溢出监测）
+   * 启动自动刷新定时器（在固定的 2, 5, 8, 11, 14, 17, 20, 23 点触发）
    */
   const initAutoRefreshTimer = () => {
-    if (timer) clearInterval(timer);
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+    }
 
     // 1. 初始化时立即执行一次刷新
     executeDataRefresh();
 
-    // 2. 设置 3 小时一次的轮询
-    timer = setInterval(
-      async () => {
-        console.log("[GameRefresh] 执行后台定时刷新监测...");
-        await executeDataRefresh();
-      },
-      3 * 60 * 60 * 1000,
-    );
+    // 2. 递归调度函数：计算距离下一个目标时间点的毫秒数
+    const scheduleNext = () => {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      const currentSecond = now.getSeconds();
+      const currentMs = now.getMilliseconds();
+
+      // 定义目标整点数组
+      const targetHours = [2, 5, 8, 11, 14, 17, 20, 23];
+
+      // 寻找下一个要触发的小时
+      let nextTargetHour = targetHours.find((h) => h > currentHour);
+      let daysToAdd = 0;
+
+      if (nextTargetHour === undefined) {
+        // 如果当前时间已经超过了今天的 23 点，下一个目标就是明天的 2 点
+        nextTargetHour = targetHours[0];
+        daysToAdd = 1;
+      }
+
+      // 构造下一个目标时间对象
+      const nextTargetTime = new Date(now);
+      nextTargetTime.setDate(now.getDate() + daysToAdd);
+      nextTargetTime.setHours(nextTargetHour, 0, 0, 0); // 分、秒、毫秒归零
+
+      // 计算当前时间到目标时间的毫秒差
+      const delay = nextTargetTime.getTime() - now.getTime();
+
+      console.log(
+        `[GameRefresh] 下次触发时间: ${nextTargetTime.toLocaleString()} (大约 ${(delay / 1000 / 60).toFixed(1)} 分钟后)`,
+      );
+
+      // 设置定时器
+      timer = setTimeout(async () => {
+        console.log("[GameRefresh] 到达固定整点，执行后台刷新...");
+        try {
+          await executeDataRefresh();
+        } catch (error) {
+          console.error("[GameRefresh] 定时刷新执行失败:", error);
+        }
+        // 执行完后，递归安排下一次
+        scheduleNext();
+      }, delay);
+    };
+
+    console.log(`🔍 [useGameRefresh:551] %c 执行定时====initAutoRefreshTimer: `,'font-size:14px; background:#28588F; color:#fff;font-weight: bold;', );
+    // 启动首次调度计算
+    scheduleNext();
   };
 
   /**
