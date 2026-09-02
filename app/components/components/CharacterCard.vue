@@ -787,9 +787,10 @@ const handleTaskClickWithDblClick = (char, field, type) => {
             <!-- 左侧包裹区：内部卡片自适应内容宽度，空间不够时自动换行 -->
             <div class="flex items-center gap-2 flex-wrap flex-1 min-w-0">
               <!-- 1. 变换奥德 (Material Char Od) -->
+              <!-- @click="emit('task-click', char, 'materialCharOd', 'exchangeCharOD')" -->
+
               <div
                 class="p-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all hover:border-amber-400/50 hover:bg-amber-50/30 dark:hover:bg-amber-950/30 cursor-pointer shrink-0"
-                @click="emit('task-click', char, 'materialCharOd', 'exchangeCharOD')"
               >
                 <div class="flex items-center gap-1.5 min-w-0">
                   <div class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></div>
@@ -838,9 +839,10 @@ const handleTaskClickWithDblClick = (char, field, type) => {
               </div>
 
               <!-- 商店奥德兑换 -->
+              <!-- @click="emit('task-click', char, 'breezeCharOd', 'exchangeCharOD')" -->
+
               <div
                 class="p-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 dark:hover:bg-sky-950/30 cursor-pointer shrink-0"
-                @click="emit('task-click', char, 'breezeCharOd', 'exchangeCharOD')"
                 v-if="getGroup(char.group)?.premiumMember"
               >
                 <div class="flex items-center gap-1.5 min-w-0">
