@@ -579,40 +579,50 @@ const openAddCharModal = () => {
 };
 
 // 数据持久化
-const saveData = async () => {
-  console.log(
-    `🔍 [UsersAdmin:144] %c 最终保存的gameData: `,
-    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-    gameData.value
-  );
+const saveData = async (newSaveData) => {
+  const data = newSaveData || gameData.value || {};
 
-  if (typeof saving !== "undefined") saving.value = true;
-  if (gameData.value) {
-    gameData.value.exportDate = Date.now();
+  // 如果传入新数据，更新 Vue ref
+  if (newSaveData) {
+    gameData.value = newSaveData;
   }
+
+  console.log("🔍 最终保存的数据:", data);
+
+  if (typeof saving !== "undefined") {
+    saving.value = true;
+  }
+
+  // 不建议直接修改原始响应式对象
+  const cleanData = cloneDeep(data);
+
+  cleanData.exportDate = Date.now();
 
   try {
     if (typeof user !== "undefined" && user.value && typeof client !== "undefined") {
       await client.from("user_game_data").upsert(
         {
           user_id: user.value.id,
-          data: gameData.value,
+          data: cleanData,
           updated_at: new Date(),
         },
-        { onConflict: "user_id" }
+        {
+          onConflict: "user_id",
+        }
       );
     } else if (typeof saveLocalGameData === "function") {
-      // const cleanData = JSON.parse(JSON.stringify(gameData.value));
-      const cleanData = cloneDeep(gameData.value);
       await saveLocalGameData(cleanData);
     } else {
-      localStorage.setItem("aion2_portal_game_data", JSON.stringify(gameData.value));
+      localStorage.setItem("aion2_portal_game_data", JSON.stringify(cleanData));
+
       $alert("数据已成功保存！");
     }
   } catch (error) {
     console.error("保存数据失败:", error);
   } finally {
-    if (typeof saving !== "undefined") saving.value = false;
+    if (typeof saving !== "undefined") {
+      saving.value = false;
+    }
   }
 };
 
@@ -1191,6 +1201,7 @@ const handleSaveCharacter = async () => {
           ...originalGroup,
           name: form.name ?? originalGroup.name,
           remark: form.remark ?? originalGroup.remark,
+
           // 如果还有其他需要允许修改的“非副本次数”基础字段，可以在这里手动按需更新
         };
       } else {
@@ -1215,9 +1226,7 @@ const handleSaveCharacter = async () => {
           storedDailyRuns: newStoredDailyRuns,
           storedMinigameCount: newStoredMinigameCount,
           storedDimensionalCount: newStoredDimensional,
-          primaryAccountID: primaryAccountID ? newChar?.characterId : undefined,
         };
-
         if (form.premiumMember) {
           gameData.value.groups[index].premiumMemberDay = form.premiumMemberDay;
           gameData.value.groups[index].premiumStartTime = calculatedStartTime(
@@ -1228,6 +1237,20 @@ const handleSaveCharacter = async () => {
           );
         }
       }
+
+      // 主账号
+      if (primaryAccountID) {
+        gameData.value.groups[index].primaryAccountID = primaryAccountID
+          ? newChar?.characterId
+          : undefined;
+        gameData.value.characters.forEach((c) => {
+          if (c.characterId != newChar?.characterId) {
+            c.primaryAccount = false;
+          } else {
+            c.primaryAccount = true;
+          }
+        });
+      }
     }
   }
 
@@ -1235,6 +1258,11 @@ const handleSaveCharacter = async () => {
     `🔍 [UsersAdmin:624] %c 添加角色=====gameData 提交: `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     gameData.value
+  );
+  console.log(
+    `🔍 [UsersAdmin:624] %c 添加角色=====newCharGroupForm.value 提交: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    newCharGroupForm.value
   );
 
   await saveData();
@@ -1539,11 +1567,46 @@ const setPrimaryAccount = (targetChar) => {
   chars.forEach((c) => {
     c.primaryAccount = false;
   });
-
+  // 重新触发计算属性更新，主角色会瞬间自动排到第一位
   // 将当前点击的角色设为主角色
   targetChar.primaryAccount = true;
 
-  // 重新触发计算属性更新，主角色会瞬间自动排到第一位
+  //保存
+  let newGameData = cloneDeep(gameData?.value || null);
+
+  if (!newGameData) return;
+  newGameData.characters.forEach((c) => {
+    if (c.group == targetChar?.group) {
+      if (c.characterId == targetChar?.characterId) {
+        c.primaryAccount = true;
+      } else {
+        c.primaryAccount = false;
+      }
+    }
+  });
+
+  newGameData.groups.forEach((c) => {
+    if (c.id == targetChar?.group) {
+      c.primaryAccountID = targetChar?.characterId;
+    }
+  });
+  console.log(
+    `🔍 [UsersAdmin:1585] %c newGameData: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    newGameData
+  );
+  console.log(
+    `🔍 [UsersAdmin:1585] %c newGameData===characters: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    newGameData?.characters?.filter((c) => c.group == targetChar?.group)
+  );
+  console.log(
+    `🔍 [UsersAdmin:1585] %c newGameData===groups: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    newGameData?.groups?.filter((c) => c.id == targetChar?.group)
+  );
+  debugger;
+  saveData(newGameData);
 };
 
 // 6. 保存排序并同步回全局 gameData
@@ -1575,6 +1638,11 @@ const saveCharacterSort = () => {
     `🔍 [UsersAdmin:1576] %c saveCharacterSort---gameData确定排序: `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     gameData.value
+  );
+  console.log(
+    `🔍 [UsersAdmin:1576] %c sortedList---gameData确定排序: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    sortedList
   );
   saveData();
 };
@@ -1654,14 +1722,20 @@ const groupCharacterPanelHandleToggleRefresh = async (char) => {
 
 // 分组角色卡片列表更新角色事件处理
 const groupCharacterPanelHandleUpdateCharacter = async (char) => {
-  const targetId = char.id ?? char.characterId;
-  gameData.value.characters = gameData.value.characters.map((c) => {
-    const cId = c.id ?? c.characterId;
-    if (cId === targetId) {
-      return { ...c, ...char };
-    }
-    return c;
-  });
+  if (Array.isArray(char)) {
+    // 如果子组件传过来的是一整个 characters 数组，直接整体替换
+    gameData.value.characters = char;
+  } else if (char && char.id) {
+    const targetId = char.id ?? char.characterId;
+    gameData.value.characters = gameData.value.characters.map((c) => {
+      const cId = c.id ?? c.characterId;
+      if (cId === targetId) {
+        return { ...c, ...char };
+      }
+      return c;
+    });
+  }
+
   console.log(
     `🔍 [UsersAdmin:734] %c gameData保存签前groupCharacterPanelHandleUpdateCharacter: `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
@@ -2099,6 +2173,7 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType, clickT
     globalSimpleEnergy: "快捷奥德补充/修改",
     globalModifyCharacter: "角色信息修改",
     globalExchangeCharOD: "奥德兑换",
+    globalStorehouseMaterialCharOd: "仓库奥德",
     globalSanctuary: "圣域",
     globalKinaGain: "吉纳",
   };
@@ -2107,9 +2182,11 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType, clickT
 
     case "globalSimpleEnergy": //简化版奥德能量设置补充
     case "globalExchangeCharOD": //角色奥德 商店和物质变换
+    case "globalStorehouseMaterialCharOd": //角色奥德 仓库奥德
     case "globalSanctuary": //圣域处理
     case "globalKinaGain": //角色吉纳修改
       globalPopupOpen.value = true;
+      let targetGroup = await getGroupById(char?.group);
       let newGlobalPopupOp = {
         type: gType,
         fieldType,
@@ -2117,15 +2194,20 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType, clickT
         formData: {}, //存放附加值
         data: {
           ...cloneDeep(char),
+          primaryAccount: targetGroup?.primaryAccountID == char?.characterId,
         },
-        targetChar: char,
-        targetGroup: getGroupById(char?.group),
+        targetChar: {
+          ...cloneDeep(char),
+          primaryAccount: targetGroup?.primaryAccountID == char?.characterId,
+        },
+        targetGroup,
         clickType,
       };
 
       // 修改弹框默认高度
       switch (gType) {
         case "globalExchangeCharOD": //角色奥德 商店和物质变换
+        case "globalStorehouseMaterialCharOd": //角色奥德 仓库奥德
         case "globalKinaGain": //角色吉纳修改
           newGlobalPopupOp.height = "40vh";
           break;
@@ -2217,7 +2299,7 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType, clickT
 };
 
 //通用弹框按钮完成触发
-const handleGlobalPopupFill = (type) => {
+const handleGlobalPopupFill = async (type) => {
   switch (type) {
     case "premiumMember": // 开通会员
       {
@@ -2332,18 +2414,40 @@ const handleGlobalPopupFill = (type) => {
             /** 角色种族 */
             raceId: globalPopupOp.value?.data?.raceId || "",
             raceName: globalPopupOp.value?.data?.raceId == 1 ? "天族" : "魔族",
+            /** 主账号 */
+            primaryAccount: globalPopupOp.value?.data?.primaryAccount,
             /** 备注信息 */
             remark: globalPopupOp.value?.data?.remark
               ? globalPopupOp.value?.data?.remark?.trim()
               : "",
           };
+          //判断分组主账号有没有更改
+          if (
+            globalPopupOp.value?.targetChar?.primaryAccount !==
+            newCustomCharacter?.primaryAccount
+          ) {
+            let newGroup = cloneDeep(globalPopupOp.value.targetGroup);
+            newGroup.primaryAccountID = newCustomCharacter?.characterId;
+            let newcharacters = cloneDeep(gameData.value?.characters || []).map((c) => {
+              if (c.group == newGroup?.id) {
+                if (c.characterId == newCustomCharacter?.characterId) {
+                  c = {
+                    ...newCustomCharacter,
+                    primaryAccount: true,
+                  };
+                } else {
+                  c.primaryAccount = false;
+                }
+              }
+              return c;
+            });
+            await groupCharacterPanelHandleUpdateGroup(newGroup);
 
-          console.log(
-            `🔍 [UsersAdmin:825] %c newCustomCharacter11111: `,
-            "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-            newCustomCharacter
-          );
-          groupCharacterPanelHandleUpdateCharacter(newCustomCharacter);
+            newcharacters?.length &&
+              (await groupCharacterPanelHandleUpdateCharacter(newcharacters));
+          } else {
+            await groupCharacterPanelHandleUpdateCharacter(newCustomCharacter);
+          }
         } catch (e) {
           $alert("修改失败", e?.message || String(e));
         } finally {
@@ -2391,6 +2495,29 @@ const handleGlobalPopupFill = (type) => {
         );
         console.log(
           `🔍 [UsersAdmin:825] %c newCharacter====globalExchangeCharOD====角色奥德 商店和物质变换: `,
+          "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+          newCharacter
+        );
+        groupCharacterPanelHandleUpdateCharacter(newCharacter);
+      } catch (e) {
+        $alert("修改失败", e?.message || String(e));
+      } finally {
+      }
+
+      break;
+    case "globalStorehouseMaterialCharOd": //角色奥德 仓库奥德
+      try {
+        // 严格按照你提供的数据结构进行组装
+        const newCharacter = {
+          ...cloneDeep(globalPopupOp.value?.targetChar),
+        };
+
+        newCharacter.storehouseBigOdCount =
+          globalPopupOp.value?.data?.storehouseBigOdCount || 0;
+        newCharacter.storehouseSmallOdCount =
+          globalPopupOp.value?.data?.storehouseSmallOdCount || 0;
+        console.log(
+          `🔍 [UsersAdmin:825] %c newCharacter====globalStorehouseMaterialCharOd====角色奥德 仓库奥德: `,
           "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
           newCharacter
         );
@@ -4399,6 +4526,63 @@ watch(
                         >
                           {{ validationResult.errors.storedEnergy }}
                         </span>
+                      </div>
+                    </div>
+                    <div
+                      class="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-3xl space-y-4 shadow-sm"
+                    >
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                          <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
+                          <div
+                            class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
+                          >
+                            仓库奥德
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- 外层改为 grid-cols-2，让大奥德和小奥德各自成为一列，平分一行 -->
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        <!-- 大奥德卡片 -->
+                        <div
+                          class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
+                        >
+                          <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                              <label
+                                class="text-xs font-bold text-slate-500 dark:text-slate-400"
+                                >大奥德</label
+                              >
+                            </div>
+                            <input
+                              v-model.number="newCharForm.storehouseBigOdCount"
+                              max="14"
+                              min="0"
+                              class="w-full px-4 py-2.5 border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5] rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
+                            />
+                          </div>
+                        </div>
+
+                        <!-- 小奥德卡片 -->
+                        <div
+                          class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
+                        >
+                          <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                              <label
+                                class="text-xs font-bold text-slate-500 dark:text-slate-400"
+                                >小奥德</label
+                              >
+                            </div>
+                            <input
+                              v-model.number="newCharForm.storehouseSmallOdCount"
+                              max="14"
+                              min="0"
+                              class="w-full px-4 py-2.5 rounded-xl border-slate-200 dark:border-slate-700/80 focus:border-[#45a6d5] bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -6845,6 +7029,34 @@ watch(
                         placeholder="例如：12500"
                       />
                     </div>
+                    <div class="space-y-1.5">
+                      <label class="text-xs font-black text-slate-700 dark:text-slate-300"
+                        >设置为主账号</label
+                      >
+
+                      <!-- 开关外观与点击交互 -->
+                      <div
+                        class="w-10 h-6 flex items-center rounded-full p-1 transition-colors duration-300 cursor-pointer"
+                        :class="
+                          globalPopupOp?.data?.primaryAccount
+                            ? 'bg-[#45a6d5]'
+                            : 'bg-slate-300 dark:bg-slate-700'
+                        "
+                        @click="
+                          globalPopupOp.data.primaryAccount = !globalPopupOp.data
+                            .primaryAccount
+                        "
+                      >
+                        <div
+                          class="bg-white dark:bg-slate-900 w-4 h-4 rounded-full shadow-md transform transition-transform duration-300"
+                          :class="
+                            globalPopupOp?.data?.primaryAccount
+                              ? 'translate-x-4'
+                              : 'translate-x-0'
+                          "
+                        ></div>
+                      </div>
+                    </div>
                   </div>
 
                   <div class="space-y-1.5">
@@ -6911,6 +7123,53 @@ watch(
                         >点</span
                       >
                     </div>
+                  </div>
+                </div>
+
+                <!-- 按钮 -->
+              </div>
+              <!-- 仓库奥德 -->
+              <div
+                v-if="globalPopupOp.type == 'globalStorehouseMaterialCharOd'"
+                class="space-y-5 max-w-lg mx-auto py-2"
+              >
+                <!-- 大奥德 -->
+                <div class="space-y-1.5">
+                  <div class="flex items-center justify-between text-xs">
+                    <label class="font-bold text-slate-600 dark:text-slate-300"
+                      >大奥德</label
+                    >
+                  </div>
+                  <div class="relative">
+                    <input
+                      v-model.number="globalPopupOp.data.storehouseBigOdCount"
+                      class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-800 dark:text-slate-100 text-sm transition-all"
+                      placeholder="请输入"
+                    />
+                    <span
+                      class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-slate-500"
+                      >个</span
+                    >
+                  </div>
+                </div>
+
+                <!-- 小奥德 -->
+                <div class="space-y-1.5">
+                  <div class="flex items-center justify-between text-xs">
+                    <label class="font-bold text-slate-600 dark:text-slate-300"
+                      >小奥德</label
+                    >
+                  </div>
+                  <div class="relative">
+                    <input
+                      v-model.number="globalPopupOp.data.storehouseSmallOdCount"
+                      class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-800 dark:text-slate-100 text-sm transition-all"
+                      placeholder="请输入"
+                    />
+                    <span
+                      class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-slate-500"
+                      >个</span
+                    >
                   </div>
                 </div>
 
@@ -7136,6 +7395,15 @@ watch(
                 v-if="globalPopupOp.type === 'globalDbClick'"
                 class="px-6 py-2.5 rounded-2xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-colors cursor-pointer shadow-sm active:scale-95"
                 @click="handleGlobalPopupFill('globalDbClick')"
+              >
+                确认修改
+              </button>
+              <!-- 角色仓库奥德 -->
+              <button
+                type="button"
+                v-if="globalPopupOp.type === 'globalStorehouseMaterialCharOd'"
+                class="px-6 py-2.5 rounded-2xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-colors cursor-pointer shadow-sm active:scale-95"
+                @click="handleGlobalPopupFill('globalStorehouseMaterialCharOd')"
               >
                 确认修改
               </button>

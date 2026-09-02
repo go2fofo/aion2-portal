@@ -625,7 +625,17 @@ const handleTaskClick = async (char, field, tab, clickType) => {
       await handleClickGameplay(char, "consume");
       consumeForm.value.dungeonType = "sanctuary";
       consumeForm.value.calcInput = 1;
+
+      let sanctuaryMenu={
+        s1:0,
+        s2:1,
+        s3:2,
+        // s4:3
+      }
+      consumeForm.value.selectedDungeonIndex = sanctuaryMenu[field];
+
       consumeForm.value.activeCalcTab = "runs";
+
       break;
     case "consumExpedition": //消耗奥德跳转到远征
     case "consumSurpass": //消耗奥德跳转到超越
@@ -640,6 +650,16 @@ const handleTaskClick = async (char, field, tab, clickType) => {
     case "globalKinaGain": //通用弹框角色吉纳点击修改
       //发送给父组件
       emit("task-click", char, tab, field);
+      break;
+    case "globalStorehouseMaterialCharOd": //角色卡片点击仓库奥德
+
+      console.log(
+        `🔍 [GroupCharacterPanel:724] %c 点击仓库奥德触发 char: `,
+        "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+        char
+      );
+      //发送给父组件
+      emit("task-click", char, "globalStorehouseMaterialCharOd", field);
       break;
     case "exchangeCharOD": //角色卡片点击奥德快捷核销
       if (props.cardConfig == "simple") {

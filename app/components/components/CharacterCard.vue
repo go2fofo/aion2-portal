@@ -526,6 +526,10 @@ const handleTaskClickWithDblClick = (char, field, type) => {
               <span class="truncate max-w-[110px]">{{
                 char.characterName || "未命名角色"
               }}</span>
+
+              <span v-if="getGroup(char.group)?.primaryAccountID===char.characterId" class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-[#45a6d5] text-white font-black text-[10px] hover:bg-[#3b95c0] transition-colors cursor-pointer shadow-sm active:scale-95">
+                主账号
+              </span>
               <span
                 class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-slate-700 shrink-0"
               >
@@ -648,19 +652,55 @@ const handleTaskClickWithDblClick = (char, field, type) => {
           class="p-3.5 bg-gradient-to-br from-slate-50/90 to-slate-100/60 dark:from-slate-800/80 dark:to-slate-900/80 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2.5 shadow-sm cursor-pointer transition-all hover:shadow dark:hover:border-slate-600"
         >
           <!-- 头部：标题与数值概览 -->
-          <div
-            class="flex items-center justify-between text-xs"
-            @click="emit('task-click', char, '', 'globalSimpleEnergy')"
-          >
-            <span
-              class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5"
-            >
+          <div class="flex items-center justify-between text-xs">
+            <div class="flex items-center gap-3">
+              <!-- 状态指示点 -->
               <span
-                class="w-2 h-2 rounded-full bg-gradient-to-r from-[#45a6d5] to-amber-500 shadow-sm"
+                class="w-2 h-2 rounded-full bg-gradient-to-r from-[#45a6d5] to-amber-500 shadow-sm shrink-0"
               ></span>
-              奥德能量
-            </span>
-            <div class="flex items-center gap-1 text-xs font-black">
+
+              <span class="font-bold text-slate-700 dark:text-slate-200 text-sm"
+                >奥德能量</span
+              >
+
+              <!-- 按钮组容器 -->
+              <div
+                class="flex items-center gap-2"
+                 @click="emit('task-click', char, 'storehouseMaterialCharOd', 'globalStorehouseMaterialCharOd')"
+              >
+                <!-- 大奥德按钮（整体换为橙色系） -->
+                <button
+                  type="button"
+                  class="px-2 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-900/70 border border-amber-200/80 dark:border-amber-800/60 text-[9px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-2xs group"
+                  title="点击管理大奥德"
+                >
+                  <span class="text-amber-600/70 dark:text-amber-400/70 font-normal"
+                    >仓库大奥德</span
+                  >
+                  <span class="text-slate-700 dark:text-slate-200">{{
+                    char.storehouseBigOdCount || 0
+                  }}</span>
+                </button>
+
+                <!-- 小奥德按钮（整体换为蓝色系） -->
+                <button
+                  type="button"
+                  class="px-2 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900/80 border border-sky-200/80 dark:border-sky-800/60 text-[9px] font-bold text-[#45a6d5] dark:text-sky-400 flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-2xs group"
+                  title="点击管理小奥德"
+                >
+                  <span class="text-[#45a6d5]/70 dark:text-sky-400/70 font-normal"
+                    >仓库小奥德</span
+                  >
+                  <span class="text-slate-700 dark:text-slate-200">{{
+                    char.storehouseSmallOdCount || 0
+                  }}</span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="flex items-center gap-1 text-xs font-black"
+              @click="emit('task-click', char, '', 'globalSimpleEnergy')"
+            >
               <span
                 class="text-[#45a6d5] dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-1.5 py-0.5 rounded-md border border-sky-100 dark:border-sky-900"
                 title="基础奥德"
@@ -1050,7 +1090,7 @@ const handleTaskClickWithDblClick = (char, field, type) => {
           </button> -->
 
           <!-- 次元袭击 (服务器共享，每天5点恢复2次，上限14) -->
-            <!-- @click="emit('task-click', char, 'dimensionalCount', 'weeklydaily')" -->
+          <!-- @click="emit('task-click', char, 'dimensionalCount', 'weeklydaily')" -->
 
           <button
             type="button"
@@ -1065,7 +1105,7 @@ const handleTaskClickWithDblClick = (char, field, type) => {
                 ? 'bg-slate-50/60 dark:bg-slate-900/40 border-slate-200/70 dark:border-slate-800 opacity-75'
                 : 'bg-rose-50/30 dark:bg-rose-950/20 border-rose-200/50 dark:border-rose-900/40 hover:bg-rose-50/60 dark:hover:bg-rose-900/30',
             ]"
-             @click="handleTaskClickWithDblClick(char, 'dimensionalCount', 'weeklydaily')"
+            @click="handleTaskClickWithDblClick(char, 'dimensionalCount', 'weeklydaily')"
           >
             <template
               v-if="
