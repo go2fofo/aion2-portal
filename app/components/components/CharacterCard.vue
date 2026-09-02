@@ -732,23 +732,23 @@ const handleTaskClickWithDblClick = (char, field, type) => {
             class="w-full bg-slate-50 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden flex p-0.5 border border-slate-200 dark:border-slate-600 shadow-inner"
             @click="emit('task-click', char, '', 'globalSimpleEnergy')"
           >
-      <!-- 基础奥德进度条 -->
-<div
-  class="bg-gradient-to-r from-[#94a3b8] to-[#cbd5e1] dark:from-[#f8fafc] dark:to-[#ffffff] h-full rounded-l-full transition-all duration-500 relative"
-  :style="{
-    width: `${Math.min(
-      100,
-      Math.max(
-        0,
-        ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100
-      )
-    )}%`,
-  }"
-  :title="`基础奥德: ${char.energy || 0}`"
-></div>
+            <!-- 基础奥德进度条 -->
+            <!-- <div
+              class="bg-gradient-to-r from-[#94a3b8] to-[#cbd5e1] dark:from-[#f8fafc] dark:to-[#ffffff] h-full rounded-l-full transition-all duration-500 relative"
+              :style="{
+                width: `${Math.min(
+                  100,
+                  Math.max(
+                    0,
+                    ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100
+                  )
+                )}%`,
+              }"
+              :title="`基础奥德: ${char.energy || 0}`"
+            ></div> -->
 
             <!-- 存储奥德进度条：柔和雾蓝色 -->
-            <div
+            <!-- <div
               class="bg-gradient-to-r from-[#78afd0] to-[#8fc3df] dark:from-[#5f98ba] dark:to-[#72afd0] h-full rounded-r-full transition-all duration-500 relative opacity-95"
               :style="{
                 width: `${Math.min(
@@ -761,6 +761,22 @@ const handleTaskClickWithDblClick = (char, field, type) => {
                 )}%`,
               }"
               :title="`存储奥德: ${char.storedEnergy || 0}`"
+            ></div> -->
+            <!-- 奥德统一进度条 -->
+            <div
+              class="bg-gradient-to-r from-[#78afd0] to-[#8fc3df] dark:from-[#5f98ba] dark:to-[#72afd0] h-full rounded-full transition-all duration-500 relative opacity-95"
+              :style="{
+                width: `${Math.min(
+                  100,
+                  Math.max(
+                    0,
+                    (((char.energy || 0) + (char.storedEnergy || 0)) /
+                      (char.premiumMember ? 840 : 560)) *
+                      100
+                  )
+                )}%`,
+              }"
+              :title="`奥德: ${(char.energy || 0) + (char.storedEnergy || 0)}`"
             ></div>
           </div>
 
