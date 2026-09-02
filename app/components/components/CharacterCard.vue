@@ -732,9 +732,9 @@ const handleTaskClickWithDblClick = (char, field, type) => {
             class="w-full bg-slate-50 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden flex p-0.5 border border-slate-200 dark:border-slate-600 shadow-inner"
             @click="emit('task-click', char, '', 'globalSimpleEnergy')"
           >
-            <!-- 基础奥德进度条 -->
+      <!-- 基础奥德进度条 -->
 <div
-  class="bg-gradient-to-r from-[#cbd5e1] to-[#e2e8f0] dark:from-[#f8fafc] dark:to-[#ffffff] h-full rounded-l-full transition-all duration-500 relative"
+  class="bg-gradient-to-r from-[#94a3b8] to-[#cbd5e1] dark:from-[#f8fafc] dark:to-[#ffffff] h-full rounded-l-full transition-all duration-500 relative"
   :style="{
     width: `${Math.min(
       100,
