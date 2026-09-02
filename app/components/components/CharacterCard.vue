@@ -527,7 +527,10 @@ const handleTaskClickWithDblClick = (char, field, type) => {
                 char.characterName || "未命名角色"
               }}</span>
 
-              <span v-if="getGroup(char.group)?.primaryAccountID===char.characterId" class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-[#45a6d5] text-white font-black text-[10px] hover:bg-[#3b95c0] transition-colors cursor-pointer shadow-sm active:scale-95">
+              <span
+                v-if="getGroup(char.group)?.primaryAccountID === char.characterId"
+                class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-[#45a6d5] text-white font-black text-[10px] hover:bg-[#3b95c0] transition-colors cursor-pointer shadow-sm active:scale-95"
+              >
                 主账号
               </span>
               <span
@@ -652,7 +655,10 @@ const handleTaskClickWithDblClick = (char, field, type) => {
           class="p-3.5 bg-gradient-to-br from-slate-50/90 to-slate-100/60 dark:from-slate-800/80 dark:to-slate-900/80 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-2.5 shadow-sm cursor-pointer transition-all hover:shadow dark:hover:border-slate-600"
         >
           <!-- 头部：标题与数值概览 -->
-          <div class="flex items-center justify-between text-xs">
+          <div
+            class="flex items-center justify-between text-xs"
+            @click="emit('task-click', char, '', 'globalSimpleEnergy')"
+          >
             <div class="flex items-center gap-3">
               <!-- 状态指示点 -->
               <span
@@ -700,44 +706,50 @@ const handleTaskClickWithDblClick = (char, field, type) => {
               @click="emit('task-click', char, '', 'globalSimpleEnergy')"
             >
               <span
-                class="text-[#45a6d5] dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-1.5 py-0.5 rounded-md border border-sky-100 dark:border-sky-900"
+                class="text-slate-600 dark:text-slate-200 bg-slate-100 dark:bg-slate-700/60 px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-slate-600"
                 title="基础奥德"
-                >{{ char.energy || 0 }}</span
               >
+                {{ char.energy || 0 }}
+              </span>
+
               <span class="text-slate-300 dark:text-slate-600 font-normal">+</span>
+
               <span
-                class="text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded-md border border-amber-100 dark:border-amber-900"
+                class="text-[#639fc0] dark:text-[#82b9d6] bg-[#eef7fb] dark:bg-[#193344]/70 px-1.5 py-0.5 rounded-md border border-[#d8edf6] dark:border-[#31566b]"
                 title="存储奥德"
-                >{{ char.storedEnergy || 0 }}</span
               >
-              <span class="text-slate-400 dark:text-slate-500 font-medium ml-0.5"
-                >/ {{ getGroup(char.group).premiumMember ? 840 : 560 }}</span
-              >
+                {{ char.storedEnergy || 0 }}
+              </span>
+
+              <span class="text-slate-400 dark:text-slate-500 font-medium ml-0.5">
+                / {{ getGroup(char.group).premiumMember ? 840 : 560 }}
+              </span>
             </div>
           </div>
 
           <!-- 组合进度条主体 -->
           <div
-            class="w-full bg-slate-200/70 dark:bg-slate-700/80 h-2.5 rounded-full overflow-hidden flex p-0.5 border border-slate-200 dark:border-slate-600 shadow-inner"
+            class="w-full bg-slate-50 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden flex p-0.5 border border-slate-200 dark:border-slate-600 shadow-inner"
             @click="emit('task-click', char, '', 'globalSimpleEnergy')"
           >
             <!-- 基础奥德进度条 -->
+<div
+  class="bg-gradient-to-r from-[#cbd5e1] to-[#e2e8f0] dark:from-[#f8fafc] dark:to-[#ffffff] h-full rounded-l-full transition-all duration-500 relative"
+  :style="{
+    width: `${Math.min(
+      100,
+      Math.max(
+        0,
+        ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100
+      )
+    )}%`,
+  }"
+  :title="`基础奥德: ${char.energy || 0}`"
+></div>
+
+            <!-- 存储奥德进度条：柔和雾蓝色 -->
             <div
-              class="bg-gradient-to-r from-[#3998c7] to-[#45a6d5] dark:from-[#2e82ab] dark:to-[#3894c2] h-full rounded-l-full transition-all duration-500 relative"
-              :style="{
-                width: `${Math.min(
-                  100,
-                  Math.max(
-                    0,
-                    ((char.energy || 0) / (char.premiumMember ? 840 : 560)) * 100
-                  )
-                )}%`,
-              }"
-              :title="`基础奥德: ${char.energy || 0}`"
-            ></div>
-            <!-- 存储奥德进度条 -->
-            <div
-              class="bg-gradient-to-r from-amber-400 to-amber-500 dark:from-amber-500 dark:to-amber-600 h-full rounded-r-full transition-all duration-500 relative opacity-95"
+              class="bg-gradient-to-r from-[#78afd0] to-[#8fc3df] dark:from-[#5f98ba] dark:to-[#72afd0] h-full rounded-r-full transition-all duration-500 relative opacity-95"
               :style="{
                 width: `${Math.min(
                   100 -
