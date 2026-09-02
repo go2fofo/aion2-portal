@@ -243,6 +243,49 @@ const characterValidationRules = [
   },
 ];
 
+const weeklyGroupTaskList = [
+  {
+    key: "breezeAccountOd",
+    label: "物质变换账号奥德",
+    target: 16,
+  },
+  {
+    key: "materialAccountOd",
+    label: "商店奥德",
+    target: 16,
+  },
+  {
+    key: "breezeReviveStone",
+    label: "周复活石",
+    target: 7,
+  },
+  {
+    key: "breezeRiftTicket",
+    label: "未知缝隙",
+    target: 21,
+  },
+  {
+    key: "breezeDailyTicket",
+    label: "完成卷（每日）",
+    target: 21,
+  },
+  {
+    key: "breezeNightmareTicket",
+    label: "完成卷（噩梦）",
+    target: 14,
+  },
+  {
+    key: "regionACount",
+    label: "地区 A 指令",
+    target: 12,
+  },
+  {
+    key: "regionBCount",
+    label: "地区 B 指令",
+    target: 12,
+  },
+];
+
 //分组验证规则配置数据
 const groupValidationRules = [
   {
@@ -2618,6 +2661,14 @@ const totalsStoredEnergyCount = computed(() => {
   return total;
 });
 
+// 计算角色仓库的奥德能量之和
+// const getStorehouseOd = (field) => {
+
+//     console.log(`🔍 [UsersAdmin:2667] %c : `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', );
+
+//   return globalPopupOp.value?.targetChar?.[field] || 0;
+// };
+
 //================ 通用弹框 结束 =====================
 /**
  * 处理分组点击事件
@@ -3349,10 +3400,7 @@ watch(
                 <div
                   class="text-xs font-black text-slate-800 dark:text-slate-100 tracking-wide truncate"
                 >
-                  每日活跃与签到中心
-                </div>
-                <div class="text-[10px] text-slate-400 dark:text-slate-400 truncate">
-                  保持出勤，轻松清日常任务与账号签到
+                  每日活跃/签到/周快捷操作中心
                 </div>
               </div>
             </div>
@@ -3375,7 +3423,55 @@ watch(
             >
               {{ getAtvTabGroup?.dailyMission ? "✓ 已完成每日任务" : "完成每日任务" }}
             </button>
+            <!-- 快捷操作 -->
+            <!-- <button
+              type="button"
+              class="group flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer active:scale-95 border border-indigo-200/80 dark:border-indigo-800/70 bg-white/70 dark:bg-slate-800/60 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 hover:border-indigo-300 dark:hover:bg-indigo-950/50 dark:hover:border-indigo-700 shadow-sm hover:shadow-indigo-500/10"
+              @click="
+                () => {
+                  globalPopupOpen = true;
+                  let newGlobalPopupOp = {
+                    type: 'globalQuickActions',
+                    fieldType: '',
+                    name: '快捷操作',
+                    formData: {}, //存放附加值
+                    data: {},
+                    targetChar: {},
+                    targetGroup: cloneDeep(getAtvTabGroup),
+                    clickType,
+                    height: '80vh',
+                    width: '40vw',
+                  };
+                  globalPopupOp = newGlobalPopupOp;
+                }
+              "
+            >
+              <svg
+                class="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+              </svg>
 
+              <span>快捷操作</span>
+
+              <svg
+                class="w-3 h-3 opacity-50 transition-transform duration-200 group-hover:translate-x-0.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button> -->
             <!-- 签到按钮 -->
             <button
               type="button"
@@ -3392,6 +3488,7 @@ watch(
             </button>
           </div>
         </div>
+
         <!-- ================= 特级会员状态管理卡片 ================= -->
         <div
           class="lg:w-80 p-4 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-white dark:from-amber-950/40 dark:via-orange-950/20 dark:to-slate-900 border border-amber-200/80 dark:border-amber-900/60 rounded-xl flex flex-col justify-between gap-3.5 shrink-0 shadow-xs relative overflow-hidden"
@@ -3584,349 +3681,63 @@ watch(
             </div>
           </div>
 
-          <!-- 第二部分：指标网格（高密度排列8项兑换与周常） -->
+          <!-- 第二部分：周常任务指标 -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-            <!-- 1. 物质变换账号奥德 -->
             <div
+              v-for="task in weeklyGroupTaskList"
+              :key="task.key"
               class="p-2 border rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-95"
               :class="
-                (getAtvTabGroup?.breezeAccountOd || 0) >= 16
-                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-2xs'
-                  : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600'
+                (getAtvTabGroup?.[task.key] || 0) >= task.target
+                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800'
+                  : 'bg-slate-50/70 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700'
               "
-              @click="handleTaskClick('breezeAccountOd')"
+              @click="handleTaskClick(task.key)"
             >
-              <span
-                class="text-[10px] font-bold truncate"
-                :class="
-                  (getAtvTabGroup?.breezeAccountOd || 0) >= 16
-                    ? 'text-emerald-700 dark:text-emerald-300'
-                    : 'text-slate-500 dark:text-slate-400'
-                "
-                >物质变换账号奥德</span
-              >
-              <div class="flex items-center gap-1 font-black text-xs">
-                <span
-                  :class="
-                    (getAtvTabGroup?.breezeAccountOd || 0) >= 16
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-slate-800 dark:text-slate-200'
-                  "
-                >
-                  {{ getAtvTabGroup?.breezeAccountOd || 0 }}
-                </span>
-                <span class="text-slate-300 dark:text-slate-600 font-normal">/16</span>
-                <span
-                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
-                  :class="
-                    (getAtvTabGroup?.breezeAccountOd || 0) >= 16
-                      ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                      : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
-                  "
-                >
-                  {{ (getAtvTabGroup?.breezeAccountOd || 0) >= 16 ? "✓" : "-" }}
-                </span>
-              </div>
-            </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1 min-w-0">
+                  <!-- 任务名称 -->
+                  <div
+                    class="font-bold truncate min-w-0"
+                    :class="
+                      (getAtvTabGroup?.[task.key] || 0) >= task.target
+                        ? 'text-emerald-700 dark:text-emerald-300'
+                        : 'text-slate-600 dark:text-slate-300'
+                    "
+                  >
+                    {{ task.label }}
+                  </div>
 
-            <!-- 2. 商店奥德 -->
-            <div
-              class="p-2 border rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-95"
-              :class="
-                (getAtvTabGroup?.materialAccountOd || 0) >= 16
-                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-2xs'
-                  : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600'
-              "
-              @click="handleTaskClick('materialAccountOd')"
-            >
-              <span
-                class="text-[10px] font-bold truncate"
-                :class="
-                  (getAtvTabGroup?.materialAccountOd || 0) >= 16
-                    ? 'text-emerald-700 dark:text-emerald-300'
-                    : 'text-slate-500 dark:text-slate-400'
-                "
-                >商店奥德</span
-              >
-              <div class="flex items-center gap-1 font-black text-xs">
-                <span
-                  :class="
-                    (getAtvTabGroup?.materialAccountOd || 0) >= 16
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-slate-800 dark:text-slate-200'
-                  "
-                >
-                  {{ getAtvTabGroup?.materialAccountOd || 0 }}
-                </span>
-                <span class="text-slate-300 dark:text-slate-600 font-normal">/16</span>
-                <span
-                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
-                  :class="
-                    (getAtvTabGroup?.materialAccountOd || 0) >= 16
-                      ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                      : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
-                  "
-                >
-                  {{ (getAtvTabGroup?.materialAccountOd || 0) >= 16 ? "✓" : "-" }}
-                </span>
-              </div>
-            </div>
+                  <!-- 当前 / 目标 -->
+                  <div class="flex items-center gap-0.5 shrink-0">
+                    <span
+                      class="font-black"
+                      :class="
+                        (getAtvTabGroup?.[task.key] || 0) >= task.target
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : 'text-slate-800 dark:text-slate-100'
+                      "
+                    >
+                      {{ getAtvTabGroup?.[task.key] || 0 }}
+                    </span>
 
-            <!-- 3. 周复活石 -->
-            <div
-              class="p-2 border rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-95"
-              :class="
-                (getAtvTabGroup?.breezeReviveStone || 0) >= 7
-                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-2xs'
-                  : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600'
-              "
-              @click="handleTaskClick('breezeReviveStone')"
-            >
-              <span
-                class="text-[10px] font-bold truncate"
-                :class="
-                  (getAtvTabGroup?.breezeReviveStone || 0) >= 7
-                    ? 'text-emerald-700 dark:text-emerald-300'
-                    : 'text-slate-500 dark:text-slate-400'
-                "
-                >周复活石</span
-              >
-              <div class="flex items-center gap-1 font-black text-xs">
-                <span
-                  :class="
-                    (getAtvTabGroup?.breezeReviveStone || 0) >= 7
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-slate-800 dark:text-slate-200'
-                  "
-                >
-                  {{ getAtvTabGroup?.breezeReviveStone || 0 }}
-                </span>
-                <span class="text-slate-300 dark:text-slate-600 font-normal">/7</span>
-                <span
-                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
-                  :class="
-                    (getAtvTabGroup?.breezeReviveStone || 0) >= 7
-                      ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                      : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
-                  "
-                >
-                  {{ (getAtvTabGroup?.breezeReviveStone || 0) >= 7 ? "✓" : "-" }}
-                </span>
+                    <span class="text-slate-400 dark:text-slate-500">
+                      /{{ task.target }}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <!-- 4. 未知缝隙 -->
-            <div
-              class="p-2 border rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-95"
-              :class="
-                (getAtvTabGroup?.breezeRiftTicket || 0) >= 21
-                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-2xs'
-                  : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600'
-              "
-              @click="handleTaskClick('breezeRiftTicket')"
-            >
-              <span
-                class="text-[10px] font-bold truncate"
+              <!-- 完成状态 -->
+              <div
+                class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ml-2"
                 :class="
-                  (getAtvTabGroup?.breezeRiftTicket || 0) >= 21
-                    ? 'text-emerald-700 dark:text-emerald-300'
-                    : 'text-slate-500 dark:text-slate-400'
+                  (getAtvTabGroup?.[task.key] || 0) >= task.target
+                    ? 'bg-emerald-500 text-white'
+                    : 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500'
                 "
-                >未知缝隙</span
               >
-              <div class="flex items-center gap-1 font-black text-xs">
-                <span
-                  :class="
-                    (getAtvTabGroup?.breezeRiftTicket || 0) >= 21
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-slate-800 dark:text-slate-200'
-                  "
-                >
-                  {{ getAtvTabGroup?.breezeRiftTicket || 0 }}
-                </span>
-                <span class="text-slate-300 dark:text-slate-600 font-normal">/21</span>
-                <span
-                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
-                  :class="
-                    (getAtvTabGroup?.breezeRiftTicket || 0) >= 21
-                      ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                      : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
-                  "
-                >
-                  {{ (getAtvTabGroup?.breezeRiftTicket || 0) >= 21 ? "✓" : "-" }}
-                </span>
-              </div>
-            </div>
-
-            <!-- 5. 完成卷(每日) -->
-            <div
-              class="p-2 border rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-95"
-              :class="
-                (getAtvTabGroup?.breezeDailyTicket || 0) >= 21
-                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-2xs'
-                  : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600'
-              "
-              @click="handleTaskClick('breezeDailyTicket')"
-            >
-              <span
-                class="text-[10px] font-bold truncate"
-                :class="
-                  (getAtvTabGroup?.breezeDailyTicket || 0) >= 21
-                    ? 'text-emerald-700 dark:text-emerald-300'
-                    : 'text-slate-500 dark:text-slate-400'
-                "
-                >完成卷(每日)</span
-              >
-              <div class="flex items-center gap-1 font-black text-xs">
-                <span
-                  :class="
-                    (getAtvTabGroup?.breezeDailyTicket || 0) >= 21
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-slate-800 dark:text-slate-200'
-                  "
-                >
-                  {{ getAtvTabGroup?.breezeDailyTicket || 0 }}
-                </span>
-                <span class="text-slate-300 dark:text-slate-600 font-normal">/21</span>
-                <span
-                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
-                  :class="
-                    (getAtvTabGroup?.breezeDailyTicket || 0) >= 21
-                      ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                      : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
-                  "
-                >
-                  {{ (getAtvTabGroup?.breezeDailyTicket || 0) >= 21 ? "✓" : "-" }}
-                </span>
-              </div>
-            </div>
-
-            <!-- 6. 完成卷(噩梦) -->
-            <div
-              class="p-2 border rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-95"
-              :class="
-                (getAtvTabGroup?.breezeNightmareTicket || 0) >= 14
-                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-2xs'
-                  : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600'
-              "
-              @click="handleTaskClick('breezeNightmareTicket')"
-            >
-              <span
-                class="text-[10px] font-bold truncate"
-                :class="
-                  (getAtvTabGroup?.breezeNightmareTicket || 0) >= 14
-                    ? 'text-emerald-700 dark:text-emerald-300'
-                    : 'text-slate-500 dark:text-slate-400'
-                "
-                >完成卷(噩梦)</span
-              >
-              <div class="flex items-center gap-1 font-black text-xs">
-                <span
-                  :class="
-                    (getAtvTabGroup?.breezeNightmareTicket || 0) >= 14
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-slate-800 dark:text-slate-200'
-                  "
-                >
-                  {{ getAtvTabGroup?.breezeNightmareTicket || 0 }}
-                </span>
-                <span class="text-slate-300 dark:text-slate-600 font-normal">/14</span>
-                <span
-                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
-                  :class="
-                    (getAtvTabGroup?.breezeNightmareTicket || 0) >= 14
-                      ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                      : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
-                  "
-                >
-                  {{ (getAtvTabGroup?.breezeNightmareTicket || 0) >= 14 ? "✓" : "-" }}
-                </span>
-              </div>
-            </div>
-
-            <!-- 7. 地区A指令 -->
-            <div
-              class="p-2 border rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-95"
-              :class="
-                (getAtvTabGroup?.regionACount || 0) >= 12
-                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-2xs'
-                  : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600'
-              "
-              @click="handleTaskClick('regionACount')"
-            >
-              <span
-                class="text-[10px] font-bold truncate"
-                :class="
-                  (getAtvTabGroup?.regionACount || 0) >= 12
-                    ? 'text-emerald-700 dark:text-emerald-300'
-                    : 'text-slate-500 dark:text-slate-400'
-                "
-                >地区A指令</span
-              >
-              <div class="flex items-center gap-1 font-black text-xs">
-                <span
-                  :class="
-                    (getAtvTabGroup?.regionACount || 0) >= 12
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-slate-800 dark:text-slate-200'
-                  "
-                >
-                  {{ getAtvTabGroup?.regionACount || 0 }}
-                </span>
-                <span class="text-slate-300 dark:text-slate-600 font-normal">/12</span>
-                <span
-                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
-                  :class="
-                    (getAtvTabGroup?.regionACount || 0) >= 12
-                      ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                      : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
-                  "
-                >
-                  {{ (getAtvTabGroup?.regionACount || 0) >= 12 ? "✓" : "-" }}
-                </span>
-              </div>
-            </div>
-
-            <!-- 8. 地区B指令 -->
-            <div
-              class="p-2 border rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-95"
-              :class="
-                (getAtvTabGroup?.regionBCount || 0) >= 12
-                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-2xs'
-                  : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600'
-              "
-              @click="handleTaskClick('regionBCount')"
-            >
-              <span
-                class="text-[10px] font-bold truncate"
-                :class="
-                  (getAtvTabGroup?.regionBCount || 0) >= 12
-                    ? 'text-emerald-700 dark:text-emerald-300'
-                    : 'text-slate-500 dark:text-slate-400'
-                "
-                >地区B指令</span
-              >
-              <div class="flex items-center gap-1 font-black text-xs">
-                <span
-                  :class="
-                    (getAtvTabGroup?.regionBCount || 0) >= 12
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-slate-800 dark:text-slate-200'
-                  "
-                >
-                  {{ getAtvTabGroup?.regionBCount || 0 }}
-                </span>
-                <span class="text-slate-300 dark:text-slate-600 font-normal">/12</span>
-                <span
-                  class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px]"
-                  :class="
-                    (getAtvTabGroup?.regionBCount || 0) >= 12
-                      ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                      : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400 dark:text-slate-400'
-                  "
-                >
-                  {{ (getAtvTabGroup?.regionBCount || 0) >= 12 ? "✓" : "-" }}
-                </span>
+                {{ (getAtvTabGroup?.[task.key] || 0) >= task.target ? "✓" : "-" }}
               </div>
             </div>
           </div>
@@ -4528,7 +4339,7 @@ watch(
                         </span>
                       </div>
                     </div>
-                    <div
+                    <!-- <div
                       class="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-3xl space-y-4 shadow-sm"
                     >
                       <div class="flex items-center justify-between">
@@ -4542,9 +4353,7 @@ watch(
                         </div>
                       </div>
 
-                      <!-- 外层改为 grid-cols-2，让大奥德和小奥德各自成为一列，平分一行 -->
                       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                        <!-- 大奥德卡片 -->
                         <div
                           class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                         >
@@ -4564,7 +4373,6 @@ watch(
                           </div>
                         </div>
 
-                        <!-- 小奥德卡片 -->
                         <div
                           class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                         >
@@ -4584,7 +4392,7 @@ watch(
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </div> -->
                   </div>
                 </div>
 
@@ -6344,7 +6152,10 @@ watch(
         >
           <div
             class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-[2.5rem] shadow-2xl overflow-hidden text-slate-800 flex flex-col transition-all duration-300 w-[30vw]"
-            :style="{ height: globalPopupOp?.height || '60vh' }"
+            :style="{
+              height: globalPopupOp?.height || '60vh',
+              width: globalPopupOp?.width || '30vw',
+            }"
           >
             <!-- 弹窗头部 -->
             <div
@@ -6603,7 +6414,8 @@ watch(
                       >
                         <span
                           >大奥德
-                          <span class="text-[10px] text-slate-400">(+40点)</span></span
+                          <!-- <span class="text-[10px] text-slate-400">(角色仓库+{{ getStorehouseOd('storehouseBigOdCount') || 0 }})</span> -->
+                          </span
                         >
                         <span class="text-amber-600 dark:text-amber-400 font-black"
                           >+{{ bigOdTotalPoints }}点</span
@@ -6685,7 +6497,8 @@ watch(
                       >
                         <span
                           >小奥德
-                          <span class="text-[10px] text-slate-400">(+10点)</span></span
+                          <!-- <span class="text-[10px] text-slate-400">(角色仓库+{{ getStorehouseOd('storehouseSmallOdCount') || 0 }})</span> -->
+                          </span
                         >
                         <span class="text-sky-600 dark:text-sky-400 font-black"
                           >+{{ smallOdTotalPoints }}点</span
@@ -7133,7 +6946,6 @@ watch(
                 v-if="globalPopupOp.type == 'globalStorehouseMaterialCharOd'"
                 class="space-y-5 max-w-lg mx-auto py-2"
               >
-                <!-- 大奥德 -->
                 <div class="space-y-1.5">
                   <div class="flex items-center justify-between text-xs">
                     <label class="font-bold text-slate-600 dark:text-slate-300"
@@ -7153,7 +6965,6 @@ watch(
                   </div>
                 </div>
 
-                <!-- 小奥德 -->
                 <div class="space-y-1.5">
                   <div class="flex items-center justify-between text-xs">
                     <label class="font-bold text-slate-600 dark:text-slate-300"
@@ -7173,7 +6984,6 @@ watch(
                   </div>
                 </div>
 
-                <!-- 按钮 -->
               </div>
               <!-- 吉纳 -->
               <div v-if="globalPopupOp.type == 'globalKinaGain'">
@@ -7243,6 +7053,13 @@ watch(
                 class="space-y-4 max-w-2xl mx-auto py-2 text-xs"
               >
                 <div></div>
+              </div>
+              <!-- ================= 快捷操作================= -->
+              <div
+                v-if="globalPopupOp.type == 'globalQuickActions'"
+                class="space-y-4 max-w-2xl mx-auto py-2 text-xs"
+              >
+                <div>快捷操作</div>
               </div>
             </div>
 

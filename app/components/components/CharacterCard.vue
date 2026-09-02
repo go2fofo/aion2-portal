@@ -664,11 +664,10 @@ const handleTaskClickWithDblClick = (char, field, type) => {
               >
 
               <!-- 按钮组容器 -->
-              <div
+              <!-- <div
                 class="flex items-center gap-2"
                  @click="emit('task-click', char, 'storehouseMaterialCharOd', 'globalStorehouseMaterialCharOd')"
               >
-                <!-- 大奥德按钮（整体换为橙色系） -->
                 <button
                   type="button"
                   class="px-2 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-900/70 border border-amber-200/80 dark:border-amber-800/60 text-[9px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-2xs group"
@@ -682,7 +681,6 @@ const handleTaskClickWithDblClick = (char, field, type) => {
                   }}</span>
                 </button>
 
-                <!-- 小奥德按钮（整体换为蓝色系） -->
                 <button
                   type="button"
                   class="px-2 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900/80 border border-sky-200/80 dark:border-sky-800/60 text-[9px] font-bold text-[#45a6d5] dark:text-sky-400 flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-2xs group"
@@ -695,7 +693,7 @@ const handleTaskClickWithDblClick = (char, field, type) => {
                     char.storehouseSmallOdCount || 0
                   }}</span>
                 </button>
-              </div>
+              </div> -->
             </div>
             <div
               class="flex items-center gap-1 text-xs font-black"
