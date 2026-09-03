@@ -22,7 +22,8 @@ import cloneDeep from "lodash/cloneDeep";
 import { dungeonDecayRules } from "./config/userAdmin";
 import { useGameRefresh } from "@/composables/useGameRefresh";
 import { characterClasses, twToScMap, parseLogTimestamp } from "./config/userAdmin";
-
+import { useGameStore } from '@/stores/useGameStore';
+const gameStore = useGameStore();
 const client = useSupabaseClient();
 const user = useSupabaseUser();
 const { executeDataRefresh } = useGameRefresh();
@@ -91,7 +92,14 @@ const defGameData = {
   exportDate: Date.now(),
 };
 // 游戏数据结构 参考 docs/多角色管理模块相关.md
-const gameData = ref(cloneDeep(defGameData));
+if (!gameStore.gameData) {
+  gameStore.setGameData(cloneDeep(defGameData));
+}
+const gameData = computed({
+  get: () => gameStore.gameData || defGameData,
+  set: (val) => gameStore.setGameData(val)
+});
+
 const groupOpen = ref(false);
 const settingsOpen = ref(false);
 const pickerOpen = ref(false);

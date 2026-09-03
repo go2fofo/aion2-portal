@@ -1,7 +1,7 @@
 /*
  * @Author: whq
  * @Date: 2026-02-08 09:11:19
- * @LastEditTime: 2026-09-02 16:12:23
+ * @LastEditTime: 2026-09-03 09:20:54
  * @LastEditors: fofo
  * @Description:
  * @FilePath: /aion2-portal/nuxt.config.ts
@@ -20,7 +20,7 @@ export default defineNuxtConfig({
   dir: {
     public: "../public",
   },
-  modules: ["@nuxtjs/tailwindcss", "@nuxtjs/supabase", "nuxt-echarts"],
+  modules: ["@nuxtjs/tailwindcss", "@nuxtjs/supabase", "nuxt-echarts", "@pinia/nuxt"],
   devtools: { enabled: true },
   echarts: {
     // 渲染器选择：Canvas 更通用，SVG 在小图表或移动端表现更好

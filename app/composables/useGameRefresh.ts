@@ -1,6 +1,7 @@
 import { getLocalGameData, saveLocalGameData } from "@/utils/indexedDb";
 import { executeRulesByDictionary } from "@/utils/gameRefreshManager";
 import { useSupabaseClient, useSupabaseUser } from "#imports";
+import { useGameStore } from '@/stores/useGameStore'; 
 
 // 辅助函数：格式化日期为 YYYY-MM-DD HH:mm 或 YYYY-MM-DD
 const formatDate = (date: Date) => {
@@ -412,39 +413,45 @@ export const useGameRefresh = () => {
     }
   };
 
-  /**
-   * 保存游戏数据（同步云端或本地）
-   */
-  const saveGameData = async (gameData: any) => {
-    try {
-      if (gameData) {
-        gameData.exportDate = new Date().toLocaleString();
-      }
+/**
+ * 保存游戏数据（同步云端、本地及 Pinia 全局状态）
+ */
+const saveGameData = async (gameData: any) => {
+  try {
+    if (!gameData) return;
 
-      if (user?.value && client) {
-        await client.from("user_game_data")?.upsert(
-          {
-            user_id: user.value.id,
-            data: gameData,
-            updated_at: new Date(),
-          },
-          { onConflict: "user_id" },
-        );
+    // 1. 更新导出时间
+    gameData.exportDate = new Date().toLocaleString();
+
+    // 2. 直接同步更新到 Pinia 全局状态，让所有组件瞬间响应
+    const gameStore = useGameStore();
+    gameStore.setGameData(gameData);
+
+    // 3. 执行云端或本地存储
+    if (user?.value && client) {
+      await client.from("user_game_data")?.upsert(
+        {
+          user_id: user.value.id,
+          data: gameData,
+          updated_at: new Date(),
+        },
+        { onConflict: "user_id" },
+      );
+    } else {
+      const cleanData = JSON.parse(JSON.stringify(gameData));
+      if (typeof saveLocalGameData === "function") {
+        await saveLocalGameData(cleanData, "current_data");
       } else {
-        const cleanData = JSON.parse(JSON.stringify(gameData));
-        if (typeof saveLocalGameData === "function") {
-          await saveLocalGameData(cleanData, "current_data");
-        } else {
-          localStorage.setItem(
-            "aion2_portal_game_data",
-            JSON.stringify(cleanData),
-          );
-        }
+        localStorage.setItem(
+          "aion2_portal_game_data",
+          JSON.stringify(cleanData),
+        );
       }
-    } catch (error) {
-      console.error("[GameRefresh] 保存数据失败:", error);
     }
-  };
+  } catch (error) {
+    console.error("[GameRefresh] 保存数据失败:", error);
+  }
+};
 
   /**
    * 执行数据规则刷新核心方法
