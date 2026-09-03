@@ -397,12 +397,35 @@ const handleTaskClickWithDblClick = (char, field, type) => {
     // 执行你的双击逻辑
     emit("task-click", char, field, type, "dbclick");
   } else {
+    let validateClick = {
+      dimensionalCount:
+        getGroupSharedTaskData(
+          char.group,
+          "dimensionalCount",
+          "storedDimensionalCount",
+          14
+        ).total > 0,
+      dailyRuns:
+        getGroupSharedTaskData(char.group, "dailyRuns", "storedDailyRuns", 14).total > 0,
+      minigameCount:
+        getGroupSharedTaskData(char.group, "minigameCount", "storedMinigameCount", 14)
+          .total > 0,
+      awakening:
+        getCharacterSharedTaskData(char, "awakening", "storedAwakening", 14).total > 0,
+      nightmareCount:
+        getCharacterSharedTaskData(char, "nightmareCount", "storedNightmareCount", 14)
+          .total > 0,
+
+      battlefield: char?.battlefield != 0,
+    };
     // ===========================
     // 第一次点击，启动延时等待是否会有第二次点击
     // ===========================
     clickTimer = setTimeout(() => {
       clickTimer = null;
-
+    if (!validateClick[field]) {
+      return;
+    }
       // 延时结束后如果没有双击，则执行你的单击逻辑
       emit("task-click", char, field, type);
     }, 250); // 250毫秒是绝大多数用户的舒适双击间隔
@@ -1092,7 +1115,7 @@ const handleTaskClickWithDblClick = (char, field, type) => {
         </div>
         <div
           v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showTasks)"
-          class="grid grid-cols-3 gap-2"
+          class="grid grid-cols-4 gap-2"
         >
           <!-- 1. 每日使命 -->
           <!-- <button
@@ -1247,6 +1270,53 @@ const handleTaskClickWithDblClick = (char, field, type) => {
                 </span>
               </div>
             </template>
+          </button>
+          <!-- 试炼 -->
+          <button
+            type="button"
+            class="p-2 border rounded-xl flex flex-col items-start gap-1.5 transition-all text-left shadow-sm group cursor-pointer active:scale-95"
+            :class="[
+              char?.isTrial
+                ? 'bg-slate-50/60 dark:bg-slate-900/40 border-slate-200/70 dark:border-slate-800 opacity-75'
+                : 'bg-teal-50/50 dark:bg-teal-950/30 border-teal-200/80 dark:border-teal-900/60 hover:bg-teal-100/60 dark:hover:bg-teal-900/40',
+            ]"
+            @click="emit('task-click', char, 'isTrial', 'isTrial')"
+          >
+            <div class="w-full flex items-center justify-between">
+              <span
+                class="font-bold text-[10px] truncate transition-colors"
+                :class="
+                  char?.isTrial
+                    ? 'text-slate-400 dark:text-slate-500 line-through'
+                    : 'text-slate-700 dark:text-slate-200'
+                "
+                >试炼</span
+              >
+              <span
+                class="text-[8px] px-1 rounded border transition-colors"
+                :class="[
+                  char?.isTrial
+                    ? 'text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+                    : 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 border-teal-100 dark:border-teal-900/80',
+                ]"
+                >角色</span
+              >
+            </div>
+
+            <!-- 状态指示文案 -->
+            <div class="w-full flex items-center justify-between text-[10px] font-black">
+              <span
+                class="tracking-tight flex items-center gap-1"
+                :class="
+                  char?.isTrial
+                    ? 'text-slate-400 dark:text-slate-500 font-normal'
+                    : 'text-teal-600 dark:text-teal-400'
+                "
+              >
+                <span>{{ char?.isTrial ? "✓" : "⚡" }}</span>
+                <span>{{ char?.isTrial ? "已完成" : "未完成" }}</span>
+              </span>
+            </div>
           </button>
           <!-- 深渊回廊 -->
           <button

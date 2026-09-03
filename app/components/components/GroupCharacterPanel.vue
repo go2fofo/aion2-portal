@@ -455,6 +455,10 @@ const props = defineProps({
   },
 });
 
+// 是否开启特殊入口的独立聚焦展示
+const isFocusedHighlightOpen = ref(false);
+const focusedHighlightOption = ref({});
+
 const emit = defineEmits([
   "update-character",
   "delete-character",
@@ -598,17 +602,192 @@ const handleTaskClick = async (char, field, tab, clickType) => {
 
   switch (tab) {
     case "isCloister": //深渊回廊状态切换
-      if (char?.isCloister) return;
+      // if (char?.isCloister) return;
       const updatedCharacter = {
         ...cloneDeep(char),
       };
 
-      updatedCharacter.isCloister = true;
+      updatedCharacter.isCloister = !updatedCharacter?.isCloister;
       updatedCharacter.cloisterUpdateTime = Date.now();
       // 触发父组件更新事件
       emit("update-character", updatedCharacter);
       break;
-    case "weeklydaily":
+    case "isTrial": {
+      //试炼状态切换
+      // if (char?.isTrial) return;
+      const updatedCharacter = {
+        ...cloneDeep(char),
+      };
+
+      updatedCharacter.isTrial = !updatedCharacter?.isTrial;
+      updatedCharacter.trialUpdateTime = Date.now();
+      // 触发父组件更新事件
+      emit("update-character", updatedCharacter);
+      break;
+    }
+    case "weeklydaily": {
+      const taskCardConfigs = {
+        dailyRuns: {
+          key: "dailyRuns",
+          title: "每日副本消耗",
+          color: "amber",
+          // 渲染时判断是否有可用的前置条件
+          hasAvailable: () =>
+            (getCharGroup.value?.dailyRuns || 0) +
+              (getCharGroup.value?.storedDailyRuns || 0) >
+            0,
+          // 剩余可消耗文案或数值计算
+          getRemaining: () => totalsRemainingDailyRunsCountRuns.value || 0,
+          remainingLabel: "共享可消耗",
+          // 底部快捷按钮配置
+          quickActions: [
+            {
+              label: "清空",
+              type: "clear",
+              action: (formValues) => (formValues.dailyRuns = 0),
+            },
+            {
+              label: "全部",
+              type: "fill-all",
+              action: (formValues, extra) =>
+                (formValues.dailyRuns = extra.totalsRemainingDailyRunsCountRuns || 0),
+            },
+          ],
+        },
+        minigameCount: {
+          key: "minigameCount",
+          title: "古树庆典小游戏消耗",
+          color: "amber",
+          // 渲染时判断是否有可用的前置条件
+          hasAvailable: () =>
+            (getCharGroup.value?.minigameCount || 0) +
+              (getCharGroup.value?.storedMinigameCount || 0) >
+            0,
+          // 剩余可消耗文案或数值计算
+          getRemaining: () => totalsRemainingMinigameCountRuns.value || 0,
+          remainingLabel: "共享可消耗",
+          // 底部快捷按钮配置
+          quickActions: [
+            {
+              label: "清空",
+              type: "clear",
+              action: (formValues) => (formValues.minigameCount = 0),
+            },
+            {
+              label: "全部",
+              type: "fill-all",
+              action: (formValues, extra) =>
+                (formValues.minigameCount = extra.totalsRemainingMinigameCountRuns || 0),
+            },
+          ],
+        },
+        dimensionalCount: {
+          key: "dimensionalCount",
+          title: "次元袭击消耗",
+          color: "amber",
+          // 渲染时判断是否有可用的前置条件
+          hasAvailable: () =>
+            (getCharGroup.value?.dimensionalCount || 0) +
+              (getCharGroup.value?.storedDimensionalCount || 0) >
+            0,
+          // 剩余可消耗文案或数值计算
+          getRemaining: () => totalsRemainingDimensionalCountRuns.value || 0,
+          remainingLabel: "共享可消耗",
+          // 底部快捷按钮配置
+          quickActions: [
+            {
+              label: "清空",
+              type: "clear",
+              action: (formValues) => (formValues.dimensionalCount = 0),
+            },
+            {
+              label: "全部",
+              type: "fill-all",
+              action: (formValues, extra) =>
+                (formValues.dimensionalCount =
+                  extra.totalsRemainingDimensionalCountRuns || 0),
+            },
+          ],
+        },
+        awakening: {
+          key: "awakening",
+          title: "觉醒战消耗",
+          color: "purple",
+          hasAvailable: () =>
+            (gameplayCharForm.value?.awakening || 0) +
+              (gameplayCharForm.value?.storedAwakening || 0) >
+            0,
+          getRemaining: () => totalsRemainingAwakeningCountRuns.value || 0,
+          remainingLabel: "剩余可消耗",
+          quickActions: [
+            {
+              label: "+ 增加 2 次",
+              type: "add-2",
+              action: (formValues) => (formValues.awakening += 2),
+            },
+            {
+              label: "全部",
+              type: "fill-all",
+              action: (formValues, extra) =>
+                (formValues.awakening = extra.totalsRemainingAwakeningCountRuns || 0),
+            },
+          ],
+        },
+        battlefield: {
+          key: "battlefield",
+          title: "战场消耗",
+          color: "purple",
+          hasAvailable: () => (gameplayCharForm.value?.battlefield || 0) > 0,
+          getRemaining: () =>
+            (gameplayCharForm.value?.battlefield || 0) -
+            (weeklydailyFormValues.battlefield || 0),
+          remainingLabel: "剩余可消耗",
+          quickActions: [
+            {
+              label: "+ 增加 2 次",
+              type: "add-2",
+              action: (formValues) => (formValues.battlefield += 2),
+            },
+            {
+              label: "全部",
+              type: "fill-all",
+              action: (formValues, extra) =>
+                (formValues.battlefield = extra.gameplayCharForm.battlefield || 0),
+            },
+          ],
+        },
+        nightmareCount: {
+          key: "nightmareCount",
+          title: "噩梦消耗",
+          color: "purple",
+          hasAvailable: () =>
+            (gameplayCharForm.value?.nightmareCount || 0) +
+              (gameplayCharForm.value?.storedNightmareCount || 0) >
+            0,
+          getRemaining: () => totalsRemainingNightmareCountRuns.value || 0,
+          remainingLabel: "剩余可消耗",
+          quickActions: [
+            {
+              label: "清空",
+              type: "clear",
+              action: (formValues) => (formValues.nightmareCount = 0),
+            },
+            {
+              label: "全部",
+              type: "fill-all",
+              action: (formValues, extra) =>
+                (formValues.nightmareCount =
+                  extra.totalsRemainingNightmareCountRuns || 0),
+            },
+          ],
+        },
+      };
+
+      isFocusedHighlightOpen.value = true;
+      focusedHighlightOption.value = {
+        ...taskCardConfigs[field],
+      };
+    }
     case "exchange":
       if (clickType == "dbclick") {
         //发送给父组件
@@ -626,12 +805,12 @@ const handleTaskClick = async (char, field, tab, clickType) => {
       consumeForm.value.dungeonType = "sanctuary";
       consumeForm.value.calcInput = 1;
 
-      let sanctuaryMenu={
-        s1:0,
-        s2:1,
-        s3:2,
+      let sanctuaryMenu = {
+        s1: 0,
+        s2: 1,
+        s3: 2,
         // s4:3
-      }
+      };
       consumeForm.value.selectedDungeonIndex = sanctuaryMenu[field];
 
       consumeForm.value.activeCalcTab = "runs";
@@ -652,7 +831,6 @@ const handleTaskClick = async (char, field, tab, clickType) => {
       emit("task-click", char, tab, field);
       break;
     case "globalStorehouseMaterialCharOd": //角色卡片点击仓库奥德
-
       console.log(
         `🔍 [GroupCharacterPanel:724] %c 点击仓库奥德触发 char: `,
         "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
@@ -5452,6 +5630,218 @@ defineExpose({
                 </div>
               </div>
             </div>
+            <!-- ================= 特殊入口聚焦高亮蒙版 (Spotlight Overlay) ================= -->
+            <div
+              v-if="isFocusedHighlightOpen"
+              class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md transition-all animate-fade-in"
+              @click.self="isFocusedHighlightOpen = false"
+            >
+              <!-- 居中高亮卡片容器 -->
+              <div
+                class="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4"
+              >
+                <!-- 右上角关闭按钮 -->
+                <button
+                  type="button"
+                  class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold text-sm transition-all cursor-pointer"
+                  @click="isFocusedHighlightOpen = false"
+                >
+                  ✕
+                </button>
+
+                <div
+                  class="text-xs font-black text-slate-400 tracking-wider uppercase mb-1"
+                >
+                  ✨ 快捷专注模式
+                </div>
+
+                <div class="space-y-4">
+                  <!-- 有可用次数时的面板 -->
+                  <template v-if="focusedHighlightOption.hasAvailable()">
+                    <!-- 头部 -->
+                    <div
+                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
+                    >
+                      <div class="flex items-center gap-2.5">
+                        <div
+                          :class="`w-2.5 h-2.5 rounded-full bg-${focusedHighlightOption.color}-500 shadow-sm animate-pulse`"
+                        ></div>
+                        <span
+                          class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-100"
+                        >
+                          {{ focusedHighlightOption.title }}
+                        </span>
+                      </div>
+
+                      <!-- 状态 Badge -->
+                      <span
+                        v-if="
+                          validationResult.invalidFields.includes(
+                            focusedHighlightOption.key
+                          )
+                        "
+                        class="text-[10px] text-red-500 font-bold bg-red-50 px-2 py-0.5 rounded-full border border-red-200"
+                      >
+                        {{
+                          validationResult.errors[focusedHighlightOption.key] || "异常"
+                        }}
+                      </span>
+                      <span
+                        v-else
+                        :class="`text-[10px] px-2.5 py-1 rounded-full font-black bg-${focusedHighlightOption.color}-50 dark:bg-${focusedHighlightOption.color}-950/60 text-${focusedHighlightOption.color}-700 dark:text-${focusedHighlightOption.color}-300 border border-${focusedHighlightOption.color}-200/60 shadow-2xs`"
+                      >
+                        {{ focusedHighlightOption.remainingLabel }}:
+                        {{ focusedHighlightOption.getRemaining() }}
+                      </span>
+                    </div>
+
+                    <!-- 中部：计数输入与步进器 -->
+                    <div class="space-y-3 flex-1 flex flex-col justify-between">
+                      <div
+                        class="p-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-2.5"
+                      >
+                        <div
+                          class="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-400 px-0.5"
+                        >
+                          <span>消耗次数</span>
+                          <span
+                            :class="`text-${focusedHighlightOption.color}-600 dark:text-${focusedHighlightOption.color}-400 font-black text-xs`"
+                          >
+                            -{{ weeklydailyFormValues[focusedHighlightOption.key] || 0 }}
+                          </span>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                          <button
+                            type="button"
+                            class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 active:scale-95 text-slate-700 dark:text-slate-200 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            @click="
+                              weeklydailyFormValues[
+                                focusedHighlightOption.key
+                              ] = Math.max(
+                                0,
+                                (weeklydailyFormValues[focusedHighlightOption.key] || 0) -
+                                  1
+                              )
+                            "
+                          >
+                            -
+                          </button>
+
+                          <input
+                            v-model.number="
+                              weeklydailyFormValues[focusedHighlightOption.key]
+                            "
+                            min="0"
+                            :class="`flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-${focusedHighlightOption.color}-400 transition-all`"
+                          />
+
+                          <button
+                            type="button"
+                            :class="`w-8 h-8 rounded-xl bg-${focusedHighlightOption.color}-50 dark:bg-${focusedHighlightOption.color}-950/60 hover:bg-${focusedHighlightOption.color}-100 active:scale-95 text-${focusedHighlightOption.color}-700 dark:text-${focusedHighlightOption.color}-300 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs`"
+                            @click="
+                              weeklydailyFormValues[focusedHighlightOption.key] =
+                                (weeklydailyFormValues[focusedHighlightOption.key] || 0) +
+                                1
+                            "
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- 底部：动态快捷操作按钮 -->
+                      <div class="grid grid-cols-3 gap-2 pt-0.5">
+                        <button
+                          v-for="(btn, btnIndex) in focusedHighlightOption.quickActions"
+                          :key="btnIndex"
+                          type="button"
+                          class="py-2 px-1 rounded-xl text-[11px] font-bold transition-all cursor-pointer text-center flex items-center justify-center truncate shadow-2xs"
+                          :class="
+                            btn.type === 'fill-all'
+                              ? `bg-gradient-to-r from-${focusedHighlightOption.color}-600 to-${focusedHighlightOption.color}-500 text-white font-black shadow-sm`
+                              : 'bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                          "
+                          @click="
+                            btn.action(weeklydailyFormValues, {
+                              totalsRemainingDailyRunsCountRuns,
+                              totalsRemainingAwakeningCountRuns,
+                              totalsRemainingNightmareCountRuns,
+                              gameplayCharForm,
+                            })
+                          "
+                        >
+                          {{ btn.label }}
+                        </button>
+                        <button
+                          type="button"
+                          v-if="
+                            gameplayCharForm?.characterId && activeTab === 'weeklydaily'
+                          "
+                          @click="
+                            () => {
+                              handleExecuteWeeklyDaily();
+                              isFocusedHighlightOpen.value = false;
+                              focusedHighlightOption.value = {};
+                              openGameplay.value = false;
+                            }
+                          "
+                          :disabled="
+                            saving || !validationResult.isValid || !hasWeeklyDailyValues
+                          "
+                          class="px-1 py-2 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-all shadow-md shadow-sky-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {{
+                            saving
+                              ? "确认中..."
+                              : !hasWeeklyDailyValues
+                              ? "请填写"
+                              : "确认完成"
+                          }}
+                        </button>
+                      </div>
+                    </div>
+                  </template>
+
+                  <!-- 无可用次数时的空状态面板 -->
+                  <template v-else>
+                    <div
+                      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
+                    >
+                      <div class="flex items-center gap-2.5">
+                        <div
+                          class="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700"
+                        ></div>
+                        <span
+                          class="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500"
+                        >
+                          {{ focusedHighlightOption.title }}
+                        </span>
+                      </div>
+                      <span
+                        class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-slate-800 text-slate-400"
+                      >
+                        无可用
+                      </span>
+                    </div>
+
+                    <div
+                      class="flex-1 flex flex-col items-center justify-center py-6 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl space-y-2"
+                    >
+                      <div
+                        class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 font-bold text-xs"
+                      >
+                        —
+                      </div>
+                      <p class="text-xs font-bold text-slate-400 dark:text-slate-500">
+                        暂无可消耗的次数
+                      </p>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+
             <!-- 卡片：exchange 兑换任务 -->
             <div
               v-if="

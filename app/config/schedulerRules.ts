@@ -174,7 +174,7 @@ export const gameRulesDictionary = [
   {
     id: "mission_daily_char",
     name: "每日任务（角色每日5点重置）",
-    dimension: "server", 
+    dimension: "server",
     targetField: "dailyTaskCount", // 重置的目标次数字段
     lastTimeField: "dailyMissionDate", // 记录最后一次更新/重置的时间字段
     refreshType: "daily", // 每天刷新
@@ -185,7 +185,8 @@ export const gameRulesDictionary = [
       char.dailyMission = false; // 如果任务完成状态也需要重置，可在这里一并处理
       return true;
     },
-    description: "服务器共享：每日任务，于每天5点重置完成状态并恢复/重置为0次。",
+    description:
+      "服务器共享：每日任务，于每天5点重置完成状态并恢复/重置为0次。",
   },
   {
     id: "ancient_tree",
@@ -248,6 +249,22 @@ export const gameRulesDictionary = [
     incrementCount: 3,
     description:
       "角色单独：觉醒战，于每周三5点恢复3次，上限3次，补充上限30次。",
+  },
+  {
+    id: "trial",
+    name: "试炼",
+    dimension: "character",
+    targetField: "trial",
+    lastTimeField: "trialUpdateTime",
+    maxCount: 3,
+    refreshType: "weekly",
+    cron: "0 5 * * 3",
+    action: (char: any) => {
+      char.trial = false;
+      char.trialUpdateTime = Date.now();
+      return true;
+    },
+    description: "角色单独：试炼，于每周三5点恢复",
   },
   {
     id: "battlefield",
