@@ -108,6 +108,83 @@
         </div>
       </div>
     </Transition>
+    <!-- 全局 Toast 容器 -->
+    <div
+      class="fixed top-6 left-1/2 -translate-x-1/2 z-[10000] flex flex-col items-center gap-3 pointer-events-none w-full max-w-sm px-4"
+    >
+      <TransitionGroup name="toast-slide">
+        <div
+          v-for="item in toasts"
+          :key="item.id"
+          class="pointer-events-auto flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl backdrop-blur-md border transition-all"
+          :class="getToastStyles(item.type)"
+        >
+          <!-- 纯 SVG 图标替换 Emoji -->
+          <div class="shrink-0 flex items-center justify-center w-5 h-5">
+            <!-- 成功图标 -->
+            <svg
+              v-if="item.type === 'success'"
+              class="w-full h-full text-emerald-400 dark:text-emerald-300"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <!-- 错误图标 -->
+            <svg
+              v-else-if="item.type === 'error'"
+              class="w-full h-full text-rose-400 dark:text-rose-300"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+            <!-- 警告图标 -->
+            <svg
+              v-else-if="item.type === 'warning'"
+              class="w-full h-full text-amber-400 dark:text-amber-300"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+            <!-- 默认/Info 图标 -->
+            <svg
+              v-else
+              class="w-full h-full text-[#45a6d5] dark:text-[#45a6d5]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+
+          <div class="text-sm font-bold tracking-wide break-words flex-1">
+            {{ item.content }}
+          </div>
+        </div>
+      </TransitionGroup>
+    </div>
   </Teleport>
 </template>
 
@@ -117,6 +194,20 @@ const { $feedbackState } = useNuxtApp();
 // 直接使用插件中定义的响应式状态
 const dialog = $feedbackState.dialog;
 const loading = $feedbackState.loading;
+const toasts = $feedbackState.toasts;
+// 样式分发
+const getToastStyles = (type) => {
+  switch (type) {
+    case "success":
+      return "bg-emerald-500/90 dark:bg-emerald-900/90 text-white dark:text-emerald-100 border-emerald-400/30 dark:border-emerald-700/50";
+    case "error":
+      return "bg-rose-500/90 dark:bg-rose-900/90 text-white dark:text-rose-100 border-rose-400/30 dark:border-rose-700/50";
+    case "warning":
+      return "bg-amber-500/90 dark:bg-amber-900/90 text-white dark:text-amber-100 border-amber-400/30 dark:border-amber-700/50";
+    default:
+      return "bg-slate-900/90 dark:bg-slate-800/90 text-white dark:text-slate-100 border-slate-700/50 dark:border-slate-700";
+  }
+};
 
 const handleConfirm = () => {
   dialog.visible = false;
@@ -136,6 +227,18 @@ const handleMaskClick = () => {
 </script>
 
 <style scoped>
+.toast-slide-enter-active,
+.toast-slide-leave-active {
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.toast-slide-enter-from {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.9);
+}
+.toast-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+}
 /* 弹窗动画 */
 .modal-fade-enter-active,
 .modal-fade-leave-active {

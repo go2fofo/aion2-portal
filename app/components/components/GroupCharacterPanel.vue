@@ -472,7 +472,7 @@ const emit = defineEmits([
   "task-click",
 ]);
 
-const { $confirm, $alert } = useNuxtApp();
+const { $confirm, $alert,$toast } = useNuxtApp();
 
 // 根据 activeTabGroup 过滤当前展示的角色列表，并自动应用 sort 排序及主角色置顶
 const filteredCharacters = computed(() => {
@@ -2194,7 +2194,7 @@ const handleExecuteWeeklyDaily = () => {
   // 触发父组件更新事件
   emit("update-character", updatedCharacter);
   emit("update-groups", newGroups);
-  $alert(`成功完成消耗`);
+  $toast('成功完成消耗');
 };
 
 //================ 日周任务 结束 =====================
@@ -5781,9 +5781,9 @@ defineExpose({
                           @click="
                             () => {
                               handleExecuteWeeklyDaily();
-                              isFocusedHighlightOpen.value = false;
-                              focusedHighlightOption.value = {};
-                              openGameplay.value = false;
+                              isFocusedHighlightOpen = false;
+                              focusedHighlightOption = {};
+                              openGameplay = false;
                             }
                           "
                           :disabled="
