@@ -22,7 +22,7 @@ import cloneDeep from "lodash/cloneDeep";
 import { dungeonDecayRules } from "./config/userAdmin";
 import { useGameRefresh } from "@/composables/useGameRefresh";
 import { characterClasses, twToScMap, parseLogTimestamp } from "./config/userAdmin";
-import { useGameStore } from '@/stores/useGameStore';
+import { useGameStore } from "@/stores/useGameStore";
 const gameStore = useGameStore();
 const client = useSupabaseClient();
 const user = useSupabaseUser();
@@ -97,7 +97,7 @@ if (!gameStore.gameData) {
 }
 const gameData = computed({
   get: () => gameStore.gameData || defGameData,
-  set: (val) => gameStore.setGameData(val)
+  set: (val) => gameStore.setGameData(val),
 });
 
 const groupOpen = ref(false);
@@ -500,9 +500,15 @@ const getGroupById = (groupId) => {
 // 3. 总奥德能量计算
 const totalEnergy = computed(() => {
   if (!gameData.value?.characters) return 0;
-  return gameData.value?.characters?.reduce((acc, char) => {
-    return acc + (char.energy || 0) + (char.storedEnergy || 0);
-  }, 0);
+  if (activeTabGroup.value != "all") {
+     return (gameData.value?.characters?.filter((char) => char.group === activeTabGroup.value))?.reduce((acc, char) => {
+      return acc + (char.energy || 0) + (char.storedEnergy || 0);
+    }, 0);
+  } else {
+    return gameData.value?.characters?.reduce((acc, char) => {
+      return acc + (char.energy || 0) + (char.storedEnergy || 0);
+    }, 0);
+  }
 });
 
 // 4. 今日收益吉纳数（从 runLogs 过滤当日并根据 activeTabGroup 归属分组计算）
@@ -2049,6 +2055,7 @@ const getGroupDecayInfo = (groupId, type) => {
   }
 
   const group = groupsList.find((g) => g.id === groupId);
+
   if (!group) {
     return "已刷 0次，基纳获得量 100%";
   }
@@ -3155,6 +3162,16 @@ watch(
             class="text-slate-400 dark:text-slate-500 text-xs font-bold tracking-wider uppercase"
           >
             总奥德能量 (点)
+
+            <span
+              class="text-[10px] font-black px-2.5 py-0.5 rounded-lg bg-[#45a6d5]/10 dark:bg-[#45a6d5]/20 text-[#45a6d5] border border-[#45a6d5]/20 dark:border-[#45a6d5]/30"
+            >
+              {{
+                activeTabGroup === "all"
+                  ? "全部汇总"
+                  : gameData?.groups?.find((g) => g?.id === activeTabGroup)?.name
+              }}
+            </span>
           </div>
           <div
             class="text-3xl font-black mt-2 text-amber-600 dark:text-amber-400 tracking-tight"
@@ -3165,7 +3182,7 @@ watch(
         <div
           class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700/80 text-[11px] text-slate-400 dark:text-slate-500 font-medium"
         >
-          包含当前账号下所有角色的实时累积能量
+          <!-- 包含当前账号下所有角色的实时累积能量 -->
         </div>
       </div>
     </div>
@@ -6423,8 +6440,7 @@ watch(
                         <span
                           >大奥德
                           <!-- <span class="text-[10px] text-slate-400">(角色仓库+{{ getStorehouseOd('storehouseBigOdCount') || 0 }})</span> -->
-                          </span
-                        >
+                        </span>
                         <span class="text-amber-600 dark:text-amber-400 font-black"
                           >+{{ bigOdTotalPoints }}点</span
                         >
@@ -6506,8 +6522,7 @@ watch(
                         <span
                           >小奥德
                           <!-- <span class="text-[10px] text-slate-400">(角色仓库+{{ getStorehouseOd('storehouseSmallOdCount') || 0 }})</span> -->
-                          </span
-                        >
+                        </span>
                         <span class="text-sky-600 dark:text-sky-400 font-black"
                           >+{{ smallOdTotalPoints }}点</span
                         >
@@ -6991,7 +7006,6 @@ watch(
                     >
                   </div>
                 </div>
-
               </div>
               <!-- 吉纳 -->
               <div v-if="globalPopupOp.type == 'globalKinaGain'">

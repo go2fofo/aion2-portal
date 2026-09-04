@@ -196,6 +196,7 @@ const getTodayRunCount = (char, type) => {
  * @param {string} type 副本类型（如 'expedition', 'surpass', 'sanctuary' 等）
  */
 const getThisWeekRunCount = (char, type) => {
+
   if (!char.runLogs || !Array.isArray(char.runLogs)) return 0;
 
   const now = new Date();
