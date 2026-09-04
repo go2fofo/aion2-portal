@@ -650,7 +650,7 @@ const handleTaskClick = async (char, field, tab, clickType) => {
               label: "全部",
               type: "fill-all",
               action: (formValues, extra) =>
-                (formValues.dailyRuns = extra.totalsRemainingDailyRunsCountRuns || 0),
+                (formValues.dailyRuns = totalsRemainingDailyRunsCountRuns.value || 0),
             },
           ],
         },
@@ -677,7 +677,7 @@ const handleTaskClick = async (char, field, tab, clickType) => {
               label: "全部",
               type: "fill-all",
               action: (formValues, extra) =>
-                (formValues.minigameCount = extra.totalsRemainingMinigameCountRuns || 0),
+                (formValues.minigameCount = totalsRemainingMinigameCountRuns.value || 0),
             },
           ],
         },
@@ -704,8 +704,7 @@ const handleTaskClick = async (char, field, tab, clickType) => {
               label: "全部",
               type: "fill-all",
               action: (formValues, extra) =>
-                (formValues.dimensionalCount =
-                  extra.totalsRemainingDimensionalCountRuns || 0),
+                (formValues.dimensionalCount = totalsRemainingDimensionalCountRuns.value || 0), 
             },
           ],
         },
@@ -983,6 +982,10 @@ const handleClickGameplay = (char, tab, gGroup) => {
 };
 // 关闭游玩消耗/补充弹框
 const handleCloseGameplay = () => {
+  weeklydailyFormValues.value = cloneDeep(defaultWeeklydailyFormValues);
+  supplementFormValues.value = cloneDeep(defaultSupplementFormValues);
+  validationResult.value = cloneDeep(defaultValidationResult);
+  exchangeFormValues.value = cloneDeep(defaultExchangeFormValues);
   openGameplay.value = false;
 };
 // 奥德能量上限计算（高级会员840，普通560）
@@ -5783,6 +5786,7 @@ defineExpose({
                               handleExecuteWeeklyDaily();
                               isFocusedHighlightOpen = false;
                               focusedHighlightOption = {};
+                              weeklydailyFormValues = cloneDeep(defaultWeeklydailyFormValues);
                               openGameplay = false;
                             }
                           "
