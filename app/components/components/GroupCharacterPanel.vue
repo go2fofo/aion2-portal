@@ -4,7 +4,11 @@ import { formatCombatPower } from "~/utils/formatCombatPower";
 import CharacterCard from "./CharacterCard.vue";
 import cloneDeep from "lodash/cloneDeep";
 
-import { KinahOdSate, dungeonDecayRules,parseLogTimestamp } from "../config/userAdmin.js";
+import {
+  KinahOdSate,
+  dungeonDecayRules,
+  parseLogTimestamp,
+} from "../config/userAdmin.js";
 // 游玩补充验证规则配置数组
 const supplementValidationRules = [
   //  奥德能量 (energy)
@@ -1263,7 +1267,6 @@ const consumeForm = ref({
  * @param {string} type 副本类型（如 'expedition', 'surpass', 'sanctuary' 等）
  */
 const getThisWeekRunCount = (char, type) => {
-
   if (!char.runLogs || !Array.isArray(char.runLogs)) return 0;
 
   const now = new Date();
@@ -5786,10 +5789,10 @@ defineExpose({
                           </span>
                         </div>
 
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 w-full">
                           <button
                             type="button"
-                            class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 active:scale-95 text-slate-700 dark:text-slate-200 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            class="w-4/12 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 active:scale-95 text-slate-700 dark:text-slate-200 font-black text-sm flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             @click="
                               weeklydailyFormValues[
                                 focusedHighlightOption.key
@@ -5808,12 +5811,12 @@ defineExpose({
                               weeklydailyFormValues[focusedHighlightOption.key]
                             "
                             min="0"
-                            :class="`flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-${focusedHighlightOption.color}-400 transition-all`"
+                            :class="`w-4/12 h-10 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center font-black text-xs text-slate-800 dark:text-slate-100 outline-none shadow-2xs focus:border-${focusedHighlightOption.color}-400 transition-all`"
                           />
 
                           <button
                             type="button"
-                            :class="`w-8 h-8 rounded-xl bg-${focusedHighlightOption.color}-50 dark:bg-${focusedHighlightOption.color}-950/60 hover:bg-${focusedHighlightOption.color}-100 active:scale-95 text-${focusedHighlightOption.color}-700 dark:text-${focusedHighlightOption.color}-300 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs`"
+                            :class="`w-4/12 h-10 rounded-xl bg-${focusedHighlightOption.color}-50 dark:bg-${focusedHighlightOption.color}-950/60 hover:bg-${focusedHighlightOption.color}-100 active:scale-95 text-${focusedHighlightOption.color}-700 dark:text-${focusedHighlightOption.color}-300 font-black text-sm flex items-center justify-center transition-all cursor-pointer shadow-2xs`"
                             @click="
                               weeklydailyFormValues[focusedHighlightOption.key] =
                                 (weeklydailyFormValues[focusedHighlightOption.key] || 0) +

@@ -502,9 +502,11 @@ const getGroupById = (groupId) => {
 const totalEnergy = computed(() => {
   if (!gameData.value?.characters) return 0;
   if (activeTabGroup.value != "all") {
-     return (gameData.value?.characters?.filter((char) => char.group === activeTabGroup.value))?.reduce((acc, char) => {
-      return acc + (char.energy || 0) + (char.storedEnergy || 0);
-    }, 0);
+    return gameData.value?.characters
+      ?.filter((char) => char.group === activeTabGroup.value)
+      ?.reduce((acc, char) => {
+        return acc + (char.energy || 0) + (char.storedEnergy || 0);
+      }, 0);
   } else {
     return gameData.value?.characters?.reduce((acc, char) => {
       return acc + (char.energy || 0) + (char.storedEnergy || 0);
@@ -2043,7 +2045,6 @@ const getGroupSharedTaskData = (groupId, metricKey, storedKey, maxLimit = 14) =>
   };
 };
 const getThisWeekRunCount = (char, type) => {
-
   if (!char.runLogs || !Array.isArray(char.runLogs)) return 0;
 
   const now = new Date();
@@ -2084,7 +2085,9 @@ const getThisWeekRunCount = (char, type) => {
  * @param {string} type 'expedition' (远征) 或 'transcend' (超越)
  */
 const getGroupDecayInfo = (groupId, type) => {
-  const charactersList = gameData.value?.characters?.filter((f) => f.groupId === groupId || f.group === groupId);
+  const charactersList = gameData.value?.characters?.filter(
+    (f) => f.groupId === groupId || f.group === groupId
+  );
 
   if (!charactersList || !Array.isArray(charactersList) || charactersList.length === 0) {
     return "已刷 0次，基纳获得量 100%";
@@ -6211,8 +6214,9 @@ watch(
           <div
             class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-[2.5rem] shadow-2xl overflow-hidden text-slate-800 flex flex-col transition-all duration-300 w-[30vw]"
             :style="{
-              height: globalPopupOp?.height || '60vh',
-              width: globalPopupOp?.width || '30vw',
+              height: 'auto',
+              maxHeight: '90vh',
+              width: globalPopupOp?.width || '40vw',
             }"
           >
             <!-- 弹窗头部 -->
@@ -6240,7 +6244,7 @@ watch(
               <!-- 开通会员 -->
               <div
                 v-if="globalPopupOp.type == 'premiumMember'"
-                class="space-y-2 max-w-2xl mx-auto py-2"
+                class="space-y-2 mx-auto py-2"
               >
                 <!-- 顶部门幅提示卡 -->
                 <div
@@ -6332,7 +6336,7 @@ watch(
               <!-- 奥德能量设置，可补充可改基础值 -->
               <div
                 v-if="globalPopupOp.type == 'globalSimpleEnergy'"
-                class="space-y-6 max-w-lg mx-auto py-2"
+                class="space-y-6 mx-auto py-2"
               >
                 <!-- 主体：输入参数区 -->
                 <div class="space-y-4">
@@ -6482,7 +6486,7 @@ watch(
                         <!-- 减号按钮：限制不能低于已勾选的快捷包总数 -->
                         <button
                           type="button"
-                          class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black flex items-center justify-center transition-all cursor-pointer active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+                          class="w-4/12 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black flex items-center justify-center transition-all cursor-pointer active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
                           @click="
                             () => {
                               const minLimit =
@@ -6527,13 +6531,13 @@ watch(
                             }
                           "
                           min="0"
-                          class="w-full min-w-0 px-2 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 dark:text-slate-200 outline-none"
+                          class="w-4/12 h-10 w-full min-w-0 px-2 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 dark:text-slate-200 outline-none"
                         />
 
                         <!-- 加号按钮 -->
                         <button
                           type="button"
-                          class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/80 text-amber-700 dark:text-amber-400 font-black flex items-center justify-center transition-all cursor-pointer active:scale-95 disabled:opacity-50 shrink-0"
+                          class="w-4/12 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/80 text-amber-700 dark:text-amber-400 font-black flex items-center justify-center transition-all cursor-pointer active:scale-95 disabled:opacity-50 shrink-0"
                           @click="
                             globalPopupOp.formData.bigOdCount =
                               (globalPopupOp.formData.bigOdCount || 0) + 1
@@ -6563,7 +6567,7 @@ watch(
                       <div class="flex items-center gap-2">
                         <button
                           type="button"
-                          class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
+                          class="w-4/12 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
                           @click="
                             globalPopupOp.formData.smallOdCount = Math.max(
                               0,
@@ -6576,11 +6580,11 @@ watch(
                         <input
                           v-model.number="globalPopupOp.formData.smallOdCount"
                           min="0"
-                          class="w-full min-w-0 px-2 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 dark:text-slate-200 outline-none"
+                          class="w-4/12 h-10 w-full min-w-0 px-2 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center font-black text-sm text-slate-800 dark:text-slate-200 outline-none"
                         />
                         <button
                           type="button"
-                          class="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/80 text-sky-700 dark:text-sky-400 font-black flex items-center justify-center transition-all cursor-pointer active:scale-95 disabled:opacity-50 shrink-0"
+                          class="w-4/12 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/80 text-sky-700 dark:text-sky-400 font-black flex items-center justify-center transition-all cursor-pointer active:scale-95 disabled:opacity-50 shrink-0"
                           @click="
                             globalPopupOp.formData.smallOdCount =
                               (globalPopupOp.formData.smallOdCount || 0) + 1
@@ -6795,7 +6799,7 @@ watch(
               <!-- 修改角色信息 -->
               <div
                 v-if="globalPopupOp.type == 'globalModifyCharacter'"
-                class="space-y-5 max-w-lg mx-auto py-2"
+                class="space-y-5 mx-auto py-2"
               >
                 <div class="space-y-4 py-2">
                   <!-- 输入表单 -->
@@ -6943,7 +6947,7 @@ watch(
               <!-- 奥德兑换 -->
               <div
                 v-if="globalPopupOp.type == 'globalExchangeCharOD'"
-                class="space-y-5 max-w-lg mx-auto py-2"
+                class="space-y-5 mx-auto py-2"
               >
                 <!-- 商店奥德 -->
                 <div v-if="globalPopupOp.fieldType == 'breezeCharOd'">
@@ -7000,7 +7004,7 @@ watch(
               <!-- 仓库奥德 -->
               <div
                 v-if="globalPopupOp.type == 'globalStorehouseMaterialCharOd'"
-                class="space-y-5 max-w-lg mx-auto py-2"
+                class="space-y-5 mx-auto py-2"
               >
                 <div class="space-y-1.5">
                   <div class="flex items-center justify-between text-xs">
@@ -7061,7 +7065,7 @@ watch(
               <!-- ================= 通用双击触发================= -->
               <div
                 v-if="globalPopupOp.type == 'globalDbClick'"
-                class="space-y-4 max-w-lg mx-auto py-2 text-xs"
+                class="space-y-4 mx-auto py-2 text-xs"
               >
                 <div class="space-y-4">
                   <template v-for="(value, key) in globalPopupOp.formData" :key="key">

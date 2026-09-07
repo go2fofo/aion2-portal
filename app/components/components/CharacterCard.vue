@@ -196,7 +196,6 @@ const getTodayRunCount = (char, type) => {
  * @param {string} type 副本类型（如 'expedition', 'surpass', 'sanctuary' 等）
  */
 const getThisWeekRunCount = (char, type) => {
-
   if (!char.runLogs || !Array.isArray(char.runLogs)) return 0;
 
   const now = new Date();
@@ -424,9 +423,9 @@ const handleTaskClickWithDblClick = (char, field, type) => {
     // ===========================
     clickTimer = setTimeout(() => {
       clickTimer = null;
-    if (!validateClick[field]) {
-      return;
-    }
+      if (!validateClick[field]) {
+        return;
+      }
       // 延时结束后如果没有双击，则执行你的单击逻辑
       emit("task-click", char, field, type);
     }, 250); // 250毫秒是绝大多数用户的舒适双击间隔
@@ -814,7 +813,8 @@ const handleTaskClickWithDblClick = (char, field, type) => {
               <!-- @click="emit('task-click', char, 'materialCharOd', 'exchangeCharOD')" -->
 
               <div
-                class="p-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all hover:border-amber-400/50 hover:bg-amber-50/30 dark:hover:bg-amber-950/30 cursor-pointer shrink-0"
+                class="p-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all hover:border-amber-400/50 hover:bg-amber-50/30 dark:hover:bg-amber-950/30 cursor-pointer shrink-0 select-none"
+                @dblclick="emit('task-click', char, 'materialCharOd', 'exchangeCharOD')"
               >
                 <div class="flex items-center gap-1.5 min-w-0">
                   <div class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></div>
@@ -866,8 +866,9 @@ const handleTaskClickWithDblClick = (char, field, type) => {
               <!-- @click="emit('task-click', char, 'breezeCharOd', 'exchangeCharOD')" -->
 
               <div
-                class="p-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 dark:hover:bg-sky-950/30 cursor-pointer shrink-0"
+                class="p-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-xs transition-all hover:border-[#45a6d5]/50 hover:bg-sky-50/30 dark:hover:bg-sky-950/30 cursor-pointer shrink-0 select-none"
                 v-if="getGroup(char.group)?.premiumMember"
+                @dblclick="emit('task-click', char, 'breezeCharOd', 'exchangeCharOD')"
               >
                 <div class="flex items-center gap-1.5 min-w-0">
                   <div class="w-1.5 h-1.5 rounded-full bg-[#45a6d5] shrink-0"></div>
