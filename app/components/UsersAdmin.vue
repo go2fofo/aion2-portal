@@ -2042,7 +2042,41 @@ const getGroupSharedTaskData = (groupId, metricKey, storedKey, maxLimit = 14) =>
     total: Number(groupTarget?.[metricKey] || 0) + Number(groupTarget?.[storedKey] || 0),
   };
 };
+const getThisWeekRunCount = (char, type) => {
 
+  if (!char.runLogs || !Array.isArray(char.runLogs)) return 0;
+
+  const now = new Date();
+
+  // 1. 计算当前时间属于本周的哪个“周三 05:00”锚点
+  const shiftedNow = new Date(now.getTime() - 5 * 60 * 60 * 1000);
+  const dayOfWeek = shiftedNow.getDay(); // 0 是周日, 3 是周三
+
+  let diffToWednesday = dayOfWeek - 3;
+  if (diffToWednesday < 0) {
+    diffToWednesday += 7;
+  }
+
+  // 2. 算出本周周三的 05:00:00 准确时间戳
+  const currentWeekWednesday = new Date(shiftedNow);
+  currentWeekWednesday.setDate(shiftedNow.getDate() - diffToWednesday);
+  currentWeekWednesday.setHours(5, 0, 0, 0);
+
+  const startTime = currentWeekWednesday.getTime();
+
+  // 3. 下周三的 05:00:00 准确时间戳 (开始时间 + 7 天)
+  const endTime = startTime + 7 * 24 * 60 * 60 * 1000;
+
+  // 4. 筛选出日志时间在 [本周三 05:00 ~ 下周三 05:00) 之间且类型匹配的记录，累加 count
+  return char.runLogs
+    .filter((log) => {
+      const logTimestamp = parseLogTimestamp(log);
+      if (!logTimestamp) return false;
+
+      return log.type === type && logTimestamp >= startTime && logTimestamp < endTime;
+    })
+    .reduce((sum, log) => sum + (log.count || 0), 0);
+};
 
 /**
  * 根据组ID和类型（远征/超越），聚合该组下所有角色的总次数，并获取对应的收益率文案
@@ -2058,7 +2092,7 @@ const getGroupDecayInfo = (groupId, type) => {
 
   // 聚合该组下所有角色的总次数（远征取 totalRuns，超越取 totalTranscendRuns）
   const totalRuns = charactersList.reduce((sum, char) => {
-    const charRuns = type === "expedition" ? char.totalRuns || char.runs || 0 : char.totalTranscendRuns || char.transcendRuns || 0;
+    const charRuns = getThisWeekRunCount(char, type);
     return sum + charRuns;
   }, 0);
 
