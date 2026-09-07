@@ -3583,7 +3583,7 @@ defineExpose({
 
                         <!-- 右侧：输入框与动态快捷增加按钮组 -->
                         <div class="flex items-center gap-2 flex-1 w-full min-w-0">
-                          <div class="relative flex-1 min-w-0">
+                          <div class="relative w-28 shrink-0">
                             <input
                               v-model.number="consumeForm.calcInput"
                               :placeholder="
@@ -3591,13 +3591,13 @@ defineExpose({
                                   ? '请输入打怪次数...'
                                   : '请输入消耗奥德数...'
                               "
-                              class="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:border-amber-500 dark:focus:border-amber-400 transition-all"
+                              class="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:border-amber-500 dark:focus:border-amber-400 transition-all text-center font-bold"
                             />
                           </div>
 
-                          <!-- 快捷输入小标签按钮组（根据当前 Tab 动态渲染） -->
-                          <div class="flex items-center gap-1 shrink-0">
-                            <!-- 状态一：次数计算的快捷按钮 (+1, +2, +5, +10) -->
+                          <!-- 快捷输入小标签按钮组（增大宽度占比并允许均分撑满） -->
+                          <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                            <!-- 状态一：次数计算的快捷按钮 -->
                             <template v-if="consumeForm?.activeCalcTab === 'runs'">
                               <button
                                 v-for="inc in [1, 2, 5, 10]"
@@ -3607,20 +3607,20 @@ defineExpose({
                                   consumeForm.calcInput =
                                     (Number(consumeForm.calcInput) || 0) + inc
                                 "
-                                class="px-2 py-1.5 text-[10px] font-bold bg-slate-100 dark:bg-slate-800 hover:bg-[#45a6d5] hover:text-white dark:hover:bg-sky-600 text-slate-600 dark:text-slate-300 rounded-lg transition-all cursor-pointer active:scale-95"
+                                class="flex-1 px-1 py-2 text-xs font-black bg-slate-100 dark:bg-slate-800 hover:bg-[#45a6d5] hover:text-white dark:hover:bg-sky-600 text-slate-700 dark:text-slate-200 rounded-xl transition-all cursor-pointer active:scale-95 text-center shadow-2xs"
                               >
                                 +{{ inc }}
                               </button>
                             </template>
 
-                            <!-- 状态二：奥德计算的快捷按钮 (基于 singleEnergyCost 倍数，如 +40, +80, +120, +160) -->
+                            <!-- 状态二：奥德计算的快捷按钮 -->
                             <template v-else>
                               <button
                                 v-for="mult in [2, 4, 6, 8]"
                                 :key="mult"
                                 type="button"
                                 @click="consumeForm.calcInput = singleEnergyCost * mult"
-                                class="px-2 py-1.5 text-[10px] font-bold bg-slate-100 dark:bg-slate-800 hover:bg-amber-500 hover:text-white dark:hover:bg-amber-600 text-slate-600 dark:text-slate-300 rounded-lg transition-all cursor-pointer active:scale-95"
+                                class="flex-1 px-1 py-2 text-xs font-black bg-slate-100 dark:bg-slate-800 hover:bg-amber-500 hover:text-white dark:hover:bg-amber-600 text-slate-700 dark:text-slate-200 rounded-xl transition-all cursor-pointer active:scale-95 text-center shadow-2xs"
                                 :title="`增加到 ${singleEnergyCost * mult} 点奥德`"
                               >
                                 +{{ singleEnergyCost * mult }}
