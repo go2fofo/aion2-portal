@@ -472,7 +472,7 @@ const emit = defineEmits([
   "task-click",
 ]);
 
-const { $confirm, $alert,$toast } = useNuxtApp();
+const { $confirm, $alert, $toast } = useNuxtApp();
 
 // 根据 activeTabGroup 过滤当前展示的角色列表，并自动应用 sort 排序及主角色置顶
 const filteredCharacters = computed(() => {
@@ -491,7 +491,7 @@ const filteredCharacters = computed(() => {
   }
 
   // 🎯 在过滤后的结果上统一进行排序
-  return [...result].sort((a, b) => {
+  let filteredResult = [...result].sort((a, b) => {
     // 优先级 1：主角色永远排在最前面
     const aIsPrimary = a.primaryAccount ? 1 : 0;
     const bIsPrimary = b.primaryAccount ? 1 : 0;
@@ -502,6 +502,12 @@ const filteredCharacters = computed(() => {
     // 优先级 2：按照各自的 sort 字段升序排列
     return (a.sort ?? 0) - (b.sort ?? 0);
   });
+  console.log(
+    `🔍 [GroupCharacterPanel:505] %c filteredResult===分组后的数据: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    filteredResult
+  );
+  return filteredResult;
 });
 // 获取当前 Tab 的标题名称
 const currentTabTitle = computed(() => {
@@ -704,7 +710,8 @@ const handleTaskClick = async (char, field, tab, clickType) => {
               label: "全部",
               type: "fill-all",
               action: (formValues, extra) =>
-                (formValues.dimensionalCount = totalsRemainingDimensionalCountRuns.value || 0), 
+                (formValues.dimensionalCount =
+                  totalsRemainingDimensionalCountRuns.value || 0),
             },
           ],
         },
@@ -1252,45 +1259,71 @@ const consumeForm = ref({
   calcInput: 1,
 });
 // 动态绑定当前角色所属分组的远征或超越通关次数
+// 动态计算当前分组下所有角色的总通关次数（按组聚合）
 const currentActiveRuns = computed({
   get() {
     const groupId = gameplayCharForm.value?.group;
-    const groups = props.gameData?.groups || [];
+    const characters = props.gameData?.characters || [];
 
-    // 如果没有绑定分组，直接返回 0
-    if (groupId === null) return 0;
-
-    const currentGroup = groups.find((g) => g.id === groupId);
-
-    if (consumeForm.value.dungeonType === "expedition") {
-      return currentGroup?.runs ?? gameplayCharForm.value?.runs ?? 0;
-    } else if (consumeForm.value.dungeonType === "surpass") {
-      return currentGroup?.transcendRuns ?? gameplayCharForm.value?.transcendRuns ?? 0;
+    // 如果没有绑定分组，直接回退读取当前角色的独立次数
+    if (groupId === null || groupId === undefined) {
+      if (consumeForm.value.dungeonType === "expedition") {
+        return gameplayCharForm.value?.totalRuns ?? gameplayCharForm.value?.runs ?? 0;
+      } else if (consumeForm.value.dungeonType === "surpass") {
+        return (
+          gameplayCharForm.value?.totalTranscendRuns ??
+          gameplayCharForm.value?.transcendRuns ??
+          0
+        );
+      }
+      return 0;
     }
-    return 0;
+
+    // 过滤出该分组下的所有角色，并累加其总通关次数
+    const groupChars = characters.filter(
+      (c) => c.group === groupId || c.groupId === groupId
+    );
+    if (groupChars.length === 0) return 0;
+
+    return groupChars.reduce((sum, char) => {
+      const charRuns =
+        consumeForm.value.dungeonType === "expedition"
+          ? char.totalRuns ?? char.runs ?? 0
+          : char.totalTranscendRuns ?? char.transcendRuns ?? 0;
+      return sum + charRuns;
+    }, 0);
   },
   set(val) {
     const groupId = gameplayCharForm.value?.group;
-    const groups = props.gameData?.groups || [];
+    const characters = props.gameData?.characters || [];
+    const currentCharacterId = gameplayCharForm.value?.id;
 
-    if (groupId === null) return;
+    if (groupId === null || groupId === undefined) return;
 
-    // 生成更新后的 groups 数组
-    const newGroups = groups.map((g) => {
-      if (g.id === groupId) {
+    // 如果采用角色数据归集，将变动同步更新到当前角色（或根据实际业务分摊，这里以当前操作角色为准更新其累计数）
+    const newCharacters = characters.map((char) => {
+      if (char.id === currentCharacterId) {
         return {
-          ...g,
-          runs: consumeForm.value.dungeonType === "expedition" ? val : g.runs,
+          ...char,
+          totalRuns:
+            consumeForm.value.dungeonType === "expedition"
+              ? val
+              : char.totalRuns ?? char.runs ?? 0,
+          totalTranscendRuns:
+            consumeForm.value.dungeonType === "surpass"
+              ? val
+              : char.totalTranscendRuns ?? char.transcendRuns ?? 0,
+          runs: consumeForm.value.dungeonType === "expedition" ? val : char.runs ?? 0,
           transcendRuns:
-            consumeForm.value.dungeonType === "surpass" ? val : g.transcendRuns,
-          updatedAt: Date.now(),
+            consumeForm.value.dungeonType === "surpass" ? val : char.transcendRuns ?? 0,
+          lastUpdatedAt: Date.now(),
         };
       }
-      return g;
+      return char;
     });
 
-    // 触发父组件的 update-groups 事件
-    emit("update-groups", newGroups);
+    // 触发父组件的事件更新 characters 数据
+    emit("update-characters", newCharacters);
   },
 });
 // 2. 当前大类对应的副本列表
@@ -2197,7 +2230,7 @@ const handleExecuteWeeklyDaily = () => {
   // 触发父组件更新事件
   emit("update-character", updatedCharacter);
   emit("update-groups", newGroups);
-  $toast('成功完成消耗');
+  $toast("成功完成消耗");
 };
 
 //================ 日周任务 结束 =====================
@@ -5786,7 +5819,9 @@ defineExpose({
                               handleExecuteWeeklyDaily();
                               isFocusedHighlightOpen = false;
                               focusedHighlightOption = {};
-                              weeklydailyFormValues = cloneDeep(defaultWeeklydailyFormValues);
+                              weeklydailyFormValues = cloneDeep(
+                                defaultWeeklydailyFormValues
+                              );
                               openGameplay = false;
                             }
                           "

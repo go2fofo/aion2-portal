@@ -489,7 +489,8 @@ const allGroups = computed(() => {
   });
 
   // 转换为数组并过滤掉没有角色的组
-  return Array.from(groupMap.values()).filter((group) => group.count > 0);
+  let filteredGroups = Array.from(groupMap.values()).filter((group) => group.count > 0);
+  return filteredGroups;
 });
 
 // 根据分组id 获取gameData 分组对象
@@ -2042,26 +2043,24 @@ const getGroupSharedTaskData = (groupId, metricKey, storedKey, maxLimit = 14) =>
   };
 };
 
+
 /**
- * 根据组ID和类型（远征/超越），直接从 groups 数据中获取当前组的总次数与收益率文案
+ * 根据组ID和类型（远征/超越），聚合该组下所有角色的总次数，并获取对应的收益率文案
  * @param {number} groupId 当前组ID
- * @param {string} type 'expedition' (远征) 或 'surpass' (超越)
+ * @param {string} type 'expedition' (远征) 或 'transcend' (超越)
  */
 const getGroupDecayInfo = (groupId, type) => {
-  const groupsList = gameData.value?.groups;
+  const charactersList = gameData.value?.characters?.filter((f) => f.groupId === groupId || f.group === groupId);
 
-  if (!groupsList || !Array.isArray(groupsList)) {
+  if (!charactersList || !Array.isArray(charactersList) || charactersList.length === 0) {
     return "已刷 0次，基纳获得量 100%";
   }
 
-  const group = groupsList.find((g) => g.id === groupId);
-
-  if (!group) {
-    return "已刷 0次，基纳获得量 100%";
-  }
-
-  // 严格区分类型：远征取 group.runs，超越取 group.transcendRuns
-  const totalRuns = type === "expedition" ? group.runs || 0 : group.transcendRuns || 0;
+  // 聚合该组下所有角色的总次数（远征取 totalRuns，超越取 totalTranscendRuns）
+  const totalRuns = charactersList.reduce((sum, char) => {
+    const charRuns = type === "expedition" ? char.totalRuns || char.runs || 0 : char.totalTranscendRuns || char.transcendRuns || 0;
+    return sum + charRuns;
+  }, 0);
 
   const rules = dungeonDecayRules[type] || [];
 

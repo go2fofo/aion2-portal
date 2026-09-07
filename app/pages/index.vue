@@ -158,7 +158,7 @@
     <main class="flex-1 relative z-20 flex flex-col items-center pt-8 h-full">
       <div
         class="relative mb-8 flex flex-col items-center max-w-full px-4 w-full"
-        v-if="activeTab !== 'userAdmin'"
+        v-if="getHandleTop"
       >
         <!-- 装饰元素 -->
         <div
@@ -439,13 +439,18 @@
               <!-- Aion2更新动态 -->
               <Aion2UpdateBoard v-else-if="activeTab === 'updateAIon2'" />
               <!-- 深渊BOSS boss-->
-              <div v-else-if="activeTab === 'boss'" class="h-full">
+              <!-- <div v-else-if="activeTab === 'boss'" class="h-full">
                 <PvpBoss />
-              </div>
+              </div> -->
               <!-- 多角色管理 -->
               <div v-else-if="activeTab === 'userAdmin'" class="h-full">
                 <!-- <EmbeddedHtml /> -->
                 <UsersAdmin />
+              </div>
+              <!--排班表 -->
+              <div v-else-if="activeTab === 'shiftSchedule'" class="h-full">
+                <!-- <EmbeddedHtml /> -->
+                <ShiftSchedule />
               </div>
 
               <!-- 职业攻略 careerStrategy-->
@@ -1074,6 +1079,7 @@
 
 <script setup>
 import UsersAdmin from "../components/UsersAdmin.vue";
+import ShiftSchedule from "../components/ShiftSchedule.vue";
 import BackToTop from "../components/BackToTop.vue";
 const user = useSupabaseUser();
 const supabase = useSupabaseClient();
@@ -1116,6 +1122,9 @@ const effectiveRole = computed(() => {
   if (role.value === "admin") return "admin";
   return "user";
 });
+const getHandleTop = computed(() => {
+  return activeTab.value !== "userAdmin" && activeTab.value !== "shiftSchedule";
+});
 
 // Tab 标签页配置 (改用异步数据)
 const tabs = ref([]);
@@ -1130,6 +1139,9 @@ const defaultTabs = [
   { id: "search", name: "即时查询", hidden: false },
   { id: "members", name: "军团成员", hidden: false },
   { id: "join", name: "入团手续", hidden: false },
+  { id: "boss", name: "boss", hidden: false },
+  { id: "shiftSchedule", name: "排班表", hidden: false },
+  { id: "userAdmin", name: "用户管理", hidden: false },
 ];
 
 const activeTab = useState("homeActiveTab", () => "");
@@ -1145,6 +1157,7 @@ const userAllowedTabIds = new Set([
   "search",
   "boss",
   "userAdmin",
+  "shiftSchedule",
 ]);
 
 const visibleTabs = computed(() => {
@@ -1418,9 +1431,7 @@ watch(
     } else if (val === "userAdmin") {
       // showMobileMenu.value = false;
       // await nextTick();
-
       // if (!scrollContainer.value) return;
-
       // // 如果当前已经有高度差，直接滚动
       // if (scrollContainer.value.scrollHeight > scrollContainer.value.clientHeight) {
       //   scrollContainer.value.scrollTo({
@@ -1429,7 +1440,6 @@ watch(
       //   });
       //   return;
       // }
-
       // // 如果高度还没被撑开（内容在异步加载），使用 MutationObserver 监听内容撑开的瞬间
       // const observer = new MutationObserver(() => {
       //   if (scrollContainer.value) {
@@ -1444,14 +1454,12 @@ watch(
       //     }
       //   }
       // });
-
       // // 开始监听容器内部 DOM 的变化
       // observer.observe(scrollContainer.value, {
       //   childList: true,
       //   subtree: true,
       //   attributes: true,
       // });
-
       // // 设置一个兜底超时，防止接口卡住无限监听（比如 2 秒后自动断开）
       // setTimeout(() => {
       //   observer.disconnect();
