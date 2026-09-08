@@ -1590,7 +1590,7 @@ const currentCalculationResult = computed(() => {
     return {
       type: "runs",
       ...baseResult,
-         // 独立保留的未衰减收益字段
+      // 独立保留的未衰减收益字段
       rawKinaGain,
       rawBoundKinaGain,
       rawTotalGain,
@@ -1598,7 +1598,7 @@ const currentCalculationResult = computed(() => {
       kinaGain: Math.round(rawKinaGain * decayRate),
       boundKinaGain: Math.round(rawBoundKinaGain * decayRate),
       totalGain: Math.round(rawTotalGain * decayRate),
-   
+
       decayRate,
     };
   } else {
@@ -1612,7 +1612,7 @@ const currentCalculationResult = computed(() => {
     return {
       type: "energy",
       ...baseResult,
-           // 独立保留的未衰减收益字段
+      // 独立保留的未衰减收益字段
       rawKinaGain,
       rawBoundKinaGain,
       rawTotalGain,
@@ -1620,7 +1620,7 @@ const currentCalculationResult = computed(() => {
       kinaGain: Math.round(rawKinaGain * decayRate),
       boundKinaGain: Math.round(rawBoundKinaGain * decayRate),
       totalGain: Math.round(rawTotalGain * decayRate),
- 
+
       decayRate,
     };
   }
@@ -1755,7 +1755,11 @@ const handleExecuteConsume = async () => {
     finalKinaGain = currentCalculationResult.value.totalGain;
     finalBoundKinaGain = currentCalculationResult.value.boundKinaGain;
   }
-  console.log(`🔍 [GroupCharacterPanel:1759] %c handleExecuteConsume===currentCalculationResult: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', currentCalculationResult.value);
+  console.log(
+    `🔍 [GroupCharacterPanel:1759] %c handleExecuteConsume===currentCalculationResult: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    currentCalculationResult.value
+  );
 
   if (addRunsCount <= 0) {
     $alert("当前输入的数值不足以支撑完成哪怕 1 次挑战！");
@@ -2706,6 +2710,7 @@ const isAllExchangesCompleted = computed(() => {
 const hasSupplementValues = computed(() => {
   return Object.values(supplementFormValues.value).some((val) => Number(val) > 0);
 });
+
 // 补充验证
 // 奥德补充校验 (> 2000)
 watchFieldLimit(
@@ -2904,6 +2909,52 @@ watch(
       );
     }
   }
+);
+watch(
+  () => [consumeForm.value.calcEnergy, consumeForm.value.calcsStoredEnergy],
+  ([newBase, newStored]) => {
+    if (!gameplayCharForm.value && consumeForm.value?.activeCalcTab !== "calcEnergyDiff")
+      return;
+    const initialBase = Number(gameplayCharForm.value?.energy) || 0;
+    const initialStored = Number(gameplayCharForm.value?.storedEnergy) || 0;
+
+    const targetBase =
+      newBase === "" ||
+      newBase === null ||
+      newBase === undefined ||
+      isNaN(Number(newBase))
+        ? initialBase
+        : Number(newBase);
+
+    const targetStored =
+      newStored === "" ||
+      newStored === null ||
+      newStored === undefined ||
+      isNaN(Number(newStored))
+        ? initialStored
+        : Number(newStored);
+    console.log(
+      `🔍 [GroupCharacterPanel:2924] %c targetBase: ${targetBase}, targetStored: ${targetStored} `,
+      "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+      targetBase,
+      targetStored
+    );
+
+    // 计算各自消耗的差值
+    const baseDiff = Math.max(0, initialBase - targetBase);
+    const storedDiff = Math.max(0, initialStored - targetStored);
+
+    const totalEnergy = baseDiff + storedDiff;
+
+    console.log(
+      `🔍 [GroupCharacterPanel:2931] %c 消耗奥德差值计算==totalEnergy: `,
+      "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+      totalEnergy
+    );
+    // 如果你想把计算结果回填到表单中，也可以在这里同步赋值：
+    consumeForm.value.calcInput = totalEnergy;
+  },
+  { immediate: true } // 如果希望页面刚加载时就自动算一次，可以加上 immediate: true
 );
 defineExpose({
   handleTaskClick,
@@ -3578,9 +3629,19 @@ defineExpose({
                             <strong>[ 消耗次数计算 ]</strong>
                             输入或点击快捷按钮选择打怪次数，自动换算总奥德与吉纳。
                           </span>
-                          <span v-else>
+                          <span v-else-if="consumeForm?.activeCalcTab === 'energy'">
                             <strong>[ 消耗奥德计算 ]</strong>
                             输入或点击快捷按钮选择奥德数，自动换算可刷次数与吉纳。
+                          </span>
+                          <span
+                            v-else-if="consumeForm?.activeCalcTab === 'calcEnergyDiff'"
+                          >
+                            <strong>[ 消耗奥德差异计算 ]</strong>
+                            输入游戏内当前奥德数，自动换算可刷次数与吉纳。
+                          </span>
+                          <span v-else>
+                            <strong>[ 未知计算类型 ]</strong>
+                            请检查计算类型是否正确。
                           </span>
                         </div>
                       </div>
@@ -3626,25 +3687,84 @@ defineExpose({
                           >
                             消耗奥德计算
                           </button>
+                          <button
+                            type="button"
+                            class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer"
+                            :class="
+                              consumeForm?.activeCalcTab === 'calcEnergyDiff'
+                                ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-2xs'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                            "
+                            @click="
+                              () => {
+                                consumeForm.activeCalcTab = 'calcEnergyDiff';
+                                consumeForm.calcInput = 0;
+                                consumeForm.calcEnergy = null;
+                                consumeForm.calcsStoredEnergy = null;
+
+                                // consumeForm.calcEnergy = gameplayCharForm?.energy || 0;
+                                // consumeForm.calcsStoredEnergy =
+                                //   gameplayCharForm?.storedEnergy || 0;
+                              }
+                            "
+                          >
+                            消耗奥德差值计算
+                          </button>
                         </div>
 
                         <!-- 右侧：输入框与动态快捷增加按钮组 -->
-                        <div class="flex items-center gap-2 flex-1 w-full min-w-0">
-                          <div class="relative w-28 shrink-0">
+                        <div
+                          class="flex items-center gap-2 w-full min-w-0"
+                          v-if="consumeForm.activeCalcTab !== 'calcEnergyDiff'"
+                        >
+                          <!-- 左侧：减号或递减按钮区 -->
+                          <div class="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              @click="
+                                () => {
+                                  if (consumeForm?.activeCalcTab === 'runs') {
+                                    if (Number(consumeForm.calcInput) > 1) {
+                                      consumeForm.calcInput =
+                                        (Number(consumeForm.calcInput) || 0) - 1;
+                                    }
+                                  } else {
+                                    if (
+                                      Number(consumeForm.calcInput) > singleEnergyCost
+                                    ) {
+                                      consumeForm.calcInput =
+                                        (Number(consumeForm.calcInput) || 0) -
+                                        singleEnergyCost;
+                                    }
+                                  }
+                                }
+                              "
+                              class="w-16 h-9 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 active:scale-95 text-slate-700 dark:text-slate-200 font-black text-sm flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                            >
+                              -{{
+                                consumeForm?.activeCalcTab === "runs"
+                                  ? 1
+                                  : singleEnergyCost
+                              }}
+                            </button>
+                          </div>
+
+                          <!-- 中间：输入框 -->
+                          <div class="relative w-28 shrink-0 group">
                             <input
                               v-model.number="consumeForm.calcInput"
                               :placeholder="
                                 consumeForm?.activeCalcTab === 'runs'
-                                  ? '请输入打怪次数...'
-                                  : '请输入消耗奥德数...'
+                                  ? '输入次数...'
+                                  : '输入奥德...'
                               "
-                              class="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:border-amber-500 dark:focus:border-amber-400 transition-all text-center font-bold"
+                              class="w-full h-10 px-2 text-xs bg-white dark:bg-slate-900 border-2 border-purple-400/70 dark:border-purple-500/60 rounded-2xl text-purple-700 dark:text-purple-300 focus:outline-none focus:border-purple-600 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-all text-center font-black shadow-sm"
                             />
                           </div>
 
-                          <!-- 快捷输入小标签按钮组（增大宽度占比并允许均分撑满） -->
+                          <!-- 右侧：递增快捷按钮组（均分撑满剩余空间） -->
                           <div class="flex items-center gap-1.5 flex-1 min-w-0">
-                            <!-- 状态一：次数计算的快捷按钮 -->
+                            <!-- 状态一：次数加法按钮 -->
                             <template v-if="consumeForm?.activeCalcTab === 'runs'">
                               <button
                                 v-for="inc in [1, 2, 5, 10]"
@@ -3654,25 +3774,55 @@ defineExpose({
                                   consumeForm.calcInput =
                                     (Number(consumeForm.calcInput) || 0) + inc
                                 "
-                                class="flex-1 px-1 py-2 text-xs font-black bg-slate-100 dark:bg-slate-800 hover:bg-[#45a6d5] hover:text-white dark:hover:bg-sky-600 text-slate-700 dark:text-slate-200 rounded-xl transition-all cursor-pointer active:scale-95 text-center shadow-2xs"
+                                class="flex-1 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 active:scale-95 text-purple-700 dark:text-purple-300 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                               >
                                 +{{ inc }}
                               </button>
                             </template>
 
-                            <!-- 状态二：奥德计算的快捷按钮 -->
+                            <!-- 状态二：奥德加法按钮 -->
                             <template v-else>
                               <button
-                                v-for="mult in [2, 4, 6, 8]"
+                                v-for="mult in [1, 2, 4, 6, 8]"
                                 :key="mult"
                                 type="button"
                                 @click="consumeForm.calcInput = singleEnergyCost * mult"
-                                class="flex-1 px-1 py-2 text-xs font-black bg-slate-100 dark:bg-slate-800 hover:bg-amber-500 hover:text-white dark:hover:bg-amber-600 text-slate-700 dark:text-slate-200 rounded-xl transition-all cursor-pointer active:scale-95 text-center shadow-2xs"
+                                class="flex-1 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 active:scale-95 text-purple-700 dark:text-purple-300 font-black text-xs flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                                 :title="`增加到 ${singleEnergyCost * mult} 点奥德`"
                               >
                                 +{{ singleEnergyCost * mult }}
                               </button>
                             </template>
+                          </div>
+                        </div>
+                        <div
+                          v-else
+                          class="bg-purple-50/40 dark:bg-purple-950/20 border border-purple-200/60 dark:border-purple-900/40 rounded-2xl flex flex-col w-full"
+                        >
+                          <div
+                            class="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap text-xs font-bold text-slate-700 dark:text-slate-300"
+                          >
+                            <div class="flex items-center gap-2 flex-1 min-w-0">
+                              <span class="shrink-0 text-purple-900 dark:text-purple-300"
+                                >实际基础奥德:</span
+                              >
+                              <input
+                                v-model.number="consumeForm.calcEnergy"
+                                :placeholder="gameplayCharForm?.energy || 0"
+                                class="w-28 h-10 px-2 text-xs bg-white dark:bg-slate-900 border-2 border-purple-400/70 dark:border-purple-500/60 rounded-xl text-purple-700 dark:text-purple-300 focus:outline-none focus:border-purple-600 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-all text-center font-black shadow-xs"
+                              />
+                            </div>
+
+                            <div class="flex items-center gap-2 flex-1 min-w-0">
+                              <span class="shrink-0 text-purple-900 dark:text-purple-300"
+                                >实际存储奥德:</span
+                              >
+                              <input
+                                v-model.number="consumeForm.calcsStoredEnergy"
+                                :placeholder="gameplayCharForm?.storedEnergy || 0"
+                                class="w-28 h-10 px-2 text-xs bg-white dark:bg-slate-900 border-2 border-purple-400/70 dark:border-purple-500/60 rounded-xl text-purple-700 dark:text-purple-300 focus:outline-none focus:border-purple-600 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-all text-center font-black shadow-xs"
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
