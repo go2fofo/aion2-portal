@@ -3,7 +3,8 @@ import { computed, watch, defineExpose } from "vue";
 import { formatCombatPower } from "~/utils/formatCombatPower";
 import CharacterCard from "./CharacterCard.vue";
 import cloneDeep from "lodash/cloneDeep";
-
+import { useGameStore } from "@/stores/useGameStore";
+const gameStore = useGameStore();
 import {
   KinahOdSate,
   dungeonDecayRules,
@@ -477,10 +478,15 @@ const emit = defineEmits([
 
 const { $confirm, $alert, $toast } = useNuxtApp();
 
+const gameData = computed({
+  get: () => gameStore.gameData || defGameData,
+  set: (val) => gameStore.setGameData(val),
+});
+
 // 根据 activeTabGroup 过滤当前展示的角色列表，并自动应用 sort 排序及主角色置顶
 const filteredCharacters = computed(() => {
-  const characters = props.gameData?.characters || [];
-  const groups = props.gameData?.groups || [];
+  const characters = gameData.value?.characters || [];
+  const groups = gameData.value?.groups || [];
   const tab = props.activeTabGroup;
 
   let result = [];
@@ -517,14 +523,14 @@ const currentTabTitle = computed(() => {
   const tab = props.activeTabGroup;
   if (tab === "all") return "全部角色";
   if (tab === "default") return "默认分组";
-  const found = props.gameData?.groups?.find((g) => Number(g.id) === Number(tab));
+  const found = gameData.value?.groups?.find((g) => Number(g.id) === Number(tab));
   return found ? found.name : "未知分组";
 });
 
 // 根据分组 ID 获取分组名称
 const getGroup = (groupId) => {
   if (!groupId) return {};
-  const found = props.gameData?.groups?.find((g) => Number(g.id) === Number(groupId));
+  const found = gameData.value?.groups?.find((g) => Number(g.id) === Number(groupId));
   return found ? found : {};
 };
 /**
@@ -920,7 +926,7 @@ const handleClickGameplay = (char, tab, gGroup) => {
   console.log(
     `🔍 [GroupCharacterPanel:724] %c 点击游玩消耗触发 gameData: `,
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-    props.gameData
+    gameData.value
   );
   console.log(
     `🔍 [GroupCharacterPanel:724] %c 点击游玩消耗触发 getCharGroup11111: `,
@@ -1002,7 +1008,7 @@ const handleCloseGameplay = () => {
 const energyLimit = computed(() => {
   const isPremium =
     getCharGroup.value?.premiumMember ||
-    (props.gameData?.characters || []).some(
+    (gameData.value?.characters || []).some(
       (c) => Number(c.group) === Number(props.gameplayCharForm?.group) && c.premiumMember
     );
   return isPremium ? 840 : 560;
@@ -1010,7 +1016,7 @@ const energyLimit = computed(() => {
 
 // 获取当前角色对应的已经的保存分组数据
 const getCharGroup = computed(() => {
-  let groupItem = props.gameData?.groups?.find(
+  let groupItem = gameData.value?.groups?.find(
     (f) => f.id == gameplayCharForm.value?.group
   );
   return groupItem;
@@ -1206,7 +1212,7 @@ const handleExecuteSupplement = async () => {
   }
 
   const groupId = getCharGroup.value?.id;
-  const newGroups = props.gameData?.groups?.map((g) => {
+  const newGroups = gameData.value?.groups?.map((g) => {
     if (g.id === groupId) {
       return {
         ...g,
@@ -1305,7 +1311,7 @@ const getThisWeekRunCount = (char, type) => {
 const currentActiveRuns = computed({
   get() {
     const groupId = gameplayCharForm.value?.group;
-    const characters = props.gameData?.characters || [];
+    const characters = gameData.value?.characters || [];
 
     // 如果没有绑定分组，直接回退读取当前角色的独立次数
     if (groupId === null || groupId === undefined) {
@@ -1337,7 +1343,7 @@ const currentActiveRuns = computed({
   },
   set(val) {
     const groupId = gameplayCharForm.value?.group;
-    const characters = props.gameData?.characters || [];
+    const characters = gameData.value?.characters || [];
     const currentCharacterId = gameplayCharForm.value?.id;
 
     if (groupId === null || groupId === undefined) return;
@@ -1475,6 +1481,8 @@ const calculationByRuns = computed(() => {
     totalKina: Number(totalKina.toFixed(2)),
     totalBoundKina: Number(totalBoundKina.toFixed(2)),
     totalGain: Number((totalKina + totalBoundKina).toFixed(2)),
+    kinaGain: rewardMultiplier * Number(baseKina.toFixed(2)),
+    boundKinaGain: rewardMultiplier * Number(baseBoundKina.toFixed(2)),
   };
 });
 
@@ -1562,20 +1570,58 @@ const calculationByEnergy = computed(() => {
     totalKina: Number(totalKina.toFixed(2)),
     totalBoundKina: Number(totalBoundKina.toFixed(2)),
     totalGain: Number((totalKina + totalBoundKina).toFixed(2)),
+    kinaGain: rewardMultiplier * Number(baseKina.toFixed(2)),
+    boundKinaGain: rewardMultiplier * Number(baseBoundKina.toFixed(2)),
   };
 });
 
-// 最终统一对外暴露的计算结果（根据当前的 activeCalcTab 自动切换）
+// 最终统一对外暴露的计算结果（包含原始收益与经衰减计算后的最终收益）
 const currentCalculationResult = computed(() => {
+  const decayRate = currentDecayRate.value ?? 1; // 获取当前的衰减收益率比例
+
   if (consumeForm.value.activeCalcTab === "runs") {
+    const baseResult = calculationByRuns.value || {};
+
+    // 原始未衰减数值
+    let rawKinaGain = baseResult.kinaGain || 0;
+    let rawBoundKinaGain = baseResult.boundKinaGain || 0;
+    let rawTotalGain = baseResult.totalGain || rawKinaGain + rawBoundKinaGain;
+
     return {
       type: "runs",
-      ...calculationByRuns.value,
+      ...baseResult,
+         // 独立保留的未衰减收益字段
+      rawKinaGain,
+      rawBoundKinaGain,
+      rawTotalGain,
+      // 衰减后实际收益
+      kinaGain: Math.round(rawKinaGain * decayRate),
+      boundKinaGain: Math.round(rawBoundKinaGain * decayRate),
+      totalGain: Math.round(rawTotalGain * decayRate),
+   
+      decayRate,
     };
   } else {
+    const baseResult = calculationByEnergy.value || {};
+
+    // 原始未衰减数值
+    const rawKinaGain = baseResult.kinaGain || 0;
+    const rawBoundKinaGain = baseResult.boundKinaGain || 0;
+    const rawTotalGain = baseResult.totalGain || rawKinaGain + rawBoundKinaGain;
+
     return {
       type: "energy",
-      ...calculationByEnergy.value,
+      ...baseResult,
+           // 独立保留的未衰减收益字段
+      rawKinaGain,
+      rawBoundKinaGain,
+      rawTotalGain,
+      // 衰减后实际收益
+      kinaGain: Math.round(rawKinaGain * decayRate),
+      boundKinaGain: Math.round(rawBoundKinaGain * decayRate),
+      totalGain: Math.round(rawTotalGain * decayRate),
+ 
+      decayRate,
     };
   }
 });
@@ -1699,16 +1745,17 @@ const handleExecuteConsume = async () => {
     // 模式一：根据输入的次数
     addRunsCount = inputVal;
     totalCostEnergy = calculatedEnergyCost.value; // 前面写好的动态计算总耗能
-    finalKinaGain = calculationByRuns.value.totalKina;
-    finalBoundKinaGain = calculationByRuns.value.totalBoundKina;
+    finalKinaGain = currentCalculationResult.value.totalGain;
+    finalBoundKinaGain = currentCalculationResult.value.boundKinaGain;
   } else {
     // 模式二：根据输入的奥德（反推能刷的次数）
     const result = calculationByEnergy.value;
     addRunsCount = result.possibleRuns;
     totalCostEnergy = result.actualEnergy;
-    finalKinaGain = result.totalKina;
-    finalBoundKinaGain = result.totalBoundKina;
+    finalKinaGain = currentCalculationResult.value.totalGain;
+    finalBoundKinaGain = currentCalculationResult.value.boundKinaGain;
   }
+  console.log(`🔍 [GroupCharacterPanel:1759] %c handleExecuteConsume===currentCalculationResult: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', currentCalculationResult.value);
 
   if (addRunsCount <= 0) {
     $alert("当前输入的数值不足以支撑完成哪怕 1 次挑战！");
@@ -1758,7 +1805,7 @@ const handleExecuteConsume = async () => {
 
   // ==================== B. 处理分组数据更新（远征与超越共享次数和日志） ====================
   const groupId = gameplayCharForm.value?.group;
-  const groups = props.gameData?.groups || [];
+  const groups = gameData.value?.groups || [];
 
   const newGroups = groups.map((g) => {
     if (g.id === groupId) {
@@ -2182,7 +2229,7 @@ const handleExecuteWeeklyDaily = () => {
   }
 
   const groupId = getCharGroup.value?.id;
-  const newGroups = props.gameData?.groups?.map((g) => {
+  const newGroups = gameData.value?.groups?.map((g) => {
     if (g.id === groupId) {
       let newGroup = {
         ...g,
@@ -2437,7 +2484,7 @@ const handleExecuteExchange = () => {
 
   //共享组赋值
   const groupId = getCharGroup.value?.id;
-  const newGroups = props.gameData?.groups?.map((g) => {
+  const newGroups = gameData.value?.groups?.map((g) => {
     if (g.id === groupId) {
       let newGroup = {
         ...g,
@@ -2597,8 +2644,8 @@ watch(
           validationResult.value = validateCharacterForm(
             overrideForm,
             {
-              allCharacters: props.gameData?.characters || [],
-              groups: props.gameData?.groups || [],
+              allCharacters: gameData.value?.characters || [],
+              groups: gameData.value?.groups || [],
             },
             "gameplayCharForm.value监听触发"
           );
@@ -2897,8 +2944,8 @@ defineExpose({
       @task-click="handleTaskClick"
       @text-change="handleTextChange"
       @delete="handleDelete"
-      :groups="props.gameData.group"
-      :gameData="props.gameData"
+      :groups="gameData?.group"
+      :gameData="gameData"
     />
 
     <!-- 空状态展示 -->
@@ -3632,17 +3679,17 @@ defineExpose({
                     </div>
                     <!-- 6. 收益面板展示（支持根据当前计算模式与输入数值实时联动） -->
                     <div
-                      class="p-4 bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/60 rounded-2xl space-y-2"
+                      class="p-4 bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/60 rounded-2xl space-y-3"
                     >
                       <div
                         class="text-xs font-black text-amber-800 dark:text-amber-300 flex items-center justify-between"
                       >
                         <span v-if="consumeForm.activeCalcTab === 'runs'">
-                          预计累计吉纳总收益 (基于
+                          预计累计基纳总收益 (基于
                           {{ consumeForm.calcInput || 0 }} 次挑战):
                         </span>
                         <span v-else>
-                          预计累计吉纳总收益 (消耗 {{ consumeForm.calcInput || 0 }} 点奥德
+                          预计累计基纳总收益 (消耗 {{ consumeForm.calcInput || 0 }} 点奥德
                           / 可刷 {{ currentCalculationResult.possibleRuns }} 次):
                         </span>
                         <span
@@ -3651,20 +3698,62 @@ defineExpose({
                           {{ currentCalculationResult.totalGain }} 万
                         </span>
                       </div>
+
                       <div
                         class="grid grid-cols-2 gap-2 text-[11px] font-bold text-amber-900/70 dark:text-amber-400/80"
                       >
                         <div>
-                          基纳:
+                          基纳 (折后):
                           <span class="font-black text-amber-900 dark:text-amber-200"
-                            >{{ currentCalculationResult.totalKina }} 万</span
+                            >{{ currentCalculationResult.kinaGain }} 万</span
+                          >
+                          <span class="text-[10px] text-slate-400 ml-1 font-normal"
+                            >(原: {{ currentCalculationResult.rawKinaGain }}万)</span
                           >
                         </div>
                         <div>
-                          绑定基纳:
+                          绑定基纳 (折后):
                           <span class="font-black text-amber-900 dark:text-amber-200"
-                            >{{ currentCalculationResult.totalBoundKina }} 万</span
+                            >{{ currentCalculationResult.boundKinaGain }} 万</span
                           >
+                          <span class="text-[10px] text-slate-400 ml-1 font-normal"
+                            >(原: {{ currentCalculationResult.rawBoundKinaGain }}万)</span
+                          >
+                        </div>
+                      </div>
+
+                      <!-- 衰减前后收益对比提示 -->
+                      <div
+                        class="pt-2.5 mt-1 border-t border-amber-200/60 dark:border-amber-900/40 flex items-center justify-between text-[11px]"
+                      >
+                        <div
+                          class="flex items-center gap-1.5 text-amber-800/80 dark:text-amber-300/80"
+                        >
+                          <span
+                            class="px-1.5 py-0.5 rounded bg-amber-500/10 font-black text-[10px]"
+                          >
+                            衰减率:
+                            {{
+                              Math.round((currentCalculationResult.decayRate ?? 1) * 100)
+                            }}%
+                          </span>
+                          <span class="text-slate-400 dark:text-slate-500">|</span>
+                          <span>
+                            未衰减原总收益:
+                            <span class="font-mono font-bold"
+                              >{{ currentCalculationResult.rawTotalGain }} 万</span
+                            >
+                          </span>
+                        </div>
+                        <div class="text-amber-600 dark:text-amber-400 font-bold">
+                          已折损: -{{
+                            Math.max(
+                              0,
+                              currentCalculationResult.rawTotalGain -
+                                currentCalculationResult.totalGain
+                            )
+                          }}
+                          万
                         </div>
                       </div>
                     </div>

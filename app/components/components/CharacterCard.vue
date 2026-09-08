@@ -529,10 +529,11 @@ const handleTaskClickWithDblClick = (char, field, type) => {
             class="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-[#45a6d5] dark:text-sky-400 font-black flex items-center justify-center border border-sky-100 dark:border-sky-900/60 shadow-xs overflow-hidden shrink-0"
           >
             <img
-              v-if="char.profileImage"
+              v-if="char.profileImage && !char._imgError"
               :src="char.profileImage"
               alt="avatar"
               class="w-full h-full object-cover"
+              @error="char._imgError = true"
             />
             <span v-else class="text-xs">{{
               char.characterName ? char.characterName.charAt(0) : "角"
