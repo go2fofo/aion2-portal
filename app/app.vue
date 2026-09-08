@@ -1,7 +1,7 @@
 <!--
  * @Author: whq
  * @Date: 2026-02-08 09:11:19
- * @LastEditTime: 2026-08-05 13:49:57
+ * @LastEditTime: 2026-09-08 15:02:03
  * @LastEditors: fofo
  * @Description: 
  * @FilePath: /aion2-portal/app/app.vue
@@ -12,11 +12,26 @@
     <NuxtPage />
     <GlobalFeedback />
   </NuxtLayout>
+  <!-- 发现新版本提示 -->
+    <Transition name="slide-up">
+      <div
+        v-if="updateAvailable"
+        class="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-amber-500 text-white rounded-2xl shadow-xl border border-amber-400 text-xs font-bold"
+      >
+        <span>✨ 社区门户已更新至最新版本，请刷新以体验新功能</span>
+        <button
+          @click="window.location.reload()"
+          class="px-3 py-1.5 bg-white text-amber-700 rounded-xl hover:bg-amber-50 active:scale-95 transition-all cursor-pointer shadow-xs"
+        >
+          立即刷新
+        </button>
+      </div>
+    </Transition>
 </template>
 
 <script setup>
 import { onMounted, onUnmounted, ref, watch } from 'vue';
-
+const updateAvailable = useState('updateAvailable');
 // 主题状态：从 localStorage 读取，默认浅色
 const isDark = ref(false);
 
