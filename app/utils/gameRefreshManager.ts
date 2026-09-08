@@ -259,23 +259,11 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
         // 1. 固定整点触发类规则（如奥德能量：每 3 小时）本身自带 periodsPassed 循环，无需改动
         if (refreshType === "interval" && rule.increment) {
           const effectiveLastTime = Math.max(lastTime, char.createDate || 0);
-
-          const anchorBase = new Date(effectiveLastTime);
-          anchorBase.setHours(2, 0, 0, 0);
-          let anchorTime = anchorBase.getTime();
-          if (anchorTime > effectiveLastTime) {
-            anchorTime -= 3 * 3600 * 1000;
-          }
-
-          let periodsPassed = 0;
           const threeHoursMs = 3 * 3600 * 1000;
 
-          while (anchorTime + threeHoursMs <= now) {
-            anchorTime += threeHoursMs;
-            if (anchorTime > effectiveLastTime) {
-              periodsPassed++;
-            }
-          }
+          // 计算从上次更新到当前时间经过了多少个完整的 3 小时周期
+          const elapsedMs = now - effectiveLastTime;
+          const periodsPassed = Math.floor(elapsedMs / threeHoursMs);
 
           if (periodsPassed > 0) {
             const added = periodsPassed * rule.increment;
@@ -296,11 +284,12 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
             }
 
             char[rule.targetField!] = total;
-            if (storedField != "storedEnergy") {
+            if (storedField !== "storedEnergy") {
               char[storedField] = currentStored;
             }
 
-            char[timeField] = now;
+            // 更新时间戳时，向前推进对应的完整周期，保留未满 3 小时的零头时间，防止累积误差
+            char[timeField] = effectiveLastTime + periodsPassed * threeHoursMs;
             charChanged = true;
             hasChanges = true;
           }
