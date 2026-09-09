@@ -256,14 +256,41 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
         const lastTimeStr = char[timeField] || char.createDate || 0;
         let lastTime = lastTimeStr ? new Date(lastTimeStr).getTime() : 0;
 
-        // 1. 固定整点触发类规则（如奥德能量：每 3 小时）本身自带 periodsPassed 循环，无需改动
         if (refreshType === "interval" && rule.increment) {
           const effectiveLastTime = Math.max(lastTime, char.createDate || 0);
-          const threeHoursMs = 3 * 3600 * 1000;
+          const refreshHours = [2, 5, 8, 11, 14, 17, 20, 23];
 
-          // 计算从上次更新到当前时间经过了多少个完整的 3 小时周期
-          const elapsedMs = now - effectiveLastTime;
-          const periodsPassed = Math.floor(elapsedMs / threeHoursMs);
+          let periodsPassed = 0;
+          let lastTriggerTime = effectiveLastTime;
+
+          // 从 effectiveLastTime 当天往前推一点（或者直接从 effectiveLastTime 所在日期的 0 点开始遍历）
+          const startDate = new Date(effectiveLastTime);
+          startDate.setHours(0, 0, 0, 0);
+
+          const endDate = new Date(now);
+          endDate.setHours(23, 59, 59, 999);
+
+          // 以“天”为单位外循环，比对每天的 8 个固定整点
+          let loopDate = new Date(startDate);
+          let maxTriggerTime = effectiveLastTime;
+
+          while (loopDate.getTime() <= endDate.getTime()) {
+            for (const h of refreshHours) {
+              const candidateTime = new Date(loopDate);
+              candidateTime.setHours(h, 0, 0, 0);
+              const targetTime = candidateTime.getTime();
+
+              // 必须严格在 上次更新时间之后，且不超过当前时间
+              if (targetTime > effectiveLastTime && targetTime <= now) {
+                periodsPassed++;
+                if (targetTime > maxTriggerTime) {
+                  maxTriggerTime = targetTime;
+                }
+              }
+            }
+            // 天数 +1
+            loopDate.setDate(loopDate.getDate() + 1);
+          }
 
           if (periodsPassed > 0) {
             const added = periodsPassed * rule.increment;
@@ -288,13 +315,12 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
               char[storedField] = currentStored;
             }
 
-            // 更新时间戳时，向前推进对应的完整周期，保留未满 3 小时的零头时间，防止累积误差
-            char[timeField] = effectiveLastTime + periodsPassed * threeHoursMs;
+            // 更新时间戳为最后一次成功触发的整点时间
+            char[timeField] = maxTriggerTime;
             charChanged = true;
             hasChanges = true;
           }
         }
-
         // 2. 每天 5点 固定恢复类规则（如噩梦副本）- 改造成多天追赶循环
         if (refreshType === "daily") {
           let lastDailyPeriod = getDaily5amTimestamp(lastTime);
