@@ -254,13 +254,13 @@ export const gameRulesDictionary = [
     id: "trial",
     name: "试炼",
     dimension: "character",
-    targetField: "trial",
+    targetField: "isTrial",
     lastTimeField: "trialUpdateTime",
-    maxCount: 3,
+    // maxCount: 3,
     refreshType: "weekly",
     cron: "0 5 * * 3",
     action: (char: any) => {
-      char.trial = false;
+      char.isTrial = false;
       char.trialUpdateTime = Date.now();
       return true;
     },
