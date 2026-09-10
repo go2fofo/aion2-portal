@@ -79,7 +79,7 @@ function getLatestArtifactCloisterResetTarget(currentTime: any) {
  * 【核心】通用规则解释执行器：读取 gameRulesDictionary 并自动刷新游戏数据
  */
 export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
-  const now = mockNow !== undefined ? mockNow : Date.now();
+  const now = mockNow !== undefined ? mockNow : getBeijingTimestamp();
   const today5amTime = getToday5amTimestamp(now);
   const currentWednesday5am = getWednesday5amTimestamp(new Date(now));
 
@@ -251,46 +251,85 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
         };
 
         if (rule.condition && !rule.condition(ruleContext)) return;
-
         const timeField = rule.lastTimeField || "createDate";
-        const lastTimeStr = char[timeField] || char.createDate || 0;
-        let lastTime = lastTimeStr ? new Date(lastTimeStr).getTime() : 0;
+        const rawTime = char[timeField] || char.createDate || 0;
+
+        let lastTime =
+          typeof rawTime === "number" ? rawTime : new Date(rawTime).getTime();
+        if (isNaN(lastTime)) lastTime = 0;
 
         if (refreshType === "interval" && rule.increment) {
-          const effectiveLastTime = Math.max(lastTime, char.createDate || 0);
+          const currentNow = Date.now();
+          const effectiveLastTime = Math.max(
+            Number(char[timeField]) || 0,
+            Number(char.createDate) || 0,
+          );
           const refreshHours = [2, 5, 8, 11, 14, 17, 20, 23];
 
           let periodsPassed = 0;
-          let lastTriggerTime = effectiveLastTime;
+          let maxTriggerTime = effectiveLastTime;
 
-          // 从 effectiveLastTime 当天往前推一点（或者直接从 effectiveLastTime 所在日期的 0 点开始遍历）
-          const startDate = new Date(effectiveLastTime);
+          // 统一转换为北京时间（Asia/Shanghai）的虚拟对象，彻底屏蔽本地/服务器时区差异
+          const bjEffectiveStr = new Date(effectiveLastTime).toLocaleString(
+            "en-US",
+            { timeZone: "Asia/Shanghai" },
+          );
+          const startDate = new Date(bjEffectiveStr);
           startDate.setHours(0, 0, 0, 0);
 
-          const endDate = new Date(now);
+          const bjNowStr = new Date(currentNow).toLocaleString("en-US", {
+            timeZone: "Asia/Shanghai",
+          });
+          const endDate = new Date(bjNowStr);
           endDate.setHours(23, 59, 59, 999);
 
-          // 以“天”为单位外循环，比对每天的 8 个固定整点
           let loopDate = new Date(startDate);
-          let maxTriggerTime = effectiveLastTime;
+
+          // 🛠️ 增加调试日志：打印大局边界
+          console.log("🛠️ [Debug Range]:", char.characterName, {
+            effectiveLastTime,
+            effectiveLastTimeStr: new Date(effectiveLastTime).toLocaleString(
+              "en-US",
+              { timeZone: "Asia/Shanghai" },
+            ),
+            char,
+            currentNow,
+            currentNowStr: new Date(currentNow).toLocaleString("en-US", {
+              timeZone: "Asia/Shanghai",
+            }),
+          });
+
+          debugger;
 
           while (loopDate.getTime() <= endDate.getTime()) {
             for (const h of refreshHours) {
-              const candidateTime = new Date(loopDate);
-              candidateTime.setHours(h, 0, 0, 0);
-              const targetTime = candidateTime.getTime();
+              const candidate = new Date(loopDate);
+              candidate.setHours(h, 0, 0, 0);
+              const targetTime = candidate.getTime();
 
-              // 必须严格在 上次更新时间之后，且不超过当前时间
-              if (targetTime > effectiveLastTime && targetTime <= now) {
+              const isGreater = targetTime > effectiveLastTime;
+              const isLessOrEqual = targetTime <= currentNow;
+
+              // 🛠️ 打印每个刷新点的比对详情
+              console.log(
+                `⏱️ [Candidate Check]: ${candidate.toLocaleString("en-US", { timeZone: "Asia/Shanghai" })} (${targetTime}) -> >last: ${isGreater}, <=now: ${isLessOrEqual}`,
+              );
+
+              if (isGreater && isLessOrEqual) {
                 periodsPassed++;
                 if (targetTime > maxTriggerTime) {
                   maxTriggerTime = targetTime;
                 }
               }
             }
-            // 天数 +1
             loopDate.setDate(loopDate.getDate() + 1);
           }
+
+          console.log(
+            `🔍 [gameRefreshManager:313] %c periodsPassed: `,
+            "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+            periodsPassed,
+          );
 
           if (periodsPassed > 0) {
             const added = periodsPassed * rule.increment;
@@ -298,24 +337,15 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
             const maxVal = ownerGroup.premiumMember
               ? 840
               : rule.maxValue || 560;
-            const storedMax = rule.storedMaxValue || 2000;
-            const storedField = rule.storedTargetField || "storedEnergy";
 
             let total = currentVal + added;
-            let currentStored = char[storedField] || 0;
 
             if (total > maxVal) {
-              const overflow = total - maxVal;
               total = maxVal;
-              currentStored = Math.min(storedMax, currentStored + overflow);
             }
 
             char[rule.targetField!] = total;
-            if (storedField !== "storedEnergy") {
-              char[storedField] = currentStored;
-            }
 
-            // 更新时间戳为最后一次成功触发的整点时间
             char[timeField] = maxTriggerTime;
             charChanged = true;
             hasChanges = true;

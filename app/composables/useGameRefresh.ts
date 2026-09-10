@@ -456,10 +456,10 @@ export const useGameRefresh = () => {
   /**
    * 执行数据规则刷新核心方法
    */
-  const executeDataRefresh = async () => {
+  const executeDataRefresh = async (parsedData?:any) => {
     try {
       // 1. 获取最新数据
-      let loadGameDataRes = await loadGameData();
+      let loadGameDataRes = parsedData || await loadGameData();
       if (!loadGameDataRes) return false;
       // 由于结构变化或者更改，需要重新补充或者更改数据所以在此需要处理数据
       const { gameData, hasModified }: any = sanitizeGameData(

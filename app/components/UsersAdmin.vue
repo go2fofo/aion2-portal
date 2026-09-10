@@ -935,7 +935,7 @@ const confirmAddCustomCharacter = async () => {
 
   $loading.show("正在添加自定义角色...");
   try {
-    const nowIso = Date.now();
+    const nowIso = getBeijingTimestamp();
 
     // 严格按照你提供的数据结构进行组装
     const newCustomCharacter = {
@@ -1157,7 +1157,7 @@ const handleSaveCharacter = async () => {
     }
   }
 
-  const nowIso = Date.now();
+  const nowIso = getBeijingTimestamp();
 
   const newChar = {
     id: Date.now(),
@@ -1537,12 +1537,14 @@ const importGameData = (event) => {
       if (parsedData && typeof parsedData === "object") {
         gameData.value = parsedData;
         await saveData();
-        await handleSync();
+        await handleSync(parsedData);
 
         $alert("数据导入并持久化成功！");
       } else {
         $alert("导入的文件格式不正确！");
+        return
       }
+
     } catch (error) {
       console.error("解析 JSON 文件失败:", error);
       $alert("解析文件失败，请确保是有效的 JSON 备份文件。");
@@ -1710,13 +1712,13 @@ const saveCharacterSort = () => {
 //================ 组内角色排序 结束 =====================
 
 // 点击刷新按钮的处理逻辑
-const handleSync = async () => {
+const handleSync = async (parsedData) => {
   if (isRefreshing.value) return;
   $loading.show("正在更新角色...");
   isRefreshing.value = true;
 
   try {
-    const updated = await executeDataRefresh();
+    const updated = await executeDataRefresh(parsedData);
     if (updated) {
       console.log("数据已更新并同步");
       gameData.value = updated;
@@ -2425,13 +2427,16 @@ const handleGlobalPopupFill = async (type) => {
         let charItem = cloneDeep(globalPopupOp.value.targetChar);
         let formData = globalPopupOp.value.formData || {};
 
+        let dateTime = getBeijingTimestamp();
+
         // 1. 更新能量与存储能量
         if (
           globalPopupOp.value.data?.energy !== undefined &&
-          globalPopupOp.value.data?.energy !== null
+          globalPopupOp.value.data?.energy !== null &&
+          globalPopupOp.value.data?.energy !== globalPopupOp.value.targetChar?.energy
         ) {
           charItem.energy = globalPopupOp.value.data.energy;
-          charItem.lastEnergyUpdate = Date.now();
+          charItem.lastEnergyUpdate = dateTime;
         }
         if (
           totalsStoredEnergyCount.value !== undefined &&
@@ -2443,14 +2448,14 @@ const handleGlobalPopupFill = async (type) => {
         if (formData?.isBreezeCharOdUsed) {
           charItem.isBreezeCharOd = true;
           charItem.breezeCharOd = 4;
-          charItem.breezeCharOdDate = Date.now();
+          charItem.breezeCharOdDate = dateTime;
           charItem.isBreezeCharOdUsed = true;
         }
 
         if (formData?.isMaterialCharOdUsed) {
           charItem.isMaterialCharOd = true;
           charItem.materialCharOd = 4;
-          charItem.materialCharOdDate = Date.now();
+          charItem.materialCharOdDate = dateTime;
           charItem.isMaterialCharOdUsed = true;
         }
 
@@ -2957,7 +2962,9 @@ watch(
               </div>
               <!-- 第二组内容（用于无缝衔接，消除空白） -->
               <div class="flex items-center gap-8 shrink-0">
-                <span>1.由于免费数据库受到网络影响问题比较多，现在更定为只支持本地存储模式，如有需要可以在设置-进行导出导入数据</span>
+                <span
+                  >1.由于免费数据库受到网络影响问题比较多，现在更定为只支持本地存储模式，如有需要可以在设置-进行导出导入数据</span
+                >
                 <span>2.修复已知 Bug 并全面提升系统的运行稳定性</span>
               </div>
             </div>

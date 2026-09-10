@@ -1206,7 +1206,7 @@ const handleExecuteSupplement = async () => {
 
   // 修改了角色基础奥德能量，并且更新时间戳为当前时间
   if (energy) {
-    const nowIso = new Date().toISOString();
+    const nowIso = getBeijingTimestamp();
     updatedCharacter.energy = energy;
     updatedCharacter.lastEnergyUpdate = nowIso;
   }
