@@ -1,7 +1,7 @@
 <!--
  * @Author: whq
  * @Date: 2026-02-08 09:11:19
- * @LastEditTime: 2026-09-10 15:44:04
+ * @LastEditTime: 2026-09-10 16:37:05
  * @LastEditors: fofo
  * @Description: 
  * @FilePath: /aion2-portal/app/app.vue
@@ -34,7 +34,7 @@ import { onMounted, onUnmounted, ref, watch } from 'vue';
 const updateAvailable = useState('updateAvailable');
 import { useGameStore } from '@/stores/useGameStore';
 const gameStore = useGameStore();
-const user = useSupabaseUser();
+// const user = useSupabaseUser();
 onMounted(async () => {
   await gameStore.initGameData();
 });

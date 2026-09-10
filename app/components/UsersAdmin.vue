@@ -17,6 +17,7 @@ import {
 } from "~/utils/aionServers";
 import { formatCombatPower } from "~/utils/formatCombatPower";
 import GroupCharacterPanel from "./components/GroupCharacterPanel.vue";
+import GlobalModal from "./GlobalModal.vue";
 import cloneDeep from "lodash/cloneDeep";
 import { dungeonDecayRules } from "./config/userAdmin";
 import { useGameRefresh } from "@/composables/useGameRefresh";
@@ -425,7 +426,32 @@ const getTodayDateStr = () => {
   const day = String(d.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
-
+// 公告内容数组对象
+const updateLogs = ref([
+  {
+    tag: "重要",
+    tagClass:
+      "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/50",
+    title: "数据库同步与数据安全提示",
+    desc:
+      "免费云端数据库偶尔受网络影响波动，建议经常前往【存储设置】进行手动同步，或通过【设置】定期导出导入本地备份防丢失。",
+  },
+  {
+    tag: "新功能",
+    tagClass:
+      "bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400 border border-sky-200/50 dark:border-sky-800/50",
+    title: "全新滑动 3 小时能量恢复系统",
+    desc:
+      "优化了游戏数据状态中的能量恢复逻辑，采用更平滑的滑动窗口计算方式，保证多端切换与长期挂机时的精准同步。",
+  },
+  {
+    tag: "体验",
+    tagClass:
+      "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50",
+    title: "UI 界面与全局弹窗优化",
+    desc: "重构了全局通知弹窗与顶部导航横幅，视觉更通透，操作更流畅，完美支持深色模式。",
+  },
+]);
 // 1. 总角色数计算
 const totalCharacters = computed(() => gameData.value.characters?.length || 0);
 /**
@@ -3000,6 +3026,58 @@ watch(
 </script>
 
 <template>
+  <GlobalModal
+    title="版本更新与公告"
+    :storageKey="$version"
+    :showDontShowAgain="true"
+    :showFooter="false"
+    widthClass="w-full max-w-xl"
+  >
+    <div class="space-y-4 py-1">
+      <div
+        class="px-2.5 py-1.5 rounded-xl bg-sky-500 text-white font-black text-xs shadow-sm shadow-sky-500/30 tracking-tight shrink-0 flex items-center justify-center"
+      >
+        v{{ $version }}
+      </div>
+      <!-- 公告头部简介 -->
+      <div
+        class="flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-r from-sky-50/80 to-indigo-50/30 dark:from-sky-950/40 dark:to-slate-900/40 border border-sky-100/80 dark:border-sky-800/50 shadow-xs"
+      >
+        <div class="space-y-0.5">
+          <div class="text-xs font-black text-slate-800 dark:text-slate-100">
+            系统持续迭代升级中
+          </div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+            感谢大家的积极反馈与包容！以下是本次更新的核心内容与重要提示：
+          </div>
+        </div>
+      </div>
+
+      <!-- 动态渲染的公告列表 -->
+      <div class="space-y-2.5">
+        <div
+          v-for="(item, index) in updateLogs"
+          :key="index"
+          class="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 transition-all hover:bg-slate-100/60 dark:hover:bg-slate-800/70"
+        >
+          <span
+            class="px-2 py-0.5 rounded-lg text-[10px] font-black shrink-0 tracking-wide uppercase"
+            :class="item.tagClass"
+          >
+            {{ item.tag }}
+          </span>
+          <div class="space-y-1 flex-1 min-w-0">
+            <h5 class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug">
+              {{ item.title }}
+            </h5>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+              {{ item.desc }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </GlobalModal>
   <div
     class="p-2 bg-slate-50 dark:bg-slate-800 text-slate-800 rounded-3xl shadow-sm space-y-4 mx-auto border border-slate-100 dark:border-slate-700 min-h-[90vh]"
   >
@@ -3024,11 +3102,10 @@ watch(
       </div>
 
       <!-- 中间：独立展示的版本标签与通知栏 -->
-      <div class="flex items-center justify-center shrink-0 w-full max-w-2xl px-2">
+      <div class="flex items-center justify-center shrink-0 w-full max-w-fit px-2">
         <div
-          class="relative flex items-center justify-between w-full px-4 py-2 rounded-2xl bg-gradient-to-r from-sky-50/80 via-indigo-50/40 to-sky-50/80 dark:from-sky-950/40 dark:via-slate-900/40 dark:to-sky-950/40 border border-sky-100 dark:border-sky-800/50 shadow-sm overflow-hidden gap-3"
+          class="relative flex items-center justify-between w-full px-4 py-2 rounded-2xl bg-gradient-to-r from-sky-50/80 via-indigo-50/40 to-sky-50/80 dark:from-sky-950/40 dark:via-slate-900/40 dark:to-sky-950/40 border border-sky-100 dark:border-sky-800/50 shadow-sm overflow-hidden gap-2"
         >
-          <!-- 左侧：版本与状态标签 -->
           <div class="flex items-center gap-2 shrink-0">
             <span class="relative flex h-2 w-2">
               <span
@@ -3041,49 +3118,12 @@ watch(
             >
               <span
                 class="text-[11px] font-bold text-sky-600 dark:text-sky-400 tracking-wide"
-                >当前版本v{{ $version }}</span
+                >当前版本v{{
+                  $version
+                }}
+                每日持续更新优化中，感谢大家的反馈与包容，见谅~</span
               >
               <span class="text-[10px] text-slate-400 dark:text-slate-500">Dev</span>
-            </div>
-          </div>
-
-          <!-- 分隔线 -->
-          <div class="h-4 w-[1px] bg-sky-200/60 dark:bg-sky-800/60 shrink-0"></div>
-
-          <!-- 右侧：滚动公告 / 重要提示 -->
-          <div
-            class="overflow-hidden relative h-6 flex items-center flex-1 mask-linear-gradient"
-          >
-            <div
-              class="absolute whitespace-nowrap animate-marquee flex items-center gap-8 text-xs text-slate-600 dark:text-slate-300 font-medium"
-            >
-              <!-- 第一组内容 -->
-              <div class="flex items-center gap-6 shrink-0">
-                <span class="text-sky-600 dark:text-sky-400"
-                  >✨ 每日持续更新优化中，感谢大家的反馈与包容，见谅~</span
-                >
-              </div>
-              <!-- 第二组内容（用于无缝循环衔接） -->
-              <div class="flex items-center gap-6 shrink-0">
-                <span
-                  class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-md border border-amber-200/50 dark:border-amber-800/50"
-                >
-                  <svg
-                    class="w-3.5 h-3.5 shrink-0"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  免费数据库偶有波动，建议前往【存储设置】手动同步，或通过【设置】导入导出备份数据！
-                </span>
-              </div>
             </div>
           </div>
         </div>
@@ -7686,22 +7726,3 @@ watch(
     </Teleport>
   </div>
 </template>
-
-<style scoped>
-@keyframes marquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
-
-.animate-marquee {
-  animation: marquee 20s linear infinite;
-}
-
-.animate-marquee:hover {
-  animation-play-state: paused;
-}
-</style>
