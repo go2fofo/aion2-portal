@@ -714,9 +714,7 @@ const saveData = async (newSaveData) => {
 //     }
 //   }
 // };
-const loadData = async () => {
-
-};
+const loadData = async () => {};
 //==========================================添加成员开始=========================================
 
 const searchRaceId = ref(2);
@@ -2782,93 +2780,90 @@ const handleCardConfigModeChange = async (modeType) => {
   }
 };
 
-
-
 //================ 存储设置 开始================
 
 // 组合式 API 或组件脚本部分对应的逻辑方法
-const isStorageModalOpen = ref(false)
-const isSyncing = ref(false)
+const isStorageModalOpen = ref(false);
+const isSyncing = ref(false);
 
 const openStorageSettingsModal = () => {
-  isStorageModalOpen.value = true
-}
+  isStorageModalOpen.value = true;
+};
 
 // 1. 本地数据同步到云端
 const syncLocalToCloud = async () => {
   if (!user.value) {
-    $toast('请先登录账号')
-    return
+    $toast("请先登录账号");
+    return;
   }
   try {
-    isSyncing.value = true
+    isSyncing.value = true;
     // 获取当前内存或从 IndexedDB 获取最新数据
-    const currentData = gameStore.gameData || (await getLocalGameData())
+    const currentData = gameStore.gameData || (await getLocalGameData());
     if (!currentData) {
-      $toast('本地暂无可同步的游戏数据')
-      return
+      $toast("本地暂无可同步的游戏数据");
+      return;
     }
 
-    const { error } = await client.from('user_game_data').upsert(
+    const { error } = await client.from("user_game_data").upsert(
       {
         user_id: user.value.id,
         data: currentData,
         updated_at: new Date(),
       },
       {
-        onConflict: 'user_id',
+        onConflict: "user_id",
       }
-    )
+    );
 
-    if (error) throw error
-    $toast('本地数据成功同步到云端！')
+    if (error) throw error;
+    $toast("本地数据成功同步到云端！");
   } catch (err) {
-    console.error('同步到云端失败:', err)
-    $toast(`同步失败: ${err.message || '未知错误'}`)
+    console.error("同步到云端失败:", err);
+    $toast(`同步失败: ${err.message || "未知错误"}`);
   } finally {
-    isSyncing.value = false
+    isSyncing.value = false;
   }
-}
+};
 
 // 2. 云端数据同步到本地
 const syncCloudToLocal = async () => {
   if (!user.value) {
-    $toast('请先登录账号')
-    return
+    $toast("请先登录账号");
+    return;
   }
   try {
-    isSyncing.value = true
+    isSyncing.value = true;
     const { data: resData, error } = await client
-      .from('user_game_data')
-      .select('data')
-      .eq('user_id', user.value.id)
-      .single()
+      .from("user_game_data")
+      .select("data")
+      .eq("user_id", user.value.id)
+      .single();
 
-    if (error) throw error
+    if (error) throw error;
     if (!resData || !resData.data) {
-      $toast('云端暂无备份数据')
-      return
+      $toast("云端暂无备份数据");
+      return;
     }
 
     // 更新 Pinia store 并写入本地 IndexedDB
-    console.log(`🔍 [UsersAdmin:2854] %c 云端数据 resData: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', resData);
-    await gameStore.setGameData(resData.data)
-    $toast('云端数据成功同步到本地！')
-    isStorageModalOpen.value = false
+    console.log(
+      `🔍 [UsersAdmin:2854] %c 云端数据 resData: `,
+      "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+      resData
+    );
+    await gameStore.setGameData(resData.data);
+    $toast("云端数据成功同步到本地！");
+    isStorageModalOpen.value = false;
   } catch (err) {
-    console.error('从云端同步失败:', err)
-    $toast(`同步失败: ${err.message || '未找到云端存档或网络异常'}`)
+    console.error("从云端同步失败:", err);
+    $toast(`同步失败: ${err.message || "未找到云端存档或网络异常"}`);
   } finally {
-    isSyncing.value = false
+    isSyncing.value = false;
   }
-}
- 
+};
+
 //================ 存储设置 结束 =====================
-
-
-
-
-
 
 const normalizedClassName = computed({
   get() {
@@ -3028,41 +3023,71 @@ watch(
         </a>
       </div>
 
-      <!-- 中间：独立展示的版本标签 -->
-      <div class="flex items-center justify-center shrink-0 w-full max-w-xl">
+      <!-- 中间：独立展示的版本标签与通知栏 -->
+      <div class="flex items-center justify-center shrink-0 w-full max-w-2xl px-2">
         <div
-          class="px-4 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-medium text-xs border border-sky-100 dark:border-sky-800/50 shadow-2xs flex items-center gap-3 w-full overflow-hidden"
+          class="relative flex items-center justify-between w-full px-4 py-2 rounded-2xl bg-gradient-to-r from-sky-50/80 via-indigo-50/40 to-sky-50/80 dark:from-sky-950/40 dark:via-slate-900/40 dark:to-sky-950/40 border border-sky-100 dark:border-sky-800/50 shadow-sm overflow-hidden gap-3"
         >
-          <!-- 左侧版本标签 -->
-          <div class="flex items-center gap-1.5 shrink-0">
-            <span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
-            <span class="font-bold whitespace-nowrap">当前版本{{ $version }}</span>
+          <!-- 左侧：版本与状态标签 -->
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="relative flex h-2 w-2">
+              <span
+                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"
+              ></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
+            </span>
+            <div
+              class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/80 dark:bg-slate-800/80 shadow-2xs border border-sky-100/80 dark:border-sky-800/40"
+            >
+              <span
+                class="text-[11px] font-bold text-sky-600 dark:text-sky-400 tracking-wide"
+                >当前版本v{{ $version }}</span
+              >
+              <span class="text-[10px] text-slate-400 dark:text-slate-500">Dev</span>
+            </div>
           </div>
 
           <!-- 分隔线 -->
-          <span class="h-3 w-[1px] bg-sky-200 dark:bg-sky-800 shrink-0"></span>
+          <div class="h-4 w-[1px] bg-sky-200/60 dark:bg-sky-800/60 shrink-0"></div>
 
-          <!-- 右侧无缝循环滚动说明 -->
-          <div class="overflow-hidden relative h-5 flex items-center flex-1">
+          <!-- 右侧：滚动公告 / 重要提示 -->
+          <div
+            class="overflow-hidden relative h-6 flex items-center flex-1 mask-linear-gradient"
+          >
             <div
-              class="absolute whitespace-nowrap animate-marquee flex items-center gap-8 text-sky-700 dark:text-sky-300"
+              class="absolute whitespace-nowrap animate-marquee flex items-center gap-8 text-xs text-slate-600 dark:text-slate-300 font-medium"
             >
               <!-- 第一组内容 -->
-              <div class="flex items-center gap-8 shrink-0">
-                <span>✨ 每天都会更新～优化用户体验与系统性能</span>
-              </div>
-              <!-- 第二组内容（用于无缝衔接，消除空白） -->
-              <div class="flex items-center gap-8 shrink-0">
-                <span
-                  >由于免费数据库受到网络影响问题比较多，如果有需求可以在【存储设置】中进行手动同步，或者在【设置】进行导出导入数据进行备份</span
+              <div class="flex items-center gap-6 shrink-0">
+                <span class="text-sky-600 dark:text-sky-400"
+                  >✨ 每日持续更新优化中，感谢大家的反馈与包容，见谅~</span
                 >
-                <span>修复已知 Bug 并全面提升系统的运行稳定性</span>
+              </div>
+              <!-- 第二组内容（用于无缝循环衔接） -->
+              <div class="flex items-center gap-6 shrink-0">
+                <span
+                  class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-md border border-amber-200/50 dark:border-amber-800/50"
+                >
+                  <svg
+                    class="w-3.5 h-3.5 shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  免费数据库偶有波动，建议前往【存储设置】手动同步，或通过【设置】导入导出备份数据！
+                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
-
       <!-- 右侧：高亮凸显的“意见反馈”核心交互按钮 -->
       <div class="flex items-center shrink-0 w-full md:w-auto justify-end">
         <a
@@ -7591,7 +7616,10 @@ watch(
           v-if="isStorageModalOpen"
           class="fixed inset-0 z-[60] flex items-center justify-center p-4"
         >
-          <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="isStorageModalOpen = false"></div>
+          <div
+            class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            @click="isStorageModalOpen = false"
+          ></div>
           <div
             class="relative z-10 w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col max-h-[85vh]"
           >
@@ -7614,11 +7642,19 @@ watch(
             </div>
 
             <!-- 弹窗主体内容 -->
-            <div class="p-6 space-y-4 overflow-y-auto custom-scroll flex-1 text-slate-700 dark:text-slate-300 text-sm">
-              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-2">
-                <div class="font-black text-slate-800 dark:text-slate-200">数据同步说明</div>
+            <div
+              class="p-6 space-y-4 overflow-y-auto custom-scroll flex-1 text-slate-700 dark:text-slate-300 text-sm"
+            >
+              <div
+                class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-2"
+              >
+                <div class="font-black text-slate-800 dark:text-slate-200">
+                  数据同步说明
+                </div>
                 <div class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                  本地数据存储在浏览器 IndexedDB 中，清除浏览器缓存可能会导致数据丢失。您可以通过云端同步将本地游戏数据备份到 Supabase，或者从云端恢复到当前浏览器。
+                  本地数据存储在浏览器 IndexedDB
+                  中，清除浏览器缓存可能会导致数据丢失。您可以通过云端同步将本地游戏数据备份到
+                  Supabase，或者从云端恢复到当前浏览器。
                 </div>
               </div>
             </div>
@@ -7633,7 +7669,7 @@ watch(
                 :disabled="isSyncing"
                 class="px-6 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-black text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {{ isSyncing ? '同步中...' : '本地数据同步到云端' }}
+                {{ isSyncing ? "同步中..." : "本地数据同步到云端" }}
               </button>
               <button
                 type="button"
@@ -7641,7 +7677,7 @@ watch(
                 :disabled="isSyncing"
                 class="px-6 py-3 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-all shadow-md shadow-sky-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {{ isSyncing ? '同步中...' : '云端数据同步到本地' }}
+                {{ isSyncing ? "同步中..." : "云端数据同步到本地" }}
               </button>
             </div>
           </div>
