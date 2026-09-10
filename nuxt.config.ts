@@ -1,7 +1,7 @@
 /*
  * @Author: whq
  * @Date: 2026-02-08 09:11:19
- * @LastEditTime: 2026-09-10 16:22:45
+ * @LastEditTime: 2026-09-10 17:00:03
  * @LastEditors: fofo
  * @Description:
  * @FilePath: /aion2-portal/nuxt.config.ts
@@ -57,7 +57,7 @@ export default defineNuxtConfig({
       process.env.NUXT_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "",
     public: {
       // 格式：AIon2 S3 v0.1.7 (20260812)
-      appVersion: `AIon2 S3 v0.3.9 (${new Date().toISOString().slice(0, 10).replace(/-/g, "")})`,
+      appVersion: `AIon2 S3 v0.4.0 (${new Date().toISOString().slice(0, 10).replace(/-/g, "")})`,
     },
   },
   tailwindcss: {
