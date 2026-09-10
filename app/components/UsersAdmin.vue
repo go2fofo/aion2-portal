@@ -1748,7 +1748,7 @@ const handleSync = async (parsedData) => {
     const updated = await executeDataRefresh(parsedData);
     if (updated) {
       console.log("数据已更新并同步");
-      gameData.value = updated;
+    //   gameData.value = updated;
       // 可选：配合你的 UI 提示，例如 $alert 或 message 提示
     } else {
       console.log("当前数据已是最新");
@@ -2878,7 +2878,8 @@ const syncCloudToLocal = async () => {
       "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
       resData
     );
-    await gameStore.setGameData(resData.data);
+    // await gameStore.setGameData(resData.data);
+    await handleSync(resData.data)
     $toast("云端数据成功同步到本地！");
     isStorageModalOpen.value = false;
   } catch (err) {
