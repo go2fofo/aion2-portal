@@ -2933,13 +2933,36 @@ watch(
       </div>
 
       <!-- 中间：独立展示的版本标签 -->
-      <div class="flex items-center justify-center shrink-0">
-        <span
-          class="px-3 py-1 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-black text-xs border border-sky-100 dark:border-sky-800/50 shadow-2xs flex items-center gap-1.5"
+      <div class="flex items-center justify-center shrink-0 w-full max-w-xl">
+        <div
+          class="px-4 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-medium text-xs border border-sky-100 dark:border-sky-800/50 shadow-2xs flex items-center gap-3 w-full overflow-hidden"
         >
-          <span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
-          每天都会更新～当前版本：{{ $version }} 最新版
-        </span>
+          <!-- 左侧版本标签 -->
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
+            <span class="font-bold whitespace-nowrap">当前版本{{ $version }}</span>
+          </div>
+
+          <!-- 分隔线 -->
+          <span class="h-3 w-[1px] bg-sky-200 dark:bg-sky-800 shrink-0"></span>
+
+          <!-- 右侧无缝循环滚动说明 -->
+          <div class="overflow-hidden relative h-5 flex items-center flex-1">
+            <div
+              class="absolute whitespace-nowrap animate-marquee flex items-center gap-8 text-sky-700 dark:text-sky-300"
+            >
+              <!-- 第一组内容 -->
+              <div class="flex items-center gap-8 shrink-0">
+                <span>✨ 每天都会更新～优化用户体验与系统性能</span>
+              </div>
+              <!-- 第二组内容（用于无缝衔接，消除空白） -->
+              <div class="flex items-center gap-8 shrink-0">
+                <span>1.由于免费数据库受到网络影响问题比较多，现在更定为只支持本地存储模式，如有需要可以在设置-进行导出导入数据</span>
+                <span>2.修复已知 Bug 并全面提升系统的运行稳定性</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 右侧：高亮凸显的“意见反馈”核心交互按钮 -->
@@ -7445,3 +7468,22 @@ watch(
     </Teleport>
   </div>
 </template>
+
+<style scoped>
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+</style>
