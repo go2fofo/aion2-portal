@@ -3525,7 +3525,7 @@ watch(
           组内角色排序
         </button>
         <!-- 刷新/同步数据 -->
-        <!-- <button
+        <button
           @click="handleSync"
           :disabled="isRefreshing"
           class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700/80 font-bold text-xs shadow-sm transition-all transform active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
@@ -3545,7 +3545,7 @@ watch(
             />
           </svg>
           <span>{{ isRefreshing ? "同步中..." : "刷新/同步数据" }}</span>
-        </button> -->
+        </button>
       </div>
 
       <div
