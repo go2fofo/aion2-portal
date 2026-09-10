@@ -425,7 +425,7 @@ export const useGameRefresh = () => {
 
       // 2. 直接同步更新到 Pinia 全局状态，让所有组件瞬间响应
       const gameStore = useGameStore();
-      gameStore.setGameData(gameData);
+      await gameStore.setGameData(gameData, 'saveGameData触发');
 
       // 3. 执行云端或本地存储
       // if (user?.value && client) {
@@ -438,15 +438,15 @@ export const useGameRefresh = () => {
       //     { onConflict: "user_id" },
       //   );
       // } else {
-      const cleanData = JSON.parse(JSON.stringify(gameData));
-      if (typeof saveLocalGameData === "function") {
-        await saveLocalGameData(cleanData, "current_data");
-      } else {
-        localStorage.setItem(
-          "aion2_portal_game_data",
-          JSON.stringify(cleanData),
-        );
-      }
+      // const cleanData = JSON.parse(JSON.stringify(gameData));
+      // if (typeof saveLocalGameData === "function") {
+      //   await saveLocalGameData(cleanData, "current_data");
+      // } else {
+      //   localStorage.setItem(
+      //     "aion2_portal_game_data",
+      //     JSON.stringify(cleanData),
+      //   );
+      // }
       // }
     } catch (error) {
       console.error("[GameRefresh] 保存数据失败:", error);

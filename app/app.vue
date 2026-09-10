@@ -1,7 +1,7 @@
 <!--
  * @Author: whq
  * @Date: 2026-02-08 09:11:19
- * @LastEditTime: 2026-09-08 15:02:03
+ * @LastEditTime: 2026-09-10 14:54:41
  * @LastEditors: fofo
  * @Description: 
  * @FilePath: /aion2-portal/app/app.vue
@@ -32,6 +32,11 @@
 <script setup>
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 const updateAvailable = useState('updateAvailable');
+import { useGameStore } from '@/stores/useGameStore';
+const gameStore = useGameStore();
+onMounted(async () => {
+  await gameStore.initGameData();
+});
 // 主题状态：从 localStorage 读取，默认浅色
 const isDark = ref(false);
 

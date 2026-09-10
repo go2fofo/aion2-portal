@@ -3,7 +3,6 @@ import { ref, computed, onMounted } from "vue";
 import { useSupabaseClient, useSupabaseUser } from "#imports";
 import {
   getLocalGameData,
-  saveLocalGameData,
   clearLocalGameData,
   getLocalCardConfig,
   saveLocalCardConfig,
@@ -92,12 +91,12 @@ const defGameData = {
   exportDate: Date.now(),
 };
 // 游戏数据结构 参考 docs/多角色管理模块相关.md
-if (!gameStore.gameData) {
-  gameStore.setGameData(cloneDeep(defGameData));
-}
+// if (!gameStore.gameData) {
+//   gameStore.setGameData(cloneDeep(defGameData));
+// }
 const gameData = computed({
   get: () => gameStore.gameData || defGameData,
-  set: (val) => gameStore.setGameData(val),
+//   set: (val) => gameStore.setGameData(val, "UsersAdmin中"),
 });
 
 const groupOpen = ref(false);
@@ -659,24 +658,27 @@ const saveData = async (newSaveData) => {
   cleanData.exportDate = Date.now();
 
   try {
-    if (typeof user !== "undefined" && user.value && typeof client !== "undefined") {
-      await client.from("user_game_data").upsert(
-        {
-          user_id: user.value.id,
-          data: cleanData,
-          updated_at: new Date(),
-        },
-        {
-          onConflict: "user_id",
-        }
-      );
-    } else if (typeof saveLocalGameData === "function") {
-      await saveLocalGameData(cleanData);
-    } else {
-      localStorage.setItem("aion2_portal_game_data", JSON.stringify(cleanData));
+    // if (typeof user !== "undefined" && user.value && typeof client !== "undefined") {
+    //   await client.from("user_game_data").upsert(
+    //     {
+    //       user_id: user.value.id,
+    //       data: cleanData,
+    //       updated_at: new Date(),
+    //     },
+    //     {
+    //       onConflict: "user_id",
+    //     }
+    //   );
+    // } else if (typeof saveLocalGameData === "function") {
+    //   await saveLocalGameData(cleanData);
+    //   await gameStore.setGameData(cleanData)
+    // } else {
+    //   localStorage.setItem("aion2_portal_game_data", JSON.stringify(cleanData));
 
-      $alert("数据已成功保存！");
-    }
+    //   $alert("数据已成功保存！");
+    // }
+    await gameStore.setGameData(cleanData);
+    $alert("数据已成功保存！");
   } catch (error) {
     console.error("保存数据失败:", error);
   } finally {
@@ -1542,9 +1544,8 @@ const importGameData = (event) => {
         $alert("数据导入并持久化成功！");
       } else {
         $alert("导入的文件格式不正确！");
-        return
+        return;
       }
-
     } catch (error) {
       console.error("解析 JSON 文件失败:", error);
       $alert("解析文件失败，请确保是有效的 JSON 备份文件。");

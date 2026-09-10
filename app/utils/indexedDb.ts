@@ -1,7 +1,7 @@
 /*
  * @Author: fofo
  * @Date: 2026-07-27 16:03:34
- * @LastEditTime: 2026-08-04 09:12:11
+ * @LastEditTime: 2026-09-10 15:02:49
  * @LastEditors: fofo
  * @Description: 
  * @FilePath: /aion2-portal/app/utils/indexedDb.ts
@@ -66,7 +66,9 @@ export const getLocalGameData = async <T = any>(key: string = 'current_data'): P
 /**
  * 保存游戏 JSON 数据到本地
  */
-export const saveLocalGameData = async <T = any>(data: T, key: string = 'current_data'): Promise<IDBValidKey | void> => {
+export const saveLocalGameData = async <T = any>(data: T, key: string = 'current_data', source: string = 'unknown'): Promise<IDBValidKey | void> => {
+
+  console.log(`🔍 [indexedDb:71] %c 保存游戏 JSON 数据到本地成功 IndexedDB--saveLocalGameData 保存来源: ${source}`,'`font-size:14px; background:#26A08F; color:#fff;font-weight: bold;',data);
   try {
     const db = await openDB()
     return new Promise((resolve, reject) => {
@@ -116,5 +118,5 @@ export const getLocalCardConfig = async <T = any>(): Promise<T | null> => {
  * 保存卡片布局配置到本地
  */
 export const saveLocalCardConfig = async <T = any>(config: T): Promise<IDBValidKey | void> => {
-  return saveLocalGameData<T>(config, CARD_CONFIG_KEY)
+  return saveLocalGameData<T>(config, CARD_CONFIG_KEY, 'card_layout_config保存卡片布局配置到本地')
 }
