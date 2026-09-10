@@ -96,7 +96,7 @@ const defGameData = {
 // }
 const gameData = computed({
   get: () => gameStore.gameData || defGameData,
-//   set: (val) => gameStore.setGameData(val, "UsersAdmin中"),
+  //   set: (val) => gameStore.setGameData(val, "UsersAdmin中"),
 });
 
 const groupOpen = ref(false);
@@ -106,7 +106,7 @@ const pickerOpenOther = ref({
   type: "",
 });
 const pickerTab = ref("search");
-const { $alert, $confirm, $loading, $version } = useNuxtApp();
+const { $alert, $confirm, $loading, $version, $toast } = useNuxtApp();
 const isRefreshing = ref(false);
 
 // 控制新增角色弹窗状态
@@ -689,32 +689,34 @@ const saveData = async (newSaveData) => {
 };
 
 // 加载数据
+// const loadData = async () => {
+//   if (user.value) {
+//     const { data } = await client
+//       .from("user_game_data")
+//       .select("data")
+//       .eq("user_id", user.value.id)
+//       .single();
+
+//     if (data && data.data) {
+//       gameData.value = data.data;
+//     } else {
+//       const localData = await getLocalGameData();
+//       if (localData) {
+//         gameData.value = localData;
+//         await saveData();
+//         await clearLocalGameData();
+//       }
+//     }
+//   } else {
+//     const localData = await getLocalGameData();
+//     if (localData) {
+//       gameData.value = localData;
+//     }
+//   }
+// };
 const loadData = async () => {
-  if (user.value) {
-    const { data } = await client
-      .from("user_game_data")
-      .select("data")
-      .eq("user_id", user.value.id)
-      .single();
 
-    if (data && data.data) {
-      gameData.value = data.data;
-    } else {
-      const localData = await getLocalGameData();
-      if (localData) {
-        gameData.value = localData;
-        await saveData();
-        await clearLocalGameData();
-      }
-    }
-  } else {
-    const localData = await getLocalGameData();
-    if (localData) {
-      gameData.value = localData;
-    }
-  }
 };
-
 //==========================================添加成员开始=========================================
 
 const searchRaceId = ref(2);
@@ -2780,6 +2782,94 @@ const handleCardConfigModeChange = async (modeType) => {
   }
 };
 
+
+
+//================ 存储设置 开始================
+
+// 组合式 API 或组件脚本部分对应的逻辑方法
+const isStorageModalOpen = ref(false)
+const isSyncing = ref(false)
+
+const openStorageSettingsModal = () => {
+  isStorageModalOpen.value = true
+}
+
+// 1. 本地数据同步到云端
+const syncLocalToCloud = async () => {
+  if (!user.value) {
+    $toast('请先登录账号')
+    return
+  }
+  try {
+    isSyncing.value = true
+    // 获取当前内存或从 IndexedDB 获取最新数据
+    const currentData = gameStore.gameData || (await getLocalGameData())
+    if (!currentData) {
+      $toast('本地暂无可同步的游戏数据')
+      return
+    }
+
+    const { error } = await client.from('user_game_data').upsert(
+      {
+        user_id: user.value.id,
+        data: currentData,
+        updated_at: new Date(),
+      },
+      {
+        onConflict: 'user_id',
+      }
+    )
+
+    if (error) throw error
+    $toast('本地数据成功同步到云端！')
+  } catch (err) {
+    console.error('同步到云端失败:', err)
+    $toast(`同步失败: ${err.message || '未知错误'}`)
+  } finally {
+    isSyncing.value = false
+  }
+}
+
+// 2. 云端数据同步到本地
+const syncCloudToLocal = async () => {
+  if (!user.value) {
+    $toast('请先登录账号')
+    return
+  }
+  try {
+    isSyncing.value = true
+    const { data: resData, error } = await client
+      .from('user_game_data')
+      .select('data')
+      .eq('user_id', user.value.id)
+      .single()
+
+    if (error) throw error
+    if (!resData || !resData.data) {
+      $toast('云端暂无备份数据')
+      return
+    }
+
+    // 更新 Pinia store 并写入本地 IndexedDB
+    console.log(`🔍 [UsersAdmin:2854] %c 云端数据 resData: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', resData);
+    await gameStore.setGameData(resData.data)
+    $toast('云端数据成功同步到本地！')
+    isStorageModalOpen.value = false
+  } catch (err) {
+    console.error('从云端同步失败:', err)
+    $toast(`同步失败: ${err.message || '未找到云端存档或网络异常'}`)
+  } finally {
+    isSyncing.value = false
+  }
+}
+ 
+//================ 存储设置 结束 =====================
+
+
+
+
+
+
 const normalizedClassName = computed({
   get() {
     const val = globalPopupOp.value?.data?.className;
@@ -2964,9 +3054,9 @@ watch(
               <!-- 第二组内容（用于无缝衔接，消除空白） -->
               <div class="flex items-center gap-8 shrink-0">
                 <span
-                  >1.由于免费数据库受到网络影响问题比较多，现在更定为只支持本地存储模式，如有需要可以在设置-进行导出导入数据</span
+                  >由于免费数据库受到网络影响问题比较多，如果有需求可以在【存储设置】中进行手动同步，或者在【设置】进行导出导入数据进行备份</span
                 >
-                <span>2.修复已知 Bug 并全面提升系统的运行稳定性</span>
+                <span>修复已知 Bug 并全面提升系统的运行稳定性</span>
               </div>
             </div>
           </div>
@@ -3325,6 +3415,27 @@ watch(
           </svg>
           设置
         </button>
+        <!-- 存储设置按钮 -->
+        <button
+          @click="openStorageSettingsModal"
+          class="px-6 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700/80 font-black text-sm transition-all active:scale-95 flex items-center gap-2 border border-slate-200 dark:border-slate-700/60"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4 text-slate-500 dark:text-slate-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
+            />
+          </svg>
+          存储设置
+        </button>
         <!-- 组内角色排序按钮 -->
         <button
           @click="openSortModal"
@@ -3348,12 +3459,11 @@ watch(
           组内角色排序
         </button>
         <!-- 刷新/同步数据 -->
-        <button
+        <!-- <button
           @click="handleSync"
           :disabled="isRefreshing"
           class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700/80 font-bold text-xs shadow-sm transition-all transform active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
         >
-          <!-- 刷新图标：点击时带有旋转动画 -->
           <svg
             class="w-3.5 h-3.5 text-sky-500 dark:text-[#45a6d5] transition-transform duration-500"
             :class="{ 'animate-spin': isRefreshing }"
@@ -3369,7 +3479,7 @@ watch(
             />
           </svg>
           <span>{{ isRefreshing ? "同步中..." : "刷新/同步数据" }}</span>
-        </button>
+        </button> -->
       </div>
 
       <div
@@ -7468,6 +7578,70 @@ watch(
                 class="px-8 py-3 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-all shadow-md shadow-sky-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 确定排序
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+    <!-- 存储设置弹窗 -->
+    <Teleport to="body">
+      <Transition name="modal5">
+        <div
+          v-if="isStorageModalOpen"
+          class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+        >
+          <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="isStorageModalOpen = false"></div>
+          <div
+            class="relative z-10 w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col max-h-[85vh]"
+          >
+            <!-- 弹窗头部 -->
+            <div
+              class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 shrink-0"
+            >
+              <div
+                class="font-black text-slate-800 dark:text-slate-100 text-lg flex items-center gap-2"
+              >
+                <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
+                存储与云端同步设置
+              </div>
+              <button
+                class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                @click="isStorageModalOpen = false"
+              >
+                关闭
+              </button>
+            </div>
+
+            <!-- 弹窗主体内容 -->
+            <div class="p-6 space-y-4 overflow-y-auto custom-scroll flex-1 text-slate-700 dark:text-slate-300 text-sm">
+              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-2">
+                <div class="font-black text-slate-800 dark:text-slate-200">数据同步说明</div>
+                <div class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  本地数据存储在浏览器 IndexedDB 中，清除浏览器缓存可能会导致数据丢失。您可以通过云端同步将本地游戏数据备份到 Supabase，或者从云端恢复到当前浏览器。
+                </div>
+              </div>
+            </div>
+
+            <!-- 弹窗底部操作按钮 -->
+            <div
+              class="px-8 py-5 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-end gap-4 z-10"
+            >
+              <button
+                type="button"
+                @click="syncLocalToCloud"
+                :disabled="isSyncing"
+                class="px-6 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-black text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {{ isSyncing ? '同步中...' : '本地数据同步到云端' }}
+              </button>
+              <button
+                type="button"
+                @click="syncCloudToLocal"
+                :disabled="isSyncing"
+                class="px-6 py-3 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-all shadow-md shadow-sky-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {{ isSyncing ? '同步中...' : '云端数据同步到本地' }}
               </button>
             </div>
           </div>
