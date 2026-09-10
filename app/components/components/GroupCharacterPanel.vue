@@ -1745,14 +1745,14 @@ const handleExecuteConsume = async () => {
     // 模式一：根据输入的次数
     addRunsCount = inputVal;
     totalCostEnergy = calculatedEnergyCost.value; // 前面写好的动态计算总耗能
-    finalKinaGain = currentCalculationResult.value.totalGain;
+    finalKinaGain = currentCalculationResult.value.kinaGain;
     finalBoundKinaGain = currentCalculationResult.value.boundKinaGain;
   } else {
     // 模式二：根据输入的奥德（反推能刷的次数）
     const result = calculationByEnergy.value;
     addRunsCount = result.possibleRuns;
     totalCostEnergy = result.actualEnergy;
-    finalKinaGain = currentCalculationResult.value.totalGain;
+    finalKinaGain = currentCalculationResult.value.kinaGain;
     finalBoundKinaGain = currentCalculationResult.value.boundKinaGain;
   }
   console.log(
