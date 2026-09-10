@@ -3345,7 +3345,8 @@ watch(
         class="flex items-center gap-2 text-xs font-bold text-slate-400 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-xl border border-slate-100 dark:border-slate-700/60"
       >
         <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-        <span>{{ user ? "已同步到云端数据库" : "当前为本地存储模式" }}</span>
+        <!-- <span>{{ user ? "已同步到云端数据库" : "当前为本地存储模式" }}</span> -->
+        <span>当前为本地存储模式</span>
       </div>
     </div>
 

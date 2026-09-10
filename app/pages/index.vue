@@ -1089,6 +1089,7 @@ const isClient = process.client;
 const scrollContainer = ref(null);
 // 用户显示名
 const displayUsername = ref("guest");
+const { $confirm, $alert, $toast } = useNuxtApp();
 
 const { isDark, toggleTheme } = inject("theme");
 

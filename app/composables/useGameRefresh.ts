@@ -1,7 +1,7 @@
 import { getLocalGameData, saveLocalGameData } from "@/utils/indexedDb";
 import { executeRulesByDictionary } from "@/utils/gameRefreshManager";
 import { useSupabaseClient, useSupabaseUser } from "#imports";
-import { useGameStore } from '@/stores/useGameStore'; 
+import { useGameStore } from "@/stores/useGameStore";
 
 // 辅助函数：格式化日期为 YYYY-MM-DD HH:mm 或 YYYY-MM-DD
 const formatDate = (date: Date) => {
@@ -388,19 +388,19 @@ export const useGameRefresh = () => {
    */
   const loadGameData = async () => {
     try {
-      if (user?.value && client) {
-        const { data }: any = await client
-          .from("user_game_data")
-          .select("data")
-          .eq("user_id", user.value.id)
-          .single();
+      //取消存入云端数据
+      // if (user?.value && client) {
+      //   const { data }: any = await client
+      //     .from("user_game_data")
+      //     .select("data")
+      //     .eq("user_id", user.value.id)
+      //     .single();
 
-        if (data && data?.data) {
-          return data.data;
-        }
-      }
+      //   if (data && data?.data) {
+      //     return data.data;
+      //   }
+      // }
 
-      // 降级读取本地 IndexedDB（注意带上你项目里的数据key，如 'current_data'）
       const localData = await getLocalGameData("current_data");
       if (localData) {
         return localData;
@@ -413,31 +413,31 @@ export const useGameRefresh = () => {
     }
   };
 
-/**
- * 保存游戏数据（同步云端、本地及 Pinia 全局状态）
- */
-const saveGameData = async (gameData: any) => {
-  try {
-    if (!gameData) return;
+  /**
+   * 保存游戏数据（同步云端、本地及 Pinia 全局状态）
+   */
+  const saveGameData = async (gameData: any) => {
+    try {
+      if (!gameData) return;
 
-    // 1. 更新导出时间
-    gameData.exportDate = new Date().toLocaleString();
+      // 1. 更新导出时间
+      gameData.exportDate = new Date().toLocaleString();
 
-    // 2. 直接同步更新到 Pinia 全局状态，让所有组件瞬间响应
-    const gameStore = useGameStore();
-    gameStore.setGameData(gameData);
+      // 2. 直接同步更新到 Pinia 全局状态，让所有组件瞬间响应
+      const gameStore = useGameStore();
+      gameStore.setGameData(gameData);
 
-    // 3. 执行云端或本地存储
-    if (user?.value && client) {
-      await client.from("user_game_data")?.upsert(
-        {
-          user_id: user.value.id,
-          data: gameData,
-          updated_at: new Date(),
-        },
-        { onConflict: "user_id" },
-      );
-    } else {
+      // 3. 执行云端或本地存储
+      // if (user?.value && client) {
+      //   await client.from("user_game_data")?.upsert(
+      //     {
+      //       user_id: user.value.id,
+      //       data: gameData,
+      //       updated_at: new Date(),
+      //     },
+      //     { onConflict: "user_id" },
+      //   );
+      // } else {
       const cleanData = JSON.parse(JSON.stringify(gameData));
       if (typeof saveLocalGameData === "function") {
         await saveLocalGameData(cleanData, "current_data");
@@ -447,11 +447,11 @@ const saveGameData = async (gameData: any) => {
           JSON.stringify(cleanData),
         );
       }
+      // }
+    } catch (error) {
+      console.error("[GameRefresh] 保存数据失败:", error);
     }
-  } catch (error) {
-    console.error("[GameRefresh] 保存数据失败:", error);
-  }
-};
+  };
 
   /**
    * 执行数据规则刷新核心方法
@@ -555,7 +555,10 @@ const saveGameData = async (gameData: any) => {
       }, delay);
     };
 
-    console.log(`🔍 [useGameRefresh:551] %c 执行定时====initAutoRefreshTimer: `,'font-size:14px; background:#28588F; color:#fff;font-weight: bold;', );
+    console.log(
+      `🔍 [useGameRefresh:551] %c 执行定时====initAutoRefreshTimer: `,
+      "font-size:14px; background:#28588F; color:#fff;font-weight: bold;",
+    );
     // 启动首次调度计算
     scheduleNext();
   };
