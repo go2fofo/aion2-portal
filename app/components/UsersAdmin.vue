@@ -437,13 +437,21 @@ const updateLogs = ref([
       "免费云端数据库偶尔受网络影响波动，建议经常前往【存储设置】进行手动同步，或通过【设置】定期导出导入本地备份防丢失。",
   },
   {
-    tag: "新功能",
+    tag: "新更新",
     tagClass:
-      "bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400 border border-sky-200/50 dark:border-sky-800/50",
-    title: "全新滑动 3 小时能量恢复系统",
+      "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50",
+    title: "自定义模式下玩法卡片拓展",
     desc:
-      "优化了游戏数据状态中的能量恢复逻辑，采用更平滑的滑动窗口计算方式，保证多端切换与长期挂机时的精准同步。",
+      "角色面板中的任务卡片渲染逻辑，支持一排最多四个的自动换行流式布局；同步升级了各玩法的专属色彩主题与自定义显隐控制，提升多端显示时的整洁度与辨识度。",
   },
+  //   {
+  //     tag: "新功能",
+  //     tagClass:
+  //       "bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400 border border-sky-200/50 dark:border-sky-800/50",
+  //     title: "全新滑动 3 小时能量恢复系统",
+  //     desc:
+  //       "优化了游戏数据状态中的能量恢复逻辑，采用更平滑的滑动窗口计算方式，保证多端切换与长期挂机时的精准同步。",
+  //   },
   {
     tag: "体验",
     tagClass:

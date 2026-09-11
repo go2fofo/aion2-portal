@@ -439,6 +439,184 @@ const handleTaskClickWithDblClick = (char, field, type) => {
     }, 250); // 250毫秒是绝大多数用户的舒适双击间隔
   }
 };
+const taskList = computed(() => [
+  {
+    key: "dimensionalCount",
+    name: "次元袭击",
+    type: "group",
+    fieldKey: "showDimensionalCount",
+    colorTheme: {
+      activeBg:
+        "bg-rose-50/30 dark:bg-rose-950/20 border-rose-200/50 dark:border-rose-900/40 hover:bg-rose-50/60 dark:hover:bg-rose-900/30",
+      badge:
+        "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 border-rose-100 dark:border-rose-900/80",
+      text: "text-rose-600 dark:text-rose-400",
+    },
+    hasCount: (char) =>
+      getGroupSharedTaskData(char.group, "dimensionalCount", "storedDimensionalCount", 14)
+        .total > 0,
+    getCountText: (char) => {
+      const data = getGroupSharedTaskData(
+        char.group,
+        "dimensionalCount",
+        "storedDimensionalCount",
+        14
+      );
+      const group = props.getGroup(char.group);
+      return `剩余${data.total}次 (${group?.dimensionalCount || 0}/${
+        group?.storedDimensionalCount || 0
+      })`;
+    },
+  },
+  {
+    key: "battlefield",
+    name: "战场",
+    type: "character-number",
+    fieldKey: "showBattlefield",
+    colorTheme: {
+      activeBg:
+        "bg-emerald-50/30 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-900/40 hover:bg-emerald-50/60 dark:hover:bg-emerald-900/30",
+      badge:
+        "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-100 dark:border-emerald-900/80",
+      text: "text-emerald-600 dark:text-emerald-400",
+    },
+    hasCount: (char) => char?.battlefield != 0,
+    getCountText: (char) => `剩余${char.battlefield}次`,
+  },
+  {
+    key: "isTrial",
+    name: "试炼",
+    type: "flag",
+    fieldKey: "showTrialg",
+    colorTheme: {
+      activeBg:
+        "bg-teal-50/50 dark:bg-teal-950/30 border-teal-200/80 dark:border-teal-900/60 hover:bg-teal-100/60 dark:hover:bg-teal-900/40",
+      badge:
+        "text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 border-teal-100 dark:border-teal-900/80",
+      text: "text-teal-600 dark:text-teal-400",
+    },
+    hasCount: (char) => !char?.isTrial,
+    getCountText: (char) => (char?.isTrial ? "已完成" : "未完成"),
+  },
+  {
+    key: "isCloister",
+    name: "深渊回廊",
+    type: "flag",
+    fieldKey: "showCloister",
+    colorTheme: {
+      activeBg:
+        "bg-teal-50/50 dark:bg-teal-950/30 border-teal-200/80 dark:border-teal-900/60 hover:bg-teal-100/60 dark:hover:bg-teal-900/40",
+      badge:
+        "text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 border-teal-100 dark:border-teal-900/80",
+      text: "text-teal-600 dark:text-teal-400",
+    },
+    hasCount: (char) => !char?.isCloister,
+    getCountText: (char) => (char?.isCloister ? "已完成" : "未完成"),
+  },
+  {
+    key: "dailyRuns",
+    name: "每日副本",
+    type: "group",
+    fieldKey: "showDailyRuns",
+    colorTheme: {
+      activeBg:
+        "bg-cyan-50/30 dark:bg-cyan-950/20 border-cyan-200/50 dark:border-cyan-900/40 hover:bg-cyan-50/60 dark:hover:bg-cyan-900/30",
+      badge:
+        "text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/60 border-cyan-100 dark:border-cyan-900/80",
+      text: "text-cyan-600 dark:text-cyan-400",
+    },
+    hasCount: (char) =>
+      getGroupSharedTaskData(char.group, "dailyRuns", "storedDailyRuns", 14).total > 0,
+    getCountText: (char) => {
+      const data = getGroupSharedTaskData(char.group, "dailyRuns", "storedDailyRuns", 14);
+      const group = props.getGroup(char.group);
+      return `剩余${data.total}次 (${group?.dailyRuns || 0}/${
+        group?.storedDailyRuns || 0
+      })`;
+    },
+  },
+  {
+    key: "awakening",
+    name: "觉醒",
+    type: "character-stored",
+    fieldKey: "showAwakening",
+    colorTheme: {
+      activeBg:
+        "bg-indigo-50/30 dark:bg-indigo-950/20 border-indigo-200/50 dark:border-indigo-900/40 hover:bg-indigo-50/60 dark:hover:bg-indigo-900/30",
+      badge:
+        "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 border-indigo-100 dark:border-indigo-900/80",
+      text: "text-indigo-600 dark:text-indigo-400",
+    },
+    hasCount: (char) =>
+      getCharacterSharedTaskData(char, "awakening", "storedAwakening", 30).total > 0,
+    getCountText: (char) => {
+      const data = getCharacterSharedTaskData(char, "awakening", "storedAwakening", 30);
+      return `剩余${data.total}次 (${char.awakening || 0}/${char?.storedAwakening || 0})`;
+    },
+  },
+  {
+    key: "nightmareCount",
+    name: "噩梦副本",
+    type: "character-stored",
+    fieldKey: "showNightmareCount",
+    colorTheme: {
+      activeBg:
+        "bg-purple-50/30 dark:bg-purple-950/20 border-purple-200/50 dark:border-purple-900/40 hover:bg-purple-50/60 dark:hover:bg-purple-900/30",
+      badge:
+        "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 border-purple-100 dark:border-purple-900/80",
+      text: "text-purple-600 dark:text-purple-400",
+    },
+    hasCount: (char) =>
+      getCharacterSharedTaskData(char, "nightmareCount", "storedNightmareCount", 14)
+        .total > 0,
+    getCountText: (char) => {
+      const data = getCharacterSharedTaskData(
+        char,
+        "nightmareCount",
+        "storedNightmareCount",
+        14
+      );
+      return `剩余${data.total}次 (${char?.nightmareCount || 0}/${
+        char?.storedNightmareCount || 0
+      })`;
+    },
+  },
+  {
+    key: "minigameCount",
+    name: "古树庆典",
+    type: "group",
+    fieldKey: "showMinigameCount",
+    colorTheme: {
+      activeBg:
+        "bg-amber-50/30 dark:bg-amber-950/20 border-amber-200/50 dark:border-amber-900/40 hover:bg-amber-50/60 dark:hover:bg-amber-900/30",
+      badge:
+        "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 border-amber-100 dark:border-amber-900/80",
+      text: "text-amber-600 dark:text-amber-400",
+    },
+    hasCount: (char) =>
+      getGroupSharedTaskData(char.group, "minigameCount", "storedMinigameCount", 14)
+        .total > 0,
+    getCountText: (char) => {
+      const data = getGroupSharedTaskData(
+        char.group,
+        "minigameCount",
+        "storedMinigameCount",
+        14
+      );
+      const group = props.getGroup(char.group);
+      return `剩余${data.total}次 (${group?.minigameCount || 0}/${
+        group?.storedMinigameCount || 0
+      })`;
+    },
+  },
+]);
+// 过滤可见的玩法
+const visibleTasks = computed(() => {
+  return taskList.value.filter((task) => {
+    if (currentMode.value === "default") return true;
+    return currentMode.value === "custom" && props.config?.customFields?.[task.fieldKey];
+  });
+});
 </script>
 
 <template>
@@ -1110,567 +1288,83 @@ const handleTaskClickWithDblClick = (char, field, type) => {
           </div>
         </div>
 
-        <!-- ================= 共享玩法统一样式区 1 ================= -->
+        <!-- 双击提示区 -->
         <div
           class="inline-flex items-center gap-2 px-2 py-1 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-lg text-xs text-slate-500 dark:text-slate-400 select-none"
         >
           <span class="text-indigo-500 dark:text-indigo-400">💡</span>
           <span
-            >提示：下方卡片支持
-            <strong
+            >提示：下方卡片支持<strong
               class="text-slate-700 dark:text-slate-200 font-medium underline decoration-indigo-400/50 underline-offset-2"
               >双击</strong
-            >
-            快捷修改内容</span
+            >快捷修改内容</span
           >
         </div>
-        <div
-          class="grid grid-cols-4 gap-2"
-        >
-          <!-- 1. 每日使命 -->
-          <!-- <button
-            type="button"
-            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-            @click="handleTaskClickWithDblClick(char, 'dailyTaskCount', 'weeklydaily')"
-          >
-            <div class="w-full flex items-center justify-between">
-              <span
-                class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-                >每日使命</span
-              >
-              <span
-                class="text-[8px] text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1 rounded border border-slate-200 dark:border-slate-700"
-                >角色</span
-              >
-            </div>
-            <div class="w-full flex items-center justify-between text-[10px] font-black">
-              <span class="text-slate-700 dark:text-slate-300 tracking-tight">
-                剩余{{ 5 - char?.dailyTaskCount || 0 }}次
-              </span>
-            </div>
-          </button> -->
 
-          <!-- 次元袭击 (服务器共享，每天5点恢复2次，上限14) -->
-          <!-- @click="emit('task-click', char, 'dimensionalCount', 'weeklydaily')" -->
-
+        <!-- 统一的动态渲染网格：一排最多4个，超出自动换行 -->
+        <div class="grid grid-cols-4 gap-2">
           <button
-            v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showDimensionalCount)"
-
-            type="button"
-            class="p-2 border rounded-xl flex flex-col items-start gap-1 transition-all text-left shadow-sm group cursor-pointer active:scale-95"
-            :class="[
-              getGroupSharedTaskData(
-                char.group,
-                'dimensionalCount',
-                'storedDimensionalCount',
-                14
-              ).total == 0
-                ? 'bg-slate-50/60 dark:bg-slate-900/40 border-slate-200/70 dark:border-slate-800 opacity-75'
-                : 'bg-rose-50/30 dark:bg-rose-950/20 border-rose-200/50 dark:border-rose-900/40 hover:bg-rose-50/60 dark:hover:bg-rose-900/30',
-            ]"
-            @click="handleTaskClickWithDblClick(char, 'dimensionalCount', 'weeklydaily')"
-          >
-            <template
-              v-if="
-                getGroupSharedTaskData(
-                  char.group,
-                  'dimensionalCount',
-                  'storedDimensionalCount',
-                  14
-                ).total > 0
-              "
-            >
-              <div class="w-full flex items-center justify-between">
-                <span
-                  class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-                  >次元袭击</span
-                >
-                <span
-                  class="text-[8px] text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-1 rounded border border-rose-100 dark:border-rose-900/80"
-                  >共享</span
-                >
-              </div>
-              <div
-                class="w-full flex items-center justify-between text-[10px] font-black"
-              >
-                <span class="text-rose-600 dark:text-rose-400 tracking-tight">
-                  剩余{{
-                    getGroupSharedTaskData(
-                      char.group,
-                      "dimensionalCount",
-                      "storedDimensionalCount",
-                      14
-                    ).total
-                  }}次({{ getGroup(char.group)?.dimensionalCount || 0 }}/{{
-                    getGroup(char.group)?.storedDimensionalCount || 0
-                  }})
-                </span>
-              </div>
-            </template>
-            <template v-else>
-              <div class="w-full flex items-center justify-between">
-                <span
-                  class="font-bold text-[10px] truncate transition-colors text-slate-400 dark:text-slate-500 line-through"
-                  >次元袭击</span
-                >
-                <span
-                  class="text-[8px] px-1 rounded border transition-colors text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-                  >共享</span
-                >
-              </div>
-              <div
-                class="w-full flex items-center justify-between text-[10px] font-black"
-              >
-                <span
-                  class="tracking-tight flex items-center gap-1 text-slate-400 dark:text-slate-500 font-normal"
-                >
-                  暂无次数
-                </span>
-              </div>
-            </template>
-          </button>
-          <!--  战场 (角色独立，无存储字段) -->
-          <!-- @click="emit('task-click', char, 'battlefield', 'weeklydaily')" -->
-
-          <button
-            v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showBattlefield)"
-            
-            type="button"
-            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-            :class="[
-              char?.battlefield == 0
-                ? 'bg-slate-50/60 dark:bg-slate-900/40 border-slate-200/70 dark:border-slate-800 opacity-75'
-                : 'bg-emerald-50/30 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-900/40 hover:bg-emerald-50/60 dark:hover:bg-emerald-900/30',
-            ]"
-            @click="handleTaskClickWithDblClick(char, 'battlefield', 'weeklydaily')"
-          >
-            <template v-if="char?.battlefield != 0">
-              <div class="w-full flex items-center justify-between">
-                <span
-                  class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-                  >战场</span
-                >
-                <span
-                  class="text-[8px] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1 rounded border border-emerald-100 dark:border-emerald-900/80"
-                  >角色</span
-                >
-              </div>
-              <div
-                class="w-full flex items-center justify-between text-[10px] font-black"
-              >
-                <span class="text-emerald-600 dark:text-emerald-400 tracking-tight">
-                  剩余{{ char.battlefield }}次
-                </span>
-              </div>
-            </template>
-            <template v-else>
-              <div class="w-full flex items-center justify-between">
-                <span
-                  class="font-bold text-[10px] truncate transition-colors text-slate-400 dark:text-slate-500 line-through"
-                  >战场</span
-                >
-                <span
-                  class="text-[8px] px-1 rounded border transition-colors text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-                  >角色</span
-                >
-              </div>
-              <div
-                class="w-full flex items-center justify-between text-[10px] font-black"
-              >
-                <span
-                  class="tracking-tight flex items-center gap-1 text-slate-400 dark:text-slate-500 font-normal"
-                >
-                  暂无次数
-                </span>
-              </div>
-            </template>
-          </button>
-          <!-- 试炼 -->
-          <button
-            v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showTrialg)"
-            
+            v-for="task in visibleTasks"
+            :key="task.key"
             type="button"
             class="p-2 border rounded-xl flex flex-col items-start gap-1.5 transition-all text-left shadow-sm group cursor-pointer active:scale-95"
             :class="[
-              char?.isTrial
+              !task.hasCount(char)
                 ? 'bg-slate-50/60 dark:bg-slate-900/40 border-slate-200/70 dark:border-slate-800 opacity-75'
-                : 'bg-teal-50/50 dark:bg-teal-950/30 border-teal-200/80 dark:border-teal-900/60 hover:bg-teal-100/60 dark:hover:bg-teal-900/40',
+                : task.colorTheme.activeBg,
             ]"
-            @click="emit('task-click', char, 'isTrial', 'isTrial')"
-          >
-            <div class="w-full flex items-center justify-between">
-              <span
-                class="font-bold text-[10px] truncate transition-colors"
-                :class="
-                  char?.isTrial
-                    ? 'text-slate-400 dark:text-slate-500 line-through'
-                    : 'text-slate-700 dark:text-slate-200'
-                "
-                >试炼</span
-              >
-              <span
-                class="text-[8px] px-1 rounded border transition-colors"
-                :class="[
-                  char?.isTrial
-                    ? 'text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
-                    : 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 border-teal-100 dark:border-teal-900/80',
-                ]"
-                >角色</span
-              >
-            </div>
-
-            <!-- 状态指示文案 -->
-            <div class="w-full flex items-center justify-between text-[10px] font-black">
-              <span
-                class="tracking-tight flex items-center gap-1"
-                :class="
-                  char?.isTrial
-                    ? 'text-slate-400 dark:text-slate-500 font-normal'
-                    : 'text-teal-600 dark:text-teal-400'
-                "
-              >
-                <span>{{ char?.isTrial ? "✓" : "⚡" }}</span>
-                <span>{{ char?.isTrial ? "已完成" : "未完成" }}</span>
-              </span>
-            </div>
-          </button>
-          <!-- 深渊回廊 -->
-          <button
-            v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showCloister)"
-
-            type="button"
-            class="p-2 border rounded-xl flex flex-col items-start gap-1.5 transition-all text-left shadow-sm group cursor-pointer active:scale-95"
-            :class="[
-              char?.isCloister
-                ? 'bg-slate-50/60 dark:bg-slate-900/40 border-slate-200/70 dark:border-slate-800 opacity-75'
-                : 'bg-teal-50/50 dark:bg-teal-950/30 border-teal-200/80 dark:border-teal-900/60 hover:bg-teal-100/60 dark:hover:bg-teal-900/40',
-            ]"
-            @click="emit('task-click', char, 'isCloister', 'isCloister')"
-          >
-            <div class="w-full flex items-center justify-between">
-              <span
-                class="font-bold text-[10px] truncate transition-colors"
-                :class="
-                  char?.isCloister
-                    ? 'text-slate-400 dark:text-slate-500 line-through'
-                    : 'text-slate-700 dark:text-slate-200'
-                "
-                >深渊回廊</span
-              >
-              <span
-                class="text-[8px] px-1 rounded border transition-colors"
-                :class="[
-                  char?.isCloister
-                    ? 'text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
-                    : 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 border-teal-100 dark:border-teal-900/80',
-                ]"
-                >角色</span
-              >
-            </div>
-
-            <!-- 状态指示文案 -->
-            <div class="w-full flex items-center justify-between text-[10px] font-black">
-              <span
-                class="tracking-tight flex items-center gap-1"
-                :class="
-                  char?.isCloister
-                    ? 'text-slate-400 dark:text-slate-500 font-normal'
-                    : 'text-teal-600 dark:text-teal-400'
-                "
-              >
-                <span>{{ char?.isCloister ? "✓" : "⚡" }}</span>
-                <span>{{ char?.isCloister ? "已完成" : "未完成" }}</span>
-              </span>
-            </div>
-          </button>
-        </div>
-
-        <!-- ================= 共享玩法统一样式区 2 ================= -->
-
-        <div
-          class="grid grid-cols-4 gap-2"
-        >
-          <!-- 1. 每日副本 (服务器共享，周三5点，固定14次+存储上限) -->
-          <button
-            v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showDailyRuns)"
-            type="button"
-            class="p-2 bg-cyan-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-            :class="[
-              getGroupSharedTaskData(char.group, 'dailyRuns', 'storedDailyRuns', 14)
-                .total == 0
-                ? 'bg-slate-50/60 dark:bg-slate-900/40 border-slate-200/70 dark:border-slate-800 opacity-75'
-                : 'bg-cyan-50/30 dark:bg-cyan-950/20 border-cyan-200/50 dark:border-cyan-900/40 hover:bg-cyan-50/60 dark:hover:bg-cyan-900/30',
-            ]"
-            @click="handleTaskClickWithDblClick(char, 'dailyRuns', 'weeklydaily')"
-          >
-            <template
-              v-if="
-                getGroupSharedTaskData(char.group, 'dailyRuns', 'storedDailyRuns', 14)
-                  .total > 0
-              "
-            >
-              <div class="w-full flex items-center justify-between">
-                <span
-                  class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-                  >每日副本</span
-                >
-                <span
-                  class="text-[8px] text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/60 px-1 rounded border border-cyan-100 dark:border-cyan-900/80"
-                  >共享</span
-                >
-              </div>
-              <div
-                class="w-full flex items-center justify-between text-[10px] font-black"
-              >
-                <span class="text-cyan-600 dark:text-cyan-400 tracking-tight">
-                  剩余{{
-                    getGroupSharedTaskData(char.group, "dailyRuns", "storedDailyRuns", 14)
-                      .total
-                  }}次 ({{ getGroup(char.group)?.dailyRuns || 0 }}/{{
-                    getGroup(char.group)?.storedDailyRuns || 0
-                  }})
-                </span>
-              </div>
-            </template>
-            <template v-else>
-              <div class="w-full flex items-center justify-between">
-                <span
-                  class="font-bold text-[10px] truncate transition-colors text-slate-400 dark:text-slate-500 line-through"
-                  >每日副本</span
-                >
-                <span
-                  class="text-[8px] px-1 rounded border transition-colors text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-                  >共享</span
-                >
-              </div>
-              <div
-                class="w-full flex items-center justify-between text-[10px] font-black"
-              >
-                <span
-                  class="tracking-tight flex items-center gap-1 text-slate-400 dark:text-slate-500 font-normal"
-                >
-                  暂无次数
-                </span>
-              </div>
-            </template>
-          </button>
-          <!-- 2. 觉醒 (角色独立，上限30次或3次，带存储) -->
-          <button
-            v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showAwakening)"
-            type="button"
-            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-            :class="[
-              getCharacterSharedTaskData(char, 'awakening', 'storedAwakening', 14)
-                .total == 0
-                ? 'bg-slate-50/60 dark:bg-slate-900/40 border-slate-200/70 dark:border-slate-800 opacity-75'
-                : 'bg-indigo-50/30 dark:bg-indigo-950/20 border-indigo-200/50 dark:border-indigo-900/40 hover:bg-indigo-50/60 dark:hover:bg-indigo-900/30',
-            ]"
-            @click="handleTaskClickWithDblClick(char, 'awakening', 'weeklydaily')"
-          >
-            <template
-              v-if="
-                getCharacterSharedTaskData(char, 'awakening', 'storedAwakening', 14)
-                  .total > 0
-              "
-            >
-              <div class="w-full flex items-center justify-between">
-                <span
-                  class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-                  >觉醒</span
-                >
-                <span
-                  class="text-[8px] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-1 rounded border border-indigo-100 dark:border-indigo-900/80"
-                  >角色</span
-                >
-              </div>
-              <div
-                class="w-full flex items-center justify-between text-[10px] font-black"
-              >
-                <span class="text-indigo-600 dark:text-indigo-400 tracking-tight">
-                  剩余{{
-                    getCharacterSharedTaskData(char, "awakening", "storedAwakening", 30)
-                      .total
-                  }}次 ({{ char.awakening || 0 }}/{{ char?.storedAwakening || 0 }})
-                </span>
-              </div>
-            </template>
-            <template v-else>
-              <div class="w-full flex items-center justify-between">
-                <span
-                  class="font-bold text-[10px] truncate transition-colors text-slate-400 dark:text-slate-500 line-through"
-                  >觉醒</span
-                >
-                <span
-                  class="text-[8px] px-1 rounded border transition-colors text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-                  >角色</span
-                >
-              </div>
-              <div
-                class="w-full flex items-center justify-between text-[10px] font-black"
-              >
-                <span
-                  class="tracking-tight flex items-center gap-1 text-slate-400 dark:text-slate-500 font-normal"
-                >
-                  暂无次数
-                </span>
-              </div>
-            </template>
-          </button>
-          <!-- 噩梦副本 (角色独立，有存储次数) -->
-          <button
-            v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showNightmareCount)"
-            type="button"
-            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-            :class="[
-              getCharacterSharedTaskData(
+            @click="
+              handleTaskClickWithDblClick(
                 char,
-                'nightmareCount',
-                'storedNightmareCount',
-                14
-              ).total == 0
-                ? 'bg-slate-50/60 dark:bg-slate-900/40 border-slate-200/70 dark:border-slate-800 opacity-75'
-                : 'bg-purple-50/30 dark:bg-purple-950/20 border-purple-200/50 dark:border-purple-900/40 hover:bg-purple-50/60 dark:hover:bg-purple-900/30',
-            ]"
-            @click="handleTaskClickWithDblClick(char, 'nightmareCount', 'weeklydaily')"
+                task.key,
+                task.type.includes('flag') ? task.key : 'weeklydaily'
+              )
+            "
           >
-            <template
-              v-if="
-                getCharacterSharedTaskData(
-                  char,
-                  'nightmareCount',
-                  'storedNightmareCount',
-                  14
-                ).total > 0
-              "
-            >
-              <div class="w-full flex items-center justify-between">
-                <span
-                  class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-                  >噩梦副本</span
-                >
-                <span
-                  class="text-[8px] text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-1 rounded border border-purple-100 dark:border-purple-900/80"
-                  >角色</span
-                >
-              </div>
-              <div
-                class="w-full flex items-center justify-between text-[10px] font-black"
+            <!-- 头部标签：名称与属性 -->
+            <div class="w-full flex items-center justify-between">
+              <span
+                class="font-bold text-[10px] truncate transition-colors"
+                :class="
+                  !task.hasCount(char)
+                    ? 'text-slate-400 dark:text-slate-500 line-through'
+                    : 'text-slate-700 dark:text-slate-200'
+                "
               >
-                <span class="text-purple-600 dark:text-purple-400 tracking-tight">
-                  剩余{{
-                    getCharacterSharedTaskData(
-                      char,
-                      "nightmareCount",
-                      "storedNightmareCount",
-                      14
-                    ).total
-                  }}次 ({{ char?.nightmareCount || 0 }}/{{
-                    char?.storedNightmareCount || 0
-                  }})
-                </span>
-              </div>
-            </template>
-            <template v-else>
-              <div class="w-full flex items-center justify-between">
-                <span
-                  class="font-bold text-[10px] truncate transition-colors text-slate-400 dark:text-slate-500 line-through"
-                  >噩梦副本</span
-                >
-                <span
-                  class="text-[8px] px-1 rounded border transition-colors text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-                  >角色</span
-                >
-              </div>
-              <div
-                class="w-full flex items-center justify-between text-[10px] font-black"
+                {{ task.name }}
+              </span>
+              <span
+                class="text-[8px] px-1 rounded border transition-colors"
+                :class="[
+                  !task.hasCount(char)
+                    ? 'text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+                    : task.colorTheme.badge,
+                ]"
               >
-                <span
-                  class="tracking-tight flex items-center gap-1 text-slate-400 dark:text-slate-500 font-normal"
-                >
-                  暂无次数
-                </span>
-              </div>
-            </template>
-          </button>
+                {{ task.type === "group" ? "共享" : "角色" }}
+              </span>
+            </div>
 
-          <!-- 古树庆典 (服务器共享，每天5点恢复2次，上限14) -->
-          <button
-            v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showMinigameCount)"
-            type="button"
-            class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
-            :class="[
-              getGroupSharedTaskData(
-                char.group,
-                'minigameCount',
-                'storedMinigameCount',
-                14
-              ).total == 0
-                ? 'bg-slate-50/60 dark:bg-slate-900/40 border-slate-200/70 dark:border-slate-800 opacity-75'
-                : 'bg-amber-50/30 dark:bg-amber-950/20 border-amber-200/50 dark:border-amber-900/40 hover:bg-amber-50/60 dark:hover:bg-amber-900/30',
-            ]"
-            @click="handleTaskClickWithDblClick(char, 'minigameCount', 'weeklydaily')"
-          >
-            <template
-              v-if="
-                getGroupSharedTaskData(
-                  char.group,
-                  'minigameCount',
-                  'storedMinigameCount',
-                  14
-                ).total > 0
-              "
-            >
-              <div class="w-full flex items-center justify-between">
-                <span
-                  class="font-bold text-slate-700 dark:text-slate-200 text-[10px] truncate"
-                  >古树庆典</span
-                >
-                <span
-                  class="text-[8px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1 rounded border border-amber-100 dark:border-amber-900/80"
-                  >共享</span
-                >
-              </div>
-              <div
-                class="w-full flex items-center justify-between text-[10px] font-black"
+            <!-- 底部数值或状态文案 -->
+            <div class="w-full flex items-center justify-between text-[10px] font-black">
+              <span
+                class="tracking-tight flex items-center gap-1"
+                :class="[
+                  !task.hasCount(char)
+                    ? 'text-slate-400 dark:text-slate-500 font-normal'
+                    : task.colorTheme.text,
+                ]"
               >
-                <span class="text-amber-600 dark:text-amber-400 tracking-tight">
-                  剩余{{
-                    getGroupSharedTaskData(
-                      char.group,
-                      "minigameCount",
-                      "storedMinigameCount",
-                      14
-                    ).total
-                  }}次 ({{ getGroup(char.group)?.minigameCount || 0 }}/{{
-                    getGroup(char.group)?.storedMinigameCount || 0
-                  }})
-                </span>
-              </div>
-            </template>
-            <template v-else>
-              <div class="w-full flex items-center justify-between">
-                <span
-                  class="font-bold text-[10px] truncate transition-colors text-slate-400 dark:text-slate-500 line-through"
-                  >古树庆典</span
-                >
-                <span
-                  class="text-[8px] px-1 rounded border transition-colors text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-                  >共享</span
-                >
-              </div>
-              <div
-                class="w-full flex items-center justify-between text-[10px] font-black"
-              >
-                <span
-                  class="tracking-tight flex items-center gap-1 text-slate-400 dark:text-slate-500 font-normal"
-                >
-                  暂无次数
-                </span>
-              </div>
-            </template>
+                <template v-if="task.type === 'flag'">
+                  <span>{{ char?.[task.key] ? "✓" : "⚡" }}</span>
+                </template>
+                <span>{{
+                  task.hasCount(char) ? task.getCountText(char) : "暂无次数"
+                }}</span>
+              </span>
+            </div>
           </button>
         </div>
-
         <!-- ================= 模式五：备注输入框 ================= -->
         <div
           v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showNotes)"
