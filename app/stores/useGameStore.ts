@@ -1,7 +1,7 @@
 /*
  * @Author: fofo
  * @Date: 2026-09-03 09:21:17
- * @LastEditTime: 2026-09-11 09:44:38
+ * @LastEditTime: 2026-09-11 17:14:29
  * @LastEditors: fofo
  * @Description:
  * @FilePath: /aion2-portal/app/stores/useGameStore.ts
@@ -26,7 +26,6 @@ export const useGameStore = defineStore("game", {
       }
     },
     async setGameData(data: any, source: string = 'unknown') {
-      console.log(`🔍 [useGameStore:29] %c 执行setGameData: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', );
       const cloned = cloneDeep(data);
       this.gameData = cloned;
       await saveLocalGameData(cloned, 'current_data', "piain==setGameData==="+source);

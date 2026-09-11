@@ -1358,7 +1358,7 @@ const handleSaveCharacter = async () => {
     newCharGroupForm.value
   );
 
-  await saveData('','添加角色====handleSaveCharacter');
+  await saveData("", "添加角色====handleSaveCharacter");
 };
 //============================角色管理开始============================
 
@@ -1481,7 +1481,7 @@ const saveGroup = async () => {
       runLogs: [],
     });
   }
-  await saveData('','添加分组====saveGroup');
+  await saveData("", "添加分组====saveGroup");
   // 保存后重置输入状态
   cancelGroupEdit();
 };
@@ -1505,7 +1505,7 @@ const deleteGroup = async (id) => {
   const index = gameData.value?.groups?.findIndex((g) => g.id === id);
   if (index !== -1) {
     gameData.value?.groups?.splice(index, 1);
-    await saveData('','删除分组====deleteGroup');
+    await saveData("", "删除分组====deleteGroup");
   }
   // 如果当前正在编辑刚好被删除的那项，则顺便重置编辑状态
   if (groupEditingId.value === id) {
@@ -1528,11 +1528,19 @@ const cardConfig = reactive({
   columns: 4, // 可选: 1, 2, 3, 4, 5列布局
   mode: "default", // 可选: 'default'(标准模式) | 'simple'(精简模式-懒人模式) | 'custom'(自定义模式)
   customFields: {
-    showCombatPower: true,
-    showDungeons: true,
-    showEnergy: true,
-    showTasks: false,
-    showNotes: true,
+    showCombatPower: true, // 是否显示装等/战力
+    showDungeons: true, // 是否显示副本进度 (远征/超越)
+    showEnergy: true, // 是否显示奥德能量
+    showTasks: true, // 是否显示任务状态按钮
+    showNotes: true, // 是否显示备注框
+    showDailyRuns: true, // 是否显示每日运行次数
+    showMinigameCount: true, // 是否显示小游戏次数
+    showDimensionalCount: true, // 是否显示维度次数
+    showBattlefield: true, // 是否显示战场次数
+    showAwakening: true, // 是否显示觉醒次数
+    showNightmareCount: true, // 是否显示噩梦次数
+    showCloister: true, // 是否显示深渊回廊次数
+    showTrial: true, // 是否显示试炼次数
   },
 });
 // 打开分组管理弹窗
@@ -1569,7 +1577,7 @@ const importGameData = (event) => {
       const parsedData = JSON.parse(e.target.result);
       if (parsedData && typeof parsedData === "object") {
         gameData.value = parsedData;
-        await saveData('','导入数据====importGameData');
+        await saveData("", "导入数据====importGameData");
         await handleSync(parsedData);
 
         $alert("数据导入并持久化成功！");
@@ -1700,7 +1708,7 @@ const setPrimaryAccount = (targetChar) => {
     newGameData?.groups?.filter((c) => c.id == targetChar?.group)
   );
   debugger;
-  saveData(newGameData,'设置主角色====setPrimaryAccount');
+  saveData(newGameData, "设置主角色====setPrimaryAccount");
 };
 
 // 6. 保存排序并同步回全局 gameData
@@ -1738,7 +1746,7 @@ const saveCharacterSort = () => {
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     sortedList
   );
-  saveData('','保存排序====saveCharacterSort');
+  saveData("", "保存排序====saveCharacterSort");
 };
 
 //================ 组内角色排序 结束 =====================
@@ -1775,7 +1783,7 @@ const groupCharacterPanelHandleDelete = async (char) => {
     const cId = c.id ?? c.characterId;
     return cId !== targetId;
   });
-  await saveData('','删除角色====deleteCharacter');
+  await saveData("", "删除角色====deleteCharacter");
 };
 // 分组角色卡片列表切换锁定事件处理
 const groupCharacterPanelHandleToggleLock = async (char) => {
@@ -1835,7 +1843,7 @@ const groupCharacterPanelHandleUpdateCharacter = async (char) => {
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     gameData.value
   );
-  await saveData('','更新角色====updateCharacter');
+  await saveData("", "更新角色====updateCharacter");
 };
 // 分组角色卡片列表更新分组事件处理（兼容传入单个分组或整个分组数组）
 const groupCharacterPanelHandleUpdateGroup = async (updatedGroupsOrSingleGroup) => {
@@ -1858,7 +1866,7 @@ const groupCharacterPanelHandleUpdateGroup = async (updatedGroupsOrSingleGroup) 
     gameData.value.groups
   );
 
-  await saveData('','更新分组====updateGroup');
+  await saveData("", "更新分组====updateGroup");
 };
 // 分组角色卡片列表删除角色事件处理
 // 分组角色卡片列表删除角色事件处理
@@ -1911,7 +1919,7 @@ const groupCharacterPanelHandleDeleteCharacter = async (delChar) => {
   }
 
   // 执行持久化保存
-  await saveData('','删除角色====deleteCharacter');
+  await saveData("", "删除角色====deleteCharacter");
 };
 // 分组角色卡片列表切换任务事件处理
 const groupCharacterPanelHandleToggleTask = async (char, field) => {
@@ -2180,7 +2188,7 @@ const clearGameData = async () => {
   };
 
   // 3. 直接调用统一的 saveData()：
-  await saveData('','清空数据====clearGameData');
+  await saveData("", "清空数据====clearGameData");
 
   // 4. 关闭设置弹窗
   settingsOpen.value = false;
@@ -6233,16 +6241,88 @@ watch(
                         />
                         显示能量
                       </label>
+
                       <label
                         class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
                       >
                         <input
                           type="checkbox"
-                          v-model="cardConfig.customFields.showTasks"
+                          v-model="cardConfig.customFields.showDailyRuns"
                           class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#45a6d5] focus:ring-[#45a6d5]"
                         />
-                        显示任务按钮
+                        显示每日副本
                       </label>
+                      <label
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          v-model="cardConfig.customFields.showMinigameCount"
+                          class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#45a6d5] focus:ring-[#45a6d5]"
+                        />
+                        显示小游戏
+                      </label>
+                      <label
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          v-model="cardConfig.customFields.showDimensionalCount"
+                          class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#45a6d5] focus:ring-[#45a6d5]"
+                        />
+                        显示次元袭击
+                      </label>
+                      <label
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          v-model="cardConfig.customFields.showBattlefield"
+                          class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#45a6d5] focus:ring-[#45a6d5]"
+                        />
+                        显示战场
+                      </label>
+                      <label
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          v-model="cardConfig.customFields.showAwakening"
+                          class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#45a6d5] focus:ring-[#45a6d5]"
+                        />
+                        显示觉醒
+                      </label>
+                      <label
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          v-model="cardConfig.customFields.showNightmareCount"
+                          class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#45a6d5] focus:ring-[#45a6d5]"
+                        />
+                        显示噩梦
+                      </label>
+                      <label
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          v-model="cardConfig.customFields.showCloister"
+                          class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#45a6d5] focus:ring-[#45a6d5]"
+                        />
+                        显示深渊回廊
+                      </label>
+                      <label
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          v-model="cardConfig.customFields.showTrial"
+                          class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#45a6d5] focus:ring-[#45a6d5]"
+                        />
+                        显示试炼
+                      </label>
+
                       <label
                         class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
                       >

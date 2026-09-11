@@ -37,6 +37,14 @@ const props = defineProps({
         showEnergy: true, // 是否显示奥德能量
         showTasks: true, // 是否显示任务状态按钮
         showNotes: true, // 是否显示备注框
+        showDailyRuns: true, // 是否显示每日运行次数
+        showMinigameCount: true, // 是否显示小游戏次数
+        showDimensionalCount: true, // 是否显示维度次数
+        showBattlefield: true, // 是否显示战场次数
+        showAwakening: true, // 是否显示觉醒次数
+        showNightmareCount: true, // 是否显示噩梦次数
+        showCloister: true, // 是否显示深渊回廊次数
+        showTrial: true, // 是否显示试炼次数
       },
     }),
   },
@@ -1117,7 +1125,6 @@ const handleTaskClickWithDblClick = (char, field, type) => {
           >
         </div>
         <div
-          v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showTasks)"
           class="grid grid-cols-4 gap-2"
         >
           <!-- 1. 每日使命 -->
@@ -1147,6 +1154,8 @@ const handleTaskClickWithDblClick = (char, field, type) => {
           <!-- @click="emit('task-click', char, 'dimensionalCount', 'weeklydaily')" -->
 
           <button
+            v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showDimensionalCount)"
+
             type="button"
             class="p-2 border rounded-xl flex flex-col items-start gap-1 transition-all text-left shadow-sm group cursor-pointer active:scale-95"
             :class="[
@@ -1224,6 +1233,8 @@ const handleTaskClickWithDblClick = (char, field, type) => {
           <!-- @click="emit('task-click', char, 'battlefield', 'weeklydaily')" -->
 
           <button
+            v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showBattlefield)"
+            
             type="button"
             class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
             :class="[
@@ -1276,6 +1287,8 @@ const handleTaskClickWithDblClick = (char, field, type) => {
           </button>
           <!-- 试炼 -->
           <button
+            v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showTrialg)"
+            
             type="button"
             class="p-2 border rounded-xl flex flex-col items-start gap-1.5 transition-all text-left shadow-sm group cursor-pointer active:scale-95"
             :class="[
@@ -1323,6 +1336,8 @@ const handleTaskClickWithDblClick = (char, field, type) => {
           </button>
           <!-- 深渊回廊 -->
           <button
+            v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showCloister)"
+
             type="button"
             class="p-2 border rounded-xl flex flex-col items-start gap-1.5 transition-all text-left shadow-sm group cursor-pointer active:scale-95"
             :class="[
@@ -1373,11 +1388,11 @@ const handleTaskClickWithDblClick = (char, field, type) => {
         <!-- ================= 共享玩法统一样式区 2 ================= -->
 
         <div
-          v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showTasks)"
           class="grid grid-cols-4 gap-2"
         >
           <!-- 1. 每日副本 (服务器共享，周三5点，固定14次+存储上限) -->
           <button
+            v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showDailyRuns)"
             type="button"
             class="p-2 bg-cyan-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
             :class="[
@@ -1441,6 +1456,7 @@ const handleTaskClickWithDblClick = (char, field, type) => {
           </button>
           <!-- 2. 觉醒 (角色独立，上限30次或3次，带存储) -->
           <button
+            v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showAwakening)"
             type="button"
             class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
             :class="[
@@ -1502,6 +1518,7 @@ const handleTaskClickWithDblClick = (char, field, type) => {
           </button>
           <!-- 噩梦副本 (角色独立，有存储次数) -->
           <button
+            v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showNightmareCount)"
             type="button"
             class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
             :class="[
@@ -1578,6 +1595,7 @@ const handleTaskClickWithDblClick = (char, field, type) => {
 
           <!-- 古树庆典 (服务器共享，每天5点恢复2次，上限14) -->
           <button
+            v-if="currentMode == 'default' || (currentMode == 'custom' && fields.showMinigameCount)"
             type="button"
             class="p-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl flex flex-col items-start gap-1 transition-all hover:bg-slate-100/80 dark:hover:bg-slate-700/80 text-left shadow-sm group"
             :class="[
