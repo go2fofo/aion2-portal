@@ -1,7 +1,7 @@
 /*
  * @Author: fofo
  * @Date: 2026-07-27 16:03:34
- * @LastEditTime: 2026-09-10 15:02:49
+ * @LastEditTime: 2026-09-11 09:42:09
  * @LastEditors: fofo
  * @Description: 
  * @FilePath: /aion2-portal/app/utils/indexedDb.ts
@@ -11,6 +11,7 @@
 const DB_NAME = 'aion2_portal_db'
 const STORE_NAME = 'game_data'
 const DB_VERSION = 2
+import cloneDeep from "lodash/cloneDeep";
 
 export const STORES = {
   GAME_DATA: 'game_data',
@@ -68,13 +69,16 @@ export const getLocalGameData = async <T = any>(key: string = 'current_data'): P
  */
 export const saveLocalGameData = async <T = any>(data: T, key: string = 'current_data', source: string = 'unknown'): Promise<IDBValidKey | void> => {
 
-  console.log(`🔍 [indexedDb:71] %c 保存游戏 JSON 数据到本地成功 IndexedDB--saveLocalGameData 保存来源: ${source}`,'`font-size:14px; background:#26A08F; color:#fff;font-weight: bold;',data);
+  // 深拷贝数据，避免直接修改原始数据
+  const clonedData = cloneDeep(data); 
+
+  console.log(`🔍 [indexedDb:71] %c 保存游戏 JSON 数据到本地成功 IndexedDB--saveLocalGameData 保存来源: ${source}`,'`font-size:14px; background:#26A08F; color:#fff;font-weight: bold;',clonedData);
   try {
     const db = await openDB()
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(STORE_NAME, 'readwrite')
       const store = transaction.objectStore(STORE_NAME)
-      const request = store.put(data, key)
+      const request = store.put(clonedData, key)
 
       request.onerror = () => reject(request.error)
       request.onsuccess = () => resolve(request.result)

@@ -664,7 +664,12 @@ const openAddCharModal = () => {
 };
 
 // 数据持久化
-const saveData = async (newSaveData) => {
+const saveData = async (newSaveData, source) => {
+  console.log(
+    `🔍 [UsersAdmin:668] %c saveData来源: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    source
+  );
   const data = newSaveData || gameData.value || {};
 
   // 如果传入新数据，更新 Vue ref
@@ -703,7 +708,7 @@ const saveData = async (newSaveData) => {
 
     //   $alert("数据已成功保存！");
     // }
-    await gameStore.setGameData(cleanData);
+    await gameStore.setGameData(cleanData, "UsersAdmin--saceData");
     $alert("数据已成功保存！");
   } catch (error) {
     console.error("保存数据失败:", error);
@@ -1353,7 +1358,7 @@ const handleSaveCharacter = async () => {
     newCharGroupForm.value
   );
 
-  await saveData();
+  await saveData('','添加角色====handleSaveCharacter');
 };
 //============================角色管理开始============================
 
@@ -1476,7 +1481,7 @@ const saveGroup = async () => {
       runLogs: [],
     });
   }
-  await saveData();
+  await saveData('','添加分组====saveGroup');
   // 保存后重置输入状态
   cancelGroupEdit();
 };
@@ -1500,7 +1505,7 @@ const deleteGroup = async (id) => {
   const index = gameData.value?.groups?.findIndex((g) => g.id === id);
   if (index !== -1) {
     gameData.value?.groups?.splice(index, 1);
-    await saveData();
+    await saveData('','删除分组====deleteGroup');
   }
   // 如果当前正在编辑刚好被删除的那项，则顺便重置编辑状态
   if (groupEditingId.value === id) {
@@ -1564,7 +1569,7 @@ const importGameData = (event) => {
       const parsedData = JSON.parse(e.target.result);
       if (parsedData && typeof parsedData === "object") {
         gameData.value = parsedData;
-        await saveData();
+        await saveData('','导入数据====importGameData');
         await handleSync(parsedData);
 
         $alert("数据导入并持久化成功！");
@@ -1695,7 +1700,7 @@ const setPrimaryAccount = (targetChar) => {
     newGameData?.groups?.filter((c) => c.id == targetChar?.group)
   );
   debugger;
-  saveData(newGameData);
+  saveData(newGameData,'设置主角色====setPrimaryAccount');
 };
 
 // 6. 保存排序并同步回全局 gameData
@@ -1733,7 +1738,7 @@ const saveCharacterSort = () => {
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     sortedList
   );
-  saveData();
+  saveData('','保存排序====saveCharacterSort');
 };
 
 //================ 组内角色排序 结束 =====================
@@ -1748,7 +1753,7 @@ const handleSync = async (parsedData) => {
     const updated = await executeDataRefresh(parsedData);
     if (updated) {
       console.log("数据已更新并同步");
-    //   gameData.value = updated;
+      //   gameData.value = updated;
       // 可选：配合你的 UI 提示，例如 $alert 或 message 提示
     } else {
       console.log("当前数据已是最新");
@@ -1770,7 +1775,7 @@ const groupCharacterPanelHandleDelete = async (char) => {
     const cId = c.id ?? c.characterId;
     return cId !== targetId;
   });
-  await saveData();
+  await saveData('','删除角色====deleteCharacter');
 };
 // 分组角色卡片列表切换锁定事件处理
 const groupCharacterPanelHandleToggleLock = async (char) => {
@@ -1830,7 +1835,7 @@ const groupCharacterPanelHandleUpdateCharacter = async (char) => {
     "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
     gameData.value
   );
-  await saveData();
+  await saveData('','更新角色====updateCharacter');
 };
 // 分组角色卡片列表更新分组事件处理（兼容传入单个分组或整个分组数组）
 const groupCharacterPanelHandleUpdateGroup = async (updatedGroupsOrSingleGroup) => {
@@ -1853,7 +1858,7 @@ const groupCharacterPanelHandleUpdateGroup = async (updatedGroupsOrSingleGroup) 
     gameData.value.groups
   );
 
-  await saveData();
+  await saveData('','更新分组====updateGroup');
 };
 // 分组角色卡片列表删除角色事件处理
 // 分组角色卡片列表删除角色事件处理
@@ -1906,7 +1911,7 @@ const groupCharacterPanelHandleDeleteCharacter = async (delChar) => {
   }
 
   // 执行持久化保存
-  await saveData();
+  await saveData('','删除角色====deleteCharacter');
 };
 // 分组角色卡片列表切换任务事件处理
 const groupCharacterPanelHandleToggleTask = async (char, field) => {
@@ -2175,7 +2180,7 @@ const clearGameData = async () => {
   };
 
   // 3. 直接调用统一的 saveData()：
-  await saveData();
+  await saveData('','清空数据====clearGameData');
 
   // 4. 关闭设置弹窗
   settingsOpen.value = false;
@@ -2879,7 +2884,7 @@ const syncCloudToLocal = async () => {
       resData
     );
     // await gameStore.setGameData(resData.data);
-    await handleSync(resData.data)
+    await handleSync(resData.data);
     $toast("云端数据成功同步到本地！");
     isStorageModalOpen.value = false;
   } catch (err) {

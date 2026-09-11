@@ -1590,6 +1590,7 @@ const currentCalculationResult = computed(() => {
     return {
       type: "runs",
       ...baseResult,
+      possibleRuns: consumeForm.value.calcInput,
       // 独立保留的未衰减收益字段
       rawKinaGain,
       rawBoundKinaGain,
@@ -1745,15 +1746,15 @@ const handleExecuteConsume = async () => {
     // 模式一：根据输入的次数
     addRunsCount = inputVal;
     totalCostEnergy = calculatedEnergyCost.value; // 前面写好的动态计算总耗能
-    finalKinaGain = currentCalculationResult.value.kinaGain;
-    finalBoundKinaGain = currentCalculationResult.value.boundKinaGain;
+    finalKinaGain = currentCalculationResult.value.kinaGain * addRunsCount;
+    finalBoundKinaGain = currentCalculationResult.value.boundKinaGain * addRunsCount;
   } else {
     // 模式二：根据输入的奥德（反推能刷的次数）
     const result = calculationByEnergy.value;
     addRunsCount = result.possibleRuns;
     totalCostEnergy = result.actualEnergy;
-    finalKinaGain = currentCalculationResult.value.kinaGain;
-    finalBoundKinaGain = currentCalculationResult.value.boundKinaGain;
+    finalKinaGain = currentCalculationResult.value.kinaGain * addRunsCount;
+    finalBoundKinaGain = currentCalculationResult.value.boundKinaGain * addRunsCount;
   }
   console.log(
     `🔍 [GroupCharacterPanel:1759] %c handleExecuteConsume===currentCalculationResult: `,
@@ -1778,7 +1779,7 @@ const handleExecuteConsume = async () => {
   // 3. 弹出确认框（展示实际要消耗的奥德、次数及预计收益）
   const confirmed = await $confirm?.(
     `确定要消耗 ${totalCostEnergy} 点奥德完成 ${addRunsCount} 次挑战吗？\n预计可获得吉纳：${(
-      finalKinaGain + finalBoundKinaGain
+      currentCalculationResult.value?.totalGain || 0
     ).toFixed(2)} 万`,
     "提示",
     {
