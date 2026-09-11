@@ -1536,8 +1536,9 @@ const cardConfig = reactive({
   columns: 4, // 可选: 1, 2, 3, 4, 5列布局
   mode: "default", // 可选: 'default'(标准模式) | 'simple'(精简模式-懒人模式) | 'custom'(自定义模式)
   customFields: {
-    showCombatPower: true, // 是否显示装等/战力
+    showCombatPower: true, // 是否显示卡片存量吉纳
     showDungeons: true, // 是否显示副本进度 (远征/超越)
+    showDungeonsKina: true, // 是否显示副本进度 (吉纳)
     showEnergy: true, // 是否显示奥德能量
     showTasks: true, // 是否显示任务状态按钮
     showNotes: true, // 是否显示备注框
@@ -6217,7 +6218,7 @@ watch(
                           v-model="cardConfig.customFields.showCombatPower"
                           class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#45a6d5] focus:ring-[#45a6d5]"
                         />
-                        显示战力
+                        显示存量吉纳
                       </label>
                       <label
                         class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
@@ -6227,7 +6228,17 @@ watch(
                           v-model="cardConfig.customFields.showDungeons"
                           class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#45a6d5] focus:ring-[#45a6d5]"
                         />
-                        显示副本
+                        显示副本次数
+                      </label>
+                      <label
+                        class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          v-model="cardConfig.customFields.showDungeonsKina"
+                          class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#45a6d5] focus:ring-[#45a6d5]"
+                        />
+                        显示副本吉纳
                       </label>
                       <label
                         class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"

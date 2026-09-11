@@ -34,6 +34,7 @@ const props = defineProps({
         // 自定义模式下控制显隐的开关
         showCombatPower: true, // 是否显示装等/战力
         showDungeons: true, // 是否显示副本进度 (远征/超越)
+        showDungeonsKina: true, // 是否显示副本吉纳
         showEnergy: true, // 是否显示奥德能量
         showTasks: true, // 是否显示任务状态按钮
         showNotes: true, // 是否显示备注框
@@ -1119,12 +1120,12 @@ const visibleTasks = computed(() => {
         <!-- ================= 副本及核心进度区 ================= -->
         <div
           v-if="
-            currentMode == 'default' || (currentMode == 'custom' && fields.showDungeons)
+            currentMode == 'default' || (currentMode == 'custom' && fields.showDungeons || fields.showDungeonsKina)  
           "
           class="space-y-2 text-xs"
         >
           <!-- ================= 远征与超越副本卡片 ================= -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 transition-all">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 transition-all" v-if="fields.showDungeons">
             <!-- 1. 远征副本 -->
             <div
               class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-1.5 transition-all hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer active:scale-[0.98]"
@@ -1168,6 +1169,7 @@ const visibleTasks = computed(() => {
           <!-- ================= 今日获取吉纳统计卡片 ================= -->
           <div
             class="p-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl flex flex-col gap-2 transition-all shadow-xs"
+            v-if="fields.showDungeonsKina"
           >
             <!-- 绑/非绑分别统计展示（左右并排） -->
             <div class="grid grid-cols-2 gap-2 pt-0.5">
