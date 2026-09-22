@@ -621,7 +621,7 @@ const visibleTasks = computed(() => {
 </script>
 
 <template>
-  <div v-if="characters.length > 0 && currentMode.value != 'table'" class="grid gap-5" :class="gridColsClass">
+  <div v-if="(characters.length > 0) && (currentMode != 'table')" class="grid gap-5" :class="gridColsClass">
     <div
       v-for="char in characters"
       :key="char.characterId || char.id"
@@ -1603,5 +1603,5 @@ const visibleTasks = computed(() => {
       </template>
     </div>
   </div>
-  <div v-if="currentMode.value == 'table'"></div>
+  <div v-if="(characters.length > 0) && (currentMode == 'table')"></div>
 </template>
