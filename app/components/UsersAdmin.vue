@@ -6188,6 +6188,17 @@ watch(
                         精简
                       </button>
                       <button
+                        @click="handleCardConfigModeChange('table')"
+                        class="px-3 py-1.5 rounded-lg font-black text-xs transition-all cursor-pointer"
+                        :class="
+                          cardConfig.mode === 'table'
+                            ? 'bg-[#45a6d5] text-white shadow-xs'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        "
+                      >
+                        表格
+                      </button>
+                      <button
                         @click="handleCardConfigModeChange('custom')"
                         class="px-3 py-1.5 rounded-lg font-black text-xs transition-all cursor-pointer"
                         :class="
