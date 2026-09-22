@@ -4,6 +4,7 @@ import { formatCombatPower } from "~/utils/formatCombatPower";
 import CharacterCard from "./CharacterCard.vue";
 import cloneDeep from "lodash/cloneDeep";
 import { useGameStore } from "@/stores/useGameStore";
+import { defGameData } from "../config/userAdmin.js";
 const gameStore = useGameStore();
 import {
   KinahOdSate,
@@ -479,7 +480,7 @@ const emit = defineEmits([
 const { $confirm, $alert, $toast } = useNuxtApp();
 
 const gameData = computed({
-  get: () => gameStore.gameData || defGameData,
+  get: () => gameStore?.gameData || defGameData,
   set: (val) => gameStore.setGameData(val, 'gameData=1111==piain中setGameData保存游戏 JSON 数据到本地'),
 });
 

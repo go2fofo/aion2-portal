@@ -21,76 +21,13 @@ import GlobalModal from "./GlobalModal.vue";
 import cloneDeep from "lodash/cloneDeep";
 import { dungeonDecayRules } from "./config/userAdmin";
 import { useGameRefresh } from "@/composables/useGameRefresh";
-import { characterClasses, twToScMap, parseLogTimestamp } from "./config/userAdmin";
+import { characterClasses, twToScMap, parseLogTimestamp, defGameData,updateLogs } from "./config/userAdmin";
 import { useGameStore } from "@/stores/useGameStore";
 const gameStore = useGameStore();
 const client = useSupabaseClient();
 const user = useSupabaseUser();
 const { executeDataRefresh } = useGameRefresh();
-const defGameData = {
-  characters: [],
-  accounts: [],
-  groups: [
-    {
-      id: 1,
-      name: "分组1",
-      sort: 1,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      runs: 0,
-      transcendRuns: 0,
-      runLogs: [],
-    },
-    {
-      id: 2,
-      name: "分组2",
-      sort: 2,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      runs: 0,
-      transcendRuns: 0,
-      runLogs: [],
-    },
-    {
-      id: 3,
-      name: "分组3",
-      sort: 3,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      runs: 0,
-      transcendRuns: 0,
-      runLogs: [],
-    },
-    {
-      id: 4,
-      name: "分组4",
-      sort: 4,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      runs: 0,
-      transcendRuns: 0,
-      runLogs: [],
-    },
-    {
-      id: 5,
-      name: "分组5",
-      sort: 5,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      runs: 0,
-      transcendRuns: 0,
-      runLogs: [],
-    },
-  ],
-  groupCount: 5,
-  autoRefreshEnabled: true,
-  teams: [],
-  accountSharedData: {},
-  version: "1.0.0",
-  dataType: "complete",
-  characterCount: 0,
-  exportDate: Date.now(),
-};
+
 // 游戏数据结构 参考 docs/多角色管理模块相关.md
 // if (!gameStore.gameData) {
 //   gameStore.setGameData(cloneDeep(defGameData));
@@ -426,40 +363,6 @@ const getTodayDateStr = () => {
   const day = String(d.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
-// 公告内容数组对象
-const updateLogs = ref([
-  {
-    tag: "重要",
-    tagClass:
-      "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/50",
-    title: "数据库同步与数据安全提示",
-    desc:
-      "免费云端数据库偶尔受网络影响波动，建议经常前往【存储设置】进行手动同步，或通过【设置】定期导出导入本地备份防丢失。",
-  },
-  {
-    tag: "新更新",
-    tagClass:
-      "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50",
-    title: "自定义模式下玩法卡片拓展",
-    desc:
-      "角色面板中的任务卡片渲染逻辑，支持一排最多四个的自动换行流式布局；同步升级了各玩法的专属色彩主题与自定义显隐控制，提升多端显示时的整洁度与辨识度。",
-  },
-  //   {
-  //     tag: "新功能",
-  //     tagClass:
-  //       "bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400 border border-sky-200/50 dark:border-sky-800/50",
-  //     title: "全新滑动 3 小时能量恢复系统",
-  //     desc:
-  //       "优化了游戏数据状态中的能量恢复逻辑，采用更平滑的滑动窗口计算方式，保证多端切换与长期挂机时的精准同步。",
-  //   },
-  {
-    tag: "体验",
-    tagClass:
-      "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50",
-    title: "UI 界面与全局弹窗优化",
-    desc: "重构了全局通知弹窗与顶部导航横幅，视觉更通透，操作更流畅，完美支持深色模式。",
-  },
-]);
 // 1. 总角色数计算
 const totalCharacters = computed(() => gameData.value.characters?.length || 0);
 /**
@@ -6214,7 +6117,7 @@ watch(
 
                   <!-- 自定义模式下的字段开关 (仅在 mode === 'custom' 时展开) -->
                   <div
-                    v-if="cardConfig.mode === 'custom'"
+                    v-if="cardConfig.mode === 'custom' || cardConfig.mode === 'table'"
                     class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3 pl-2"
                   >
                     <div class="text-xs font-bold text-slate-500 dark:text-slate-400">

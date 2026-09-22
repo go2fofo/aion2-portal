@@ -614,14 +614,18 @@ const taskList = computed(() => [
 // 过滤可见的玩法
 const visibleTasks = computed(() => {
   return taskList.value.filter((task) => {
-    if (currentMode.value === "default") return true;
+    if (currentMode.value === "default" || currentMode.value === "table") return true;
     return currentMode.value === "custom" && props.config?.customFields?.[task.fieldKey];
   });
 });
 </script>
 
 <template>
-  <div v-if="(characters.length > 0) && (currentMode != 'table')" class="grid gap-5" :class="gridColsClass">
+  <div
+    v-if="characters.length > 0 && currentMode != 'table'"
+    class="grid gap-5"
+    :class="gridColsClass"
+  >
     <div
       v-for="char in characters"
       :key="char.characterId || char.id"
@@ -1120,12 +1124,17 @@ const visibleTasks = computed(() => {
         <!-- ================= 副本及核心进度区 ================= -->
         <div
           v-if="
-            currentMode == 'default' || (currentMode == 'custom' && fields.showDungeons || fields.showDungeonsKina)  
+            currentMode == 'default' ||
+            (currentMode == 'custom' && fields.showDungeons) ||
+            fields.showDungeonsKina
           "
           class="space-y-2 text-xs"
         >
           <!-- ================= 远征与超越副本卡片 ================= -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 transition-all" v-if="fields.showDungeons">
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 gap-2 transition-all"
+            v-if="fields.showDungeons"
+          >
             <!-- 1. 远征副本 -->
             <div
               class="p-3 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col gap-1.5 transition-all hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer active:scale-[0.98]"
@@ -1603,5 +1612,466 @@ const visibleTasks = computed(() => {
       </template>
     </div>
   </div>
-  <div v-if="(characters.length > 0) && (currentMode == 'table')"></div>
+  <!-- ================= 表格模式 ================= -->
+  <div
+    v-if="characters.length > 0 && currentMode == 'table'"
+    class="w-full overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm"
+  >
+    <div class="w-full overflow-x-auto">
+      <table class="w-full min-w-[2600px] border-collapse text-xs">
+        <thead>
+          <tr
+            class="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700"
+          >
+            <!-- 角色 -->
+            <th
+              class="sticky left-0 z-30 min-w-[240px] px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700"
+            >
+              角色
+            </th>
+
+            <!-- 基础信息 -->
+            <!-- <th
+              class="min-w-[140px] px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300"
+            >
+              基本信息
+            </th> -->
+
+            <!-- 奥德 -->
+            <th
+              class="min-w-[190px] px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300"
+            >
+              奥德能量
+            </th>
+
+            <!-- 本周副本 -->
+            <th
+              class="min-w-[170px] px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300"
+            >
+              本周副本
+            </th>
+
+            <!-- 本周吉纳 -->
+            <th
+              class="min-w-[170px] px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300"
+            >
+              本周吉纳
+            </th>
+
+            <!-- 圣域 -->
+            <th
+              class="min-w-[230px] px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300"
+            >
+              圣域副本
+            </th>
+
+            <!-- ⭐ 动态任务 -->
+            <th
+              v-for="task in visibleTasks"
+              :key="`head-${task.key}`"
+              class="min-w-[150px] px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300 whitespace-nowrap"
+            >
+              {{ task.name }}
+            </th>
+
+            <!-- 备注 -->
+            <th
+              class="min-w-[220px] px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300"
+            >
+              备注
+            </th>
+
+            <!-- 操作 -->
+            <th
+              class="sticky right-0 z-30 min-w-[170px] px-3 py-3 text-center font-black text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700"
+            >
+              操作
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr
+            v-for="char in characters"
+            :key="char.characterId || char.id"
+            class="group border-b border-slate-100 dark:border-slate-800 last:border-b-0 transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
+            :class="char.locked ? 'bg-slate-50/70 dark:bg-slate-800/30' : ''"
+          >
+            <!-- ================================================= -->
+            <!-- 角色 -->
+            <!-- ================================================= -->
+            <td
+              class="sticky left-0 z-20 px-3 py-3 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800"
+              :class="char.locked ? 'bg-slate-50 dark:bg-slate-800/50' : ''"
+            >
+              <div class="flex items-center gap-2.5 min-w-0">
+                <!-- 锁 -->
+                <button
+                  type="button"
+                  class="w-8 h-8 rounded-xl flex items-center justify-center border transition-all shrink-0"
+                  :class="
+                    char.locked
+                      ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 border-amber-200'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 border-slate-200'
+                  "
+                  @click="emit('toggle-lock', char)"
+                >
+                  <svg
+                    v-if="char.locked"
+                    class="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
+                  </svg>
+
+                  <svg
+                    v-else
+                    class="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6v6a2 2 0 002 2z"
+                    />
+                  </svg>
+                </button>
+
+                <!-- 头像 -->
+                <div
+                  class="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-[#45a6d5] font-black flex items-center justify-center border border-sky-100 overflow-hidden shrink-0"
+                >
+                  <img
+                    v-if="char.profileImage && !char._imgError"
+                    :src="char.profileImage"
+                    class="w-full h-full object-cover"
+                    @error="char._imgError = true"
+                  />
+
+                  <span v-else>
+                    {{ char.characterName?.charAt(0) || "角" }}
+                  </span>
+                </div>
+
+                <!-- 名称 -->
+                <div class="min-w-0">
+                  <div
+                    class="flex items-center gap-1.5 cursor-pointer"
+                    @click="emit('task-click', char, '', 'globalModifyCharacter')"
+                  >
+                    <span
+                      class="font-black text-slate-800 dark:text-slate-100 truncate max-w-[130px]"
+                    >
+                      {{ char.characterName || "未命名角色" }}
+                    </span>
+
+                    <span
+                      v-if="getGroup(char.group)?.primaryAccountID === char.characterId"
+                      class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#45a6d5] text-white shrink-0"
+                    >
+                      主账号
+                    </span>
+                  </div>
+
+                  <div
+                    class="mt-1 text-[10px] text-slate-400 dark:text-slate-500 truncate"
+                  >
+                    {{ char.className || "选择职业" }}
+                    <template v-if="char.serverName"> · {{ char.serverName }} </template>
+                  </div>
+
+                  <div class="flex items-center gap-1 mt-1">
+                    <button
+                      v-if="typeof char.characterId === 'string'"
+                      type="button"
+                      class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center"
+                      :disabled="char.isRefreshing"
+                      @click.stop="emit('toggle-refresh', char)"
+                    >
+                      <svg
+                        class="w-3.5 h-3.5"
+                        :class="{ 'animate-spin': char.isRefreshing }"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                      </svg>
+                    </button>
+
+                    <span class="text-[9px] text-sky-600/70">
+                      {{ getDaysAgoText(char?.profileLastUpdatedAt) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- ================================================= -->
+            <!-- 基础信息 -->
+            <!-- ================================================= -->
+            <!-- <td class="px-3 py-3">
+              <div
+                class="cursor-pointer"
+                @click="emit('task-click', char, '', 'globalModifyCharacter')"
+              >
+                <div class="font-black text-slate-700 dark:text-slate-200">
+                  Lv.{{ char.characterLevel || 1 }}
+                </div>
+
+                <div class="text-[10px] text-slate-400 dark:text-slate-500">
+                  {{ char.raceName || "未知种族" }}
+                </div>
+
+                <div
+                  v-if="char.combatPower"
+                  class="text-[10px] font-bold text-purple-600 dark:text-purple-400"
+                >
+                  战斗力 {{ formatCombatPower(char.combatPower) }}
+                </div>
+              </div>
+            </td> -->
+
+            <!-- ================================================= -->
+            <!-- 奥德能量 -->
+            <!-- ================================================= -->
+            <td class="px-3 py-3">
+              <div
+                class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 cursor-pointer"
+                @click="emit('task-click', char, '', 'globalSimpleEnergy')"
+              >
+                <div class="flex gap-2 mt-2 text-[10px]">
+                  <span class="text-[#45a6d5]"> 基础 {{ char.energy || 0 }} </span>
+
+                  <span class="text-slate-300">+</span>
+
+                  <span class="text-amber-500"> 存储 {{ char.storedEnergy || 0 }} </span>
+                </div>
+              </div>
+            </td>
+
+            <!-- ================================================= -->
+            <!-- 本周副本 -->
+            <!-- ================================================= -->
+            <td class="px-3 py-3">
+              <div class="flex flex-col gap-1.5">
+                <button
+                  type="button"
+                  class="flex items-center justify-between px-2.5 py-2 rounded-xl bg-sky-50 dark:bg-sky-950/30"
+                  @click="emit('task-click', char, 'expedition', 'consumExpedition')"
+                >
+                  <span>远征</span>
+
+                  <span class="font-black text-[#45a6d5]">
+                    {{ getThisWeekRunCount(char, "expedition") }}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  class="flex items-center justify-between px-2.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/30"
+                  @click="emit('task-click', char, 'surpass', 'consumSurpass')"
+                >
+                  <span>超越</span>
+
+                  <span class="font-black text-purple-600">
+                    {{ getThisWeekRunCount(char, "surpass") }}
+                  </span>
+                </button>
+              </div>
+            </td>
+
+            <!-- ================================================= -->
+            <!-- 本周吉纳 -->
+            <!-- ================================================= -->
+            <td class="px-3 py-3">
+              <div class="grid grid-cols-2 gap-1.5">
+                <div class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-center">
+                  <div class="text-[9px] text-slate-400">非绑</div>
+
+                  <div class="font-black text-amber-600">
+                    {{ getThisWeekKinaStats(char.runLogs).unbound }}
+                  </div>
+                </div>
+
+                <div
+                  class="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-center"
+                >
+                  <div class="text-[9px] text-slate-400">绑定</div>
+
+                  <div class="font-black text-emerald-600">
+                    {{ getThisWeekKinaStats(char.runLogs).bound }}
+                  </div>
+                </div>
+              </div>
+            </td>
+            <!-- ================================================= -->
+            <!-- 圣域 -->
+            <!-- ================================================= -->
+            <td class="px-3 py-3 align-center">
+              <div class="flex items-center justify-center gap-1.5">
+                <button
+                  v-for="(maxLimit, bossKey) in char.sanctuary || {
+                    s1: 1,
+                    s2: 1,
+                    s3: 1,
+                  }"
+                  :key="bossKey"
+                  type="button"
+                  class="min-w-[68px] px-2 py-2 rounded-xl border transition-all"
+                  :class="
+                    (char.sanctuaryRuns?.[bossKey] || 0) >= maxLimit
+                      ? 'bg-slate-100/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 opacity-60'
+                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-[#45a6d5] hover:shadow-sm active:scale-95'
+                  "
+                  @click="emit('task-click', char, bossKey, 'consumeSanctuary')"
+                >
+                  <div
+                    class="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase"
+                  >
+                    圣域 {{ bossKey }}
+                  </div>
+
+                  <div class="mt-1 font-black">
+                    <span
+                      :class="
+                        (char.sanctuaryRuns?.[bossKey] || 0) >= maxLimit
+                          ? 'text-slate-400 dark:text-slate-500'
+                          : 'text-amber-600 dark:text-amber-400'
+                      "
+                    >
+                      {{ Math.max(0, maxLimit - (char.sanctuaryRuns?.[bossKey] || 0)) }}
+                    </span>
+
+                    <span class="text-slate-400 font-normal"> / {{ maxLimit }} </span>
+                  </div>
+                </button>
+              </div>
+            </td>
+
+            <!-- ================================================= -->
+            <!-- ⭐ 动态任务：次元袭击 / 其他任务全部自动进入 -->
+            <!-- ================================================= -->
+
+            <td
+              v-for="task in visibleTasks"
+              :key="`${char.characterId}-${task.key}`"
+              class="px-3 py-3"
+            >
+              <!-- 有数量的任务 -->
+              <div v-if="task.hasCount(char)" class="min-w-[120px]">
+                <button
+                  type="button"
+                  class="w-full min-h-[52px] px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-[#45a6d5] transition-all"
+                  @click="
+                    handleTaskClickWithDblClick(
+                      char,
+                      task.key,
+                      task.type.includes('flag') ? task.key : 'weeklydaily'
+                    )
+                  "
+                >
+                  <div class="text-[10px] text-slate-400 truncate">
+                    {{ task.name }}
+                  </div>
+
+                  <div class="mt-1 font-black text-slate-700 dark:text-slate-200">
+                    {{ task.getCountText(char) }}
+                  </div>
+                </button>
+              </div>
+
+              <!-- 没有数量，按照 flag 类任务处理 -->
+              <button
+                v-else
+                type="button"
+                class="w-full min-h-[52px] px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:border-[#45a6d5] transition-all"
+                @click="handleTaskClickWithDblClick(char, task)"
+              >
+                <div class="text-[10px] text-slate-400 truncate">
+                  {{ task.name }}
+                </div>
+
+                <div class="mt-1 font-black text-slate-500">
+                  {{ task.getCountText(char) }}
+                </div>
+              </button>
+            </td>
+
+            <!-- ================================================= -->
+            <!-- 备注 -->
+            <!-- ================================================= -->
+            <td class="px-3 py-3">
+              <textarea
+                :value="char.note || ''"
+                :disabled="char.locked"
+                rows="2"
+                placeholder="点击添加备注..."
+                class="w-full min-w-[180px] bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 px-2.5 py-2 rounded-xl text-xs font-bold resize-none outline-none"
+                @change="(e) => emit('text-change', char, 'note', e.target.value)"
+              ></textarea>
+            </td>
+
+            <!-- ================================================= -->
+            <!-- 操作 -->
+            <!-- ================================================= -->
+            <td
+              class="sticky right-0 z-20 px-3 py-3 bg-white dark:bg-slate-900 border-l border-slate-100 dark:border-slate-800"
+              :class="char.locked ? 'bg-slate-50 dark:bg-slate-800/50' : ''"
+            >
+              <div class="flex flex-col gap-1.5">
+                <button
+                  type="button"
+                  class="w-full px-2.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-[10px]"
+                  @click="emit('click-gameplay', char, 'consume')"
+                >
+                  游玩消耗 / 补充
+                </button>
+
+                <button
+                  type="button"
+                  class="w-full px-2.5 py-2 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-[#45a6d5] font-black text-[10px]"
+                  @click="emit('task-click', char, '', 'globalModifyCharacter')"
+                >
+                  编辑角色
+                </button>
+
+                <button
+                  type="button"
+                  class="w-full px-2.5 py-2 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 font-black text-[10px] disabled:opacity-50 disabled:cursor-not-allowed"
+                  :disabled="char.locked"
+                  @click="emit('delete', char)"
+                >
+                  删除角色
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 横向滚动提示 -->
+    <div
+      class="flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-50/80 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400"
+    >
+      <span>↔</span>
+      <span> 表格内容较多，可左右滑动查看完整信息 </span>
+    </div>
+  </div>
 </template>
