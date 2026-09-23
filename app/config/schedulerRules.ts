@@ -292,6 +292,7 @@ export const gameRulesDictionary = [
         s1: 1,
         s2: 1,
         s3: 1,
+        s4: 1,
       };
       char.lastSanctuaryRunsUpdate = now;
       // 如果还需要顺便重置其他相关联的字段，也可以在这里一并处理

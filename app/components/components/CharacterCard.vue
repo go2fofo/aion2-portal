@@ -1227,9 +1227,9 @@ const visibleTasks = computed(() => {
             <!-- @click="emit('task-click', char, bossKey, 'globalSanctuary')" -->
             <!-- @dblclick="emit('task-click', char, bossKey, 'globalSanctuary')" -->
 
-            <div class="grid grid-cols-3 gap-2">
+            <div class="grid grid-cols-4 gap-2">
               <div
-                v-for="(maxLimit, bossKey) in char.sanctuary || { s1: 1, s2: 1, s3: 1 }"
+                v-for="(maxLimit, bossKey) in  { s1: 1, s2: 1, s3: 1 ,s4:1,...char.sanctuary}"
                 :key="bossKey"
                 class="group relative rounded-xl p-2 flex flex-col items-center justify-center gap-1.5 transition-all border cursor-pointer select-none"
                 @click="emit('task-click', char, bossKey, 'consumeSanctuary')"
@@ -1847,23 +1847,99 @@ const visibleTasks = computed(() => {
               </div>
             </td> -->
 
-            <!-- ================================================= -->
-            <!-- 奥德能量 -->
-            <!-- ================================================= -->
-            <td class="px-3 py-3">
-              <div
-                class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 cursor-pointer"
-                @click="emit('task-click', char, '', 'globalSimpleEnergy')"
-              >
-                <div class="flex gap-2 mt-2 text-[10px]">
-                  <span class="text-[#45a6d5]"> 基础 {{ char.energy || 0 }} </span>
+     <!-- ================================================= -->
+<!-- 奥德能量 -->
+<!-- ================================================= -->
+<td class="px-3 py-3 align-middle">
+  <div
+    class="min-w-[150px] p-3 rounded-2xl
+           bg-gradient-to-br
+           from-sky-50 via-white to-cyan-50
+           dark:from-sky-950/60
+           dark:via-slate-900
+           dark:to-cyan-950/40
+           border border-sky-200/80
+           dark:border-sky-800/70
+           cursor-pointer
+           shadow-sm
+           hover:shadow-md
+           hover:border-[#45a6d5]
+           transition-all
+           active:scale-[0.98]"
+    @click="emit('task-click', char, '', 'globalSimpleEnergy')"
+  >
+    <!-- 总能量 -->
+    <div class="mt-2 flex items-end justify-center gap-1">
+      <span
+        class="text-2xl leading-none
+               font-black tracking-tight
+               text-[#2389bd]
+               dark:text-[#72c4ea]"
+      >
+        {{
+          (char.energy || 0) +
+          (char.storedEnergy || 0)
+        }}
+      </span>
 
-                  <span class="text-slate-300">+</span>
+      <span
+        class="mb-0.5 text-[10px]
+               font-bold
+               text-slate-400"
+      >
+        奥德
+      </span>
+    </div>
 
-                  <span class="text-amber-500"> 存储 {{ char.storedEnergy || 0 }} </span>
-                </div>
-              </div>
-            </td>
+    <!-- 基础 / 存储 -->
+    <div
+      class="mt-3 pt-2
+             border-t border-sky-100
+             dark:border-sky-900/60
+             grid grid-cols-2 gap-2"
+    >
+      <div class="text-center">
+        <div
+          class="text-[9px]
+                 text-slate-400
+                 dark:text-slate-500"
+        >
+          基础
+        </div>
+
+        <div
+          class="mt-0.5
+                 text-xs font-black
+                 text-[#45a6d5]"
+        >
+          {{ char.energy || 0 }}
+        </div>
+      </div>
+
+      <div
+        class="text-center
+               border-l border-sky-100
+               dark:border-sky-900/60"
+      >
+        <div
+          class="text-[9px]
+                 text-slate-400
+                 dark:text-slate-500"
+        >
+          存储
+        </div>
+
+        <div
+          class="mt-0.5
+                 text-xs font-black
+                 text-amber-500"
+        >
+          {{ char.storedEnergy || 0 }}
+        </div>
+      </div>
+    </div>
+  </div>
+</td>
 
             <!-- ================================================= -->
             <!-- 本周副本 -->
@@ -1926,10 +2002,12 @@ const visibleTasks = computed(() => {
             <td class="px-3 py-3 align-center">
               <div class="flex items-center justify-center gap-1.5">
                 <button
-                  v-for="(maxLimit, bossKey) in char.sanctuary || {
+                  v-for="(maxLimit, bossKey) in  {
                     s1: 1,
                     s2: 1,
                     s3: 1,
+                    s4: 1,
+                    ...char.sanctuary
                   }"
                   :key="bossKey"
                   type="button"

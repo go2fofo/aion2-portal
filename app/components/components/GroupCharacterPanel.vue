@@ -481,7 +481,11 @@ const { $confirm, $alert, $toast } = useNuxtApp();
 
 const gameData = computed({
   get: () => gameStore?.gameData || defGameData,
-  set: (val) => gameStore.setGameData(val, 'gameData=1111==piain中setGameData保存游戏 JSON 数据到本地'),
+  set: (val) =>
+    gameStore.setGameData(
+      val,
+      "gameData=1111==piain中setGameData保存游戏 JSON 数据到本地"
+    ),
 });
 
 // 根据 activeTabGroup 过滤当前展示的角色列表，并自动应用 sort 排序及主角色置顶
@@ -825,7 +829,7 @@ const handleTaskClick = async (char, field, tab, clickType) => {
         s1: 0,
         s2: 1,
         s3: 2,
-        // s4:3
+        s4: 3,
       };
       consumeForm.value.selectedDungeonIndex = sanctuaryMenu[field];
 

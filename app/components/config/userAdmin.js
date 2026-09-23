@@ -222,7 +222,7 @@ export const KinahOdSate = {
 
   // 超越副本
   surpass: [
-       {
+    {
       stars: 4,
       name: "诺伊兰隐藏的遗产",
       difficulties: [
@@ -479,6 +479,34 @@ export const KinahOdSate = {
         },
       ],
     },
+    {
+      stars: 5,
+      name: "悲叹雪原",
+      key: "s4",
+      difficulties: [
+        {
+          mode: "困难",
+          energy: 80,
+          kina: 0,
+          boundKina: 0,
+          total: 0,
+        },
+        {
+          mode: "普通",
+          energy: 80,
+          kina: 0,
+          boundKina: 0,
+          total: 0,
+        },
+        {
+          mode: "简单",
+          energy: 80,
+          kina: 0,
+          boundKina: 0,
+          total: 0,
+        },
+      ],
+    },
   ],
 };
 // 副本挑战次数与吉纳获取衰减规则
@@ -635,7 +663,7 @@ export const defGameData = {
 
 
 // 公告内容数组对象
- export const updateLogs = ref([
+export const updateLogs = ref([
   {
     tag: "重要",
     tagClass:
