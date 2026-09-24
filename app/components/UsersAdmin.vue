@@ -1492,6 +1492,10 @@ const cardConfig = reactive({
     showTrial: true, // 是否显示试炼次数
   },
 
+  sort: {
+    energySort: "", //asc:升序,desc:降序
+  },
+
   compactMode: false,
   showToast: true,
 
@@ -1708,6 +1712,109 @@ const saveCharacterSort = () => {
 };
 
 //================ 组内角色排序 结束 =====================
+
+// ================ 小队管理/连锁 状态与逻辑 开始 =================
+const teamChainOpen = ref(false);
+const teamChainOptions = ref({
+  tab: "chain", // 'chain': 小队连锁 , 'team': 小队管理
+  dungeonType: "expedition",
+});
+
+const newTeamName = ref("");
+
+// 角色选择弹窗控制状态（用于点击 + 号时多选添加）
+const characterSelectorModal = ref({
+  visible: false,
+  teamId: null,
+});
+
+const openTeamChainModal = () => {
+  teamChainOpen.value = true;
+};
+
+// 【小队管理】新增小队
+const handleAddTeam = () => {
+  if (!newTeamName.value.trim()) return;
+  if (!gameData.value.teams) gameData.value.teams = [];
+
+  const newTeam = {
+    id: Date.now(),
+    name: newTeamName.value.trim(),
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+
+  gameData.value.teams.push(newTeam);
+  newTeamName.value = "";
+};
+
+// 【小队管理】删除小队
+const handleDeleteTeam = (teamId) => {
+  gameData.value.teams = gameData.value.teams.filter((t) => t.id !== teamId);
+  gameData.value.characters?.forEach((char) => {
+    if (Array.isArray(char.teamId)) {
+      char.teamId = char.teamId.filter((id) => id !== teamId);
+    } else if (char.teamId === teamId) {
+      char.teamId = null;
+    }
+  });
+};
+
+// 获取属于指定小队的角色列表
+const getCharactersByTeamId = (teamId) => {
+  return (gameData.value.characters || []).filter((char) => {
+    if (Array.isArray(char.teamId)) {
+      return char.teamId.includes(teamId);
+    }
+    return char.teamId === teamId;
+  });
+};
+
+// 打开角色选择弹窗（点击 + 号）
+const openCharacterSelector = (teamId) => {
+  characterSelectorModal.value = {
+    visible: true,
+    teamId: teamId,
+  };
+};
+
+// 切换角色在指定小队中的勾选状态（小队最多5人限制）
+const handleToggleCharacterTeam = (char, teamId) => {
+  if (!Array.isArray(char.teamId)) {
+    char.teamId = char.teamId ? [char.teamId] : [];
+  }
+
+  const index = char.teamId.indexOf(teamId);
+  if (index > -1) {
+    // 已经包含，执行移除
+    char.teamId.splice(index, 1);
+  } else {
+    // 准备加入，先检查该小队当前人数是否已满 5 人
+    const currentTeamCount = getCharactersByTeamId(teamId).length;
+    if (currentTeamCount >= 5) {
+      // 提示已达上限（可换成你项目中的 Toast，这里用简单的 alert 或跳过）
+      return;
+    }
+    char.teamId.push(teamId);
+  }
+};
+
+// 从小队中直接移除单个角色
+const handleRemoveCharacterFromTeam = (char, teamId) => {
+  if (Array.isArray(char.teamId)) {
+    char.teamId = char.teamId.filter((id) => id !== teamId);
+  } else if (char.teamId === teamId) {
+    char.teamId = null;
+  }
+};
+
+// 【连锁管理】执行连锁操作
+const handleExecuteChain = () => {
+  if (!gameData.value.teams || gameData.value.teams.length === 0) return;
+  console.log("执行连锁操作...");
+};
+
+// ================ 小队管理/连锁 结束 =================
 
 // 点击刷新按钮的处理逻辑
 const handleSync = async (parsedData) => {
@@ -3405,96 +3512,244 @@ watch(
           </svg>
           新增角色
         </button>
+        <!-- 分组管理按钮 -->
         <button
           @click="openGroupModal"
-          class="px-6 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700/80 font-black text-sm transition-all active:scale-95 flex items-center gap-2 border border-slate-200 dark:border-slate-700/60"
+          type="button"
+          class="group relative px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:border-[#45a6d5] dark:hover:border-[#45a6d5] hover:bg-slate-50 dark:hover:bg-slate-800 font-black text-xs transition-all duration-300 active:scale-95 flex items-center gap-3 shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-pointer select-none"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4 text-slate-500 dark:text-slate-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+          <div
+            class="w-6 h-6 rounded-lg flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:text-[#45a6d5] group-hover:bg-[#45a6d5]/10 transition-all duration-300"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-3.5 h-3.5 transition-transform duration-300 group-hover:scale-110"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
               stroke-width="2"
-              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-            />
-          </svg>
-          分组管理
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              />
+            </svg>
+          </div>
+          <span class="tracking-wide">分组管理</span>
         </button>
-        <!-- 设置按钮 -->
+
+        <!--  设置按钮 -->
         <button
           @click="openSettingsModal"
-          class="px-6 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700/80 font-black text-sm transition-all active:scale-95 flex items-center gap-2 border border-slate-200 dark:border-slate-700/60"
+          type="button"
+          class="group relative px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:border-[#45a6d5] dark:hover:border-[#45a6d5] hover:bg-slate-50 dark:hover:bg-slate-800 font-black text-xs transition-all duration-300 active:scale-95 flex items-center gap-3 shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-pointer select-none"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4 text-slate-500 dark:text-slate-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+          <div
+            class="w-6 h-6 rounded-lg flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:text-[#45a6d5] group-hover:bg-[#45a6d5]/10 transition-all duration-300"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-3.5 h-3.5 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-45"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
               stroke-width="2"
-              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-            />
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-          </svg>
-          设置
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+          </div>
+          <span class="tracking-wide">设置</span>
         </button>
-        <!-- 存储设置按钮 -->
+        <!-- 小队管理/连锁 -->
+        <button
+          type="button"
+          class="group relative px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:border-[#45a6d5] dark:hover:border-[#45a6d5] hover:bg-slate-50 dark:hover:bg-slate-800 font-black text-xs transition-all duration-300 active:scale-95 flex items-center gap-3 shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-pointer select-none"
+          @click="openTeamChainModal"
+        >
+          <!-- 左侧图标框 (统一尺寸、圆角、悬停主题色变色) -->
+          <div
+            class="w-6 h-6 rounded-lg flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:text-[#45a6d5] group-hover:bg-[#45a6d5]/10 transition-all duration-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-3.5 h-3.5 transition-transform duration-300 group-hover:scale-110"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <!-- 中间节点 -->
+              <circle cx="12" cy="8" r="2.5" stroke-linecap="round" />
+
+              <!-- 左侧成员 -->
+              <circle cx="5.5" cy="14.5" r="2.5" stroke-linecap="round" />
+
+              <!-- 右侧成员 -->
+              <circle cx="18.5" cy="14.5" r="2.5" stroke-linecap="round" />
+
+              <!-- 中心 → 左侧 -->
+              <path d="M10.2 9.8L7.3 12.7" stroke-linecap="round" />
+
+              <!-- 中心 → 右侧 -->
+              <path d="M13.8 9.8L16.7 12.7" stroke-linecap="round" />
+
+              <!-- 左侧 → 右侧，表达连锁 -->
+              <path
+                d="M8 15.2c2.5 1.8 5.5 1.8 8 0"
+                stroke-linecap="round"
+                stroke-dasharray="1.5 1.5"
+              />
+            </svg>
+          </div>
+
+          <!-- 右侧文字 -->
+          <span class="tracking-wide">小队管理/连锁</span>
+        </button>
+        <!--  存储设置按钮 -->
         <button
           @click="openStorageSettingsModal"
-          class="px-6 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700/80 font-black text-sm transition-all active:scale-95 flex items-center gap-2 border border-slate-200 dark:border-slate-700/60"
+          type="button"
+          class="group relative px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:border-[#45a6d5] dark:hover:border-[#45a6d5] hover:bg-slate-50 dark:hover:bg-slate-800 font-black text-xs transition-all duration-300 active:scale-95 flex items-center gap-3 shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-pointer select-none"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4 text-slate-500 dark:text-slate-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+          <div
+            class="w-6 h-6 rounded-lg flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:text-[#45a6d5] group-hover:bg-[#45a6d5]/10 transition-all duration-300"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-3.5 h-3.5 transition-transform duration-300 group-hover:scale-110"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
               stroke-width="2"
-              d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
-            />
-          </svg>
-          存储设置
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
+              />
+            </svg>
+          </div>
+          <span class="tracking-wide">存储设置</span>
         </button>
+
         <!-- 组内角色排序按钮 -->
         <button
           @click="openSortModal"
-          v-if="activeTabGroup != 'all' && getAtvTabGroup"
-          class="px-6 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700/80 font-black text-sm transition-all active:scale-95 flex items-center gap-2 border border-slate-200 dark:border-slate-700/60"
+          v-if="activeTabGroup != 'all' && getAtvTabGroup && !cardConfig.sort?.energySort"
+          type="button"
+          class="group relative px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:border-[#45a6d5] dark:hover:border-[#45a6d5] hover:bg-slate-50 dark:hover:bg-slate-800 font-black text-xs transition-all duration-300 active:scale-95 flex items-center gap-3 shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-pointer select-none"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4 text-slate-500 dark:text-slate-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+          <!-- 左侧图标框 -->
+          <div
+            class="w-6 h-6 rounded-lg flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:text-[#45a6d5] group-hover:bg-[#45a6d5]/10 transition-all duration-300"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
-            />
-          </svg>
-          组内角色排序
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-3.5 h-3.5 transition-transform duration-300 group-hover:scale-110"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+              />
+            </svg>
+          </div>
+
+          <!-- 右侧文字 -->
+          <span class="tracking-wide">组内角色排序</span>
         </button>
+
+        <!-- <!-奥德能量排序按钮 -->
+        <button
+          @click="
+            () => {
+              if (!cardConfig.sort?.energySort) {
+                cardConfig.sort.energySort = 'asc';
+              } else {
+                cardConfig.sort.energySort = '';
+              }
+            }
+          "
+          v-if="cardConfig.mode != 'table'"
+          type="button"
+          class="group relative px-4 py-2.5 rounded-2xl font-black text-xs transition-all duration-300 active:scale-95 flex items-center gap-3 border shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-pointer select-none"
+          :class="
+            cardConfig.sort?.energySort
+              ? 'bg-slate-900 text-white border-[#45a6d5] shadow-lg shadow-sky-500/20 ring-4 ring-sky-500/20 dark:bg-slate-900 dark:border-[#45a6d5]'
+              : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100 border-slate-200 dark:border-slate-700 hover:border-[#45a6d5] dark:hover:border-[#45a6d5] hover:bg-slate-50 dark:hover:bg-slate-800'
+          "
+        >
+          <!-- 左侧：动态小圆标/指示灯 -->
+          <div class="relative flex items-center justify-center">
+            <!-- 未选中时的普通图标框 -->
+            <div
+              class="w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-300"
+              :class="
+                cardConfig.sort?.energySort
+                  ? 'bg-[#45a6d5]/20 text-[#45a6d5]'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:text-[#45a6d5]'
+              "
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-3.5 h-3.5 transition-transform duration-300"
+                :class="{
+                  'rotate-180': cardConfig.sort?.energySort === 'asc',
+                  'rotate-0': !cardConfig.sort?.energySort,
+                }"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2.5"
+                  d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+                />
+              </svg>
+            </div>
+
+            <!-- 激活时的脉冲微光点 -->
+            <span
+              v-if="cardConfig.sort?.energySort"
+              class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#45a6d5] animate-ping"
+            ></span>
+            <span
+              v-if="cardConfig.sort?.energySort"
+              class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#45a6d5]"
+            ></span>
+          </div>
+
+          <!-- 右侧：文字与胶囊状态 -->
+          <div class="flex items-center gap-2">
+            <span class="tracking-wide">奥德能量排序</span>
+
+            <!-- 选中后显示的精美状态胶囊 -->
+            <span
+              v-if="cardConfig.sort?.energySort"
+              class="text-[10px] px-2 py-0.5 rounded-full bg-[#45a6d5]/20 text-[#45a6d5] border border-[#45a6d5]/30 font-extrabold uppercase tracking-widest flex items-center gap-1"
+            >
+              <span>{{ cardConfig.sort.energySort === "asc" ? "升序" : "降序" }}</span>
+              <span class="w-1 h-1 rounded-full bg-[#45a6d5]"></span>
+            </span>
+          </div>
+        </button>
+
         <!-- 刷新/同步数据 -->
         <button
           @click="handleSync"
@@ -6962,7 +7217,9 @@ watch(
                       }}</span>
                       <span
                         v-if="cardConfig.energy.limitStored"
-                        class="text-[10px] opacity-80">/ 2000 点</span>
+                        class="text-[10px] opacity-80"
+                        >/ 2000 点</span
+                      >
                     </div>
                   </div>
 
@@ -7717,14 +7974,15 @@ watch(
                   type="button"
                   class="py-3 px-3 rounded-xl bg-[#45a6d5] hover:bg-[#3b95c0] text-white font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center shadow-sm truncate"
                   :disabled="
-                    cardConfig.energy.limitStored && totalsStoredEnergyCount > 2000 ||
+                    (cardConfig.energy.limitStored && totalsStoredEnergyCount > 2000) ||
                     globalPopupOp.data.energy >
                       (globalPopupOp?.targetGroup?.premiumMember ? 840 : 560)
                   "
                   @click="
                     () => {
                       if (
-                        cardConfig.energy.limitStored && totalsStoredEnergyCount > 2000 ||
+                        (cardConfig.energy.limitStored &&
+                          totalsStoredEnergyCount > 2000) ||
                         globalPopupOp.data.energy >
                           (globalPopupOp?.targetGroup?.premiumMember ? 840 : 560)
                       )
@@ -8052,6 +8310,439 @@ watch(
           </div>
         </div>
       </Transition>
+    </Teleport>
+    <!-- 小队管理/连锁管理弹窗 -->
+    <Teleport to="body">
+      <Transition name="teamChain">
+        <div
+          v-if="teamChainOpen"
+          class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+        >
+          <div
+            class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            @click="teamChainOpen = false"
+          ></div>
+          <div
+            class="relative z-10 w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col max-h-[85vh]"
+          >
+            <!-- 弹窗头部 -->
+            <div
+              class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 shrink-0"
+            >
+              <div class="flex items-center gap-4">
+                <div
+                  class="font-black text-slate-800 dark:text-slate-100 text-lg flex items-center gap-2"
+                >
+                  <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
+                  小队管理 / 连锁
+                </div>
+
+                <!-- Tab 切换 -->
+                <div
+                  class="flex items-center p-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold"
+                >
+                  <button
+                    type="button"
+                    class="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+                    :class="
+                      teamChainOptions.tab === 'chain'
+                        ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-xs'
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                    "
+                    @click="teamChainOptions.tab = 'chain'"
+                  >
+                    小队连锁
+                  </button>
+                  <button
+                    type="button"
+                    class="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+                    :class="
+                      teamChainOptions.tab === 'team'
+                        ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-xs'
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                    "
+                    @click="teamChainOptions.tab = 'team'"
+                  >
+                    小队管理
+                  </button>
+                </div>
+              </div>
+
+              <button
+                class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                @click="teamChainOpen = false"
+              >
+                关闭
+              </button>
+            </div>
+
+            <!-- 弹窗主体内容 -->
+            <div
+              class="p-6 space-y-4 overflow-y-auto custom-scroll flex-1 text-slate-700 dark:text-slate-300 text-sm"
+            >
+              <!-- 1. 小队连锁 Tab 面板 -->
+              <div v-if="teamChainOptions.tab === 'chain'" class="space-y-6">
+                <!-- 没有小队的空状态展位 -->
+                <div
+                  v-if="!gameData.teams || gameData.teams.length === 0"
+                  class="text-center py-16 flex flex-col items-center justify-center space-y-3"
+                >
+                  <div class="font-bold text-slate-600 dark:text-slate-300">
+                    暂无小队数据
+                  </div>
+                  <div class="text-xs text-slate-400 max-w-xs">
+                    当前还没有创建任何小队，请切换至“小队管理”标签页创建并配置小队成员。
+                  </div>
+                  <button
+                    type="button"
+                    @click="teamChainOptions.tab = 'team'"
+                    class="mt-2 px-4 py-2 rounded-xl bg-sky-500 text-white font-bold text-xs shadow-sm hover:bg-sky-600 transition-all cursor-pointer"
+                  >
+                    去创建小队
+                  </button>
+                </div>
+
+                <!-- 有小队时的连锁操作面板 -->
+                <template v-else>
+                  <!-- 顶部：选择进行连锁操作的队伍（网格卡片式） -->
+                  <div
+                    class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col gap-3"
+                  >
+                    <div class="flex items-center justify-between">
+                      <label class="text-xs font-bold text-slate-500 dark:text-slate-400"
+                        >选择连锁操作的目标队伍：</label
+                      >
+                      <span
+                        class="text-[10px] font-black text-[#45a6d5] px-2 py-0.5 bg-sky-50 dark:bg-sky-950/60 rounded-full border border-sky-200/60 dark:border-sky-800/60"
+                      >
+                        已选:
+                        {{
+                          gameData.teams.find(
+                            (t) => t.id === teamChainOptions.selectedChainTeamId
+                          )?.name || "未选择"
+                        }}
+                      </span>
+                    </div>
+
+                    <!-- 队伍网格列表（支持自适应列数） -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      <div
+                        v-for="team in gameData.teams"
+                        :key="team.id"
+                        @click="teamChainOptions.selectedChainTeamId = team.id"
+                        class="group relative p-3 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-1.5"
+                        :class="
+                          teamChainOptions.selectedChainTeamId === team.id
+                            ? 'bg-sky-500/10 dark:bg-sky-500/20 border-[#45a6d5] text-[#45a6d5] shadow-sm shadow-sky-500/10'
+                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-100/50 dark:hover:bg-slate-800'
+                        "
+                      >
+                        <!-- 选中状态指示器角标 -->
+                        <div
+                          v-if="teamChainOptions?.selectedChainTeamId === team.id"
+                          class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#45a6d5] animate-pulse"
+                        ></div>
+
+                        <!-- 队伍名称 -->
+                        <div class="text-xs font-black truncate pr-3">
+                          {{ team.name }}
+                        </div>
+
+                        <!-- 成员数量与状态 -->
+                        <div
+                          class="flex items-center justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500"
+                        >
+                          <span>队员</span>
+                          <span
+                            :class="
+                              getCharactersByTeamId(team.id).length > 0
+                                ? 'text-slate-600 dark:text-slate-300'
+                                : 'text-slate-400'
+                            "
+                          >
+                            {{ getCharactersByTeamId(team.id).length }} / 5
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- 中间：连锁操作选项（类似游戏消耗按钮风格） -->
+                  <div class="space-y-3">
+                    <div class="space-y-2">
+                      <label class="text-xs font-bold text-slate-500 dark:text-slate-400"
+                        >选择连锁类型</label
+                      >
+                      <div class="grid grid-cols-5 gap-1.5">
+                        <button
+                          type="button"
+                          v-for="type in [
+                            { key: 'expedition', label: '远征副本' },
+                            { key: 'surpass', label: '超越副本' },
+                            { key: 'sanctuary', label: '圣域' },
+                            { key: 'nightmareCount', label: '清理噩梦' },
+                            { key: 'battlefield', label: '清理战场' },
+                          ]"
+                          :key="type.key"
+                          class="py-2 px-2 rounded-xl font-black text-[11px] transition-all border shadow-sm cursor-pointer truncate"
+                          :class="
+                            teamChainOptions.dungeonType === type.key
+                              ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sky-500/20'
+                              : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                          "
+                          @click="teamChainOptions.dungeonType = type.key"
+                        >
+                          {{ type.label }}
+                        </button>
+                      </div>
+
+                      <div v-if="teamChainOptions.dungeonType == 'expedition'">
+                        远征副本
+                      </div>
+                      <div v-if="teamChainOptions.dungeonType == 'surpass'">超越副本</div>
+                      <div v-if="teamChainOptions.dungeonType == 'nightmareCount'">
+                        清理噩梦
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 下面：扣除次数设置与说明 -->
+                  <div
+                    class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3"
+                  >
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-bold text-slate-700 dark:text-slate-300"
+                        >每次连锁扣除次数：</span
+                      >
+                      <input
+                        type="number"
+                        v-model.number="chainDeductCount"
+                        min="1"
+                        max="10"
+                        class="w-20 px-3 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-center text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500"
+                      />
+                    </div>
+                    <div class="text-[11px] text-slate-400 leading-relaxed">
+                      提示：执行连锁后，将对当前选中队伍中的所有成员统一应用该项任务的进度更新与次数扣除。
+                    </div>
+                  </div>
+                </template>
+              </div>
+
+              <!-- 2. 小队管理 Tab 面板 -->
+              <div v-if="teamChainOptions.tab === 'team'" class="space-y-6">
+                <!-- 新增小队输入区 -->
+                <div
+                  class="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl"
+                >
+                  <input
+                    v-model="newTeamName"
+                    type="text"
+                    placeholder="输入新队伍名称..."
+                    class="flex-1 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:border-sky-400"
+                    @keyup.enter="handleAddTeam"
+                  />
+                  <button
+                    type="button"
+                    @click="handleAddTeam"
+                    class="px-5 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl text-sm transition-all cursor-pointer shadow-sm"
+                  >
+                    新增小队
+                  </button>
+                </div>
+
+                <!-- 队伍及角色归属列表 -->
+                <div class="space-y-4">
+                  <div
+                    v-for="team in gameData.teams"
+                    :key="team.id"
+                    class="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 space-y-3"
+                  >
+                    <div class="flex items-center justify-between">
+                      <input
+                        v-model="team.name"
+                        type="text"
+                        class="font-bold text-slate-800 dark:text-slate-100 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-sky-500 focus:outline-none px-1 py-0.5"
+                      />
+                      <button
+                        type="button"
+                        @click="handleDeleteTeam(team.id)"
+                        class="text-xs text-rose-500 hover:text-rose-600 font-bold px-2 py-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                      >
+                        删除队伍
+                      </button>
+                    </div>
+
+                    <!-- 小队成员展示（最多5个）与 SVG + 按钮 -->
+                    <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
+                      <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-slate-400 font-medium"
+                          >小队成员 ({{
+                            getCharactersByTeamId(team.id).length
+                          }}/5)：</span
+                        >
+                      </div>
+
+                      <div class="flex flex-wrap gap-2 items-center">
+                        <div
+                          v-for="char in getCharactersByTeamId(team.id)"
+                          :key="char.id || char.name"
+                          class="px-3 py-2 rounded-2xl text-xs border bg-white dark:bg-slate-800/90 border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 flex items-center gap-3 shadow-xs hover:border-sky-300 dark:hover:border-sky-700 transition-all group"
+                        >
+                          <!-- 角色详细信息（组合展示组别、职业、名称） -->
+                          <div class="flex items-center gap-1.5">
+                            <span
+                              class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700 shrink-0"
+                            >
+                              {{ getGroupById(char.group)?.name || "无"
+                              }}<template v-if="char.className"
+                                >/{{ char.className }}</template
+                              >
+                            </span>
+                            <span
+                              class="font-black text-xs text-slate-800 dark:text-slate-100 tracking-tight truncate"
+                            >
+                              {{ char.characterName || char.name }}
+                            </span>
+                          </div>
+
+                          <!-- 移除按钮 -->
+                          <button
+                            type="button"
+                            @click="handleRemoveCharacterFromTeam(char, team.id)"
+                            class="w-4 h-4 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-rose-500 dark:hover:bg-rose-600 transition-all cursor-pointer shrink-0"
+                            title="移出小队"
+                          >
+                            ×
+                          </button>
+                        </div>
+
+                        <!-- 人数小于5时显示的 SVG + 添加按钮 -->
+                        <button
+                          v-if="getCharactersByTeamId(team.id).length < 5"
+                          type="button"
+                          @click="openCharacterSelector(team.id)"
+                          class="px-3 py-1.5 rounded-xl text-xs font-bold border border-dashed border-slate-300 dark:border-slate-700 text-slate-400 hover:text-sky-500 hover:border-sky-400 dark:hover:border-sky-600 bg-slate-50/50 dark:bg-slate-800/40 flex items-center gap-1.5 transition-all cursor-pointer"
+                        >
+                          <svg
+                            class="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.5"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M12 4.5v15m7.5-7.5h-15"
+                            ></path>
+                          </svg>
+                          <span>添加角色</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 弹窗底部操作按钮 -->
+            <div
+              class="px-8 py-5 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-end gap-4 z-10"
+            >
+              <button
+                type="button"
+                v-if="teamChainOptions.tab === 'chain'"
+                :disabled="!gameData.teams || gameData.teams.length === 0"
+                @click="handleExecuteChain"
+                class="px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-black text-sm transition-all cursor-pointer shadow-sm active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-800"
+              >
+                执行连锁
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+    <!-- 内部嵌入的角色多选弹窗 (用于点击 + 号时选择角色) -->
+    <Teleport to="body">
+      <div
+        v-if="characterSelectorModal.visible"
+        class="fixed inset-0 z-[70] flex items-center justify-center p-4"
+      >
+        <div
+          class="absolute inset-0 bg-slate-900/40 backdrop-blur-xs"
+          @click="characterSelectorModal.visible = false"
+        ></div>
+        <div
+          class="relative z-10 w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-4"
+        >
+          <div class="font-bold text-slate-800 dark:text-slate-100 text-base">
+            选择要加入小层的角色
+          </div>
+          <div class="text-xs text-slate-400">
+            最多可选择 5 个角色（当前已选：{{
+              getCharactersByTeamId(characterSelectorModal.teamId).length
+            }}/5）
+          </div>
+
+          <!-- 候选角色列表（多选勾选） -->
+          <div class="max-h-60 overflow-y-auto space-y-2 pr-1">
+            <div
+              v-for="char in gameData.characters || []"
+              :key="char.id || char.name"
+              @click="handleToggleCharacterTeam(char, characterSelectorModal.teamId)"
+              class="p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all"
+              :class="[
+                (
+                  Array.isArray(char.teamId)
+                    ? char.teamId.includes(characterSelectorModal.teamId)
+                    : char.teamId === characterSelectorModal.teamId
+                )
+                  ? 'bg-sky-50 dark:bg-sky-950/40 border-sky-300 dark:border-sky-800 text-sky-700 dark:text-sky-300'
+                  : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300',
+              ]"
+            >
+              <div class="flex items-center gap-2">
+                <!-- 职业/组别标签 -->
+                <span
+                  class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700/60 shrink-0"
+                >
+                  {{ getGroupById(char.group)?.name || "无组别" }}
+                  <template v-if="char.className"> / {{ char.className }}</template>
+                </span>
+
+                <!-- 角色名称 -->
+                <span
+                  class="font-black text-xs text-slate-800 dark:text-slate-100 tracking-tight truncate"
+                >
+                  {{ char.characterName }}
+                </span>
+              </div>
+              <span class="text-xs font-bold">
+                {{
+                  (
+                    Array.isArray(char.teamId)
+                      ? char.teamId.includes(characterSelectorModal.teamId)
+                      : char.teamId === characterSelectorModal.teamId
+                  )
+                    ? "✓ 已选"
+                    : "+ 选择"
+                }}
+              </span>
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-2">
+            <button
+              type="button"
+              @click="characterSelectorModal.visible = false"
+              class="px-5 py-2 bg-sky-500 text-white font-bold rounded-xl text-xs shadow-sm hover:bg-sky-600 cursor-pointer"
+            >
+              完成
+            </button>
+          </div>
+        </div>
+      </div>
     </Teleport>
   </div>
 </template>

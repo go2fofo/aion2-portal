@@ -52,6 +52,9 @@ const props = defineProps({
         storedColor: "#F1F3F4",
         limitStored: true,
       },
+      sort: {
+        energySort: "", //asc:升序,desc:降序
+      },
     }),
   },
 });
@@ -62,7 +65,7 @@ const currentModeTableConfig = reactive({
 });
 
 const charactersTable = computed(() => {
-  if(currentModeTableConfig.energySort === null) {
+  if (currentModeTableConfig.energySort === null) {
     return props.characters;
   }
   return props.characters.sort((a, b) => {
@@ -72,6 +75,25 @@ const charactersTable = computed(() => {
       return b.energy - a.energy;
     }
   });
+});
+
+const charactersDefault = computed(() => {
+  console.log(
+    `🔍 [CharacterCard:82] %c config.sort.energySort: `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    props.config.sort.energySort
+  );
+  if (props.config?.sort?.energySort == "asc") {
+    return props.characters.sort((a, b) => {
+      if (props.config?.sort?.energySort === "asc") {
+        return a.energy - b.energy;
+      } else {
+        return b.energy - a.energy;
+      }
+    });
+  }
+
+  return props.characters;
 });
 
 // 定义 Emits（向父组件抛出所有交互事件）
@@ -645,12 +667,12 @@ const visibleTasks = computed(() => {
 
 <template>
   <div
-    v-if="characters.length > 0 && currentMode != 'table'"
+    v-if="characters.length > 0 && currentMode != 'table' && charactersDefault.length > 0"
     class="grid gap-5"
     :class="gridColsClass"
   >
     <div
-      v-for="char in characters"
+      v-for="char in charactersDefault"
       :key="char.characterId || char.id"
       class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 p-2 rounded-3xl shadow-sm space-y-4 border-[#45a6d5] transition-all flex flex-col"
       :class="char.locked ? 'opacity-95 bg-slate-50 dark:bg-slate-800/50' : ''"
