@@ -1,8 +1,6 @@
 <template>
   <div class="space-y-6">
-    <div
-      class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden"
-    >
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
       <div
         class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4"
       >
@@ -108,13 +106,9 @@
                   </span>
                 </div>
                 <div class="text-xs font-bold text-slate-500 mt-1">
-                  {{ formatDateTime(p.start_at) }} ·
-                  {{ (p.groups || []).length }} 组 ·
+                  {{ formatDateTime(p.start_at) }} · {{ (p.groups || []).length }} 组 ·
                   {{
-                    (p.groups || []).reduce(
-                      (acc, g) => acc + (g.teams || []).length,
-                      0,
-                    )
+                    (p.groups || []).reduce((acc, g) => acc + (g.teams || []).length, 0)
                   }}
                   队
                 </div>
@@ -186,10 +180,7 @@
                   <div class="font-black text-slate-800 text-sm">
                     {{ g.title || `第${gIndex + 1}组` }}
                   </div>
-                  <div
-                    v-if="g.note"
-                    class="text-[10px] font-bold text-slate-400"
-                  >
+                  <div v-if="g.note" class="text-[10px] font-bold text-slate-400">
                     {{ g.note }}
                   </div>
                 </div>
@@ -220,14 +211,8 @@
                         >
                           <div class="min-w-0">
                             <div class="flex items-center gap-2">
-                              <div
-                                class="font-black text-[10px] truncate text-slate-800"
-                              >
-                                {{
-                                  formatNameWithServerShort(
-                                    t.members[slotIndex - 1],
-                                  )
-                                }}
+                              <div class="font-black text-[10px] truncate text-slate-800">
+                                {{ formatNameWithServerShort(t.members[slotIndex - 1]) }}
                               </div>
                               <span
                                 class="text-[8px] font-black px-1 py-0.5 rounded shrink-0 bg-slate-100 text-slate-600"
@@ -241,19 +226,12 @@
                               <span
                                 >战
                                 {{
-                                  formatCombatPower(
-                                    t.members[slotIndex - 1].combatPower,
-                                  )
+                                  formatCombatPower(t.members[slotIndex - 1].combatPower)
                                 }}</span
                               >
+                              <span class="w-0.5 h-0.5 rounded-full bg-slate-200"></span>
                               <span
-                                class="w-0.5 h-0.5 rounded-full bg-slate-200"
-                              ></span>
-                              <span
-                                >评
-                                {{
-                                  t.members[slotIndex - 1].itemLevel || "-"
-                                }}</span
+                                >评 {{ t.members[slotIndex - 1].itemLevel || "-" }}</span
                               >
                             </div>
                             <div
@@ -270,9 +248,7 @@
                             <button
                               type="button"
                               class="p-1 rounded-md bg-slate-100 border border-slate-200 text-slate-600 hover:bg-slate-200 transition-colors"
-                              @click.stop="
-                                saveMyMemberFromPlan(t.members[slotIndex - 1])
-                              "
+                              @click.stop="saveMyMemberFromPlan(t.members[slotIndex - 1])"
                               title="存为我的队员"
                             >
                               <svg
@@ -292,18 +268,12 @@
                             </button>
                             <button
                               v-if="
-                                canEdit(p) &&
-                                isMemberIncomplete(t.members[slotIndex - 1])
+                                canEdit(p) && isMemberIncomplete(t.members[slotIndex - 1])
                               "
                               type="button"
                               class="p-1 rounded-md bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors"
                               @click.stop="
-                                refreshMemberInList(
-                                  p,
-                                  gIndex,
-                                  tIndex,
-                                  slotIndex - 1,
-                                )
+                                refreshMemberInList(p, gIndex, tIndex, slotIndex - 1)
                               "
                               title="重新获取角色信息"
                             >
@@ -328,9 +298,7 @@
                               class="p-1 rounded-md bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors"
                               @click.stop="
                                 copyText(
-                                  formatNameWithServerShort(
-                                    t.members[slotIndex - 1],
-                                  ),
+                                  formatNameWithServerShort(t.members[slotIndex - 1])
                                 )
                               "
                               title="复制角色名"
@@ -345,13 +313,7 @@
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
                               >
-                                <rect
-                                  x="9"
-                                  y="9"
-                                  width="13"
-                                  height="13"
-                                  rx="2"
-                                />
+                                <rect x="9" y="9" width="13" height="13" rx="2" />
                                 <path
                                   d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
                                 />
@@ -399,949 +361,98 @@
         </div>
       </div>
     </div>
-
-    <Transition name="modal">
-      <div
-        v-if="statusOpen"
-        class="fixed inset-0 z-[70] flex items-center justify-center p-4"
-      >
-        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+    <Teleport to="body">
+      <Transition name="modal411">
         <div
-          class="relative z-10 w-full max-w-md bg-white rounded-[2rem] shadow-2xl border border-slate-100 overflow-hidden"
+          v-if="statusOpen"
+          class="fixed inset-0 z-[70] flex items-center justify-center p-4"
         >
+          <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
           <div
-            class="p-6 border-b border-slate-100 flex items-center justify-between gap-4"
+            class="relative z-10 w-full max-w-md bg-white rounded-[2rem] shadow-2xl border border-slate-100 overflow-hidden"
           >
-            <div class="min-w-0">
-              <div class="font-black text-slate-800 text-lg">选择状态</div>
-              <div class="text-xs font-bold text-slate-500 mt-1 truncate">
-                {{ statusTarget?.title || "" }}
-              </div>
-            </div>
-            <button
-              class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors"
-              @click="statusOpen = false"
-              :disabled="statusSaving"
-            >
-              关闭
-            </button>
-          </div>
-          <div class="p-6 space-y-3">
-            <button
-              class="w-full p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors text-left"
-              @click="setStatus('completed')"
-              :disabled="statusSaving"
-            >
-              <div class="font-black text-slate-800">完成</div>
-              <div class="text-xs font-bold text-slate-500 mt-1">
-                记录完成时间
-              </div>
-            </button>
-            <button
-              class="w-full p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors text-left"
-              @click="setStatus('overdue')"
-              :disabled="statusSaving"
-            >
-              <div class="font-black text-slate-800">逾期</div>
-              <div class="text-xs font-bold text-slate-500 mt-1">
-                提醒重新安排时间
-              </div>
-            </button>
-            <button
-              class="w-full p-4 rounded-2xl border border-rose-100 bg-rose-50/40 hover:bg-rose-50 transition-colors text-left"
-              @click="setStatus('canceled')"
-              :disabled="statusSaving"
-            >
-              <div class="font-black text-rose-700">作废</div>
-              <div class="text-xs font-bold text-rose-600/80 mt-1">
-                可选择删除该编排
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
-    </Transition>
-
-    <Transition name="modal">
-      <div
-        v-if="myManagerOpen"
-        class="fixed inset-0 z-[65] flex items-center justify-center p-4"
-      >
-        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
-        <div
-          class="relative z-10 w-full max-w-3xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden"
-        >
-          <div
-            class="p-6 border-b border-slate-100 flex items-center justify-between gap-4"
-          >
-            <div class="min-w-0">
-              <div class="font-black text-slate-800 text-lg">我的队员</div>
-              <div class="text-xs font-bold text-slate-500 mt-1">
-                可在编排列表/军团成员/查询角色里点“存为我的”快速加入
-              </div>
-            </div>
-            <button
-              class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors"
-              @click="myManagerOpen = false"
-            >
-              关闭
-            </button>
-          </div>
-
-          <div class="p-6 space-y-4 max-h-[80vh] overflow-y-auto custom-scroll">
-            <div class="flex items-center gap-2">
-              <input
-                v-model="myKeyword"
-                class="flex-1 px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
-                placeholder="搜索我的队员（名称/备注/区服简写）..."
-              />
-              <button
-                class="px-4 py-3 rounded-2xl bg-slate-100 text-slate-700 font-black text-sm hover:bg-slate-200 transition-colors"
-                :disabled="myLoading"
-                @click="fetchMyMembers"
-              >
-                {{ myLoading ? "刷新中..." : "刷新" }}
-              </button>
-            </div>
-
             <div
-              v-if="myLoading"
-              class="py-10 text-center text-slate-400 font-bold"
+              class="p-6 border-b border-slate-100 flex items-center justify-between gap-4"
             >
-              加载中...
-            </div>
-            <div v-else class="space-y-2">
-              <div
-                v-for="m in filteredMyMembers"
-                :key="m.id"
-                class="p-4 rounded-2xl border border-slate-100 bg-white hover:bg-slate-50/40 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-3"
-              >
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <div class="font-black text-slate-800 truncate">
-                      {{
-                        formatNameWithServerShort({
-                          characterName: m.character_name,
-                          serverId: m.server_id,
-                          serverShortName: m.server_short_name,
-                        })
-                      }}
-                    </div>
-                    <span
-                      class="text-[10px] font-black px-2 py-1 rounded-lg bg-slate-100 text-slate-600"
-                    >
-                      {{ formatServerDisplay(m.server_id) }}
-                    </span>
-                  </div>
-                  <div
-                    class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap"
-                  >
-                    <span>{{ m.class_name || "—" }}</span>
-                    <span v-if="m.character_level"
-                      >Lv.{{ m.character_level }}</span
-                    >
-                    <span>战 {{ formatCombatPower(m.combat_power) }}</span>
-                    <span>评 {{ m.item_level || "-" }}</span>
-                  </div>
-                  <div class="mt-2">
-                    <input
-                      v-model="m.remark"
-                      type="text"
-                      class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 focus:border-[#45a6d5] outline-none font-bold text-xs text-slate-700 transition-all"
-                      placeholder="备注（可选）"
-                    />
-                  </div>
-                </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <button
-                    class="px-3 py-2 rounded-xl bg-slate-100 text-slate-700 font-black text-xs hover:bg-slate-200 transition-colors"
-                    @click="
-                      copyText(
-                        formatNameWithServerShort({
-                          characterName: m.character_name,
-                          serverId: m.server_id,
-                          serverShortName: m.server_short_name,
-                        }),
-                      )
-                    "
-                  >
-                    复制
-                  </button>
-                  <button
-                    class="px-3 py-2 rounded-xl bg-slate-800 text-white font-black text-xs hover:bg-slate-700 transition-colors disabled:opacity-50"
-                    :disabled="mySaving[m.id]"
-                    @click="updateMyMember(m)"
-                  >
-                    {{ mySaving[m.id] ? "保存中..." : "保存" }}
-                  </button>
-                  <button
-                    class="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 font-black text-xs hover:bg-rose-100 transition-colors disabled:opacity-50"
-                    :disabled="mySaving[m.id]"
-                    @click="deleteMyMember(m)"
-                  >
-                    删除
-                  </button>
+              <div class="min-w-0">
+                <div class="font-black text-slate-800 text-lg">选择状态</div>
+                <div class="text-xs font-bold text-slate-500 mt-1 truncate">
+                  {{ statusTarget?.title || "" }}
                 </div>
               </div>
-              <div
-                v-if="filteredMyMembers.length === 0"
-                class="py-10 text-center text-slate-400 font-bold"
-              >
-                暂无队员
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Transition>
-
-    <Transition name="modal">
-      <div
-        v-if="editorOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4"
-      >
-        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
-        <div
-          class="relative z-10 w-full max-w-5xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden"
-        >
-          <div
-            class="p-6 border-b border-slate-100 flex items-center justify-between gap-4"
-          >
-            <div class="min-w-0 flex items-center gap-4">
-              <div>
-                <div class="font-black text-slate-800 text-lg">
-                  {{ editingId ? "编辑计划" : "新建计划" }}
-                </div>
-                <div
-                  v-if="editingId"
-                  class="text-[10px] font-bold text-slate-400 mt-1 truncate"
-                >
-                  {{ editingId }}
-                </div>
-              </div>
-              <div
-                v-if="selectedSwap"
-                class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-50 border border-sky-100 animate-pulse shrink-0"
-              >
-                <div class="w-2 h-2 rounded-full bg-sky-500"></div>
-                <div
-                  class="text-[11px] font-black text-sky-700 truncate max-w-[120px]"
-                >
-                  正在移动: {{ selectedSwap.name }}
-                </div>
-                <button
-                  @click="selectedSwap = null"
-                  class="ml-1 p-0.5 rounded-full hover:bg-sky-200 text-sky-400 hover:text-sky-600 transition-colors"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-3.5 h-3.5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="3"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M18 6 6 18" />
-                    <path d="m6 6 12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
               <button
-                v-if="selectedSwap"
-                @click="selectedSwap = null"
-                class="px-4 py-2 rounded-xl bg-rose-500 text-white font-black text-sm hover:bg-rose-600 transition-colors shadow-sm animate-in fade-in zoom-in duration-200"
-              >
-                取消选中
-              </button>
-              <button
-                v-else
-                @click="addGroup"
-                class="px-4 py-2 rounded-xl bg-slate-800 text-white font-black text-sm hover:bg-slate-700 transition-colors shadow-sm"
-              >
-                添加组
-              </button>
-              <div class="w-px h-8 bg-slate-100 mx-1"></div>
-              <button
-                class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                @click="editorOpen = false"
-                :disabled="!!selectedSwap"
+                class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors"
+                @click="statusOpen = false"
+                :disabled="statusSaving"
               >
                 关闭
               </button>
+            </div>
+            <div class="p-6 space-y-3">
               <button
-                class="px-5 py-2 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                @click="savePlan"
-                :disabled="saving || !!selectedSwap"
+                class="w-full p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors text-left"
+                @click="setStatus('completed')"
+                :disabled="statusSaving"
               >
-                {{ saving ? "保存中..." : "保存" }}
+                <div class="font-black text-slate-800">完成</div>
+                <div class="text-xs font-bold text-slate-500 mt-1">记录完成时间</div>
               </button>
-            </div>
-          </div>
-
-          <div class="p-6 space-y-6 max-h-[80vh] overflow-y-auto custom-scroll">
-            <div
-              class="grid grid-cols-1 md:grid-cols-2 gap-4"
-              :class="{ 'opacity-20 pointer-events-none': selectedSwap }"
-            >
-              <div>
-                <div
-                  class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2"
-                >
-                  标题 *
-                </div>
-                <input
-                  v-model="form.title"
-                  type="text"
-                  class="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
-                  placeholder="例如：周六副本/圣域等"
-                />
-              </div>
-              <div>
-                <div
-                  class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2"
-                >
-                  时间 *
-                </div>
-                <input
-                  v-model="form.start_at"
-                  type="datetime-local"
-                  class="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
-                />
-                <div class="mt-2 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 font-black text-xs hover:bg-slate-200 transition-colors"
-                    @click="setStartAtPreset('next')"
-                  >
-                    下个整点
-                  </button>
-                  <button
-                    type="button"
-                    class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 font-black text-xs hover:bg-slate-200 transition-colors"
-                    @click="setStartAtPreset('today20')"
-                  >
-                    今天 20:00
-                  </button>
-                  <button
-                    type="button"
-                    class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 font-black text-xs hover:bg-slate-200 transition-colors"
-                    @click="setStartAtPreset('tomorrow20')"
-                  >
-                    明天 20:00
-                  </button>
-                  <button
-                    type="button"
-                    class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 font-black text-xs hover:bg-slate-200 transition-colors"
-                    @click="setStartAtPreset('sat20')"
-                  >
-                    周六 20:00
-                  </button>
-                </div>
-                <div class="mt-2 text-[10px] font-bold text-slate-400">
-                  当前选择：{{ startAtPreview }}
-                </div>
-              </div>
-            </div>
-
-            <div
-              class="grid grid-cols-1 md:grid-cols-2 gap-4"
-              :class="{ 'opacity-20 pointer-events-none': selectedSwap }"
-            >
-              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                <div class="flex items-center justify-between gap-3">
-                  <div
-                    class="text-[10px] font-black text-slate-400 uppercase tracking-widest"
-                  >
-                    保存方式
-                  </div>
-                  <button
-                    type="button"
-                    class="px-3 py-1.5 rounded-xl font-black text-xs border-2 transition-all"
-                    :class="
-                      form.is_public
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        : 'bg-white text-slate-600 border-slate-200'
-                    "
-                    @click="form.is_public = !form.is_public"
-                  >
-                    {{ form.is_public ? "公开" : "仅我" }}
-                  </button>
-                </div>
-                <div class="mt-2 text-xs font-bold text-slate-500">
-                  {{
-                    form.is_public
-                      ? "公开后其他玩家可查看使用"
-                      : "仅自己可查看使用"
-                  }}
-                </div>
-              </div>
-              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                <div
-                  class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2"
-                >
-                  公开标签（逗号分隔）
-                </div>
-                <input
-                  v-model="tagInput"
-                  :disabled="!form.is_public"
-                  type="text"
-                  class="w-full px-4 py-3 rounded-2xl bg-white border-2 border-slate-200 focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all disabled:opacity-50 disabled:bg-slate-100"
-                  placeholder="例如：圣域,副本,周六,固定队"
-                />
-                <div class="mt-2 text-[10px] font-bold text-slate-400">
-                  {{
-                    form.is_public ? "用于公开列表搜索与筛选" : "仅公开时可填写"
-                  }}
-                </div>
-              </div>
-            </div>
-
-            <div :class="{ 'opacity-20 pointer-events-none': selectedSwap }">
-              <div
-                class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2"
+              <button
+                class="w-full p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors text-left"
+                @click="setStatus('overdue')"
+                :disabled="statusSaving"
               >
-                备注
-              </div>
-              <textarea
-                v-model="form.notes"
-                rows="3"
-                class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all resize-none"
-                placeholder="计划说明、集合时间、注意事项..."
-              ></textarea>
-            </div>
-
-            <div class="flex items-center justify-between gap-4">
-              <div class="font-black text-slate-800">编排组</div>
-            </div>
-
-            <div class="space-y-8">
-              <div
-                v-for="(g, gIndex) in form.groups"
-                :key="g.id"
-                class="p-6 rounded-[2rem] border-2"
-                :class="groupEditorClass(gIndex)"
+                <div class="font-black text-slate-800">逾期</div>
+                <div class="text-xs font-bold text-slate-500 mt-1">提醒重新安排时间</div>
+              </button>
+              <button
+                class="w-full p-4 rounded-2xl border border-rose-100 bg-rose-50/40 hover:bg-rose-50 transition-colors text-left"
+                @click="setStatus('canceled')"
+                :disabled="statusSaving"
               >
-                <!-- Group Header -->
-                <div
-                  class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6"
-                >
-                  <div class="flex items-center gap-3">
-                    <div
-                      class="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-black text-sm"
-                    >
-                      {{ gIndex + 1 }}
-                    </div>
-                    <div class="font-black text-slate-800 text-lg">
-                      {{ g.title || `第${gIndex + 1}组` }}
-                    </div>
-                  </div>
-                  <div
-                    class="flex items-center gap-2"
-                    :class="{ 'opacity-20 pointer-events-none': selectedSwap }"
-                  >
-                    <button
-                      class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 font-black text-xs hover:bg-slate-50 transition-colors disabled:opacity-50"
-                      :disabled="gIndex === 0"
-                      @click="moveGroup(gIndex, -1)"
-                    >
-                      上移
-                    </button>
-                    <button
-                      class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 font-black text-xs hover:bg-slate-50 transition-colors disabled:opacity-50"
-                      :disabled="gIndex === form.groups.length - 1"
-                      @click="moveGroup(gIndex, 1)"
-                    >
-                      下移
-                    </button>
-                    <button
-                      class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 font-black text-xs hover:bg-rose-100 transition-colors"
-                      @click="removeGroup(gIndex)"
-                    >
-                      删除组
-                    </button>
-                  </div>
+                <div class="font-black text-rose-700">作废</div>
+                <div class="text-xs font-bold text-rose-600/80 mt-1">
+                  可选择删除该编排
                 </div>
-
-                <!-- Group Fields -->
-                <div
-                  class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"
-                  :class="{ 'opacity-20 pointer-events-none': selectedSwap }"
-                >
-                  <div>
-                    <div
-                      class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1"
-                    >
-                      组标题
-                    </div>
-                    <input
-                      v-model="g.title"
-                      type="text"
-                      class="w-full px-4 py-3 rounded-2xl bg-white border-2 border-transparent focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all shadow-sm"
-                      placeholder="例如：主队/副队/..."
-                    />
-                  </div>
-                  <div>
-                    <div
-                      class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1"
-                    >
-                      组备注
-                    </div>
-                    <input
-                      v-model="g.note"
-                      type="text"
-                      class="w-full px-4 py-3 rounded-2xl bg-white border-2 border-transparent focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all shadow-sm"
-                      placeholder="组任务说明..."
-                    />
-                  </div>
-                </div>
-
-                <!-- Teams within Group -->
-                <div class="flex items-center justify-between gap-4 mb-4">
-                  <div
-                    class="text-xs font-black text-slate-500 uppercase tracking-wider"
-                  >
-                    包含队伍（最多 2 队）
-                  </div>
-                  <button
-                    v-if="g.teams.length < 2"
-                    @click="addTeamToGroup(gIndex)"
-                    class="px-3 py-1.5 rounded-lg bg-[#45a6d5] text-white font-black text-xs hover:bg-[#3b95c0] transition-colors shadow-sm"
-                    :class="{ 'opacity-20 pointer-events-none': selectedSwap }"
-                  >
-                    添加队伍
-                  </button>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div
-                    v-for="(t, tIndex) in g.teams"
-                    :key="t.id"
-                    class="p-5 rounded-3xl border border-slate-100 bg-white shadow-sm"
-                  >
-                    <div class="flex items-center justify-between gap-3 mb-4">
-                      <div class="flex items-center gap-2">
-                        <div class="font-black text-slate-800 text-sm">
-                          {{ t.title || `队伍 ${tIndex + 1}` }}
-                        </div>
-                        <span
-                          class="text-[10px] font-black bg-slate-100 text-slate-600 px-2 py-1 rounded-lg"
-                        >
-                          {{ (t.members || []).filter((m) => m).length }}/5
-                        </span>
-                      </div>
-                      <div
-                        class="flex items-center gap-1"
-                        :class="{
-                          'opacity-20 pointer-events-none': selectedSwap,
-                        }"
-                      >
-                        <button
-                          class="p-1.5 rounded-lg bg-slate-50 text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-30"
-                          :disabled="tIndex === 0"
-                          @click="moveTeamInGroup(gIndex, tIndex, -1)"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="w-4 h-4"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="3"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <path d="m15 18-6-6 6-6" />
-                          </svg>
-                        </button>
-                        <button
-                          class="p-1.5 rounded-lg bg-slate-50 text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-30"
-                          :disabled="tIndex === g.teams.length - 1"
-                          @click="moveTeamInGroup(gIndex, tIndex, 1)"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="w-4 h-4"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="3"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <path d="m9 18 6-6-6-6" />
-                          </svg>
-                        </button>
-                        <button
-                          class="p-1.5 rounded-lg bg-rose-50 text-rose-400 hover:text-rose-600 transition-colors ml-1"
-                          @click="removeTeamFromGroup(gIndex, tIndex)"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="w-4 h-4"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="3"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <path d="M18 6 6 18" />
-                            <path d="m6 6 12 12" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div
-                      class="space-y-3 mb-4"
-                      :class="{
-                        'opacity-20 pointer-events-none': selectedSwap,
-                      }"
-                    >
-                      <input
-                        v-model="t.title"
-                        type="text"
-                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-xs text-slate-700 transition-all"
-                        placeholder="队伍名..."
-                      />
-                    </div>
-
-                    <div class="space-y-2">
-                      <div
-                        v-for="slotIndex in 4"
-                        :key="`slot_${t.id}_${slotIndex}`"
-                        class="p-2.5 rounded-xl border bg-white flex items-center justify-between gap-3 group transition-all"
-                        :class="
-                          slotMember(t, slotIndex - 1)
-                            ? isSelectedSwap(gIndex, tIndex, slotIndex - 1)
-                              ? 'ring-2 ring-sky-300 border-sky-200 bg-sky-50/30 cursor-pointer'
-                              : 'border-slate-100 hover:border-sky-200 hover:shadow-sm cursor-pointer'
-                            : selectedSwap
-                              ? 'ring-2 ring-sky-300 border-dashed border-sky-200 bg-sky-50/30 cursor-pointer'
-                              : t.slot_remarks?.[slotIndex - 1]
-                                ? 'bg-emerald-50/20 border-dashed border-emerald-100'
-                                : 'bg-rose-50/20 border-dashed border-rose-100'
-                        "
-                        @click="handleSlotClick(gIndex, tIndex, slotIndex - 1)"
-                      >
-                        <template v-if="slotMember(t, slotIndex - 1)">
-                          <div class="min-w-0">
-                            <div class="flex items-center gap-2">
-                              <div
-                                class="font-black text-sm truncate text-slate-800"
-                              >
-                                {{
-                                  formatNameWithServerShort(
-                                    slotMember(t, slotIndex - 1),
-                                  )
-                                }}
-                              </div>
-                              <span
-                                class="text-[10px] font-black px-2 py-0.5 rounded shrink-0 bg-slate-100 text-slate-600"
-                              >
-                                {{ slotMember(t, slotIndex - 1).className }}
-                              </span>
-                              <span
-                                class="text-[10px] font-medium shrink-0 text-slate-400"
-                                >({{
-                                  slotMember(t, slotIndex - 1).raceName
-                                }})</span
-                              >
-                            </div>
-                            <div
-                              class="text-[9px] font-black flex items-center gap-2 mt-0.5 text-[#45a6d5]"
-                            >
-                              <span
-                                >战
-                                {{
-                                  formatCombatPower(
-                                    slotMember(t, slotIndex - 1).combatPower,
-                                  )
-                                }}</span
-                              >
-                              <span
-                                class="w-1 h-1 rounded-full bg-slate-200"
-                              ></span>
-                              <span
-                                >评
-                                {{
-                                  slotMember(t, slotIndex - 1).itemLevel || "-"
-                                }}</span
-                              >
-                            </div>
-                            <div
-                              class="mt-1"
-                              :class="{
-                                'opacity-20 pointer-events-none': selectedSwap,
-                              }"
-                            >
-                              <input
-                                v-model="slotMember(t, slotIndex - 1).remark"
-                                type="text"
-                                class="w-full px-2 py-1 rounded border outline-none font-bold text-[9px] transition-all bg-white/50 border-slate-100 focus:border-sky-300 text-slate-700 placeholder:text-slate-200"
-                                placeholder="添加成员备注..."
-                                @click.stop
-                              />
-                            </div>
-                            <div
-                              class="text-[10px] font-bold mt-1 truncate text-slate-400"
-                            >
-                              {{
-                                formatServerDisplay(
-                                  slotMember(t, slotIndex - 1).serverId,
-                                )
-                              }}
-                              · Lv.{{
-                                slotMember(t, slotIndex - 1).characterLevel
-                              }}
-                            </div>
-                          </div>
-                          <div
-                            class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                            :class="{ hidden: selectedSwap }"
-                          >
-                            <button
-                              class="p-1 rounded-md bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
-                              @click.stop="
-                                copyText(
-                                  formatNameWithServerShort(
-                                    slotMember(t, slotIndex - 1),
-                                  ),
-                                )
-                              "
-                              title="复制角色名"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="w-3 h-3"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="3"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              >
-                                <rect
-                                  x="9"
-                                  y="9"
-                                  width="13"
-                                  height="13"
-                                  rx="2"
-                                />
-                                <path
-                                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
-                                />
-                              </svg>
-                            </button>
-                            <button
-                              class="p-1 rounded-md bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
-                              :class="{
-                                'animate-spin':
-                                  refreshingSlots[
-                                    `${gIndex}-${tIndex}-${slotIndex - 1}`
-                                  ],
-                              }"
-                              @click.stop="
-                                refreshMember(gIndex, tIndex, slotIndex - 1)
-                              "
-                              title="刷新角色信息"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="w-3 h-3"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="3"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              >
-                                <path
-                                  d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"
-                                />
-                                <path d="M21 3v5h-5" />
-                              </svg>
-                            </button>
-                            <button
-                              class="p-1 rounded-md bg-slate-100 text-slate-500 hover:bg-slate-200 disabled:opacity-30"
-                              :disabled="slotIndex - 1 === 0"
-                              @click.stop="
-                                moveMember(gIndex, tIndex, slotIndex - 1, -1)
-                              "
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="w-3 h-3"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="3"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              >
-                                <path d="m18 15-6-6-6 6" />
-                              </svg>
-                            </button>
-                            <button
-                              class="p-1 rounded-md bg-slate-100 text-slate-500 hover:bg-slate-200 disabled:opacity-30"
-                              :disabled="slotIndex - 1 === t.members.length - 1"
-                              @click.stop="
-                                moveMember(gIndex, tIndex, slotIndex - 1, 1)
-                              "
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="w-3 h-3"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="3"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              >
-                                <path d="m18 9-6 6-6-6" />
-                              </svg>
-                            </button>
-                            <button
-                              class="p-1 rounded-md bg-rose-50 text-rose-500 hover:bg-rose-100"
-                              @click.stop="
-                                removeMember(gIndex, tIndex, slotIndex - 1)
-                              "
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="w-3 h-3"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="3"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              >
-                                <path d="M18 6 6 18" />
-                                <path d="m6 6 12 12" />
-                              </svg>
-                            </button>
-                          </div>
-                        </template>
-                        <template v-else>
-                          <div
-                            class="flex-1"
-                            :class="{
-                              'opacity-20 pointer-events-none': selectedSwap,
-                            }"
-                          >
-                            <input
-                              v-model="t.slot_remarks[slotIndex - 1]"
-                              type="text"
-                              class="w-full px-2 py-1 rounded bg-transparent border-b border-slate-100 focus:border-sky-300 outline-none font-bold text-[10px] text-slate-400 placeholder:text-slate-200"
-                              :placeholder="`空位 ${slotIndex} 备注...`"
-                              @click.stop
-                            />
-                          </div>
-                          <div
-                            class="text-[10px] font-black text-sky-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                            :class="{ hidden: selectedSwap }"
-                          >
-                            添加 +
-                          </div>
-                        </template>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    v-if="g.teams.length === 0"
-                    class="lg:col-span-2 py-12 text-center text-slate-300 font-bold border-2 border-dashed border-slate-100 rounded-3xl bg-white/50"
-                  >
-                    暂无队伍，点击上方按钮添加
-                  </div>
-                </div>
-              </div>
+              </button>
             </div>
           </div>
         </div>
-      </div>
-    </Transition>
-
-    <Transition name="modal">
-      <div
-        v-if="pickerOpen"
-        class="fixed inset-0 z-[60] flex items-center justify-center p-4"
-      >
-        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+      </Transition></Teleport
+    >
+    <Teleport to="body">
+      <Transition name="modal311">
         <div
-          class="relative z-10 w-full max-w-3xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden"
+          v-if="myManagerOpen"
+          class="fixed inset-0 z-[65] flex items-center justify-center p-4"
         >
+          <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
           <div
-            class="p-6 border-b border-slate-100 flex items-center justify-between gap-4"
+            class="relative z-10 w-full max-w-3xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden"
           >
-            <div class="font-black text-slate-800 text-lg">选择队员</div>
-            <button
-              class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors"
-              @click="pickerOpen = false"
+            <div
+              class="p-6 border-b border-slate-100 flex items-center justify-between gap-4"
             >
-              关闭
-            </button>
-          </div>
-
-          <div class="p-6 space-y-4 max-h-[80vh] overflow-y-auto custom-scroll">
-            <div class="flex items-center gap-2 flex-wrap">
+              <div class="min-w-0">
+                <div class="font-black text-slate-800 text-lg">我的队员</div>
+                <div class="text-xs font-bold text-slate-500 mt-1">
+                  可在编排列表/军团成员/查询角色里点“存为我的”快速加入
+                </div>
+              </div>
               <button
-                @click="pickerTab = 'mine'"
-                class="px-4 py-2 rounded-xl font-black text-sm border-2 transition-all"
-                :class="
-                  pickerTab === 'mine'
-                    ? 'bg-[#45a6d5] text-white border-[#45a6d5]'
-                    : 'bg-white text-slate-600 border-slate-100 hover:border-sky-200'
-                "
+                class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors"
+                @click="myManagerOpen = false"
               >
-                我的队员
-              </button>
-              <button
-                @click="pickerTab = 'legion'"
-                class="px-4 py-2 rounded-xl font-black text-sm border-2 transition-all"
-                :class="
-                  pickerTab === 'legion'
-                    ? 'bg-[#45a6d5] text-white border-[#45a6d5]'
-                    : 'bg-white text-slate-600 border-slate-100 hover:border-sky-200'
-                "
-              >
-                军团成员
-              </button>
-              <button
-                @click="pickerTab = 'search'"
-                class="px-4 py-2 rounded-xl font-black text-sm border-2 transition-all"
-                :class="
-                  pickerTab === 'search'
-                    ? 'bg-[#45a6d5] text-white border-[#45a6d5]'
-                    : 'bg-white text-slate-600 border-slate-100 hover:border-sky-200'
-                "
-              >
-                查询角色
-              </button>
-              <button
-                @click="pickerTab = 'manual'"
-                class="px-4 py-2 rounded-xl font-black text-sm border-2 transition-all"
-                :class="
-                  pickerTab === 'manual'
-                    ? 'bg-[#45a6d5] text-white border-[#45a6d5]'
-                    : 'bg-white text-slate-600 border-slate-100 hover:border-sky-200'
-                "
-              >
-                手动输入
+                关闭
               </button>
             </div>
 
-            <div v-if="pickerTab === 'mine'" class="space-y-3">
+            <div class="p-6 space-y-4 max-h-[80vh] overflow-y-auto custom-scroll">
               <div class="flex items-center gap-2">
                 <input
                   v-model="myKeyword"
                   class="flex-1 px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
-                  placeholder="搜索我的队员..."
+                  placeholder="搜索我的队员（名称/备注/区服简写）..."
                 />
                 <button
                   class="px-4 py-3 rounded-2xl bg-slate-100 text-slate-700 font-black text-sm hover:bg-slate-200 transition-colors"
@@ -1352,39 +463,37 @@
                 </button>
               </div>
 
-              <div
-                v-if="myLoading"
-                class="py-10 text-center text-slate-400 font-bold"
-              >
+              <div v-if="myLoading" class="py-10 text-center text-slate-400 font-bold">
                 加载中...
               </div>
-              <div
-                v-else
-                class="max-h-[55vh] overflow-y-auto custom-scroll space-y-2"
-              >
+              <div v-else class="space-y-2">
                 <div
                   v-for="m in filteredMyMembers"
                   :key="m.id"
-                  class="p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3"
+                  class="p-4 rounded-2xl border border-slate-100 bg-white hover:bg-slate-50/40 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-3"
                 >
-                  <div class="min-w-0">
-                    <div class="font-black text-slate-800 truncate">
-                      {{
-                        formatNameWithServerShort({
-                          characterName: m.character_name,
-                          serverId: m.server_id,
-                          serverShortName: m.server_short_name,
-                        })
-                      }}
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <div class="font-black text-slate-800 truncate">
+                        {{
+                          formatNameWithServerShort({
+                            characterName: m.character_name,
+                            serverId: m.server_id,
+                            serverShortName: m.server_short_name,
+                          })
+                        }}
+                      </div>
+                      <span
+                        class="text-[10px] font-black px-2 py-1 rounded-lg bg-slate-100 text-slate-600"
+                      >
+                        {{ formatServerDisplay(m.server_id) }}
+                      </span>
                     </div>
                     <div
                       class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap"
                     >
-                      <span>{{ formatServerDisplay(m.server_id) }}</span>
                       <span>{{ m.class_name || "—" }}</span>
-                      <span v-if="m.character_level"
-                        >Lv.{{ m.character_level }}</span
-                      >
+                      <span v-if="m.character_level">Lv.{{ m.character_level }}</span>
                       <span>战 {{ formatCombatPower(m.combat_power) }}</span>
                       <span>评 {{ m.item_level || "-" }}</span>
                     </div>
@@ -1399,17 +508,25 @@
                   </div>
                   <div class="flex items-center gap-2 shrink-0">
                     <button
-                      class="px-3 py-2 rounded-xl bg-[#45a6d5] text-white font-black text-xs hover:bg-[#3b95c0] transition-colors"
-                      @click="pickFromMyMember(m)"
+                      class="px-3 py-2 rounded-xl bg-slate-100 text-slate-700 font-black text-xs hover:bg-slate-200 transition-colors"
+                      @click="
+                        copyText(
+                          formatNameWithServerShort({
+                            characterName: m.character_name,
+                            serverId: m.server_id,
+                            serverShortName: m.server_short_name,
+                          })
+                        )
+                      "
                     >
-                      选择
+                      复制
                     </button>
                     <button
-                      class="px-3 py-2 rounded-xl bg-slate-100 text-slate-700 font-black text-xs hover:bg-slate-200 transition-colors disabled:opacity-50"
+                      class="px-3 py-2 rounded-xl bg-slate-800 text-white font-black text-xs hover:bg-slate-700 transition-colors disabled:opacity-50"
                       :disabled="mySaving[m.id]"
                       @click="updateMyMember(m)"
                     >
-                      {{ mySaving[m.id] ? "保存中..." : "保存备注" }}
+                      {{ mySaving[m.id] ? "保存中..." : "保存" }}
                     </button>
                     <button
                       class="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 font-black text-xs hover:bg-rose-100 transition-colors disabled:opacity-50"
@@ -1428,223 +545,1024 @@
                 </div>
               </div>
             </div>
-
-            <div v-else-if="pickerTab === 'legion'" class="space-y-3">
-              <div class="flex items-center gap-2">
-                <input
-                  v-model="legionKeyword"
-                  class="flex-1 px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
-                  placeholder="搜索军团成员..."
-                />
-                <button
-                  class="px-4 py-3 rounded-2xl bg-slate-100 text-slate-700 font-black text-sm hover:bg-slate-200 transition-colors"
-                  :disabled="legionLoading"
-                  @click="fetchLegionMembers"
+          </div>
+        </div>
+      </Transition></Teleport
+    >
+    <Teleport to="body">
+      <Transition name="modal111">
+        <div
+          v-if="editorOpen"
+          class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
+          <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+          <div
+            class="relative z-10 w-full max-w-5xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden"
+          >
+            <div
+              class="p-6 border-b border-slate-100 flex items-center justify-between gap-4"
+            >
+              <div class="min-w-0 flex items-center gap-4">
+                <div>
+                  <div class="font-black text-slate-800 text-lg">
+                    {{ editingId ? "编辑计划" : "新建计划" }}
+                  </div>
+                  <div
+                    v-if="editingId"
+                    class="text-[10px] font-bold text-slate-400 mt-1 truncate"
+                  >
+                    {{ editingId }}
+                  </div>
+                </div>
+                <div
+                  v-if="selectedSwap"
+                  class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-50 border border-sky-100 animate-pulse shrink-0"
                 >
-                  {{ legionLoading ? "刷新中..." : "刷新" }}
-                </button>
+                  <div class="w-2 h-2 rounded-full bg-sky-500"></div>
+                  <div class="text-[11px] font-black text-sky-700 truncate max-w-[120px]">
+                    正在移动: {{ selectedSwap.name }}
+                  </div>
+                  <button
+                    @click="selectedSwap = null"
+                    class="ml-1 p-0.5 rounded-full hover:bg-sky-200 text-sky-400 hover:text-sky-600 transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-3.5 h-3.5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M18 6 6 18" />
+                      <path d="m6 6 12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
-
-              <div class="max-h-[45vh] overflow-y-auto custom-scroll space-y-2">
-                <div
-                  v-for="m in filteredLegionMembers"
-                  :key="m.character_id"
-                  class="p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer flex items-center justify-between gap-3"
+              <div class="flex items-center gap-2 shrink-0">
+                <button
+                  v-if="selectedSwap"
+                  @click="selectedSwap = null"
+                  class="px-4 py-2 rounded-xl bg-rose-500 text-white font-black text-sm hover:bg-rose-600 transition-colors shadow-sm animate-in fade-in zoom-in duration-200"
                 >
-                  <div class="min-w-0">
-                    <div class="font-black text-slate-800 truncate">
-                      {{ m.name }}
-                    </div>
-                    <div
-                      class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap"
-                    >
-                      <span>{{ formatServerDisplay(m.server_id || 0) }}</span>
-                      <span>{{ m.class_name }}</span>
-                      <span>Lv.{{ m.level }}</span>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-2 shrink-0">
-                    <button
-                      class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-black text-xs hover:bg-slate-200 transition-colors"
-                      @click.stop="saveMyMemberFromLegion(m)"
-                    >
-                      存为我的
-                    </button>
-                    <button
-                      class="px-3 py-1.5 rounded-xl bg-[#45a6d5] text-white font-black text-xs hover:bg-[#3b95c0] transition-colors"
-                      @click.stop="pickFromLegion(m)"
-                    >
-                      选择
-                    </button>
-                  </div>
-                </div>
-                <div
-                  v-if="!legionLoading && filteredLegionMembers.length === 0"
-                  class="py-8 text-center text-slate-400 font-bold"
+                  取消选中
+                </button>
+                <button
+                  v-else
+                  @click="addGroup"
+                  class="px-4 py-2 rounded-xl bg-slate-800 text-white font-black text-sm hover:bg-slate-700 transition-colors shadow-sm"
                 >
-                  暂无结果
-                </div>
+                  添加组
+                </button>
+                <div class="w-px h-8 bg-slate-100 mx-1"></div>
+                <button
+                  class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  @click="editorOpen = false"
+                  :disabled="!!selectedSwap"
+                >
+                  关闭
+                </button>
+                <button
+                  class="px-5 py-2 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  @click="savePlan"
+                  :disabled="saving || !!selectedSwap"
+                >
+                  {{ saving ? "保存中..." : "保存" }}
+                </button>
               </div>
             </div>
 
-            <div v-else-if="pickerTab === 'search'" class="space-y-3">
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-                <select
-                  v-model.number="searchRaceId"
-                  class="px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700"
-                >
-                  <option :value="1">天族</option>
-                  <option :value="2">魔族</option>
-                </select>
-                <select
-                  v-model.number="searchServerId"
-                  class="px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700"
-                >
-                  <option
-                    v-for="s in searchServerOptions"
-                    :key="s.serverId"
-                    :value="s.serverId"
+            <div class="p-6 space-y-6 max-h-[80vh] overflow-y-auto custom-scroll">
+              <div
+                class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                :class="{ 'opacity-20 pointer-events-none': selectedSwap }"
+              >
+                <div>
+                  <div
+                    class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2"
                   >
-                    {{ formatServerDisplay(s.serverId) }}
-                  </option>
-                </select>
-                <input
-                  v-model="searchKeyword"
-                  class="px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
-                  placeholder="输入角色名关键词..."
-                />
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2">
-                <input
-                  v-model="searchQuick"
-                  class="px-4 py-3 rounded-2xl bg-white border-2 border-slate-100 focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all"
-                  placeholder="快捷粘贴：角色名[区服简写]（例如 xxx[简卡]）"
-                />
-                <button
-                  class="px-5 py-3 rounded-2xl bg-slate-100 text-slate-700 font-black text-sm hover:bg-slate-200 transition-colors"
-                  @click="applyQuickToSearchAndSearch"
-                >
-                  解析并查询
-                </button>
-              </div>
-              <div class="flex items-center justify-end">
-                <button
-                  class="px-5 py-2 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-colors disabled:opacity-50"
-                  :disabled="searchLoading"
-                  @click="searchCharacters"
-                >
-                  {{ searchLoading ? "查询中..." : "查询" }}
-                </button>
+                    标题 *
+                  </div>
+                  <input
+                    v-model="form.title"
+                    type="text"
+                    class="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+                    placeholder="例如：周六副本/圣域等"
+                  />
+                </div>
+                <div>
+                  <div
+                    class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2"
+                  >
+                    时间 *
+                  </div>
+                  <input
+                    v-model="form.start_at"
+                    type="datetime-local"
+                    class="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+                  />
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 font-black text-xs hover:bg-slate-200 transition-colors"
+                      @click="setStartAtPreset('next')"
+                    >
+                      下个整点
+                    </button>
+                    <button
+                      type="button"
+                      class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 font-black text-xs hover:bg-slate-200 transition-colors"
+                      @click="setStartAtPreset('today20')"
+                    >
+                      今天 20:00
+                    </button>
+                    <button
+                      type="button"
+                      class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 font-black text-xs hover:bg-slate-200 transition-colors"
+                      @click="setStartAtPreset('tomorrow20')"
+                    >
+                      明天 20:00
+                    </button>
+                    <button
+                      type="button"
+                      class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 font-black text-xs hover:bg-slate-200 transition-colors"
+                      @click="setStartAtPreset('sat20')"
+                    >
+                      周六 20:00
+                    </button>
+                  </div>
+                  <div class="mt-2 text-[10px] font-bold text-slate-400">
+                    当前选择：{{ startAtPreview }}
+                  </div>
+                </div>
               </div>
 
               <div
-                v-if="searchLoading"
-                class="py-10 text-center text-slate-400 font-bold"
+                class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                :class="{ 'opacity-20 pointer-events-none': selectedSwap }"
               >
-                查询中...
-              </div>
-              <div
-                v-else
-                class="max-h-[45vh] overflow-y-auto custom-scroll space-y-2"
-              >
-                <div
-                  v-for="c in searchResults"
-                  :key="c.characterId"
-                  class="p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer"
-                >
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
                   <div class="flex items-center justify-between gap-3">
-                    <div class="min-w-0">
+                    <div
+                      class="text-[10px] font-black text-slate-400 uppercase tracking-widest"
+                    >
+                      保存方式
+                    </div>
+                    <button
+                      type="button"
+                      class="px-3 py-1.5 rounded-xl font-black text-xs border-2 transition-all"
+                      :class="
+                        form.is_public
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : 'bg-white text-slate-600 border-slate-200'
+                      "
+                      @click="form.is_public = !form.is_public"
+                    >
+                      {{ form.is_public ? "公开" : "仅我" }}
+                    </button>
+                  </div>
+                  <div class="mt-2 text-xs font-bold text-slate-500">
+                    {{ form.is_public ? "公开后其他玩家可查看使用" : "仅自己可查看使用" }}
+                  </div>
+                </div>
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                  <div
+                    class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2"
+                  >
+                    公开标签（逗号分隔）
+                  </div>
+                  <input
+                    v-model="tagInput"
+                    :disabled="!form.is_public"
+                    type="text"
+                    class="w-full px-4 py-3 rounded-2xl bg-white border-2 border-slate-200 focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all disabled:opacity-50 disabled:bg-slate-100"
+                    placeholder="例如：圣域,副本,周六,固定队"
+                  />
+                  <div class="mt-2 text-[10px] font-bold text-slate-400">
+                    {{ form.is_public ? "用于公开列表搜索与筛选" : "仅公开时可填写" }}
+                  </div>
+                </div>
+              </div>
+
+              <div :class="{ 'opacity-20 pointer-events-none': selectedSwap }">
+                <div
+                  class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2"
+                >
+                  备注
+                </div>
+                <textarea
+                  v-model="form.notes"
+                  rows="3"
+                  class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all resize-none"
+                  placeholder="计划说明、集合时间、注意事项..."
+                ></textarea>
+              </div>
+
+              <div class="flex items-center justify-between gap-4">
+                <div class="font-black text-slate-800">编排组</div>
+              </div>
+
+              <div class="space-y-8">
+                <div
+                  v-for="(g, gIndex) in form.groups"
+                  :key="g.id"
+                  class="p-6 rounded-[2rem] border-2"
+                  :class="groupEditorClass(gIndex)"
+                >
+                  <!-- Group Header -->
+                  <div
+                    class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6"
+                  >
+                    <div class="flex items-center gap-3">
                       <div
-                        class="font-black text-slate-800 truncate"
-                        v-html="c.name"
-                      ></div>
+                        class="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-black text-sm"
+                      >
+                        {{ gIndex + 1 }}
+                      </div>
+                      <div class="font-black text-slate-800 text-lg">
+                        {{ g.title || `第${gIndex + 1}组` }}
+                      </div>
+                    </div>
+                    <div
+                      class="flex items-center gap-2"
+                      :class="{ 'opacity-20 pointer-events-none': selectedSwap }"
+                    >
+                      <button
+                        class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 font-black text-xs hover:bg-slate-50 transition-colors disabled:opacity-50"
+                        :disabled="gIndex === 0"
+                        @click="moveGroup(gIndex, -1)"
+                      >
+                        上移
+                      </button>
+                      <button
+                        class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 font-black text-xs hover:bg-slate-50 transition-colors disabled:opacity-50"
+                        :disabled="gIndex === form.groups.length - 1"
+                        @click="moveGroup(gIndex, 1)"
+                      >
+                        下移
+                      </button>
+                      <button
+                        class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 font-black text-xs hover:bg-rose-100 transition-colors"
+                        @click="removeGroup(gIndex)"
+                      >
+                        删除组
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Group Fields -->
+                  <div
+                    class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"
+                    :class="{ 'opacity-20 pointer-events-none': selectedSwap }"
+                  >
+                    <div>
+                      <div
+                        class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1"
+                      >
+                        组标题
+                      </div>
+                      <input
+                        v-model="g.title"
+                        type="text"
+                        class="w-full px-4 py-3 rounded-2xl bg-white border-2 border-transparent focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all shadow-sm"
+                        placeholder="例如：主队/副队/..."
+                      />
+                    </div>
+                    <div>
+                      <div
+                        class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1"
+                      >
+                        组备注
+                      </div>
+                      <input
+                        v-model="g.note"
+                        type="text"
+                        class="w-full px-4 py-3 rounded-2xl bg-white border-2 border-transparent focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all shadow-sm"
+                        placeholder="组任务说明..."
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Teams within Group -->
+                  <div class="flex items-center justify-between gap-4 mb-4">
+                    <div
+                      class="text-xs font-black text-slate-500 uppercase tracking-wider"
+                    >
+                      包含队伍（最多 2 队）
+                    </div>
+                    <button
+                      v-if="g.teams.length < 2"
+                      @click="addTeamToGroup(gIndex)"
+                      class="px-3 py-1.5 rounded-lg bg-[#45a6d5] text-white font-black text-xs hover:bg-[#3b95c0] transition-colors shadow-sm"
+                      :class="{ 'opacity-20 pointer-events-none': selectedSwap }"
+                    >
+                      添加队伍
+                    </button>
+                  </div>
+
+                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div
+                      v-for="(t, tIndex) in g.teams"
+                      :key="t.id"
+                      class="p-5 rounded-3xl border border-slate-100 bg-white shadow-sm"
+                    >
+                      <div class="flex items-center justify-between gap-3 mb-4">
+                        <div class="flex items-center gap-2">
+                          <div class="font-black text-slate-800 text-sm">
+                            {{ t.title || `队伍 ${tIndex + 1}` }}
+                          </div>
+                          <span
+                            class="text-[10px] font-black bg-slate-100 text-slate-600 px-2 py-1 rounded-lg"
+                          >
+                            {{ (t.members || []).filter((m) => m).length }}/5
+                          </span>
+                        </div>
+                        <div
+                          class="flex items-center gap-1"
+                          :class="{
+                            'opacity-20 pointer-events-none': selectedSwap,
+                          }"
+                        >
+                          <button
+                            class="p-1.5 rounded-lg bg-slate-50 text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-30"
+                            :disabled="tIndex === 0"
+                            @click="moveTeamInGroup(gIndex, tIndex, -1)"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="w-4 h-4"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="3"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <path d="m15 18-6-6 6-6" />
+                            </svg>
+                          </button>
+                          <button
+                            class="p-1.5 rounded-lg bg-slate-50 text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-30"
+                            :disabled="tIndex === g.teams.length - 1"
+                            @click="moveTeamInGroup(gIndex, tIndex, 1)"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="w-4 h-4"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="3"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <path d="m9 18 6-6-6-6" />
+                            </svg>
+                          </button>
+                          <button
+                            class="p-1.5 rounded-lg bg-rose-50 text-rose-400 hover:text-rose-600 transition-colors ml-1"
+                            @click="removeTeamFromGroup(gIndex, tIndex)"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="w-4 h-4"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="3"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <path d="M18 6 6 18" />
+                              <path d="m6 6 12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div
+                        class="space-y-3 mb-4"
+                        :class="{
+                          'opacity-20 pointer-events-none': selectedSwap,
+                        }"
+                      >
+                        <input
+                          v-model="t.title"
+                          type="text"
+                          class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-xs text-slate-700 transition-all"
+                          placeholder="队伍名..."
+                        />
+                      </div>
+
+                      <div class="space-y-2">
+                        <div
+                          v-for="slotIndex in 5"
+                          :key="`slot_${t.id}_${slotIndex}`"
+                          class="p-2.5 rounded-xl border bg-white flex items-center justify-between gap-3 group transition-all"
+                          :class="
+                            slotMember(t, slotIndex - 1)
+                              ? isSelectedSwap(gIndex, tIndex, slotIndex - 1)
+                                ? 'ring-2 ring-sky-300 border-sky-200 bg-sky-50/30 cursor-pointer'
+                                : 'border-slate-100 hover:border-sky-200 hover:shadow-sm cursor-pointer'
+                              : selectedSwap
+                              ? 'ring-2 ring-sky-300 border-dashed border-sky-200 bg-sky-50/30 cursor-pointer'
+                              : t.slot_remarks?.[slotIndex - 1]
+                              ? 'bg-emerald-50/20 border-dashed border-emerald-100'
+                              : 'bg-rose-50/20 border-dashed border-rose-100'
+                          "
+                          @click="handleSlotClick(gIndex, tIndex, slotIndex - 1)"
+                        >
+                          <template v-if="slotMember(t, slotIndex - 1)">
+                            <div class="min-w-0">
+                              <div class="flex items-center gap-2">
+                                <div class="font-black text-sm truncate text-slate-800">
+                                  {{
+                                    formatNameWithServerShort(
+                                      slotMember(t, slotIndex - 1)
+                                    )
+                                  }}
+                                </div>
+                                <span
+                                  class="text-[10px] font-black px-2 py-0.5 rounded shrink-0 bg-slate-100 text-slate-600"
+                                >
+                                  {{ slotMember(t, slotIndex - 1).className }}
+                                </span>
+                                <span
+                                  class="text-[10px] font-medium shrink-0 text-slate-400"
+                                  >({{ slotMember(t, slotIndex - 1).raceName }})</span
+                                >
+                              </div>
+                              <div
+                                class="text-[9px] font-black flex items-center gap-2 mt-0.5 text-[#45a6d5]"
+                              >
+                                <span
+                                  >战
+                                  {{
+                                    formatCombatPower(
+                                      slotMember(t, slotIndex - 1).combatPower
+                                    )
+                                  }}</span
+                                >
+                                <span class="w-1 h-1 rounded-full bg-slate-200"></span>
+                                <span
+                                  >评
+                                  {{
+                                    slotMember(t, slotIndex - 1).itemLevel || "-"
+                                  }}</span
+                                >
+                              </div>
+                              <div
+                                class="mt-1"
+                                :class="{
+                                  'opacity-20 pointer-events-none': selectedSwap,
+                                }"
+                              >
+                                <input
+                                  v-model="slotMember(t, slotIndex - 1).remark"
+                                  type="text"
+                                  class="w-full px-2 py-1 rounded border outline-none font-bold text-[9px] transition-all bg-white/50 border-slate-100 focus:border-sky-300 text-slate-700 placeholder:text-slate-200"
+                                  placeholder="添加成员备注..."
+                                  @click.stop
+                                />
+                              </div>
+                              <div
+                                class="text-[10px] font-bold mt-1 truncate text-slate-400"
+                              >
+                                {{
+                                  formatServerDisplay(
+                                    slotMember(t, slotIndex - 1).serverId
+                                  )
+                                }}
+                                · Lv.{{ slotMember(t, slotIndex - 1).characterLevel }}
+                              </div>
+                            </div>
+                            <div
+                              class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              :class="{ hidden: selectedSwap }"
+                            >
+                              <button
+                                class="p-1 rounded-md bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+                                @click.stop="
+                                  copyText(
+                                    formatNameWithServerShort(
+                                      slotMember(t, slotIndex - 1)
+                                    )
+                                  )
+                                "
+                                title="复制角色名"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  class="w-3 h-3"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="3"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                >
+                                  <rect x="9" y="9" width="13" height="13" rx="2" />
+                                  <path
+                                    d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                                  />
+                                </svg>
+                              </button>
+                              <button
+                                class="p-1 rounded-md bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+                                :class="{
+                                  'animate-spin':
+                                    refreshingSlots[
+                                      `${gIndex}-${tIndex}-${slotIndex - 1}`
+                                    ],
+                                }"
+                                @click.stop="refreshMember(gIndex, tIndex, slotIndex - 1)"
+                                title="刷新角色信息"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  class="w-3 h-3"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="3"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                >
+                                  <path
+                                    d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"
+                                  />
+                                  <path d="M21 3v5h-5" />
+                                </svg>
+                              </button>
+                              <button
+                                class="p-1 rounded-md bg-slate-100 text-slate-500 hover:bg-slate-200 disabled:opacity-30"
+                                :disabled="slotIndex - 1 === 0"
+                                @click.stop="
+                                  moveMember(gIndex, tIndex, slotIndex - 1, -1)
+                                "
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  class="w-3 h-3"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="3"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                >
+                                  <path d="m18 15-6-6-6 6" />
+                                </svg>
+                              </button>
+                              <button
+                                class="p-1 rounded-md bg-slate-100 text-slate-500 hover:bg-slate-200 disabled:opacity-30"
+                                :disabled="slotIndex - 1 === t.members.length - 1"
+                                @click.stop="moveMember(gIndex, tIndex, slotIndex - 1, 1)"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  class="w-3 h-3"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="3"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                >
+                                  <path d="m18 9-6 6-6-6" />
+                                </svg>
+                              </button>
+                              <button
+                                class="p-1 rounded-md bg-rose-50 text-rose-500 hover:bg-rose-100"
+                                @click.stop="removeMember(gIndex, tIndex, slotIndex - 1)"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  class="w-3 h-3"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="3"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                >
+                                  <path d="M18 6 6 18" />
+                                  <path d="m6 6 12 12" />
+                                </svg>
+                              </button>
+                            </div>
+                          </template>
+                          <template v-else>
+                            <div
+                              class="flex-1"
+                              :class="{
+                                'opacity-20 pointer-events-none': selectedSwap,
+                              }"
+                            >
+                              <input
+                                v-model="t.slot_remarks[slotIndex - 1]"
+                                type="text"
+                                class="w-full px-2 py-1 rounded bg-transparent border-b border-slate-100 focus:border-sky-300 outline-none font-bold text-[10px] text-slate-400 placeholder:text-slate-200"
+                                :placeholder="`空位 ${slotIndex} 备注...`"
+                                @click.stop
+                              />
+                            </div>
+                            <div
+                              class="text-[10px] font-black text-sky-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                              :class="{ hidden: selectedSwap }"
+                            >
+                              添加 +
+                            </div>
+                          </template>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      v-if="g.teams.length === 0"
+                      class="lg:col-span-2 py-12 text-center text-slate-300 font-bold border-2 border-dashed border-slate-100 rounded-3xl bg-white/50"
+                    >
+                      暂无队伍，点击上方按钮添加
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+    <Teleport to="body">
+      <Transition name="modal211">
+        <div
+          v-if="pickerOpen"
+          class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+        >
+          <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+          <div
+            class="relative z-10 w-full max-w-3xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden"
+          >
+            <div
+              class="p-6 border-b border-slate-100 flex items-center justify-between gap-4"
+            >
+              <div class="font-black text-slate-800 text-lg">选择队员</div>
+              <button
+                class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-black text-sm hover:bg-slate-200 transition-colors"
+                @click="pickerOpen = false"
+              >
+                关闭
+              </button>
+            </div>
+
+            <div class="p-6 space-y-4 max-h-[80vh] overflow-y-auto custom-scroll">
+              <div class="flex items-center gap-2 flex-wrap">
+                <button
+                  @click="pickerTab = 'mine'"
+                  class="px-4 py-2 rounded-xl font-black text-sm border-2 transition-all"
+                  :class="
+                    pickerTab === 'mine'
+                      ? 'bg-[#45a6d5] text-white border-[#45a6d5]'
+                      : 'bg-white text-slate-600 border-slate-100 hover:border-sky-200'
+                  "
+                >
+                  我的队员
+                </button>
+                <button
+                  @click="pickerTab = 'legion'"
+                  class="px-4 py-2 rounded-xl font-black text-sm border-2 transition-all"
+                  :class="
+                    pickerTab === 'legion'
+                      ? 'bg-[#45a6d5] text-white border-[#45a6d5]'
+                      : 'bg-white text-slate-600 border-slate-100 hover:border-sky-200'
+                  "
+                >
+                  军团成员
+                </button>
+                <button
+                  @click="pickerTab = 'search'"
+                  class="px-4 py-2 rounded-xl font-black text-sm border-2 transition-all"
+                  :class="
+                    pickerTab === 'search'
+                      ? 'bg-[#45a6d5] text-white border-[#45a6d5]'
+                      : 'bg-white text-slate-600 border-slate-100 hover:border-sky-200'
+                  "
+                >
+                  查询角色
+                </button>
+                <button
+                  @click="pickerTab = 'manual'"
+                  class="px-4 py-2 rounded-xl font-black text-sm border-2 transition-all"
+                  :class="
+                    pickerTab === 'manual'
+                      ? 'bg-[#45a6d5] text-white border-[#45a6d5]'
+                      : 'bg-white text-slate-600 border-slate-100 hover:border-sky-200'
+                  "
+                >
+                  手动输入
+                </button>
+              </div>
+
+              <div v-if="pickerTab === 'mine'" class="space-y-3">
+                <div class="flex items-center gap-2">
+                  <input
+                    v-model="myKeyword"
+                    class="flex-1 px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+                    placeholder="搜索我的队员..."
+                  />
+                  <button
+                    class="px-4 py-3 rounded-2xl bg-slate-100 text-slate-700 font-black text-sm hover:bg-slate-200 transition-colors"
+                    :disabled="myLoading"
+                    @click="fetchMyMembers"
+                  >
+                    {{ myLoading ? "刷新中..." : "刷新" }}
+                  </button>
+                </div>
+
+                <div v-if="myLoading" class="py-10 text-center text-slate-400 font-bold">
+                  加载中...
+                </div>
+                <div v-else class="max-h-[55vh] overflow-y-auto custom-scroll space-y-2">
+                  <div
+                    v-for="m in filteredMyMembers"
+                    :key="m.id"
+                    class="p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3"
+                  >
+                    <div class="min-w-0">
+                      <div class="font-black text-slate-800 truncate">
+                        {{
+                          formatNameWithServerShort({
+                            characterName: m.character_name,
+                            serverId: m.server_id,
+                            serverShortName: m.server_short_name,
+                          })
+                        }}
+                      </div>
                       <div
                         class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap"
                       >
-                        <span>{{ formatServerDisplay(c.serverId) }}</span>
-                        <span>{{ c.race === 1 ? "天族" : "魔族" }}</span>
-                        <span>Lv.{{ c.level }}</span>
+                        <span>{{ formatServerDisplay(m.server_id) }}</span>
+                        <span>{{ m.class_name || "—" }}</span>
+                        <span v-if="m.character_level">Lv.{{ m.character_level }}</span>
+                        <span>战 {{ formatCombatPower(m.combat_power) }}</span>
+                        <span>评 {{ m.item_level || "-" }}</span>
+                      </div>
+                      <div class="mt-2">
+                        <input
+                          v-model="m.remark"
+                          type="text"
+                          class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 focus:border-[#45a6d5] outline-none font-bold text-xs text-slate-700 transition-all"
+                          placeholder="备注（可选）"
+                        />
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                      <button
+                        class="px-3 py-2 rounded-xl bg-[#45a6d5] text-white font-black text-xs hover:bg-[#3b95c0] transition-colors"
+                        @click="pickFromMyMember(m)"
+                      >
+                        选择
+                      </button>
+                      <button
+                        class="px-3 py-2 rounded-xl bg-slate-100 text-slate-700 font-black text-xs hover:bg-slate-200 transition-colors disabled:opacity-50"
+                        :disabled="mySaving[m.id]"
+                        @click="updateMyMember(m)"
+                      >
+                        {{ mySaving[m.id] ? "保存中..." : "保存备注" }}
+                      </button>
+                      <button
+                        class="px-3 py-2 rounded-xl bg-rose-50 text-rose-600 font-black text-xs hover:bg-rose-100 transition-colors disabled:opacity-50"
+                        :disabled="mySaving[m.id]"
+                        @click="deleteMyMember(m)"
+                      >
+                        删除
+                      </button>
+                    </div>
+                  </div>
+                  <div
+                    v-if="filteredMyMembers.length === 0"
+                    class="py-10 text-center text-slate-400 font-bold"
+                  >
+                    暂无队员
+                  </div>
+                </div>
+              </div>
+
+              <div v-else-if="pickerTab === 'legion'" class="space-y-3">
+                <div class="flex items-center gap-2">
+                  <input
+                    v-model="legionKeyword"
+                    class="flex-1 px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+                    placeholder="搜索军团成员..."
+                  />
+                  <button
+                    class="px-4 py-3 rounded-2xl bg-slate-100 text-slate-700 font-black text-sm hover:bg-slate-200 transition-colors"
+                    :disabled="legionLoading"
+                    @click="fetchLegionMembers"
+                  >
+                    {{ legionLoading ? "刷新中..." : "刷新" }}
+                  </button>
+                </div>
+
+                <div class="max-h-[45vh] overflow-y-auto custom-scroll space-y-2">
+                  <div
+                    v-for="m in filteredLegionMembers"
+                    :key="m.character_id"
+                    class="p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer flex items-center justify-between gap-3"
+                  >
+                    <div class="min-w-0">
+                      <div class="font-black text-slate-800 truncate">
+                        {{ m.name }}
+                      </div>
+                      <div
+                        class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap"
+                      >
+                        <span>{{ formatServerDisplay(m.server_id || 0) }}</span>
+                        <span>{{ m.class_name }}</span>
+                        <span>Lv.{{ m.level }}</span>
                       </div>
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
                       <button
                         class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-black text-xs hover:bg-slate-200 transition-colors"
-                        @click.stop="saveMyMemberFromSearch(c)"
+                        @click.stop="saveMyMemberFromLegion(m)"
                       >
                         存为我的
                       </button>
                       <button
                         class="px-3 py-1.5 rounded-xl bg-[#45a6d5] text-white font-black text-xs hover:bg-[#3b95c0] transition-colors"
-                        @click.stop="pickFromSearch(c)"
+                        @click.stop="pickFromLegion(m)"
                       >
                         选择
                       </button>
                     </div>
                   </div>
-                </div>
-                <div
-                  v-if="searchedOnce && searchResults.length === 0"
-                  class="py-8 text-center text-slate-400 font-bold"
-                >
-                  暂无结果
-                </div>
-              </div>
-            </div>
-
-            <div v-else class="space-y-3">
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-                <select
-                  v-model.number="manualRaceId"
-                  class="px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700"
-                >
-                  <option :value="1">天族</option>
-                  <option :value="2">魔族</option>
-                </select>
-                <select
-                  v-model.number="manualServerId"
-                  class="px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700"
-                >
-                  <option
-                    v-for="s in manualServerOptions"
-                    :key="s.serverId"
-                    :value="s.serverId"
+                  <div
+                    v-if="!legionLoading && filteredLegionMembers.length === 0"
+                    class="py-8 text-center text-slate-400 font-bold"
                   >
-                    {{ formatServerDisplay(s.serverId) }}
-                  </option>
-                </select>
-                <input
-                  v-model="manualName"
-                  class="px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
-                  placeholder="输入完整角色名..."
-                />
+                    暂无结果
+                  </div>
+                </div>
               </div>
-              <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2">
-                <input
-                  v-model="manualQuick"
-                  class="px-4 py-3 rounded-2xl bg-white border-2 border-slate-100 focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all"
-                  placeholder="快捷粘贴：角色名[区服简写]（例如 問號[奎靈]）"
-                />
-                <button
-                  class="px-5 py-3 rounded-2xl bg-slate-100 text-slate-700 font-black text-sm hover:bg-slate-200 transition-colors"
-                  @click="applyQuickToManual"
+
+              <div v-else-if="pickerTab === 'search'" class="space-y-3">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <select
+                    v-model.number="searchRaceId"
+                    class="px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700"
+                  >
+                    <option :value="1">天族</option>
+                    <option :value="2">魔族</option>
+                  </select>
+                  <select
+                    v-model.number="searchServerId"
+                    class="px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700"
+                  >
+                    <option
+                      v-for="s in searchServerOptions"
+                      :key="s.serverId"
+                      :value="s.serverId"
+                    >
+                      {{ formatServerDisplay(s.serverId) }}
+                    </option>
+                  </select>
+                  <input
+                    v-model="searchKeyword"
+                    class="px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+                    placeholder="输入角色名关键词..."
+                  />
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2">
+                  <input
+                    v-model="searchQuick"
+                    class="px-4 py-3 rounded-2xl bg-white border-2 border-slate-100 focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all"
+                    placeholder="快捷粘贴：角色名[区服简写]（例如 xxx[简卡]）"
+                  />
+                  <button
+                    class="px-5 py-3 rounded-2xl bg-slate-100 text-slate-700 font-black text-sm hover:bg-slate-200 transition-colors"
+                    @click="applyQuickToSearchAndSearch"
+                  >
+                    解析并查询
+                  </button>
+                </div>
+                <div class="flex items-center justify-end">
+                  <button
+                    class="px-5 py-2 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-colors disabled:opacity-50"
+                    :disabled="searchLoading"
+                    @click="searchCharacters"
+                  >
+                    {{ searchLoading ? "查询中..." : "查询" }}
+                  </button>
+                </div>
+
+                <div
+                  v-if="searchLoading"
+                  class="py-10 text-center text-slate-400 font-bold"
                 >
-                  解析
-                </button>
+                  查询中...
+                </div>
+                <div v-else class="max-h-[45vh] overflow-y-auto custom-scroll space-y-2">
+                  <div
+                    v-for="c in searchResults"
+                    :key="c.characterId"
+                    class="p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
+                    <div class="flex items-center justify-between gap-3">
+                      <div class="min-w-0">
+                        <div
+                          class="font-black text-slate-800 truncate"
+                          v-html="c.name"
+                        ></div>
+                        <div
+                          class="text-xs font-bold text-slate-500 mt-1 flex items-center gap-2 flex-wrap"
+                        >
+                          <span>{{ formatServerDisplay(c.serverId) }}</span>
+                          <span>{{ c.race === 1 ? "天族" : "魔族" }}</span>
+                          <span>Lv.{{ c.level }}</span>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2 shrink-0">
+                        <button
+                          class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-black text-xs hover:bg-slate-200 transition-colors"
+                          @click.stop="saveMyMemberFromSearch(c)"
+                        >
+                          存为我的
+                        </button>
+                        <button
+                          class="px-3 py-1.5 rounded-xl bg-[#45a6d5] text-white font-black text-xs hover:bg-[#3b95c0] transition-colors"
+                          @click.stop="pickFromSearch(c)"
+                        >
+                          选择
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    v-if="searchedOnce && searchResults.length === 0"
+                    class="py-8 text-center text-slate-400 font-bold"
+                  >
+                    暂无结果
+                  </div>
+                </div>
               </div>
-              <div class="flex items-center justify-end">
-                <button
-                  class="px-5 py-2 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-colors disabled:opacity-50"
-                  :disabled="manualLoading"
-                  @click="manualValidate"
-                >
-                  {{ manualLoading ? "验证中..." : "验证并添加" }}
-                </button>
+
+              <div v-else class="space-y-3">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <select
+                    v-model.number="manualRaceId"
+                    class="px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700"
+                  >
+                    <option :value="1">天族</option>
+                    <option :value="2">魔族</option>
+                  </select>
+                  <select
+                    v-model.number="manualServerId"
+                    class="px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-black text-slate-700"
+                  >
+                    <option
+                      v-for="s in manualServerOptions"
+                      :key="s.serverId"
+                      :value="s.serverId"
+                    >
+                      {{ formatServerDisplay(s.serverId) }}
+                    </option>
+                  </select>
+                  <input
+                    v-model="manualName"
+                    class="px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white outline-none font-bold text-slate-700 transition-all"
+                    placeholder="输入完整角色名..."
+                  />
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2">
+                  <input
+                    v-model="manualQuick"
+                    class="px-4 py-3 rounded-2xl bg-white border-2 border-slate-100 focus:border-[#45a6d5] outline-none font-bold text-slate-700 transition-all"
+                    placeholder="快捷粘贴：角色名[区服简写]（例如 問號[奎靈]）"
+                  />
+                  <button
+                    class="px-5 py-3 rounded-2xl bg-slate-100 text-slate-700 font-black text-sm hover:bg-slate-200 transition-colors"
+                    @click="applyQuickToManual"
+                  >
+                    解析
+                  </button>
+                </div>
+                <div class="flex items-center justify-end">
+                  <button
+                    class="px-5 py-2 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-colors disabled:opacity-50"
+                    :disabled="manualLoading"
+                    @click="manualValidate"
+                  >
+                    {{ manualLoading ? "验证中..." : "验证并添加" }}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </Transition>
+      </Transition></Teleport
+    >
   </div>
 </template>
 
@@ -1698,9 +1616,7 @@ const openMyMembersManager = async () => {
 const formatNameWithServerShort = (m) => {
   const name = String(m?.characterName || "").trim();
   const sid = Number(m?.serverId);
-  const short = String(
-    m?.serverShortName || getServerShortNameById(sid) || "",
-  ).trim();
+  const short = String(m?.serverShortName || getServerShortNameById(sid) || "").trim();
   if (!name) return "";
   if (!short) return name;
   return `${name}[${short}]`;
@@ -1857,7 +1773,7 @@ watch(
   () => form.value.is_public,
   (v) => {
     if (!v) tagInput.value = "";
-  },
+  }
 );
 
 const filteredPlans = computed(() => {
@@ -1948,10 +1864,7 @@ const refreshMemberInList = async (p, gIndex, tIndex, mIndex) => {
   if (!member?.characterId || !member?.serverId) return;
   $loading.show("正在重新获取角色信息...");
   try {
-    const updated = await fetchCharacterInfo(
-      member.characterId,
-      member.serverId,
-    );
+    const updated = await fetchCharacterInfo(member.characterId, member.serverId);
     const groups = JSON.parse(JSON.stringify(p.groups || []));
     const target = groups?.[gIndex]?.teams?.[tIndex]?.members?.[mIndex];
     if (target) {
@@ -2125,8 +2038,7 @@ const savePlan = async () => {
               characterName: m.characterName,
               serverId: m.serverId,
               serverName: m.serverName,
-              serverShortName:
-                m.serverShortName || getServerShortNameById(m.serverId),
+              serverShortName: m.serverShortName || getServerShortNameById(m.serverId),
               raceId: m.raceId,
               raceName: m.raceName,
               className: m.className,
@@ -2210,10 +2122,7 @@ const setStatus = async (status) => {
     await fetchPlans();
 
     if (status === "overdue") {
-      const ok = await $confirm(
-        "逾期提示",
-        "已标记为逾期，是否现在重新安排时间？",
-      );
+      const ok = await $confirm("逾期提示", "已标记为逾期，是否现在重新安排时间？");
       if (ok) {
         const updated = plans.value.find((x) => x.id === statusTarget.value.id);
         if (updated) openEdit(updated);
@@ -2341,10 +2250,7 @@ const refreshMember = async (gIndex, tIndex, mIndex) => {
   refreshingSlots.value[key] = true;
 
   try {
-    const updated = await fetchCharacterInfo(
-      member.characterId,
-      member.serverId,
-    );
+    const updated = await fetchCharacterInfo(member.characterId, member.serverId);
     if (updated) {
       team.members[mIndex] = {
         ...team.members[mIndex],
@@ -2388,9 +2294,7 @@ const onSwapClick = (gIndex, tIndex, mIndex) => {
   }
 
   const aTeam =
-    form.value.groups[selectedSwap.value.gIndex]?.teams[
-      selectedSwap.value.tIndex
-    ];
+    form.value.groups[selectedSwap.value.gIndex]?.teams[selectedSwap.value.tIndex];
   const bTeam = form.value.groups[gIndex]?.teams[tIndex];
 
   if (!aTeam || !bTeam) {
@@ -2432,7 +2336,7 @@ watch(
   () => pickerTab.value,
   (v) => {
     if (v === "mine") fetchMyMembers();
-  },
+  }
 );
 
 const filteredMyMembers = computed(() => {
@@ -2541,13 +2445,10 @@ const pickFromMyMember = (m) => {
     characterName: m.character_name,
     serverId: m.server_id,
     serverName:
-      m.server_name ||
-      getServerById(m.server_id)?.serverName ||
-      String(m.server_id),
+      m.server_name || getServerById(m.server_id)?.serverName || String(m.server_id),
     serverShortName: m.server_short_name || getServerShortNameById(m.server_id),
     raceId: m.race_id || null,
-    raceName:
-      m.race_name || (m.race_id === 1 ? "天族" : m.race_id === 2 ? "魔族" : ""),
+    raceName: m.race_name || (m.race_id === 1 ? "天族" : m.race_id === 2 ? "魔族" : ""),
     className: m.class_name || "未知",
     characterLevel: m.character_level || null,
     combatPower: m.combat_power ?? null,
@@ -2599,7 +2500,7 @@ const fetchLegionMembers = async () => {
     const { data } = await supabase
       .from("legion_members")
       .select(
-        "character_id,name,server_id,server_name,race_id,race_name,level,class_name",
+        "character_id,name,server_id,server_name,race_id,race_name,level,class_name"
       )
       .order("updated_at", { ascending: false })
       .limit(200);
@@ -2615,19 +2516,16 @@ const filteredLegionMembers = computed(() => {
   return legionMembers.value.filter((m) =>
     String(m.name || "")
       .toLowerCase()
-      .includes(kw),
+      .includes(kw)
   );
 });
 
 const searchRaceId = ref(2);
 const searchServerId = ref(2015);
-const searchServerOptions = computed(() =>
-  getServersByRace(searchRaceId.value),
-);
+const searchServerOptions = computed(() => getServersByRace(searchRaceId.value));
 watch(searchRaceId, () => {
   const list = searchServerOptions.value;
-  searchServerId.value =
-    list[0]?.serverId || (searchRaceId.value === 1 ? 1001 : 2001);
+  searchServerId.value = list[0]?.serverId || (searchRaceId.value === 1 ? 1001 : 2001);
 });
 
 const searchKeyword = ref("");
@@ -2684,13 +2582,10 @@ const searchCharacters = async () => {
 
 const manualRaceId = ref(2);
 const manualServerId = ref(2015);
-const manualServerOptions = computed(() =>
-  getServersByRace(manualRaceId.value),
-);
+const manualServerOptions = computed(() => getServersByRace(manualRaceId.value));
 watch(manualRaceId, () => {
   const list = manualServerOptions.value;
-  manualServerId.value =
-    list[0]?.serverId || (manualRaceId.value === 1 ? 1001 : 2001);
+  manualServerId.value = list[0]?.serverId || (manualRaceId.value === 1 ? 1001 : 2001);
 });
 const manualName = ref("");
 const manualQuick = ref("");
@@ -2715,9 +2610,7 @@ const fetchCharacterInfo = async (characterId, serverId) => {
   });
   const profile = detail?.profile;
   if (!profile) throw new Error("角色信息不存在");
-  const itemLevel = detail?.stat?.statList?.find(
-    (x) => x?.type === "ItemLevel",
-  )?.value;
+  const itemLevel = detail?.stat?.statList?.find((x) => x?.type === "ItemLevel")?.value;
   return { ...profile, itemLevel };
 };
 
@@ -2728,8 +2621,7 @@ const addMemberToTeam = (profile) => {
   const team = form.value.groups[gIndex]?.teams[tIndex];
   if (!team) return;
 
-  const targetIndex =
-    mIndex >= 0 ? mIndex : team.members.findIndex((m) => m === null);
+  const targetIndex = mIndex >= 0 ? mIndex : team.members.findIndex((m) => m === null);
   if (targetIndex === -1) {
     $alert("提示", "每队最多 5 人");
     return;
@@ -2737,8 +2629,8 @@ const addMemberToTeam = (profile) => {
 
   const exists = form.value.groups.some((g) =>
     (g.teams || []).some((t) =>
-      (t.members || []).some((m) => m && m.characterId === profile.characterId),
-    ),
+      (t.members || []).some((m) => m && m.characterId === profile.characterId)
+    )
   );
   if (exists) {
     $alert("提示", "该角色已在计划中");
@@ -2746,7 +2638,7 @@ const addMemberToTeam = (profile) => {
   }
 
   const initialRemark = String(
-    profile?.remark ?? team.slot_remarks?.[targetIndex] ?? "",
+    profile?.remark ?? team.slot_remarks?.[targetIndex] ?? ""
   ).trim();
 
   team.members[targetIndex] = {
@@ -2755,8 +2647,7 @@ const addMemberToTeam = (profile) => {
     characterName: profile.characterName,
     serverId: profile.serverId,
     serverName: profile.serverName,
-    serverShortName:
-      profile.serverShortName || getServerShortNameById(profile.serverId),
+    serverShortName: profile.serverShortName || getServerShortNameById(profile.serverId),
     raceId: profile.raceId,
     raceName: profile.raceName,
     className: profile.className,
@@ -2786,10 +2677,7 @@ const pickFromLegion = async (m) => {
         level: m.level,
         className: m.class_name,
       });
-      $alert(
-        "已添加",
-        "角色详情接口暂时不可用，已先添加占位信息，可稍后点刷新补全",
-      );
+      $alert("已添加", "角色详情接口暂时不可用，已先添加占位信息，可稍后点刷新补全");
     }
     addMemberToTeam(profile);
   } catch (e) {
@@ -2815,10 +2703,7 @@ const pickFromSearch = async (c) => {
         level: c.level,
         className: null,
       });
-      $alert(
-        "已添加",
-        "角色详情接口暂时不可用，已先添加占位信息，可稍后点刷新补全",
-      );
+      $alert("已添加", "角色详情接口暂时不可用，已先添加占位信息，可稍后点刷新补全");
     }
     addMemberToTeam(profile);
   } catch (e) {
@@ -2850,8 +2735,7 @@ const manualValidate = async () => {
     });
     const list = res?.list || [];
     const exact =
-      list.find((x) => String(x.name || "").replace(/<[^>]+>/g, "") === name) ||
-      list[0];
+      list.find((x) => String(x.name || "").replace(/<[^>]+>/g, "") === name) || list[0];
     if (!exact) throw new Error("角色不存在");
     let profile;
     try {
@@ -2866,10 +2750,7 @@ const manualValidate = async () => {
         level: exact.level,
         className: null,
       });
-      $alert(
-        "已添加",
-        "角色详情接口暂时不可用，已先添加占位信息，可稍后点刷新补全",
-      );
+      $alert("已添加", "角色详情接口暂时不可用，已先添加占位信息，可稍后点刷新补全");
     }
     addMemberToTeam(profile);
     manualName.value = "";
