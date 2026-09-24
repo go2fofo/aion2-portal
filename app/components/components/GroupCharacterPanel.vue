@@ -454,6 +454,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  gameDataOptions: {
+    type: Object,
+    required: true,
+  },
   cardConfig: {
     type: Object,
     required: true,
@@ -2992,6 +2996,7 @@ defineExpose({
       v-if="filteredCharacters.length > 0"
       :characters="filteredCharacters"
       :config="props.cardConfig"
+      :gameDataOptions="props.gameDataOptions"
       :get-group="getGroup"
       :format-combat-power="formatCombatPower"
       @click-gameplay="handleClickGameplay"

@@ -1,11 +1,17 @@
 <script setup>
 import { computed } from "vue";
 import { dungeonDecayRules, parseLogTimestamp } from "../config/userAdmin";
+import cloneDeep from "lodash/cloneDeep";
 
 // 1. 定义 Props
 const props = defineProps({
   // 完整数据
   gameData: {
+    type: Object,
+    default: () => {},
+  },
+  // 数据的配置
+  gameDataOptions: {
     type: Object,
     default: () => {},
   },
@@ -65,10 +71,18 @@ const currentModeTableConfig = reactive({
 });
 
 const charactersTable = computed(() => {
-  if (currentModeTableConfig.energySort === null) {
-    return props.characters;
+  let newCharacters = cloneDeep(props.characters);
+  // 小队过滤
+  if (props?.gameDataOptions?.activeTeamFilter) {
+    newCharacters = newCharacters.filter((f) => {
+      return f.teamId?.includes(props?.gameDataOptions?.activeTeamFilter);
+    });
   }
-  return props.characters.sort((a, b) => {
+
+  if (currentModeTableConfig.energySort === null) {
+    return newCharacters;
+  }
+  return newCharacters.sort((a, b) => {
     if (currentModeTableConfig.energySort === "asc") {
       return a.energy - b.energy;
     } else {
@@ -78,13 +92,15 @@ const charactersTable = computed(() => {
 });
 
 const charactersDefault = computed(() => {
-  console.log(
-    `🔍 [CharacterCard:82] %c config.sort.energySort: `,
-    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-    props.config.sort.energySort
-  );
+  let newCharacters = cloneDeep(props.characters);
+  // 小队过滤
+  if (props?.gameDataOptions?.activeTeamFilter) {
+    newCharacters = newCharacters.filter((f) => {
+      return f.teamId?.includes(props?.gameDataOptions?.activeTeamFilter);
+    });
+  }
   if (props.config?.sort?.energySort == "asc") {
-    return props.characters.sort((a, b) => {
+    return newCharacters.sort((a, b) => {
       if (props.config?.sort?.energySort === "asc") {
         return a.energy - b.energy;
       } else {
@@ -93,7 +109,7 @@ const charactersDefault = computed(() => {
     });
   }
 
-  return props.characters;
+  return newCharacters;
 });
 
 // 定义 Emits（向父组件抛出所有交互事件）

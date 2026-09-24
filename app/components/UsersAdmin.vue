@@ -38,10 +38,6 @@ const { executeDataRefresh } = useGameRefresh();
 // if (!gameStore.gameData) {
 //   gameStore.setGameData(cloneDeep(defGameData));
 // }
-const gameData = computed({
-  get: () => gameStore.gameData || defGameData,
-  //   set: (val) => gameStore.setGameData(val, "UsersAdmin中"),
-});
 
 const groupOpen = ref(false);
 const settingsOpen = ref(false);
@@ -358,7 +354,36 @@ let defGroup = {
   lastDimensionalUpdate: "",
 };
 const newCharGroupForm = ref(cloneDeep(defGroup));
+const gameData = computed({
+  get: () => gameStore.gameData || defGameData,
+  //   set: (val) => gameStore.setGameData(val, "UsersAdmin中"),
+});
 
+// 数据相关通用配置
+const gameDataOptions = ref({
+  activeTeamFilter: null, //小队筛选 选中
+});
+// 当前 Tab 下可用的小队列表
+const availableTeams = computed(() => {
+  if (!gameData.value.teams || !gameData.value.characters) return [];
+
+  // 1. 如果是“全部角色”，直接返回所有小队
+  if (activeTabGroup.value === "all") {
+    return gameData.value.teams;
+  }
+
+  // 2. 如果是某个具体分组，找出当前分组下的所有角色
+  const currentGroupCharacters = gameData.value.characters.filter(
+    (c) => c.group === activeTabGroup.value
+  );
+
+  // 3. 找出包含这些角色的所有小队（或者你通过 teamId 关联）
+  // 假设你的角色对象里记录了所属队伍的 ID，比如 c.teamId 或者 c.team
+  return gameData.value.teams.filter((team) => {
+    // 检查该小队里是否有成员属于当前分组
+    return currentGroupCharacters.some((c) => c.teamId.includes(team.id));
+  });
+});
 //顶部统计面板开始
 
 // 获取当前系统日期的标准字符串格式 (例如: "2026-08-02")
@@ -1746,8 +1771,7 @@ const handleAddTeam = () => {
 
   gameData.value.teams.push(newTeam);
   newTeamName.value = "";
-  saveData()
-  
+  saveData();
 };
 
 // 【小队管理】删除小队
@@ -1760,7 +1784,7 @@ const handleDeleteTeam = (teamId) => {
       char.teamId = null;
     }
   });
-  saveData()
+  saveData();
 };
 
 // 获取属于指定小队的角色列表
@@ -1800,7 +1824,7 @@ const handleToggleCharacterTeam = (char, teamId) => {
     }
     char.teamId.push(teamId);
   }
-  saveData()
+  saveData();
 };
 
 // 从小队中直接移除单个角色
@@ -1810,12 +1834,16 @@ const handleRemoveCharacterFromTeam = (char, teamId) => {
   } else if (char.teamId === teamId) {
     char.teamId = null;
   }
-  saveData()
+  saveData();
 };
 
 // 【连锁管理】执行连锁操作
 const handleExecuteChain = () => {
   if (!gameData.value.teams || gameData.value.teams.length === 0) return;
+  if (!teamChainOptions.value?.selectedChainTeamId) {
+    $toast("请选择连锁操作的目标队伍");
+    return;
+  }
   console.log("执行连锁操作...");
 };
 
@@ -3789,83 +3817,125 @@ watch(
     </div>
 
     <!-- Tab 切换栏 -->
-    <div
-      class="bg-white dark:bg-slate-900 p-3 rounded-3xl border border-slate-200 dark:border-slate-700/80 shadow-sm flex items-center gap-2 overflow-x-auto custom-scroll select-none"
-    >
-      <!-- 全部角色 Tab -->
-      <button
-        @click="activeTabGroup = 'all'"
-        class="px-5 py-2.5 rounded-2xl font-black text-xs transition-colors duration-150 whitespace-nowrap flex items-center gap-2 border"
-        :class="
-          activeTabGroup === 'all'
-            ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sm shadow-sky-500/20'
-            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/80 border-slate-200 dark:border-slate-700/60'
-        "
+    <div class="flex flex-col gap-3">
+      <!-- 第一层：原有的分组 Tab 切换栏 -->
+      <div
+        class="bg-white dark:bg-slate-900 p-3 rounded-3xl border border-slate-200 dark:border-slate-700/80 shadow-sm flex items-center gap-2 overflow-x-auto custom-scroll select-none"
       >
-        <span>全部角色</span>
-        <span
-          class="min-w-[18px] text-center px-1.5 py-0.5 rounded-full text-[10px] font-black leading-none"
+        <!-- 全部角色 Tab -->
+        <button
+          @click="
+            activeTabGroup = 'all';
+            gameDataOptions.activeTeamFilter = null;
+          "
+          class="px-5 py-2.5 rounded-2xl font-black text-xs transition-colors duration-150 whitespace-nowrap flex items-center gap-2 border"
           :class="
             activeTabGroup === 'all'
-              ? 'bg-white/20 text-white'
-              : 'bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+              ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sm shadow-sky-500/20'
+              : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/80 border-slate-200 dark:border-slate-700/60'
           "
         >
-          {{ gameData.characters.length }}
-        </span>
-      </button>
+          <span>全部角色</span>
+          <span
+            class="min-w-[18px] text-center px-1.5 py-0.5 rounded-full text-[10px] font-black leading-none"
+            :class="
+              activeTabGroup === 'all'
+                ? 'bg-white/20 text-white'
+                : 'bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+            "
+          >
+            {{ gameData.characters.length }}
+          </span>
+        </button>
 
-      <!-- 默认分组 Tab -->
-      <!-- <button
-        @click="activeTabGroup = 'default'"
-        class="px-5 py-2.5 rounded-2xl font-black text-xs transition-colors duration-150 whitespace-nowrap flex items-center gap-2 border"
-        :class="
-          activeTabGroup === 'default'
-            ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sm shadow-sky-500/20'
-            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/80 border-slate-200 dark:border-slate-700/60'
-        "
-      >
-        <span>默认分组</span>
-        <span
-          class="min-w-[18px] text-center px-1.5 py-0.5 rounded-full text-[10px] font-black leading-none"
-          :class="
-            activeTabGroup === 'default'
-              ? 'bg-white/20 text-white'
-              : 'bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+        <!-- 自定义分组 Tab -->
+        <button
+          v-for="group in gameData.groups"
+          :key="group.id"
+          @click="
+            activeTabGroup = group.id;
+            gameDataOptions.activeTeamFilter = null;
           "
-        >
-          {{
-            gameData.characters.filter(
-              (c) => !c.group || !gameData.groups.some((g) => g.id === c.group),
-            ).length
-          }}
-        </span>
-      </button> -->
-
-      <!-- 自定义分组 Tab -->
-      <button
-        v-for="group in gameData.groups"
-        :key="group.id"
-        @click="activeTabGroup = group.id"
-        class="px-5 py-2.5 rounded-2xl font-black text-xs transition-colors duration-150 whitespace-nowrap flex items-center gap-2 border"
-        :class="
-          activeTabGroup === group.id
-            ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sm shadow-sky-500/20'
-            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/80 border-slate-200 dark:border-slate-700/60'
-        "
-      >
-        <span>{{ group.name }}</span>
-        <span
-          class="min-w-[18px] text-center px-1.5 py-0.5 rounded-full text-[10px] font-black leading-none"
+          class="px-5 py-2.5 rounded-2xl font-black text-xs transition-colors duration-150 whitespace-nowrap flex items-center gap-2 border"
           :class="
             activeTabGroup === group.id
-              ? 'bg-white/20 text-white'
-              : 'bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+              ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sm shadow-sky-500/20'
+              : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/80 border-slate-200 dark:border-slate-700/60'
           "
         >
-          {{ gameData.characters.filter((c) => c.group === group.id).length }}
-        </span>
-      </button>
+          <span>{{ group.name }}</span>
+          <span
+            class="min-w-[18px] text-center px-1.5 py-0.5 rounded-full text-[10px] font-black leading-none"
+            :class="
+              activeTabGroup === group.id
+                ? 'bg-white/20 text-white'
+                : 'bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+            "
+          >
+            {{ gameData.characters.filter((c) => c.group === group.id).length }}
+          </span>
+        </button>
+      </div>
+
+      <!-- 第二层：小队联动筛选栏（当存在可用小队时显示） -->
+      <div
+        v-if="availableTeams.length > 0"
+        class="flex items-center gap-2 px-1 overflow-x-auto custom-scroll select-none animate-fadeIn"
+      >
+        <div
+          class="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 text-xs font-bold mr-1 shrink-0"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-3.5 h-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+            />
+          </svg>
+          <span>小队筛选:</span>
+        </div>
+
+        <!-- 全部小队（清除小队筛选） -->
+        <button
+          @click="gameDataOptions.activeTeamFilter = null"
+          class="px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all duration-150 whitespace-nowrap border"
+          :class="
+            !gameDataOptions?.activeTeamFilter
+              ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-slate-900 dark:border-slate-100 shadow-xs'
+              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+          "
+        >
+          全部小队
+        </button>
+
+        <!-- 各具体小队胶囊 -->
+        <button
+          v-for="team in availableTeams"
+          :key="team.id"
+          @click="gameDataOptions.activeTeamFilter = team.id"
+          class="px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all duration-150 whitespace-nowrap border flex items-center gap-1.5"
+          :class="
+            gameDataOptions?.activeTeamFilter === team.id
+              ? 'bg-sky-500 text-white border-sky-500 shadow-xs shadow-sky-500/20'
+              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+          "
+        >
+          <span
+            class="w-1.5 h-1.5 rounded-full"
+            :class="
+              gameDataOptions?.activeTeamFilter === team.id ? 'bg-white' : 'bg-sky-400'
+            "
+          ></span>
+          <span>{{ team.name }}</span>
+        </button>
+      </div>
     </div>
 
     <!-- 当前分组数据下通用操作 -->
@@ -4252,7 +4322,9 @@ watch(
       v-if="activeTabGroup"
       :activeTabGroup="activeTabGroup"
       :gameData="gameData"
+      :gameDataOptions="gameDataOptions"
       :cardConfig="cardConfig"
+
       @character-delete="groupCharacterPanelHandleDelete"
       @toggle-lock="groupCharacterPanelHandleToggleLock"
       @toggle-refresh="groupCharacterPanelHandleToggleRefresh"
@@ -8321,38 +8393,29 @@ watch(
       <Transition name="teamChain">
         <div
           v-if="teamChainOpen"
-          class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 backdrop-blur-sm"
         >
-          <div
-            class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
-            @click="teamChainOpen = false"
-          ></div>
+          <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
           <div
             class="relative z-10 w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col max-h-[85vh]"
           >
             <!-- 弹窗头部 -->
+            <!-- 弹窗头部 -->
             <div
-              class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 shrink-0"
+              class="px-8 py-2 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-900 z-10"
             >
-              <div class="flex items-center gap-4">
+              <div class="flex items-center gap-6">
+                <!-- Tab 切换按钮组 -->
                 <div
-                  class="font-black text-slate-800 dark:text-slate-100 text-lg flex items-center gap-2"
-                >
-                  <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
-                  小队管理 / 连锁
-                </div>
-
-                <!-- Tab 切换 -->
-                <div
-                  class="flex items-center p-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold"
+                  class="flex items-center gap-1.5 bg-slate-200/70 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700"
                 >
                   <button
                     type="button"
-                    class="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+                    class="flex-1 px-2 py-2 rounded-xl text-xs font-black transition-all shadow-2xs whitespace-nowrap cursor-pointer"
                     :class="
                       teamChainOptions.tab === 'chain'
-                        ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-xs'
-                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                        ? 'bg-[#45a6d5] text-white shadow-md shadow-[#45a6d5]/30'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700/60'
                     "
                     @click="teamChainOptions.tab = 'chain'"
                   >
@@ -8360,11 +8423,11 @@ watch(
                   </button>
                   <button
                     type="button"
-                    class="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+                    class="flex-1 px-2 py-2 rounded-xl text-xs font-black transition-all shadow-2xs whitespace-nowrap cursor-pointer"
                     :class="
                       teamChainOptions.tab === 'team'
-                        ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-xs'
-                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                        ? 'bg-[#45a6d5] text-white shadow-md shadow-[#45a6d5]/30'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700/60'
                     "
                     @click="teamChainOptions.tab = 'team'"
                   >
@@ -8372,10 +8435,9 @@ watch(
                   </button>
                 </div>
               </div>
-
               <button
-                class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                 @click="teamChainOpen = false"
+                class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               >
                 关闭
               </button>
