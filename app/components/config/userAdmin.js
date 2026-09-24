@@ -487,23 +487,23 @@ export const KinahOdSate = {
         {
           mode: "困难",
           energy: 80,
-          kina: 0,
+          kina: 1600,
           boundKina: 0,
-          total: 0,
+          total: 1600,
         },
         {
           mode: "普通",
           energy: 80,
-          kina: 0,
+          kina: 1400,
           boundKina: 0,
-          total: 0,
+          total: 1400,
         },
         {
           mode: "简单",
           energy: 80,
-          kina: 0,
+          kina: 1000,
           boundKina: 0,
-          total: 0,
+          total: 1000,
         },
       ],
     },
@@ -672,14 +672,22 @@ export const updateLogs = ref([
     desc:
       "免费云端数据库偶尔受网络影响波动，建议经常前往【存储设置】进行手动同步，或通过【设置】定期导出导入本地备份防丢失。",
   },
-  {
-    tag: "新更新20260922",
+    {
+    tag: "新更新",
     tagClass:
       "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50",
-    title: "添加表格模式",
+    title: "20260924添加奥德能量控制",
     desc:
-      "角色卡片显示中添加表格显示。",
+      "奥德能量添加控制！可以自定义奥德颜色，可以控制奥德存储上限",
   },
+  // {
+  //   tag: "新更新20260922",
+  //   tagClass:
+  //     "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50",
+  //   title: "添加表格模式",
+  //   desc:
+  //     "角色卡片显示中添加表格显示。",
+  // },
   //   {
   //     tag: "新功能",
   //     tagClass:

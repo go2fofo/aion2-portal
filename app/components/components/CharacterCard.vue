@@ -47,6 +47,11 @@ const props = defineProps({
         showCloister: true, // 是否显示深渊回廊次数
         showTrial: true, // 是否显示试炼次数
       },
+      energy: {
+        baseColor: "#78afd0",
+        storedColor: "#F1F3F4",
+        limitStored: true,
+      },
     }),
   },
 });
@@ -916,6 +921,7 @@ const visibleTasks = computed(() => {
                 </button>
               </div> -->
             </div>
+            <!-- 奥德条 1 -->
             <div
               class="flex items-center gap-1 text-xs font-black"
               @click="emit('task-click', char, '', 'globalSimpleEnergy')"
@@ -937,7 +943,14 @@ const visibleTasks = computed(() => {
               </span>
 
               <span class="text-slate-400 dark:text-slate-500 font-medium ml-0.5">
-                / {{ getGroup(char.group).premiumMember ? 840 : 560 }}
+                /
+                {{
+                  !config?.energy?.limitStored
+                    ? "∞"
+                    : getGroup(char.group).premiumMember
+                    ? 840
+                    : 560
+                }}
               </span>
             </div>
           </div>
@@ -977,8 +990,8 @@ const visibleTasks = computed(() => {
               }"
               :title="`存储奥德: ${char.storedEnergy || 0}`"
             ></div> -->
-            <!-- 奥德统一进度条 -->
-            <div
+            <!-- 奥德统一进度条1 -->
+            <!-- <div
               class="bg-gradient-to-r from-[#78afd0] to-[#8fc3df] dark:from-[#5f98ba] dark:to-[#72afd0] h-full rounded-full transition-all duration-500 relative opacity-95"
               :style="{
                 width: `${Math.min(
@@ -992,7 +1005,50 @@ const visibleTasks = computed(() => {
                 )}%`,
               }"
               :title="`奥德: ${(char.energy || 0) + (char.storedEnergy || 0)}`"
-            ></div>
+            ></div> -->
+            <!-- 奥德统一进度条2 -->
+            <!-- 奥德统一进度条 -->
+            <div
+              class="h-full rounded-full transition-all duration-500 relative overflow-hidden opacity-95"
+              :style="{
+                width: `${Math.min(
+                  100,
+                  Math.max(
+                    0,
+                    (((char.energy || 0) + (char.storedEnergy || 0)) /
+                      (char.premiumMember ? 840 : 560)) *
+                      100
+                  )
+                )}%`,
+              }"
+              :title="`奥德: ${(char.energy || 0) + (char.storedEnergy || 0)}`"
+            >
+              <!-- 基础奥德 -->
+              <div
+                class="absolute left-0 top-0 bottom-0 transition-all duration-500"
+                :style="{
+                  width: `${
+                    ((char.energy || 0) /
+                      ((char.energy || 0) + (char.storedEnergy || 0) || 1)) *
+                    100
+                  }%`,
+                  backgroundColor: config.energy.baseColor,
+                }"
+              ></div>
+
+              <!-- 存储奥德 -->
+              <div
+                class="absolute right-0 top-0 bottom-0 transition-all duration-500"
+                :style="{
+                  width: `${
+                    ((char.storedEnergy || 0) /
+                      ((char.energy || 0) + (char.storedEnergy || 0) || 1)) *
+                    100
+                  }%`,
+                  backgroundColor: config.energy.storedColor,
+                }"
+              ></div>
+            </div>
           </div>
 
           <!-- ================= 底部：自适应弹性流式布局（变换奥德 + 商店奥德 + 总计） ================= -->
@@ -1229,7 +1285,13 @@ const visibleTasks = computed(() => {
 
             <div class="grid grid-cols-4 gap-2">
               <div
-                v-for="(maxLimit, bossKey) in  { s1: 1, s2: 1, s3: 1 ,s4:1,...char.sanctuary}"
+                v-for="(maxLimit, bossKey) in {
+                  s1: 1,
+                  s2: 1,
+                  s3: 1,
+                  s4: 1,
+                  ...char.sanctuary,
+                }"
                 :key="bossKey"
                 class="group relative rounded-xl p-2 flex flex-col items-center justify-center gap-1.5 transition-all border cursor-pointer select-none"
                 @click="emit('task-click', char, bossKey, 'consumeSanctuary')"
@@ -1847,99 +1909,47 @@ const visibleTasks = computed(() => {
               </div>
             </td> -->
 
-     <!-- ================================================= -->
-<!-- 奥德能量 -->
-<!-- ================================================= -->
-<td class="px-3 py-3 align-middle">
-  <div
-    class="min-w-[150px] p-3 rounded-2xl
-           bg-gradient-to-br
-           from-sky-50 via-white to-cyan-50
-           dark:from-sky-950/60
-           dark:via-slate-900
-           dark:to-cyan-950/40
-           border border-sky-200/80
-           dark:border-sky-800/70
-           cursor-pointer
-           shadow-sm
-           hover:shadow-md
-           hover:border-[#45a6d5]
-           transition-all
-           active:scale-[0.98]"
-    @click="emit('task-click', char, '', 'globalSimpleEnergy')"
-  >
-    <!-- 总能量 -->
-    <div class="mt-2 flex items-end justify-center gap-1">
-      <span
-        class="text-2xl leading-none
-               font-black tracking-tight
-               text-[#2389bd]
-               dark:text-[#72c4ea]"
-      >
-        {{
-          (char.energy || 0) +
-          (char.storedEnergy || 0)
-        }}
-      </span>
+            <!-- ================================================= -->
+            <!-- 奥德能量 -->
+            <!-- ================================================= -->
+            <td class="px-3 py-3 align-middle">
+              <div
+                class="min-w-[150px] p-3 rounded-2xl bg-gradient-to-br from-sky-50 via-white to-cyan-50 dark:from-sky-950/60 dark:via-slate-900 dark:to-cyan-950/40 border border-sky-200/80 dark:border-sky-800/70 cursor-pointer shadow-sm hover:shadow-md hover:border-[#45a6d5] transition-all active:scale-[0.98]"
+                @click="emit('task-click', char, '', 'globalSimpleEnergy')"
+              >
+                <!-- 总能量 -->
+                <div class="mt-2 flex items-end justify-center gap-1">
+                  <span
+                    class="text-2xl leading-none font-black tracking-tight text-[#2389bd] dark:text-[#72c4ea]"
+                  >
+                    {{ (char.energy || 0) + (char.storedEnergy || 0) }}
+                  </span>
 
-      <span
-        class="mb-0.5 text-[10px]
-               font-bold
-               text-slate-400"
-      >
-        奥德
-      </span>
-    </div>
+                  <span class="mb-0.5 text-[10px] font-bold text-slate-400"> 奥德 </span>
+                </div>
 
-    <!-- 基础 / 存储 -->
-    <div
-      class="mt-3 pt-2
-             border-t border-sky-100
-             dark:border-sky-900/60
-             grid grid-cols-2 gap-2"
-    >
-      <div class="text-center">
-        <div
-          class="text-[9px]
-                 text-slate-400
-                 dark:text-slate-500"
-        >
-          基础
-        </div>
+                <!-- 基础 / 存储 -->
+                <div
+                  class="mt-3 pt-2 border-t border-sky-100 dark:border-sky-900/60 grid grid-cols-2 gap-2"
+                >
+                  <div class="text-center">
+                    <div class="text-[9px] text-slate-400 dark:text-slate-500">基础</div>
 
-        <div
-          class="mt-0.5
-                 text-xs font-black
-                 text-[#45a6d5]"
-        >
-          {{ char.energy || 0 }}
-        </div>
-      </div>
+                    <div class="mt-0.5 text-xs font-black text-[#45a6d5]">
+                      {{ char.energy || 0 }}
+                    </div>
+                  </div>
 
-      <div
-        class="text-center
-               border-l border-sky-100
-               dark:border-sky-900/60"
-      >
-        <div
-          class="text-[9px]
-                 text-slate-400
-                 dark:text-slate-500"
-        >
-          存储
-        </div>
+                  <div class="text-center border-l border-sky-100 dark:border-sky-900/60">
+                    <div class="text-[9px] text-slate-400 dark:text-slate-500">存储</div>
 
-        <div
-          class="mt-0.5
-                 text-xs font-black
-                 text-amber-500"
-        >
-          {{ char.storedEnergy || 0 }}
-        </div>
-      </div>
-    </div>
-  </div>
-</td>
+                    <div class="mt-0.5 text-xs font-black text-amber-500">
+                      {{ char.storedEnergy || 0 }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
 
             <!-- ================================================= -->
             <!-- 本周副本 -->
@@ -2002,12 +2012,12 @@ const visibleTasks = computed(() => {
             <td class="px-3 py-3 align-center">
               <div class="flex items-center justify-center gap-1.5">
                 <button
-                  v-for="(maxLimit, bossKey) in  {
+                  v-for="(maxLimit, bossKey) in {
                     s1: 1,
                     s2: 1,
                     s3: 1,
                     s4: 1,
-                    ...char.sanctuary
+                    ...char.sanctuary,
                   }"
                   :key="bossKey"
                   type="button"

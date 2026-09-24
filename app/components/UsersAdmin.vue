@@ -21,7 +21,13 @@ import GlobalModal from "./GlobalModal.vue";
 import cloneDeep from "lodash/cloneDeep";
 import { dungeonDecayRules } from "./config/userAdmin";
 import { useGameRefresh } from "@/composables/useGameRefresh";
-import { characterClasses, twToScMap, parseLogTimestamp, defGameData,updateLogs } from "./config/userAdmin";
+import {
+  characterClasses,
+  twToScMap,
+  parseLogTimestamp,
+  defGameData,
+  updateLogs,
+} from "./config/userAdmin";
 import { useGameStore } from "@/stores/useGameStore";
 const gameStore = useGameStore();
 const client = useSupabaseClient();
@@ -1433,7 +1439,38 @@ const settings = reactive({
   compactMode: false,
   showToast: true,
 });
-
+const oderColorPresets = [
+  {
+    name: "天空蓝",
+    base: "#78afd0",
+    stored: "#8fc3df",
+  },
+  {
+    name: "冰川蓝",
+    base: "#60a5fa",
+    stored: "#93c5fd",
+  },
+  {
+    name: "青绿色",
+    base: "#38bdf8",
+    stored: "#67e8f9",
+  },
+  {
+    name: "紫罗兰",
+    base: "#818cf8",
+    stored: "#a5b4fc",
+  },
+  {
+    name: "翡翠绿",
+    base: "#34d399",
+    stored: "#6ee7b7",
+  },
+  {
+    name: "琥珀金",
+    base: "#f59e0b",
+    stored: "#fbbf24",
+  },
+];
 // 卡片布局与显示配置
 const cardConfig = reactive({
   columns: 4, // 可选: 1, 2, 3, 4, 5列布局
@@ -1453,6 +1490,15 @@ const cardConfig = reactive({
     showNightmareCount: true, // 是否显示噩梦次数
     showCloister: true, // 是否显示深渊回廊次数
     showTrial: true, // 是否显示试炼次数
+  },
+
+  compactMode: false,
+  showToast: true,
+
+  energy: {
+    baseColor: "#78afd0",
+    storedColor: "#F1F3F4",
+    limitStored: true,
   },
 });
 // 打开分组管理弹窗
@@ -6391,6 +6437,266 @@ watch(
                   </div>
                 </div>
               </div>
+              <!-- ================================================= -->
+              <!-- 功能设置 -->
+              <!-- ================================================= -->
+              <div class="space-y-3">
+                <h3
+                  class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
+                >
+                  功能设置
+                </h3>
+
+                <!-- ================================================= -->
+                <!-- 奥德能量显示 -->
+                <!-- ================================================= -->
+                <div
+                  class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 space-y-4"
+                >
+                  <div>
+                    <div class="text-sm font-black text-slate-800 dark:text-slate-200">
+                      奥德能量显示
+                      <button
+                        type="button"
+                        class="shrink-0 px-2.5 py-1 rounded-lg text-xs font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:text-[#45a6d5] hover:border-[#45a6d5] transition-colors"
+                        @click="
+                          () => {
+                            cardConfig.energy.baseColor = '#78afd0';
+                            cardConfig.energy.storedColor = '#F1F3F4';
+                          }
+                        "
+                      >
+                        点击恢复默认颜色
+                      </button>
+                    </div>
+
+                    <div class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                      自定义角色卡片中奥德能量的颜色和显示方式
+                    </div>
+                  </div>
+
+                  <!-- ================================================= -->
+                  <!-- 颜色设置 -->
+                  <!-- ================================================= -->
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- 基础奥德 -->
+                    <div
+                      class="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/40"
+                    >
+                      <div class="flex items-center justify-between gap-3 mb-3">
+                        <div>
+                          <div
+                            class="text-sm font-bold text-slate-700 dark:text-slate-200"
+                          >
+                            基础奥德颜色
+                          </div>
+
+                          <div class="text-xs text-slate-400 mt-0.5">
+                            能量条左侧的基础奥德
+                          </div>
+                        </div>
+
+                        <label
+                          class="relative w-10 h-10 rounded-xl overflow-hidden cursor-pointer border-2 border-white dark:border-slate-700 shadow-sm shrink-0"
+                          :style="{
+                            backgroundColor: cardConfig.energy.baseColor,
+                          }"
+                        >
+                          <input
+                            v-model="cardConfig.energy.baseColor"
+                            type="color"
+                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                        </label>
+                      </div>
+
+                      <div class="flex items-center gap-2">
+                        <div
+                          class="w-8 h-8 rounded-lg shrink-0 border border-slate-200 dark:border-slate-700 relative cursor-pointer"
+                          :style="{
+                            backgroundColor: cardConfig.energy.baseColor,
+                          }"
+                        >
+                          <input
+                            v-model="cardConfig.energy.baseColor"
+                            type="color"
+                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                        </div>
+
+                        <input
+                          v-model="cardConfig.energy.baseColor"
+                          type="text"
+                          maxlength="7"
+                          class="flex-1 min-w-0 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#45a6d5]/30"
+                          placeholder="#78afd0"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- 存储奥德 -->
+                    <div
+                      class="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/40"
+                    >
+                      <div class="flex items-center justify-between gap-3 mb-3">
+                        <div>
+                          <div
+                            class="text-sm font-bold text-slate-700 dark:text-slate-200"
+                          >
+                            存储奥德颜色
+                          </div>
+
+                          <div class="text-xs text-slate-400 mt-0.5">
+                            能量条右侧的存储奥德
+                          </div>
+                        </div>
+
+                        <label
+                          class="relative w-10 h-10 rounded-xl overflow-hidden cursor-pointer border-2 border-white dark:border-slate-700 shadow-sm shrink-0"
+                          :style="{
+                            backgroundColor: cardConfig.energy.storedColor,
+                          }"
+                        >
+                          <input
+                            v-model="cardConfig.energy.storedColor"
+                            type="color"
+                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                        </label>
+                      </div>
+
+                      <div class="flex items-center gap-2">
+                        <div
+                          class="w-8 h-8 rounded-lg shrink-0 border border-slate-200 dark:border-slate-700 relative cursor-pointer"
+                          :style="{
+                            backgroundColor: cardConfig.energy.storedColor,
+                          }"
+                        >
+                          <input
+                            v-model="cardConfig.energy.storedColor"
+                            type="color"
+                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                        </div>
+
+                        <input
+                          v-model="cardConfig.energy.storedColor"
+                          type="text"
+                          maxlength="7"
+                          class="flex-1 min-w-0 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#45a6d5]/30"
+                          placeholder="#8fc3df"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- ================================================= -->
+                  <!-- 快速颜色预设 -->
+                  <!-- ================================================= -->
+                  <div>
+                    <div
+                      class="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2"
+                    >
+                      快速预设
+                    </div>
+
+                    <div class="flex flex-wrap gap-2">
+                      <button
+                        v-for="preset in energyColorPresets"
+                        :key="preset.name"
+                        type="button"
+                        class="group flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-[#45a6d5] transition-colors"
+                        @click="
+                          cardConfig.energy.baseColor = preset.base;
+                          cardConfig.energy.storedColor = preset.stored;
+                        "
+                      >
+                        <span
+                          class="w-4 h-4 rounded-full border border-white/80 shadow-sm"
+                          :style="{ backgroundColor: preset.base }"
+                        ></span>
+
+                        <span
+                          class="w-4 h-4 rounded-full border border-white/80 shadow-sm"
+                          :style="{ backgroundColor: preset.stored }"
+                        ></span>
+
+                        <span
+                          class="text-xs text-slate-500 dark:text-slate-400 group-hover:text-[#45a6d5]"
+                        >
+                          {{ preset.name }}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                  <!-- ================================================= -->
+                  <!-- 实时预览 -->
+                  <!-- ================================================= -->
+                  <div
+                    class="relative h-6 w-full rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700"
+                  >
+                    <!-- 基础奥德 -->
+                    <div
+                      class="absolute left-0 top-0 bottom-0 transition-all duration-500"
+                      :style="{
+                        width: `30%`,
+                        backgroundColor: cardConfig.energy.baseColor,
+                      }"
+                    ></div>
+
+                    <!-- 存储奥德 -->
+                    <div
+                      class="absolute top-0 bottom-0 transition-all duration-500"
+                      :style="{
+                        left: `30%`,
+                        width: `70%`,
+                        backgroundColor: cardConfig.energy.storedColor,
+                      }"
+                    ></div>
+                  </div>
+                </div>
+
+                <!-- ================================================= -->
+                <!-- 存储奥德 -->
+                <!-- ================================================= -->
+                <div
+                  class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50"
+                >
+                  <div class="flex items-center justify-between gap-3">
+                    <div>
+                      <div class="text-sm font-black text-slate-800 dark:text-slate-200">
+                        存储奥德上限控制
+                      </div>
+
+                      <div class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                        限制存储奥德的最大容量，关闭后存储奥德不设置上限
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      @click="
+                        cardConfig.energy.limitStored = !cardConfig.energy.limitStored
+                      "
+                      class="w-12 h-6 rounded-full transition-colors relative p-1 cursor-pointer shrink-0"
+                      :class="
+                        cardConfig.energy.limitStored
+                          ? 'bg-[#45a6d5]'
+                          : 'bg-slate-300 dark:bg-slate-700'
+                      "
+                    >
+                      <div
+                        class="w-4 h-4 rounded-full bg-white dark:bg-slate-900 transition-transform shadow-sm"
+                        :class="
+                          cardConfig.energy.limitStored
+                            ? 'translate-x-6'
+                            : 'translate-x-0'
+                        "
+                      ></div>
+                    </button>
+                  </div>
+                </div>
+              </div>
 
               <!-- 4. 数据重置与危险操作 -->
               <div class="space-y-3 pt-2">
@@ -6597,7 +6903,9 @@ watch(
                       <label class="font-bold text-slate-600 dark:text-slate-300"
                         >补充存储上限</label
                       >
-                      <span class="text-[11px] text-slate-400 dark:text-slate-500"
+                      <span
+                        v-if="cardConfig.energy.limitStored"
+                        class="text-[11px] text-slate-400 dark:text-slate-500"
                         >默认 2000</span
                       >
                     </div>
@@ -6620,7 +6928,7 @@ watch(
                 <div
                   class="rounded-2xl border transition-all duration-300 shadow-sm p-3"
                   :class="[
-                    totalsStoredEnergyCount > 2000
+                    cardConfig.energy.limitStored && totalsStoredEnergyCount > 2000
                       ? 'bg-rose-50/90 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 shadow-rose-500/10'
                       : totalsStoredEnergyCount >= 1400
                       ? 'bg-amber-50/90 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800'
@@ -6642,7 +6950,7 @@ watch(
                     <div
                       class="px-3 py-1 rounded-full font-black text-xs text-white shadow-md transition-all flex items-center gap-1"
                       :class="[
-                        totalsStoredEnergyCount > 2000
+                        cardConfig.energy.limitStored && totalsStoredEnergyCount > 2000
                           ? 'bg-gradient-to-r from-rose-500 to-red-600 shadow-rose-500/40 animate-pulse'
                           : totalsStoredEnergyCount >= 1400
                           ? 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-amber-500/30'
@@ -6652,7 +6960,9 @@ watch(
                       <span class="text-sm font-extrabold">{{
                         totalsStoredEnergyCount
                       }}</span>
-                      <span class="text-[10px] opacity-80">/ 2000 点</span>
+                      <span
+                        v-if="cardConfig.energy.limitStored"
+                        class="text-[10px] opacity-80">/ 2000 点</span>
                     </div>
                   </div>
 
@@ -6663,7 +6973,7 @@ watch(
                     <div
                       class="h-full rounded-full transition-all duration-500 shadow-inner"
                       :class="[
-                        totalsStoredEnergyCount > 2000
+                        cardConfig.energy.limitStored && totalsStoredEnergyCount > 2000
                           ? 'bg-gradient-to-r from-rose-500 via-red-500 to-rose-600'
                           : totalsStoredEnergyCount >= 1400
                           ? 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-500'
@@ -6678,7 +6988,7 @@ watch(
 
                   <!-- 超额警告文案 -->
                   <div
-                    v-if="totalsStoredEnergyCount > 2000"
+                    v-if="cardConfig.energy.limitStored && totalsStoredEnergyCount > 2000"
                     class="mt-2.5 px-2 py-1 rounded-lg bg-rose-500/10 dark:bg-rose-500/20 text-[11px] font-black text-rose-600 dark:text-rose-400 flex items-center gap-1.5"
                   >
                     <span>🚨</span>
@@ -7407,14 +7717,14 @@ watch(
                   type="button"
                   class="py-3 px-3 rounded-xl bg-[#45a6d5] hover:bg-[#3b95c0] text-white font-bold text-xs transition-all cursor-pointer active:scale-95 flex items-center justify-center shadow-sm truncate"
                   :disabled="
-                    totalsStoredEnergyCount > 2000 ||
+                    cardConfig.energy.limitStored && totalsStoredEnergyCount > 2000 ||
                     globalPopupOp.data.energy >
                       (globalPopupOp?.targetGroup?.premiumMember ? 840 : 560)
                   "
                   @click="
                     () => {
                       if (
-                        totalsStoredEnergyCount > 2000 ||
+                        cardConfig.energy.limitStored && totalsStoredEnergyCount > 2000 ||
                         globalPopupOp.data.energy >
                           (globalPopupOp?.targetGroup?.premiumMember ? 840 : 560)
                       )

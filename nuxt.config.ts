@@ -1,7 +1,7 @@
 /*
  * @Author: whq
  * @Date: 2026-02-08 09:11:19
- * @LastEditTime: 2026-09-22 10:46:59
+ * @LastEditTime: 2026-09-24 10:24:26
  * @LastEditors: fofo
  * @Description:
  * @FilePath: /aion2-portal/nuxt.config.ts
@@ -12,7 +12,7 @@ import { defineNuxtConfig } from "nuxt/config"; // 临时添加这一行
 export default defineNuxtConfig({
   compatibilityDate: "2026-02-11",
   devServer: {
-    port: 3000
+    port: 4444
   },
   // 2. 显式禁用（双重保险）
   telemetry: false,
@@ -59,7 +59,7 @@ export default defineNuxtConfig({
       process.env.NUXT_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "",
     public: {
       // 格式：AIon2 S3 v0.1.7 (20260812)
-      appVersion: `AIon2 S3 v0.4.2 (${new Date().toISOString().slice(0, 10).replace(/-/g, "")})`,
+      appVersion: `AIon2 S3 v0.4.3 (${new Date().toISOString().slice(0, 10).replace(/-/g, "")})`,
     },
   },
   tailwindcss: {
