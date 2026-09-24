@@ -1159,6 +1159,7 @@ const userAllowedTabIds = new Set([
   "boss",
   "userAdmin",
   "shiftSchedule",
+  
 ]);
 
 const visibleTabs = computed(() => {

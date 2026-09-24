@@ -1,7 +1,7 @@
 <!--
  * @Author: whq
  * @Date: 2026-02-11 09:53:45
- * @LastEditTime: 2026-06-04 11:03:03
+ * @LastEditTime: 2026-09-24 10:38:25
  * @LastEditors: fofo
  * @Description: 
  * @FilePath: /aion2-portal/app/pages/admin.vue
@@ -494,7 +494,7 @@
           材料库
         </NuxtLink>
         <NuxtLink
-          v-if="isAdmin"
+         
           to="/admin/dungeon-plans"
           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-[#45a6d5] transition-colors"
           exact-active-class="bg-[#E6F7FF] text-[#45a6d5]"
@@ -676,6 +676,7 @@ const {
 const canView = (path) => {
   if (isAdmin.value) return true;
   const allowed = new Set(rbacConfig.value.user.allowedPages || []);
+  console.log(`🔍 [admin:679] %c allowed.has(path): `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', allowed.has(path));
   return allowed.has(path);
 };
 

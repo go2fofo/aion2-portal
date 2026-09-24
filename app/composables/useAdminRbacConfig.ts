@@ -79,6 +79,7 @@ export const useAdminRbacConfig = () => {
     return { error };
   };
 
+
   return { config, loaded, fetchConfig, saveConfig, defaultConfig };
 };
 
