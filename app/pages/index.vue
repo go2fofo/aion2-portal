@@ -516,6 +516,10 @@
               <div v-else-if="activeTab === 'kinah'" class="h-full">
                 <KinahCompare />
               </div>
+                       <!-- Tab: 队伍编排 (Dungeon Plans) -->
+              <div v-else-if="activeTab === 'dungeonPlans'" class="h-full">
+                <DungeonPlans />
+              </div>
 
               <!-- Tab 5: 军团成员 (Members) -->
               <div v-else-if="activeTab === 'members'" class="h-full flex flex-col">
@@ -1081,6 +1085,7 @@
 import UsersAdmin from "../components/UsersAdmin.vue";
 import ShiftSchedule from "../components/ShiftSchedule.vue";
 import BackToTop from "../components/BackToTop.vue";
+import DungeonPlans from "./admin/dungeon-plans.vue";
 const user = useSupabaseUser();
 const supabase = useSupabaseClient();
 const router = useRouter();
@@ -1159,7 +1164,7 @@ const userAllowedTabIds = new Set([
   "boss",
   "userAdmin",
   "shiftSchedule",
-  
+  "dungeonPlans",
 ]);
 
 const visibleTabs = computed(() => {
