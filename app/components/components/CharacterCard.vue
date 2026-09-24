@@ -56,6 +56,24 @@ const props = defineProps({
   },
 });
 
+// 表格模式下相关配置
+const currentModeTableConfig = reactive({
+  energySort: "asc", //asc:升序,desc:降序
+});
+
+const charactersTable = computed(() => {
+  if(currentModeTableConfig.energySort === null) {
+    return props.characters;
+  }
+  return props.characters.sort((a, b) => {
+    if (currentModeTableConfig.energySort === "asc") {
+      return a.energy - b.energy;
+    } else {
+      return b.energy - a.energy;
+    }
+  });
+});
+
 // 定义 Emits（向父组件抛出所有交互事件）
 const emit = defineEmits([
   "click-gameplay",
@@ -1676,7 +1694,7 @@ const visibleTasks = computed(() => {
   </div>
   <!-- ================= 表格模式 ================= -->
   <div
-    v-if="characters.length > 0 && currentMode == 'table'"
+    v-if="characters.length > 0 && currentMode == 'table' && charactersTable.length > 0"
     class="w-full overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm"
   >
     <div class="w-full overflow-x-auto">
@@ -1700,10 +1718,80 @@ const visibleTasks = computed(() => {
             </th> -->
 
             <!-- 奥德 -->
+            <!-- 奥德 -->
             <th
               class="min-w-[190px] px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300"
             >
-              奥德能量
+              <button
+                type="button"
+                class="w-full flex items-center justify-between gap-2 group select-none"
+                @click="
+                  () => {
+                    if (currentModeTableConfig.energySort === null) {
+                      currentModeTableConfig.energySort = 'desc';
+                    } else if (currentModeTableConfig.energySort === 'desc') {
+                      currentModeTableConfig.energySort = 'asc';
+                    } else {
+                      currentModeTableConfig.energySort = null;
+                    }
+                  }
+                "
+              >
+                <span class="flex items-center gap-1.5">
+                  <span>奥德能量</span>
+
+                  <!-- 当前排序方向 -->
+                  <span
+                    class="flex flex-col items-center justify-center w-5 h-5 rounded-md text-slate-400 dark:text-slate-500 group-hover:bg-slate-100 dark:group-hover:bg-slate-700 transition-all"
+                    :class="
+                      currentModeTableConfig.energySort === 'asc'
+                        ? 'text-[#45a6d5] bg-sky-50 dark:bg-sky-950/50'
+                        : ''
+                    "
+                  >
+                    <svg
+                      class="w-2.5 h-2.5 -mb-0.5 transition-all"
+                      :class="
+                        currentModeTableConfig.energySort === 'asc'
+                          ? 'text-[#45a6d5]'
+                          : 'text-slate-300 dark:text-slate-600'
+                      "
+                      viewBox="0 0 12 12"
+                      fill="currentColor"
+                    >
+                      <path d="M6 2L10 6H2L6 2Z" />
+                    </svg>
+
+                    <svg
+                      class="w-2.5 h-2.5 -mt-0.5 transition-all"
+                      :class="
+                        currentModeTableConfig.energySort === 'desc'
+                          ? 'text-[#45a6d5]'
+                          : 'text-slate-300 dark:text-slate-600'
+                      "
+                      viewBox="0 0 12 12"
+                      fill="currentColor"
+                    >
+                      <path d="M6 10L2 6H10L6 10Z" />
+                    </svg>
+                  </span>
+                </span>
+
+                <!-- 当前排序文字 -->
+                <span
+                  v-if="currentModeTableConfig.energySort === 'asc'"
+                  class="text-[9px] font-bold text-[#45a6d5]"
+                >
+                  升序
+                </span>
+
+                <span
+                  v-else-if="currentModeTableConfig.energySort === 'desc'"
+                  class="text-[9px] font-bold text-[#45a6d5]"
+                >
+                  降序
+                </span>
+              </button>
             </th>
 
             <!-- 本周副本 -->
@@ -1754,7 +1842,7 @@ const visibleTasks = computed(() => {
 
         <tbody>
           <tr
-            v-for="char in characters"
+            v-for="char in charactersTable"
             :key="char.characterId || char.id"
             class="group border-b border-slate-100 dark:border-slate-800 last:border-b-0 transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
             :class="char.locked ? 'bg-slate-50/70 dark:bg-slate-800/30' : ''"
