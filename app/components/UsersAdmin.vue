@@ -626,7 +626,7 @@ const saveData = async (newSaveData, source) => {
     //   $alert("数据已成功保存！");
     // }
     await gameStore.setGameData(cleanData, "UsersAdmin--saceData");
-    $alert("数据已成功保存！");
+    // $alert("数据已成功保存！");
   } catch (error) {
     console.error("保存数据失败:", error);
   } finally {
@@ -1746,6 +1746,8 @@ const handleAddTeam = () => {
 
   gameData.value.teams.push(newTeam);
   newTeamName.value = "";
+  saveData()
+  
 };
 
 // 【小队管理】删除小队
@@ -1758,6 +1760,7 @@ const handleDeleteTeam = (teamId) => {
       char.teamId = null;
     }
   });
+  saveData()
 };
 
 // 获取属于指定小队的角色列表
@@ -1797,6 +1800,7 @@ const handleToggleCharacterTeam = (char, teamId) => {
     }
     char.teamId.push(teamId);
   }
+  saveData()
 };
 
 // 从小队中直接移除单个角色
@@ -1806,6 +1810,7 @@ const handleRemoveCharacterFromTeam = (char, teamId) => {
   } else if (char.teamId === teamId) {
     char.teamId = null;
   }
+  saveData()
 };
 
 // 【连锁管理】执行连锁操作
