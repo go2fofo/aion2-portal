@@ -29,6 +29,8 @@ import {
   updateLogs,
 } from "./config/userAdmin";
 import { useGameStore } from "@/stores/useGameStore";
+import { KinahOdSate } from "./config/userAdmin.js";
+
 const gameStore = useGameStore();
 const client = useSupabaseClient();
 const user = useSupabaseUser();
@@ -1742,7 +1744,9 @@ const saveCharacterSort = () => {
 const teamChainOpen = ref(false);
 const teamChainOptions = ref({
   tab: "chain", // 'chain': 小队连锁 , 'team': 小队管理
-  dungeonType: "expedition",
+  dungeonType: "expedition", // expedition / surpass / sanctuary 等
+  selectedDungeonName: "", // 选中的副本名称
+  selectedDifficulty: "", // 选中的难度名称
 });
 
 const newTeamName = ref("");
@@ -1846,7 +1850,39 @@ const handleExecuteChain = () => {
   }
   console.log("执行连锁操作...");
 };
+// 1. 根据当前选中的大类型，获取对应的副本数组
+const currentDungeonList = computed(() => {
+  return KinahOdSate[teamChainOptions.value.dungeonType] || [];
+});
 
+// 2. 当前选中的具体副本对象
+const currentSelectedDungeon = computed(() => {
+  if (!teamChainOptions.value.selectedDungeonName) return null;
+  return currentDungeonList.value.find(
+    (d) => d.name === teamChainOptions.value.selectedDungeonName
+  );
+});
+
+// 3. 切换大类型时的重置逻辑
+const handleDungeonTypeChange = (typeKey) => {
+  teamChainOptions.value.dungeonType = typeKey;
+  teamChainOptions.value.selectedDungeonName = "";
+  teamChainOptions.value.selectedDifficulty = "";
+};
+
+// 4. 切换副本时的重置逻辑
+const handleDungeonChange = () => {
+  // 切换副本时，默认选中它的第一个难度，提升用户体验
+  if (
+    currentSelectedDungeon.value &&
+    currentSelectedDungeon.value.difficulties.length > 0
+  ) {
+    teamChainOptions.value.selectedDifficulty =
+      currentSelectedDungeon.value.difficulties[0].mode;
+  } else {
+    teamChainOptions.value.selectedDifficulty = "";
+  }
+};
 // ================ 小队管理/连锁 结束 =================
 
 // 点击刷新按钮的处理逻辑
@@ -4324,7 +4360,6 @@ watch(
       :gameData="gameData"
       :gameDataOptions="gameDataOptions"
       :cardConfig="cardConfig"
-
       @character-delete="groupCharacterPanelHandleDelete"
       @toggle-lock="groupCharacterPanelHandleToggleLock"
       @toggle-refresh="groupCharacterPanelHandleToggleRefresh"
@@ -7412,7 +7447,7 @@ watch(
                             globalPopupOp.formData.bigOdCount =
                               (globalPopupOp.formData.bigOdCount || 0) + 1
                           "
-                          :disabled="totalsStoredEnergyCount > 2000"
+                          :disabled="totalsStoredEnergyCount >= 2000"
                         >
                           +
                         </button>
@@ -7459,7 +7494,7 @@ watch(
                             globalPopupOp.formData.smallOdCount =
                               (globalPopupOp.formData.smallOdCount || 0) + 1
                           "
-                          :disabled="totalsStoredEnergyCount > 2000"
+                          :disabled="totalsStoredEnergyCount >= 2000"
                         >
                           +
                         </button>
@@ -8534,7 +8569,7 @@ watch(
                     </div>
                   </div>
                   <!-- 中间：连锁操作选项（类似游戏消耗按钮风格） -->
-                  <div class="space-y-3">
+                  <div class="space-y-4">
                     <div class="space-y-2">
                       <label class="text-xs font-bold text-slate-500 dark:text-slate-400"
                         >选择连锁类型</label
@@ -8556,19 +8591,93 @@ watch(
                               ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sky-500/20'
                               : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                           "
-                          @click="teamChainOptions.dungeonType = type.key"
+                          @click="handleDungeonTypeChange(type.key)"
                         >
                           {{ type.label }}
                         </button>
                       </div>
+                    </div>
 
-                      <div v-if="teamChainOptions.dungeonType == 'expedition'">
-                        远征副本
+                    <!-- 1. 远征副本 / 超越副本 / 圣域 的联动选择面板 -->
+                    <div
+                      v-if="
+                        ['expedition', 'surpass', 'sanctuary'].includes(
+                          teamChainOptions.dungeonType
+                        )
+                      "
+                      class="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800"
+                    >
+                      <!-- 第一步：选择具体副本 -->
+                      <div class="space-y-1.5">
+                        <div
+                          class="text-[11px] font-bold text-slate-400 dark:text-slate-500"
+                        >
+                          选择目标副本
+                        </div>
+                        <select
+                          v-model="teamChainOptions.selectedDungeonName"
+                          @change="handleDungeonChange"
+                          class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-[#45a6d5]"
+                        >
+                          <option value="" disabled>-- 请选择副本 --</option>
+                          <option
+                            v-for="dungeon in currentDungeonList"
+                            :key="dungeon.name"
+                            :value="dungeon.name"
+                          >
+                            [{{ dungeon.stars }}星] {{ dungeon.name }}
+                          </option>
+                        </select>
                       </div>
-                      <div v-if="teamChainOptions.dungeonType == 'surpass'">超越副本</div>
-                      <div v-if="teamChainOptions.dungeonType == 'nightmareCount'">
-                        清理噩梦
+
+                      <!-- 第二步：选择难度 / 阶段（当选中了副本后显示） -->
+                      <div v-if="currentSelectedDungeon" class="space-y-1.5">
+                        <div
+                          class="text-[11px] font-bold text-slate-400 dark:text-slate-500"
+                        >
+                          选择难度 / 阶段
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          <button
+                            type="button"
+                            v-for="diff in currentSelectedDungeon.difficulties"
+                            :key="diff.mode"
+                            @click="teamChainOptions.selectedDifficulty = diff.mode"
+                            class="p-2 rounded-xl border text-left transition-all text-xs flex flex-col justify-between"
+                            :class="
+                              teamChainOptions.selectedDifficulty === diff.mode
+                                ? 'bg-[#45a6d5]/10 border-[#45a6d5] text-[#45a6d5]'
+                                : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100'
+                            "
+                          >
+                            <div class="font-black flex items-center justify-between">
+                              <span>{{ diff.mode }}</span>
+                              <span class="text-[10px] text-slate-400"
+                                >⚡{{ diff.energy }}</span
+                              >
+                            </div>
+                            <div
+                              class="text-[10px] mt-1 font-bold text-amber-500 dark:text-amber-400"
+                            >
+                              吉纳: {{ diff.total }}
+                            </div>
+                          </button>
+                        </div>
                       </div>
+                    </div>
+
+                    <!-- 2. 其他类型（如清理噩梦） -->
+                    <div
+                      v-if="teamChainOptions.dungeonType == 'nightmareCount'"
+                      class="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-xs text-slate-500"
+                    >
+                      清理噩梦相关配置项...
+                    </div>
+                    <div
+                      v-if="teamChainOptions.dungeonType == 'battlefield'"
+                      class="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-xs text-slate-500"
+                    >
+                      清理战场相关配置项...
                     </div>
                   </div>
 

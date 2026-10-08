@@ -206,7 +206,7 @@ export const KinahOdSate = {
     },
     {
       stars: 1,
-      name: "克洞穴",
+      name: "克劳洞穴",
       difficulties: [
         {
           mode: "困难",
