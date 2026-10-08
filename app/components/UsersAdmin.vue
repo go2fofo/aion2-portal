@@ -160,13 +160,13 @@ const characterValidationRules = [
       if (!isSelfMember) return true; // 未开启或共享状态无需校验此项
 
       const days = Number(form.premiumMemberDay) || 0;
-      // 必须大于0且不能超过28天
-      return days > 0 && days <= 28;
+      // 必须大于0且不能超过30天
+      return days > 0 && days <= 30;
     },
     message: (form) => {
       const days = Number(form.premiumMemberDay) || 0;
       if (days <= 0) return "请输入有效的特级会员剩余天数";
-      return "特级会员剩余天数不能超过 28 天";
+      return "特级会员剩余天数不能超过 30 天";
     },
   },
   //  group 的完美校验规则
@@ -244,13 +244,13 @@ const groupValidationRules = [
       if (!isSelfMember) return true; // 未开启或共享状态无需校验此项
 
       const days = Number(form.premiumMemberDay) || 0;
-      // 必须大于0且不能超过28天
-      return days > 0 && days <= 28;
+      // 必须大于0且不能超30天
+      return days > 0 && days <= 30;
     },
     message: (form) => {
       const days = Number(form.premiumMemberDay) || 0;
       if (days <= 0) return "请输入有效的特级会员剩余天数";
-      return "特级会员剩余天数不能超过 28 天";
+      return "特级会员剩余天数不能超过 30 天";
     },
   },
   //  每日副本次数 (dailyRuns)
@@ -381,7 +381,7 @@ const availableTeams = computed(() => {
   // 假设你的角色对象里记录了所属队伍的 ID，比如 c.teamId 或者 c.team
   return gameData.value.teams.filter((team) => {
     // 检查该小队里是否有成员属于当前分组
-    return currentGroupCharacters.some((c) => c.teamId.includes(team.id));
+    return currentGroupCharacters?.some((c) => c.teamId?.includes(team.id));
   });
 });
 //顶部统计面板开始
@@ -1317,9 +1317,9 @@ const formatDate = (date) => {
 const calculatedStartTime = (customDays) => {
   const remainingDays = Number(customDays) || 0;
 
-  if (remainingDays < 0 || remainingDays > 28) return "剩余天数应在 0~28 之间";
+  if (remainingDays < 0 || remainingDays > 30) return "剩余天数应在 0~30 之间";
 
-  const totalDays = 28;
+  const totalDays = 30;
   const passedDays = totalDays - remainingDays;
 
   const startDate = new Date();
@@ -1331,7 +1331,7 @@ const calculatedStartTime = (customDays) => {
 const calculatedEndTime = (customDays) => {
   const remainingDays = Number(customDays) || 0;
 
-  if (remainingDays < 0 || remainingDays > 28) return "无效范围";
+  if (remainingDays < 0 || remainingDays > 30) return "无效范围";
 
   const endDate = new Date();
   endDate.setDate(endDate.getDate() + remainingDays);
@@ -1341,7 +1341,7 @@ const calculatedEndTime = (customDays) => {
 // 3. 如果是同组共享模式，推导共享角色的开通与结束时间（假设共享数据里存的是对应的剩余天数）
 const groupSharedStartTime = computed(() => {
   const remainingDays = Number(groupSharedPremiumDays.value) || 0;
-  const passedDays = 28 - remainingDays;
+  const passedDays = 30 - remainingDays;
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - passedDays);
   return formatDate(startDate);
@@ -1356,7 +1356,7 @@ const groupSharedEndTime = computed(() => {
 
 const groupSharedStartTimeAtvTab = computed(() => {
   const remainingDays = Number(groupSharedPremiumDaysAtvTab.value) || 0;
-  const passedDays = 28 - remainingDays;
+  const passedDays = 30 - remainingDays;
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - passedDays);
   return formatDate(startDate);
@@ -4152,8 +4152,8 @@ watch(
                     <input
                       v-model.number="getAtvTabGroup.premiumMemberDay"
                       min="1"
-                      max="28"
-                      placeholder="输入天数(最多28)"
+                      max="30"
+                      placeholder="输入天数(最多30)"
                       class="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-black text-xs text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                       :class="
                         validationResult.invalidFields.includes('premiumMemberDay')
@@ -4742,8 +4742,8 @@ watch(
                           <input
                             v-model.number="newCharGroupForm.premiumMemberDay"
                             min="1"
-                            max="28"
-                            placeholder="请输入剩余天数（最多28天）..."
+                            max="30"
+                            placeholder="请输入剩余天数（最多30天）..."
                             class="w-full md:w-1/3 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                             :class="
                               validationResult.invalidFields.includes('premiumMemberDay')
@@ -7149,7 +7149,7 @@ watch(
                     <span
                       class="text-[10px] text-slate-400 dark:text-slate-500 font-semibold"
                     >
-                      支持范围: 1 ~ 28 天
+                      支持范围: 1 ~ 30 天
                     </span>
                   </div>
 
@@ -7158,7 +7158,7 @@ watch(
                     <input
                       v-model.number="globalPopupOp.data.premiumMemberDay"
                       min="1"
-                      max="28"
+                      max="30"
                       placeholder="请输入要开通的天数..."
                       class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border-2 border-slate-200 dark:border-slate-700 outline-none font-black text-sm text-slate-800 dark:text-slate-100 transition-all focus:bg-white dark:focus:bg-slate-900 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10"
                     />
