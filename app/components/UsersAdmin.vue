@@ -1566,7 +1566,8 @@ const importGameData = (event) => {
       const parsedData = JSON.parse(e.target.result);
       if (parsedData && typeof parsedData === "object") {
         gameData.value = parsedData;
-        await saveData("", "导入数据====importGameData");
+        console.log(`🔍 [UsersAdmin:1569] %c 导入的数据parsedData: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', parsedData);
+        await saveData(parsedData, "导入数据====importGameData");
         await handleSync(parsedData);
 
         $alert("数据导入并持久化成功！");
@@ -3315,7 +3316,7 @@ watch(
           </div>
         </div>
 
-        <!-- 右侧：每一项独立成卡的分组签到与会员状态总览区 -->
+<!-- 右侧：每一项独立成卡的分组签到与会员状态总览区 -->
         <div class="flex-1 flex flex-col items-end gap-2 min-w-0">
           <div
             class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider"
@@ -3323,9 +3324,9 @@ watch(
             分组账号综合状态与快捷切换 (点击切换并签到)
           </div>
 
-          <!-- 每一项排开的独立卡片列表 -->
+          <!-- 每一项排开的独立卡片列表：改用 Grid 自动填满，限制最大高度并在超过两行时显示纵向滚动条 -->
           <div
-            class="flex items-center gap-1 flex-wrap justify-start max-w-full overflow-x-auto py-1 custom-scroll"
+            class="grid grid-flow-row auto-rows-max grid-cols-[repeat(auto-fill,minmax(138px,1fr))] gap-1.5 w-full max-h-[128px] overflow-y-auto custom-scroll pr-1 py-1"
           >
             <template v-for="group in allGroups" :key="group.name">
               <button
@@ -3333,7 +3334,7 @@ watch(
                 @click="handleGroupClick(group)"
                 class="px-3 py-2.5 rounded-2xl border transition-all cursor-pointer shadow-xs shrink-0 active:scale-95 flex flex-col justify-between gap-2 text-left w-[138px] h-[58px]"
                 :class="[
-                  // 依据签到状态变换底色与边框（兼顾黑夜模式下的深色微调）
+                  // 依据签到状态变换底色与边กราฟ / 边框（兼顾黑夜模式下的深色微调）
                   group.dailySignIn
                     ? 'bg-emerald-50/70 dark:bg-emerald-950/25 hover:bg-emerald-100/80 dark:hover:bg-emerald-900/40 border-emerald-200/90 dark:border-emerald-800/60 text-emerald-900 dark:text-emerald-200'
                     : 'bg-rose-50/70 dark:bg-rose-950/25 hover:bg-rose-100/80 dark:hover:bg-rose-900/40 border-rose-200/90 dark:border-rose-800/60 text-rose-900 dark:text-rose-200',
