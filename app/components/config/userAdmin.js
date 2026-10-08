@@ -676,9 +676,9 @@ export const updateLogs = ref([
     tag: "新更新",
     tagClass:
       "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50",
-    title: "20260924添加奥德能量控制",
+    title: "20261008修改若干bug",
     desc:
-      "奥德能量添加控制！可以自定义奥德颜色，可以控制奥德存储上限",
+      "导入数据问题修改",
   },
   // {
   //   tag: "新更新20260922",

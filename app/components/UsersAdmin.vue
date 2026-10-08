@@ -8654,7 +8654,7 @@ watch(
                             <div class="font-black flex items-center justify-between">
                               <span>{{ diff.mode }}</span>
                               <span class="text-[10px] text-slate-400"
-                                >⚡{{ diff.energy }}</span
+                                >奥德{{ diff.energy *2 }}</span
                               >
                             </div>
                             <div
@@ -8699,7 +8699,7 @@ watch(
                       />
                     </div>
                     <div class="text-[11px] text-slate-400 leading-relaxed">
-                      提示：执行连锁后，将对当前选中队伍中的所有成员统一应用该项任务的进度更新与次数扣除。
+                      提示：执行连锁后，将对当前选中队伍中的所有成员统一应用该项任务的进度更新与次数扣除，改操作默认角色全都是开通了会员！！！
                     </div>
                   </div>
                 </template>
