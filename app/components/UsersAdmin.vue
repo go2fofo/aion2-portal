@@ -1566,7 +1566,11 @@ const importGameData = (event) => {
       const parsedData = JSON.parse(e.target.result);
       if (parsedData && typeof parsedData === "object") {
         gameData.value = parsedData;
-        console.log(`🔍 [UsersAdmin:1569] %c 导入的数据parsedData: `,'font-size:14px; background:#26A08F; color:#fff;font-weight: bold;', parsedData);
+        console.log(
+          `🔍 [UsersAdmin:1569] %c 导入的数据parsedData: `,
+          "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+          parsedData
+        );
         await saveData(parsedData, "导入数据====importGameData");
         await handleSync(parsedData);
 
@@ -2440,6 +2444,16 @@ const getLabelByKey = (key) => {
 };
 //用于通用项 点击触发事件，可随意拓展，目前只做了角色卡片内点击触发
 const groupCharacterPanelHandleClickTask = async (char, gType, fieldType, clickType) => {
+  console.log(
+    `🔍 [UsersAdmin:2444] %c groupCharacterPanelHandleClickTask 用于通用项 点击触发事件，可随意拓展，目前只做了角色卡片内点击触发 : `,
+    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
+    {
+      char,
+      gType,
+      fieldType,
+      clickType,
+    }
+  );
   const getGlobalPopupOpName = {
     globalSimpleEnergy: "快捷奥德补充/修改",
     globalModifyCharacter: "角色信息修改",
@@ -2529,6 +2543,20 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType, clickT
           dimensionalCount: targetGroup?.dimensionalCount || 0,
           storedDimensionalCount: targetGroup?.storedDimensionalCount || 0,
         },
+        //角色--圣域. sanctuary当前圣域次数，sanctuaryRuns 消耗的圣域次数
+        sanctuary: {
+          type: "sanctuary",
+          sanctuary: {
+            s1: 1,
+            s2: 1,
+            s3: 1,
+            s4: 1,
+            ...char.sanctuary,
+          },
+          sanctuaryRuns: {
+            ...char.sanctuaryRuns,
+          },
+        },
       };
       const getGlobalPopupOpFieldName = {
         nightmareCount: "快捷操作噩梦副本",
@@ -2537,6 +2565,7 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType, clickT
         minigameCount: "快捷操作古树庆典小游戏",
         battlefield: "快捷操作战场",
         dimensionalCount: "快捷操作次元袭击",
+        sanctuary: "快捷操作圣域",
       };
 
       // 双击点击触发
@@ -2852,7 +2881,41 @@ const handleGlobalPopupFill = async (type) => {
           break;
         }
 
+        case "sanctuary": {
+          const targetChar = globalPopupOp.value?.targetChar;
+          if (targetChar) {
+            // 1. 克隆一份全新的角色数据，避免直接修改引用
+            const newCharacter = cloneDeep(targetChar);
+
+            // 2. 如果 formData 中带有 sanctuary 和 sanctuaryRuns，需要确保深度合并或直接覆盖
+            // 如果 formData 的结构就是 { sanctuary: {...}, sanctuaryRuns: {...} }：
+            if (formData.sanctuary) {
+              newCharacter.sanctuary = {
+                ...(newCharacter.sanctuary || {}),
+                ...formData.sanctuary,
+              };
+            }
+            if (formData.sanctuaryRuns) {
+              newCharacter.sanctuaryRuns = {
+                ...(newCharacter.sanctuaryRuns || {}),
+                ...formData.sanctuaryRuns,
+              };
+            }
+
+            // 3. 兼容其他可能需要更新的通用字段
+            for (const key in formData) {
+              if (key !== "sanctuary" && key !== "sanctuaryRuns") {
+                newCharacter[key] = formData[key];
+              }
+            }
+
+            // 4. 提交更新
+            groupCharacterPanelHandleUpdateCharacter(newCharacter);
+          }
+          break;
+        }
         default:
+          $toast("暂无拓展globalDbClick====" + fieldType);
           break;
       }
 
@@ -3316,7 +3379,7 @@ watch(
           </div>
         </div>
 
-<!-- 右侧：每一项独立成卡的分组签到与会员状态总览区 -->
+        <!-- 右侧：每一项独立成卡的分组签到与会员状态总览区 -->
         <div class="flex-1 flex flex-col items-end gap-2 min-w-0">
           <div
             class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider"
@@ -7973,7 +8036,75 @@ watch(
                 v-if="globalPopupOp.type == 'globalDbClick'"
                 class="space-y-4 mx-auto py-2 text-xs"
               >
-                <div class="space-y-4">
+                <div class="space-y-4" v-if="globalPopupOp.formData.type == 'sanctuary'">
+                  <!-- 顶部提示卡片 -->
+                  <div
+                    class="p-3 bg-sky-50/80 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60 rounded-2xl flex items-center gap-3 text-xs text-sky-800 dark:text-sky-300"
+                  >
+                    <div
+                      class="w-2 h-2 rounded-full bg-[#45a6d5] shrink-0 animate-pulse"
+                    ></div>
+                    <span class="font-bold"
+                      >圣域副本数据配置：请分别维护各关卡的当前状态数值与已消耗挑战次数。</span
+                    >
+                  </div>
+
+                  <!-- 关卡配置网格列表 (s1 ~ s4) -->
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <template v-for="key in ['s1', 's2', 's3', 's4']" :key="key">
+                      <div
+                        class="p-3.5 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/80 rounded-2xl space-y-3"
+                      >
+                        <!-- 关卡标题 -->
+                        <div class="flex items-center justify-between">
+                          <span
+                            class="text-xs font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5"
+                          >
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                            圣域关卡 [ {{ key.toUpperCase() }} ]
+                          </span>
+                          <span class="text-[10px] font-bold text-slate-400"
+                            >ID: {{ key }}</span
+                          >
+                        </div>
+
+                        <!-- 内部输入双列布局 -->
+                        <div class="grid grid-cols-2 gap-2">
+                          <!-- sanctuary (当前状态) 输入框 -->
+                          <div class="space-y-1">
+                            <label
+                              class="text-[10px] font-bold text-slate-500 dark:text-slate-400"
+                              >圣域次数</label
+                            >
+                            <div class="relative">
+                              <input
+                                v-model.number="globalPopupOp.formData.sanctuary[key]"
+                                placeholder="0"
+                                class="w-full h-9 px-2.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-[#45a6d5] dark:focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 font-black text-center transition-all shadow-2xs"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- sanctuaryRuns (已用次数) 输入框 -->
+                          <div class="space-y-1">
+                            <label
+                              class="text-[10px] font-bold text-slate-500 dark:text-slate-400"
+                              >已用挑战次数（没特殊情况填0即可）</label
+                            >
+                            <div class="relative">
+                              <input
+                                v-model.number="globalPopupOp.formData.sanctuaryRuns[key]"
+                                placeholder="0"
+                                class="w-full h-9 px-2.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-[#45a6d5] dark:focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 font-black text-center transition-all shadow-2xs"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+                <div class="space-y-4" v-else>
                   <template v-for="(value, key) in globalPopupOp.formData" :key="key">
                     <!-- 动态渲染每个字段 -->
                     <div class="space-y-1.5">
@@ -8654,7 +8785,7 @@ watch(
                             <div class="font-black flex items-center justify-between">
                               <span>{{ diff.mode }}</span>
                               <span class="text-[10px] text-slate-400"
-                                >奥德{{ diff.energy *2 }}</span
+                                >奥德{{ diff.energy * 2 }}</span
                               >
                             </div>
                             <div

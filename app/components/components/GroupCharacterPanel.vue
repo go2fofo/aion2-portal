@@ -824,20 +824,25 @@ const handleTaskClick = async (char, field, tab, clickType) => {
         });
       }
       break;
-    case "consumeSanctuary": //消耗奥德跳转到圣域
-      await handleClickGameplay(char, "consume");
-      consumeForm.value.dungeonType = "sanctuary";
-      consumeForm.value.calcInput = 1;
+    case "sanctuary": //消耗奥德跳转到圣域
+      if (clickType == "dbclick") {
+        //发送给父组件
+        emit("task-click", char, "globalDbClick", 'sanctuary', "dbclick");
+      } else {
+        await handleClickGameplay(char, "consume");
+        consumeForm.value.dungeonType = "sanctuary";
+        consumeForm.value.calcInput = 1;
 
-      let sanctuaryMenu = {
-        s1: 0,
-        s2: 1,
-        s3: 2,
-        s4: 3,
-      };
-      consumeForm.value.selectedDungeonIndex = sanctuaryMenu[field];
+        let sanctuaryMenu = {
+          s1: 0,
+          s2: 1,
+          s3: 2,
+          s4: 3,
+        };
+        consumeForm.value.selectedDungeonIndex = sanctuaryMenu[field];
 
-      consumeForm.value.activeCalcTab = "runs";
+        consumeForm.value.activeCalcTab = "runs";
+      }
 
       break;
     case "consumExpedition": //消耗奥德跳转到远征
@@ -1736,7 +1741,7 @@ watch(
 );
 
 // 7. 执行扣除奥德逻辑（全面支持批量次数/奥德输入、阶梯衰减与收益流水记录）
-const handleExecuteConsume = async () => {
+const handleExecuteConsume = async (ecType) => {
   // 1. 获取当前模式下实际要增加的挑战次数与奥德消耗
   const isRunsTab = consumeForm.value.activeCalcTab === "runs";
   const inputVal = Number(consumeForm.value.calcInput) || 0;
@@ -1965,6 +1970,10 @@ const handleExecuteConsume = async () => {
   // 触发父组件更新事件
   emit("update-character", updatedCharacter);
   emit("update-groups", newGroups);
+
+  if(ecType=='clone'){
+    openGameplay.value=false
+  }
 };
 // 过滤后的具体副本列表（若圣域对应的 s1/s2/s3 次数用尽则自动隐藏该项）
 const filteredDungeonList = computed(() => {
@@ -7103,10 +7112,41 @@ defineExpose({
               </span>
               <span v-else>
                 确认消耗
-                {{ calculatedEnergyCost }} 点奥德并完成记录
+                {{ calculatedEnergyCost }} 点奥德不关闭
               </span>
             </button>
-
+ <!-- 确认消耗快捷按钮 -->
+            <button
+              type="button"
+              v-if="gameplayCharForm?.characterId && activeTab === 'consume'"
+              :disabled="
+                calculatedEnergyCost >
+                  (gameplayCharForm?.energy || 0) +
+                    (gameplayCharForm?.storedEnergy || 0) || calculatedEnergyCost <= 0
+              "
+              class="px-8 py-3 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2"
+              :class="[
+                calculatedEnergyCost >
+                  (gameplayCharForm?.energy || 0) +
+                    (gameplayCharForm?.storedEnergy || 0) || calculatedEnergyCost <= 0
+                  ? 'bg-slate-300 text-slate-400 cursor-not-allowed shadow-none'
+                  : 'bg-amber-600 hover:bg-amber-600 text-white shadow-md shadow-amber-500/20 cursor-pointer',
+              ]"
+              @click="handleExecuteConsume('clone')"
+            >
+              <span
+                v-if="
+                  calculatedEnergyCost >
+                  (gameplayCharForm?.energy || 0) + (gameplayCharForm?.storedEnergy || 0)
+                "
+              >
+                奥德能量不足无法消耗，请补充后重试。
+              </span>
+              <span v-else>
+                确认消耗
+                {{ calculatedEnergyCost }} 点奥德并关闭
+              </span>
+            </button>
             <button
               type="button"
               v-if="gameplayCharForm?.characterId && activeTab === 'supplement'"

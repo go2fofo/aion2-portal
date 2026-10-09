@@ -676,10 +676,18 @@ export const updateLogs = ref([
     tag: "新更新",
     tagClass:
       "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50",
-    title: "20261008修改若干bug",
+    title: "20261009",
     desc:
-      "导入数据问题修改",
+      "消耗奥德添加按钮，关闭和保留功能",
   },
+      {
+      tag: "新功能",
+      tagClass:
+        "bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400 border border-sky-200/50 dark:border-sky-800/50",
+      title: "双击圣域支持修改",
+      desc:
+        "优化了圣域手动修改功能。",
+    },
   // {
   //   tag: "新更新20260922",
   //   tagClass:

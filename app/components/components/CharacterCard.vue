@@ -467,27 +467,6 @@ const handleTaskClickWithDblClick = (char, field, type) => {
     // 执行你的双击逻辑
     emit("task-click", char, field, type, "dbclick");
   } else {
-    let validateClick = {
-      dimensionalCount:
-        getGroupSharedTaskData(
-          char.group,
-          "dimensionalCount",
-          "storedDimensionalCount",
-          14
-        ).total > 0,
-      dailyRuns:
-        getGroupSharedTaskData(char.group, "dailyRuns", "storedDailyRuns", 14).total > 0,
-      minigameCount:
-        getGroupSharedTaskData(char.group, "minigameCount", "storedMinigameCount", 14)
-          .total > 0,
-      awakening:
-        getCharacterSharedTaskData(char, "awakening", "storedAwakening", 14).total > 0,
-      nightmareCount:
-        getCharacterSharedTaskData(char, "nightmareCount", "storedNightmareCount", 14)
-          .total > 0,
-
-      battlefield: char?.battlefield != 0,
-    };
     // ===========================
     // 第一次点击，启动延时等待是否会有第二次点击
     // ===========================
@@ -501,6 +480,31 @@ const handleTaskClickWithDblClick = (char, field, type) => {
     }, 250); // 250毫秒是绝大多数用户的舒适双击间隔
   }
 };
+
+// 圣域双击和单击
+const handleConsumeSanctuaryDblClick = (char, bossKey, field) => {
+  if (clickTimer) {
+    // ===========================
+    // 触发了双击（在 250ms 内点了第二下）
+    // ===========================
+    clearTimeout(clickTimer);
+    clickTimer = null;
+
+    // 执行你的双击逻辑
+    emit("task-click", char, field, field, "dbclick");
+  } else {
+    // ===========================
+    // 第一次点击，启动延时等待是否会有第二次点击
+    // ===========================
+    clickTimer = setTimeout(() => {
+      clickTimer = null;
+
+      // 延时结束后如果没有双击，则执行你的单击逻辑
+      emit("task-click", char, bossKey, "sanctuary");
+    }, 250); // 250毫秒是绝大多数用户的舒适双击间隔
+  }
+};
+
 const taskList = computed(() => [
   {
     key: "dimensionalCount",
@@ -1319,6 +1323,18 @@ const visibleTasks = computed(() => {
               </div>
             </div>
           </div>
+          <!-- 双击提示区 -->
+          <div
+            class="inline-flex items-center gap-2 px-2 py-1 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-lg text-xs text-slate-500 dark:text-slate-400 select-none"
+          >
+            <span class="text-indigo-500 dark:text-indigo-400">💡</span>
+            <span
+              >提示：下方卡片支持<strong
+                class="text-slate-700 dark:text-slate-200 font-medium underline decoration-indigo-400/50 underline-offset-2"
+                >双击</strong
+              >快捷修改内容</span
+            >
+          </div>
           <!-- ================= 3. 圣域副本 ================= -->
           <div
             v-if="
@@ -1350,7 +1366,7 @@ const visibleTasks = computed(() => {
                 }"
                 :key="bossKey"
                 class="group relative rounded-xl p-2 flex flex-col items-center justify-center gap-1.5 transition-all border cursor-pointer select-none"
-                @click="emit('task-click', char, bossKey, 'consumeSanctuary')"
+                @click="handleConsumeSanctuaryDblClick(char, bossKey, 'sanctuary')"
                 :class="[
                   // 根据剩余次数判断样式：如果打满了则置灰，未打满则呈现可交互的高亮样式
                   (char.sanctuaryRuns?.[bossKey] || 0) >= maxLimit
@@ -1415,19 +1431,6 @@ const visibleTasks = computed(() => {
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- 双击提示区 -->
-        <div
-          class="inline-flex items-center gap-2 px-2 py-1 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-lg text-xs text-slate-500 dark:text-slate-400 select-none"
-        >
-          <span class="text-indigo-500 dark:text-indigo-400">💡</span>
-          <span
-            >提示：下方卡片支持<strong
-              class="text-slate-700 dark:text-slate-200 font-medium underline decoration-indigo-400/50 underline-offset-2"
-              >双击</strong
-            >快捷修改内容</span
-          >
         </div>
 
         <!-- 统一的动态渲染网格：一排最多4个，超出自动换行 -->
@@ -2153,7 +2156,7 @@ const visibleTasks = computed(() => {
                       ? 'bg-slate-100/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 opacity-60'
                       : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-[#45a6d5] hover:shadow-sm active:scale-95'
                   "
-                  @click="emit('task-click', char, bossKey, 'consumeSanctuary')"
+                  @click="handleConsumeSanctuaryDblClick(char, bossKey, 'sanctuary')"
                 >
                   <div
                     class="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase"
