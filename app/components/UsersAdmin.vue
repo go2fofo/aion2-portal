@@ -8061,7 +8061,7 @@ watch(
                             class="text-xs font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5"
                           >
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                            圣域关卡 [ {{ key.toUpperCase() }} ]
+                            圣域关卡  {{ key.toUpperCase() }}  ，次数 【 {{(globalPopupOp.formData?.sanctuary?.[key] || 0 )-(globalPopupOp.formData?.sanctuaryRuns?.[key] || 0)}} 】
                           </span>
                           <span class="text-[10px] font-bold text-slate-400"
                             >ID: {{ key }}</span
