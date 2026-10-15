@@ -467,12 +467,33 @@ const handleTaskClickWithDblClick = (char, field, type) => {
     // 执行你的双击逻辑
     emit("task-click", char, field, type, "dbclick");
   } else {
+    let validateClick = {
+      dimensionalCount:
+        getGroupSharedTaskData(
+          char.group,
+          "dimensionalCount",
+          "storedDimensionalCount",
+          14
+        ).total > 0,
+      dailyRuns:
+        getGroupSharedTaskData(char.group, "dailyRuns", "storedDailyRuns", 14).total > 0,
+      minigameCount:
+        getGroupSharedTaskData(char.group, "minigameCount", "storedMinigameCount", 14)
+          .total > 0,
+      awakening:
+        getCharacterSharedTaskData(char, "awakening", "storedAwakening", 14).total > 0,
+      nightmareCount:
+        getCharacterSharedTaskData(char, "nightmareCount", "storedNightmareCount", 14)
+          .total > 0,
+
+      battlefield: char?.battlefield != 0,
+    };
     // ===========================
     // 第一次点击，启动延时等待是否会有第二次点击
     // ===========================
     clickTimer = setTimeout(() => {
       clickTimer = null;
-      if (!validateClick[field]) {
+      if (!validateClick?.[field]) {
         return;
       }
       // 延时结束后如果没有双击，则执行你的单击逻辑

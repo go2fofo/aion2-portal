@@ -1,7 +1,7 @@
 <!--
  * @Author: whq
  * @Date: 2026-02-08 09:11:19
- * @LastEditTime: 2026-09-10 16:37:05
+ * @LastEditTime: 2026-10-12 10:36:11
  * @LastEditors: fofo
  * @Description: 
  * @FilePath: /aion2-portal/app/app.vue
@@ -20,7 +20,7 @@
       >
         <span>✨ 社区门户已更新至最新版本，请刷新以体验新功能</span>
         <button
-          @click="window.location.reload()"
+          @click="location.reload()"
           class="px-3 py-1.5 bg-white text-amber-700 rounded-xl hover:bg-amber-50 active:scale-95 transition-all cursor-pointer shadow-xs"
         >
           立即刷新
