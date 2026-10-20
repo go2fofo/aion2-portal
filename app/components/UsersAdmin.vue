@@ -30,7 +30,7 @@ import {
 } from "./config/userAdmin";
 import { useGameStore } from "@/stores/useGameStore";
 import { KinahOdSate } from "./config/userAdmin.js";
-
+import { calcPremiumRemainingDays } from "@/utils/index.ts";
 const gameStore = useGameStore();
 const client = useSupabaseClient();
 const user = useSupabaseUser();
@@ -398,30 +398,7 @@ const getTodayDateStr = () => {
 };
 // 1. 总角色数计算
 const totalCharacters = computed(() => gameData.value.characters?.length || 0);
-/**
- * 根据会员结束时间（yyyy-MM-dd）动态计算精准剩余天数
- * @param {string} endTimeStr 会员结束时间字符串
- * @param {number} [fallbackDays] 如果没有结束时间或解析失败时的备用天数
- * @returns {number} 剩余天数（最小为 0）
- */
-const calcPremiumRemainingDays = (endTimeStr, fallbackDays = 0) => {
-  if (!endTimeStr) return Number(fallbackDays) || 0;
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const endDate = new Date(endTimeStr);
-  endDate.setHours(0, 0, 0, 0);
-
-  // 如果日期格式非法，直接返回备用天数
-  if (isNaN(endDate.getTime())) return Number(fallbackDays) || 0;
-
-  // 结束时间减去当前时间，毫秒转换为天数
-  const diffTime = endDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  return diffDays > 0 ? diffDays : 0;
-};
 // 2. 获取所有分组及其签到状态（自动过滤掉角色数量为 0 的空分组）
 const allGroups = computed(() => {
   const characters = gameData.value.characters || [];
@@ -2583,6 +2560,18 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType, clickT
       globalPopupOp.value = newGlobalPopupOp;
       break;
     }
+
+    // 修改会员
+    case "globalVip": {
+      globalPopupOpen.value = true;
+      globalPopupOp.value.type = "premiumMember";
+      globalPopupOp.value.type2 = "table";
+      globalPopupOp.value.name = "会员管理";
+      globalPopupOp.value.data = {};
+      globalPopupOp.value.targetChar = char;
+
+      break;
+    }
     default:
       break;
   }
@@ -2604,8 +2593,12 @@ const handleGlobalPopupFill = async (type) => {
     case "premiumMember": // 开通会员
       {
         if (!globalPopupOp.value.data?.premiumMemberDay) return;
-
-        let group = cloneDeep(getAtvTabGroup.value);
+        let group;
+        if (globalPopupOp.value?.type2 == "table") {
+          group= await getGroupById(globalPopupOp.value?.targetChar?.group)
+        } else {
+          group = cloneDeep(getAtvTabGroup?.value);
+        }
 
         group.premiumMemberDay = globalPopupOp.value.data?.premiumMemberDay;
         group.premiumMember = true;
@@ -8061,7 +8054,12 @@ watch(
                             class="text-xs font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5"
                           >
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                            圣域关卡  {{ key.toUpperCase() }}  ，次数 【 {{(globalPopupOp.formData?.sanctuary?.[key] || 0 )-(globalPopupOp.formData?.sanctuaryRuns?.[key] || 0)}} 】
+                            圣域关卡 {{ key.toUpperCase() }} ，次数 【
+                            {{
+                              (globalPopupOp.formData?.sanctuary?.[key] || 0) -
+                              (globalPopupOp.formData?.sanctuaryRuns?.[key] || 0)
+                            }}
+                            】
                           </span>
                           <span class="text-[10px] font-bold text-slate-400"
                             >ID: {{ key }}</span

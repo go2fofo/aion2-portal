@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import { dungeonDecayRules, parseLogTimestamp } from "../config/userAdmin";
 import cloneDeep from "lodash/cloneDeep";
-
+import { calcPremiumRemainingDays } from "@/utils/index.ts";
 // 1. 定义 Props
 const props = defineProps({
   // 完整数据
@@ -707,6 +707,25 @@ const visibleTasks = computed(() => {
     );
   });
 });
+// 获取格式化后的会员状态信息
+const getGroupVIPInfo = (groupKey) => {
+  const group = props?.getGroup(groupKey);
+  if (!group || !group.premiumEndTime) {
+    return { text: "未开通会员", status: "none", days: 0 };
+  }
+
+  const days = calcPremiumRemainingDays(group.premiumEndTime, group.premiumMemberDay);
+
+  if (!group.premiumMember || days <= 0) {
+    return { text: "会员已到期", status: "expired", days };
+  } else if (days <= 3) {
+    return { text: `会员剩余 ${days} 天`, status: "urgent", days };
+  } else if (days <= 7) {
+    return { text: `会员剩余 ${days} 天`, status: "warning", days };
+  } else {
+    return { text: `会员剩余 ${days} 天`, status: "normal", days };
+  }
+};
 </script>
 
 <template>
@@ -1763,7 +1782,7 @@ const visibleTasks = computed(() => {
     class="w-full overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm"
   >
     <div class="w-full overflow-x-auto">
-      <table class=" border-collapse text-xs table-fixed w-max">
+      <table class="border-collapse text-xs table-fixed w-max">
         <thead>
           <tr
             class="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700"
@@ -1777,7 +1796,7 @@ const visibleTasks = computed(() => {
 
             <!-- 奥德能量 -->
             <th
-              class="w-[350px]  px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300"
+              class="w-[350px] px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300"
               v-if="fields.showEnergy"
             >
               <button
@@ -1862,7 +1881,7 @@ const visibleTasks = computed(() => {
 
             <!-- 本周吉纳 -->
             <th
-              class="w-[230px]  px-3 py-3 text-center font-black text-slate-600 dark:text-slate-300"
+              class="w-[230px] px-3 py-3 text-center font-black text-slate-600 dark:text-slate-300"
               v-if="fields.showDungeonsKina"
             >
               本周吉纳
@@ -1887,7 +1906,7 @@ const visibleTasks = computed(() => {
 
             <!-- 备注 -->
             <th
-              class="w-[280px]  px-3 py-3 text-center font-black text-slate-600 dark:text-slate-300"
+              class="w-[280px] px-3 py-3 text-center font-black text-slate-600 dark:text-slate-300"
               v-if="fields.showNotes"
             >
               备注
@@ -1959,8 +1978,8 @@ const visibleTasks = computed(() => {
                   </svg>
                 </button>
 
-                <!-- 名称 -->
-                <div class="min-w-0">
+                <!-- 名称区域 -->
+                <div class="min-w-0 flex-1">
                   <div
                     class="flex items-center gap-1.5 cursor-pointer"
                     @click="emit('task-click', char, '', 'globalModifyCharacter')"
@@ -1977,6 +1996,34 @@ const visibleTasks = computed(() => {
                     >
                       主账号
                     </span>
+                    <div class="flex items-center gap-1 mt-1">
+                      <button
+                        v-if="typeof char.characterId === 'string'"
+                        type="button"
+                        class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center"
+                        :disabled="char.isRefreshing"
+                        @click.stop="emit('toggle-refresh', char)"
+                      >
+                        <svg
+                          class="w-3.5 h-3.5"
+                          :class="{ 'animate-spin': char.isRefreshing }"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                      </button>
+
+                      <span class="text-[9px] text-sky-600/70">
+                        {{ getDaysAgoText(char?.profileLastUpdatedAt) }}
+                      </span>
+                    </div>
                   </div>
 
                   <!-- 等级、种族、服务器（极简紧凑） -->
@@ -1991,10 +2038,6 @@ const visibleTasks = computed(() => {
                       <span>·</span>
                       <span class="truncate">{{ char.serverName }}</span>
                     </template>
-                    <!-- <template v-if="char.combatPower">
-                <span>·</span>
-                <span class="truncate"> {{ char.itemLevel || char.equipmentScore || "N/A" }}</span>
-              </template> -->
                     <template v-if="char.combatPower">
                       <span>·</span>
                       <span class="truncate">
@@ -2003,32 +2046,34 @@ const visibleTasks = computed(() => {
                     </template>
                   </div>
 
-                  <div class="flex items-center gap-1 mt-1">
-                    <button
-                      v-if="typeof char.characterId === 'string'"
-                      type="button"
-                      class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center"
-                      :disabled="char.isRefreshing"
-                      @click.stop="emit('toggle-refresh', char)"
-                    >
-                      <svg
-                        class="w-3.5 h-3.5"
-                        :class="{ 'animate-spin': char.isRefreshing }"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                        />
-                      </svg>
-                    </button>
+                  <div
+                    class="text-[10px] font-bold text-sky-600/90 dark:text-sky-400/90 mt-1 truncate"
+                  >
+                    所属账号：【{{ getGroup(char.group)?.name || "未绑定分组" }}】
+                  </div>
+                  <div
+                    class="inline-flex items-center gap-1.5 px-2 py-0.5 mt-1 rounded-md text-[10px] font-black border transition-all truncate"
+                    :class="{
+                      'bg-slate-100 dark:bg-slate-800/80 text-slate-400 border-slate-200 dark:border-slate-700/60':
+                        getGroupVIPInfo(char.group).status === 'none' ||
+                        getGroupVIPInfo(char.group).status === 'expired',
+                      'bg-rose-50 dark:bg-rose-950/60 text-rose-500 dark:text-rose-400 border-rose-200 dark:border-rose-800/60 animate-pulse':
+                        getGroupVIPInfo(char.group).status === 'urgent',
+                      'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800/50':
+                        getGroupVIPInfo(char.group).status === 'warning',
+                      'bg-sky-50 dark:bg-sky-950/50 text-[#45a6d5] border-sky-200 dark:border-sky-800/50':
+                        getGroupVIPInfo(char.group).status === 'normal',
+                    }"
+                  >
+                    <!-- 会员图标 -->
+                    <svg class="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                      />
+                    </svg>
 
-                    <span class="text-[9px] text-sky-600/70">
-                      {{ getDaysAgoText(char?.profileLastUpdatedAt) }}
+                    <span class="truncate">
+                      {{ getGroupVIPInfo(char.group).text }}
                     </span>
                   </div>
                 </div>
@@ -2289,7 +2334,13 @@ const visibleTasks = computed(() => {
                 >
                   编辑角色
                 </button>
-
+                <button
+                  type="button"
+                  class="w-full px-2.5 py-2 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-[#45a6d5] font-black text-[10px]"
+                  @click="emit('task-click', char, '', 'globalVip')"
+                >
+                  会员管理
+                </button>
                 <button
                   type="button"
                   class="w-full px-2.5 py-2 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 font-black text-[10px] disabled:opacity-50 disabled:cursor-not-allowed"

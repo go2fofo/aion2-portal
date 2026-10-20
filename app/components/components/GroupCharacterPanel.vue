@@ -856,6 +856,7 @@ const handleTaskClick = async (char, field, tab, clickType) => {
     case "globalModifyCharacter": //通用弹框角色信息修改
     case "globalSanctuary": //通用弹框圣域相关处理修改--双击触发
     case "globalKinaGain": //通用弹框角色吉纳点击修改
+    case "globalVip": //修改会员
       //发送给父组件
       emit("task-click", char, tab, field);
       break;

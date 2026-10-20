@@ -1,7 +1,7 @@
 <!--
  * @Author: whq
  * @Date: 2026-02-08 09:11:19
- * @LastEditTime: 2026-10-20 11:46:20
+ * @LastEditTime: 2026-10-20 14:03:34
  * @LastEditors: fofo
  * @Description: 
  * @FilePath: /aion2-portal/app/app.vue
@@ -35,35 +35,11 @@ import { onMounted, onUnmounted, ref, watch } from "vue";
 const updateAvailable = useState("updateAvailable");
 import { useGameStore } from "@/stores/useGameStore";
 import GlobalFeedbackUI from "~/components/GlobalNotificationUI.vue";
+import { calcPremiumRemainingDays } from "@/utils/index.ts";
 const expiringGroups = ref([]);
 const { $notify } = useNuxtApp();
 const gameStore = useGameStore();
 // const user = useSupabaseUser();
-
-/**
- * 根据会员结束时间（yyyy-MM-dd）动态计算精准剩余天数
- * @param {string} endTimeStr 会员结束时间字符串
- * @param {number} [fallbackDays] 如果没有结束时间或解析失败时的备用天数
- * @returns {number} 剩余天数（最小为 0）
- */
-const calcPremiumRemainingDays = (endTimeStr, fallbackDays = 0) => {
-  if (!endTimeStr) return Number(fallbackDays) || 0;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const endDate = new Date(endTimeStr);
-  endDate.setHours(0, 0, 0, 0);
-
-  // 如果日期格式非法，直接返回备用天数
-  if (isNaN(endDate.getTime())) return Number(fallbackDays) || 0;
-
-  // 结束时间减去当前时间，毫秒转换为天数
-  const diffTime = endDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  return diffDays > 0 ? diffDays : 0;
-};
 
 onMounted(async () => {
   let gameData = await gameStore.initGameData();
@@ -73,30 +49,46 @@ onMounted(async () => {
     gameData
   );
 
-  // 获取剩余三天的会员分组账号
+  // 获取剩余 3 天及以内（<= 3 且 >= 0）的会员分组账号
   expiringGroups.value =
     gameData?.groups?.reduce((pre, cur) => {
       let premiumRemainingMemberDay = cur?.premiumMember
         ? calcPremiumRemainingDays(cur?.premiumEndTime, cur?.premiumMemberDay)
         : 0;
 
-      if (premiumRemainingMemberDay !== 0 && premiumRemainingMemberDay === 3) {
-        return [...pre, { ...cur }];
+      // ⭐ 修改条件：只要剩余天数在 1 到 3 天之间（或者你可以把 0 也包含进来做当天提醒）
+      if (premiumRemainingMemberDay > 0 && premiumRemainingMemberDay <= 3) {
+        return [...pre, { ...cur, remainingDays: premiumRemainingMemberDay }];
       }
       return pre;
     }, []) || [];
 
   if (expiringGroups.value.length > 0) {
-    // 提取出所有符合条件的分组名称（用逗号隔开）
-    const groupNames = expiringGroups.value
-      .map((g) => g.groupName || g.name || "未命名分组")
-      .join("、");
+    // 按照剩余天数分类，或者直接合并提示
+    // 这里我们按“紧急程度”或“具体天数”分组展示，文案更精准：
+
+    // 比如：筛选出还剩 1 天的、2 天的、3 天的
+    const day3List = expiringGroups.value
+      .filter((g) => g.remainingDays === 3)
+      .map((g) => g.groupName || g.name);
+    const day2List = expiringGroups.value
+      .filter((g) => g.remainingDays === 2)
+      .map((g) => g.groupName || g.name);
+    const day1List = expiringGroups.value
+      .filter((g) => g.remainingDays === 1)
+      .map((g) => g.groupName || g.name);
+
+    // 组装更智能、更清晰的提示消息
+    let messages = [];
+    if (day1List.length > 0) messages.push(`【仅剩 1 天】${day1List.join("、")}`);
+    if (day2List.length > 0) messages.push(`【还剩 2 天】${day2List.join("、")}`);
+    if (day3List.length > 0) messages.push(`【还剩 3 天】${day3List.join("、")}`);
 
     $notify({
-      title: "⚠️ 会员到期提醒",
-      message: `检测到以下分组的会员将在 3 天后到期 [${groupNames}]，请及时续费处理！`,
-      type: "warning", // 警告样式，醒目提示
-      duration: 0, // 设为 0，代表长驻直到用户手动点击右上角 × 关闭
+      title: "⚠️ 会员即将到期提醒",
+      message: `检测到以下账号分组即将到期，请及时续费：\n${messages.join("；")}`,
+      type: "warning", // 警告样式
+      duration: 0, // 长驻，直到手动关闭
     });
   }
 });
