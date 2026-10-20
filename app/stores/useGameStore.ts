@@ -1,7 +1,7 @@
 /*
  * @Author: fofo
  * @Date: 2026-09-03 09:21:17
- * @LastEditTime: 2026-09-11 17:14:29
+ * @LastEditTime: 2026-10-20 11:33:53
  * @LastEditors: fofo
  * @Description:
  * @FilePath: /aion2-portal/app/stores/useGameStore.ts
@@ -20,15 +20,22 @@ export const useGameStore = defineStore("game", {
       try {
         const localData = await getLocalGameData();
         this.gameData = localData ? cloneDeep(localData) : null;
+
+        return this.gameData;
       } catch (error) {
         console.error("初始化加载本地游戏数据失败:", error);
         this.gameData = null;
+        return this.gameData;
       }
     },
-    async setGameData(data: any, source: string = 'unknown') {
+    async setGameData(data: any, source: string = "unknown") {
       const cloned = cloneDeep(data);
       this.gameData = cloned;
-      await saveLocalGameData(cloned, 'current_data', "piain==setGameData==="+source);
+      await saveLocalGameData(
+        cloned,
+        "current_data",
+        "piain==setGameData===" + source,
+      );
     },
   },
 });

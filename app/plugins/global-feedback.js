@@ -1,9 +1,9 @@
 /*
- * @Author: fofo
- * @Date: 2026-02-12 15:25:06
- * @LastEditTime: 2026-09-03 14:24:27
+- @Author: fofo
+- @Date: 2026-02-12 15:25:06
+ * @LastEditTime: 2026-10-20 11:31:36
  * @LastEditors: fofo
- * @Description: 
+- @Description: 
  * @FilePath: /aion2-portal/app/plugins/global-feedback.js
  */
 import { defineNuxtPlugin } from '#app'
@@ -11,6 +11,7 @@ import { reactive } from 'vue'
 
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig()
+  
   // 全局响应式状态
   const feedbackState = reactive({
     dialog: {
@@ -26,7 +27,10 @@ export default defineNuxtPlugin((nuxtApp) => {
       visible: false,
       text: ''
     },
-    toasts: []
+    toasts: [],
+    
+    // 专门用于右上角持久通知的状态列表
+    notifications: []
   })
 
   const openDialog = (type, title, content, confirmText = '确定') => {
@@ -40,36 +44,53 @@ export default defineNuxtPlugin((nuxtApp) => {
       feedbackState.dialog.visible = true
     })
   }
+
   const showToast = (content, options = {}) => {
     const {
-      type = 'info', // 'success' | 'error' | 'warning' | 'info'
-      duration = 3000 // 自动消失时间 (ms)
+      type = 'info', 
+      duration = 3000 
     } = typeof options === 'string' ? { type: options } : options
 
     const id = Date.now() + Math.random()
-
-    const toastItem = {
-      id,
-      content,
-      type,
-      duration
-    }
-
-    feedbackState.toasts.push(toastItem)
+    feedbackState.toasts.push({ id, content, type, duration })
 
     if (duration > 0) {
-      setTimeout(() => {
-        removeToast(id)
-      }, duration)
+      setTimeout(() => removeToast(id), duration)
     }
-
     return id
   }
 
   const removeToast = (id) => {
     const index = feedbackState.toasts.findIndex(t => t.id === id)
+    if (index !== -1) feedbackState.toasts.splice(index, 1)
+  }
+
+  // 触发右上角持久通知的方法
+  const showNotification = (options = {}) => {
+    const {
+      title = '系统通知',
+      message = '',
+      type = 'info', // 'success' | 'error' | 'warning' | 'info'
+      duration = 0   // 默认 0：代表不自动消失，必须用户手动点关闭！若传 4000 则 4秒后自动消失
+    } = options
+
+    const id = Date.now() + Math.random()
+    const notificationItem = { id, title, message, type, duration }
+
+    feedbackState.notifications.push(notificationItem)
+
+    if (duration > 0) {
+      setTimeout(() => removeNotificationItem(id), duration)
+    }
+
+    return id
+  }
+
+  // 移除指定持久通知的方法
+  const removeNotificationItem = (id) => {
+    const index = feedbackState.notifications.findIndex(n => n.id === id)
     if (index !== -1) {
-      feedbackState.toasts.splice(index, 1)
+      feedbackState.notifications.splice(index, 1)
     }
   }
 
@@ -78,22 +99,12 @@ export default defineNuxtPlugin((nuxtApp) => {
     provide: {
       alert: (title, content) => openDialog('alert', title, content),
       confirm: (title, content) => openDialog('confirm', title, content),
-
-      /*
-      const { $toast } = useNuxtApp()
-
-      1. 基础用法
-      $toast('操作成功')
-
-      2. 带状态类型的用法
-      $toast('保存配置成功！', 'success')
-      $toast('网络连接失败，请检查', 'error')
-      $toast('密码强度过低', 'warning')
-
-      3. 自定义消失时间（毫秒，设为 0 则不会自动消失）
-      $toast('正在同步云端数据...', { type: 'info', duration: 5000 })
-      */
       toast: showToast,
+      
+      // 把拓展的通知方法挂载到 $notify 和 $removeNotify
+      notify: showNotification,
+      removeNotify: removeNotificationItem,
+
       loading: {
         show: (text = '加载中') => {
           feedbackState.loading.text = text
@@ -103,11 +114,8 @@ export default defineNuxtPlugin((nuxtApp) => {
           feedbackState.loading.visible = false
         }
       },
-      // 暴露状态给组件使用
       feedbackState,
       version: config.public.appVersion
     }
   }
 })
-
-
