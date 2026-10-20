@@ -700,8 +700,11 @@ const taskList = computed(() => [
 // 过滤可见的玩法
 const visibleTasks = computed(() => {
   return taskList.value.filter((task) => {
-    if (currentMode.value === "default" || currentMode.value === "table") return true;
-    return currentMode.value === "custom" && props.config?.customFields?.[task.fieldKey];
+    if (currentMode.value === "default") return true;
+    return (
+      (currentMode.value === "custom" || currentMode.value === "table") &&
+      props.config?.customFields?.[task.fieldKey]
+    );
   });
 });
 </script>
@@ -1760,29 +1763,22 @@ const visibleTasks = computed(() => {
     class="w-full overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm"
   >
     <div class="w-full overflow-x-auto">
-      <table class="w-full min-w-[2600px] border-collapse text-xs">
+      <table class=" border-collapse text-xs table-fixed w-max">
         <thead>
           <tr
             class="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700"
           >
-            <!-- 角色 -->
+            <!-- 角色：锁定绝对宽度，防止缩放 -->
             <th
-              class="sticky left-0 z-30 min-w-[240px] px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700"
+              class="sticky left-0 z-30 w-[100px] px-3 py-3 text-center font-black text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700"
             >
               角色
             </th>
 
-            <!-- 基础信息 -->
-            <!-- <th
-              class="min-w-[140px] px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300"
-            >
-              基本信息
-            </th> -->
-
-            <!-- 奥德 -->
-            <!-- 奥德 -->
+            <!-- 奥德能量 -->
             <th
-              class="min-w-[190px] px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300"
+              class="w-[350px]  px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300"
+              v-if="fields.showEnergy"
             >
               <button
                 type="button"
@@ -1799,12 +1795,12 @@ const visibleTasks = computed(() => {
                   }
                 "
               >
-                <span class="flex items-center gap-1.5">
+                <span class="flex items-center gap-1.5 truncate">
                   <span>奥德能量</span>
 
                   <!-- 当前排序方向 -->
                   <span
-                    class="flex flex-col items-center justify-center w-5 h-5 rounded-md text-slate-400 dark:text-slate-500 group-hover:bg-slate-100 dark:group-hover:bg-slate-700 transition-all"
+                    class="flex flex-col items-center justify-center w-5 h-5 rounded-md text-slate-400 dark:text-slate-500 group-hover:bg-slate-100 dark:group-hover:bg-slate-700 transition-all shrink-0"
                     :class="
                       currentModeTableConfig.energySort === 'asc'
                         ? 'text-[#45a6d5] bg-sky-50 dark:bg-sky-950/50'
@@ -1842,14 +1838,14 @@ const visibleTasks = computed(() => {
                 <!-- 当前排序文字 -->
                 <span
                   v-if="currentModeTableConfig.energySort === 'asc'"
-                  class="text-[9px] font-bold text-[#45a6d5]"
+                  class="text-[9px] font-bold text-[#45a6d5] shrink-0"
                 >
                   升序
                 </span>
 
                 <span
                   v-else-if="currentModeTableConfig.energySort === 'desc'"
-                  class="text-[9px] font-bold text-[#45a6d5]"
+                  class="text-[9px] font-bold text-[#45a6d5] shrink-0"
                 >
                   降序
                 </span>
@@ -1858,44 +1854,48 @@ const visibleTasks = computed(() => {
 
             <!-- 本周副本 -->
             <th
-              class="min-w-[170px] px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300"
+              class="w-[130px] px-3 py-3 text-center font-black text-slate-600 dark:text-slate-300"
+              v-if="fields.showDungeons"
             >
               本周副本
             </th>
 
             <!-- 本周吉纳 -->
             <th
-              class="min-w-[170px] px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300"
+              class="w-[230px]  px-3 py-3 text-center font-black text-slate-600 dark:text-slate-300"
+              v-if="fields.showDungeonsKina"
             >
               本周吉纳
             </th>
 
             <!-- 圣域 -->
             <th
-              class="min-w-[230px] px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300"
+              class="w-[130px] px-3 py-3 text-center font-black text-slate-600 dark:text-slate-300"
+              v-if="fields.showSanctuary"
             >
               圣域副本
             </th>
 
-            <!-- ⭐ 动态任务 -->
+            <!-- ⭐ 动态任务：强制锁死宽度，防止因权限控制列显隐导致被拉伸 -->
             <th
               v-for="task in visibleTasks"
               :key="`head-${task.key}`"
-              class="min-w-[150px] px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300 whitespace-nowrap"
+              class="w-[70px] min-w-[70px] max-w-[70px] px-1 py-3 text-center font-black text-slate-600 dark:text-slate-300 whitespace-nowrap overflow-hidden text-ellipsis"
             >
               {{ task.name }}
             </th>
 
             <!-- 备注 -->
             <th
-              class="min-w-[220px] px-3 py-3 text-left font-black text-slate-600 dark:text-slate-300"
+              class="w-[280px]  px-3 py-3 text-center font-black text-slate-600 dark:text-slate-300"
+              v-if="fields.showNotes"
             >
               备注
             </th>
 
-            <!-- 操作 -->
+            <!-- 操作：右侧固定 -->
             <th
-              class="sticky right-0 z-30 min-w-[170px] px-3 py-3 text-center font-black text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700"
+              class="sticky right-0 z-30 w-[180px] px-3 py-3 text-center font-black text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700"
             >
               操作
             </th>
@@ -1959,22 +1959,6 @@ const visibleTasks = computed(() => {
                   </svg>
                 </button>
 
-                <!-- 头像 -->
-                <div
-                  class="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-[#45a6d5] font-black flex items-center justify-center border border-sky-100 overflow-hidden shrink-0"
-                >
-                  <img
-                    v-if="char.profileImage && !char._imgError"
-                    :src="char.profileImage"
-                    class="w-full h-full object-cover"
-                    @error="char._imgError = true"
-                  />
-
-                  <span v-else>
-                    {{ char.characterName?.charAt(0) || "角" }}
-                  </span>
-                </div>
-
                 <!-- 名称 -->
                 <div class="min-w-0">
                   <div
@@ -1995,11 +1979,28 @@ const visibleTasks = computed(() => {
                     </span>
                   </div>
 
+                  <!-- 等级、种族、服务器（极简紧凑） -->
                   <div
-                    class="mt-1 text-[10px] text-slate-400 dark:text-slate-500 truncate"
+                    class="text-[9px] font-bold text-slate-400 dark:text-slate-400 mt-0.5 flex items-center gap-1 truncate"
+                    @click="emit('task-click', char, '', 'globalModifyCharacter')"
                   >
-                    {{ char.className || "选择职业" }}
-                    <template v-if="char.serverName"> · {{ char.serverName }} </template>
+                    <span>Lv.{{ char.characterLevel || 1 }}</span>
+                    <span>·</span>
+                    <span class="truncate">{{ char.raceName || "未知种族" }}</span>
+                    <template v-if="char.serverName">
+                      <span>·</span>
+                      <span class="truncate">{{ char.serverName }}</span>
+                    </template>
+                    <!-- <template v-if="char.combatPower">
+                <span>·</span>
+                <span class="truncate"> {{ char.itemLevel || char.equipmentScore || "N/A" }}</span>
+              </template> -->
+                    <template v-if="char.combatPower">
+                      <span>·</span>
+                      <span class="truncate">
+                        {{ formatCombatPower(char.combatPower) }}</span
+                      >
+                    </template>
                   </div>
 
                   <div class="flex items-center gap-1 mt-1">
@@ -2062,7 +2063,7 @@ const visibleTasks = computed(() => {
             <!-- ================================================= -->
             <!-- 奥德能量 -->
             <!-- ================================================= -->
-            <td class="px-3 py-3 align-middle">
+            <td class="px-3 py-3 align-middle" v-if="fields.showEnergy">
               <div
                 class="min-w-[150px] p-3 rounded-2xl bg-gradient-to-br from-sky-50 via-white to-cyan-50 dark:from-sky-950/60 dark:via-slate-900 dark:to-cyan-950/40 border border-sky-200/80 dark:border-sky-800/70 cursor-pointer shadow-sm hover:shadow-md hover:border-[#45a6d5] transition-all active:scale-[0.98]"
                 @click="emit('task-click', char, '', 'globalSimpleEnergy')"
@@ -2104,7 +2105,7 @@ const visibleTasks = computed(() => {
             <!-- ================================================= -->
             <!-- 本周副本 -->
             <!-- ================================================= -->
-            <td class="px-3 py-3">
+            <td class="px-3 py-3" v-if="fields.showDungeons">
               <div class="flex flex-col gap-1.5">
                 <button
                   type="button"
@@ -2135,7 +2136,7 @@ const visibleTasks = computed(() => {
             <!-- ================================================= -->
             <!-- 本周吉纳 -->
             <!-- ================================================= -->
-            <td class="px-3 py-3">
+            <td class="px-3 py-3" v-if="fields.showDungeonsKina">
               <div class="grid grid-cols-2 gap-1.5">
                 <div class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-center">
                   <div class="text-[9px] text-slate-400">非绑</div>
@@ -2159,7 +2160,7 @@ const visibleTasks = computed(() => {
             <!-- ================================================= -->
             <!-- 圣域 -->
             <!-- ================================================= -->
-            <td class="px-3 py-3 align-center">
+            <td class="px-3 py-3 align-center" v-if="fields.showSanctuary">
               <div class="flex items-center justify-center gap-1.5">
                 <button
                   v-for="(maxLimit, bossKey) in {
@@ -2254,7 +2255,7 @@ const visibleTasks = computed(() => {
             <!-- ================================================= -->
             <!-- 备注 -->
             <!-- ================================================= -->
-            <td class="px-3 py-3">
+            <td class="px-3 py-3" v-if="fields.showNotes">
               <textarea
                 :value="char.note || ''"
                 :disabled="char.locked"
