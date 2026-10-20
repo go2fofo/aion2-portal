@@ -1936,47 +1936,71 @@ const getGroupVIPInfo = (groupKey) => {
               :class="char.locked ? 'bg-slate-50 dark:bg-slate-800/50' : ''"
             >
               <div class="flex items-center gap-2.5 min-w-0">
-                <!-- 锁 -->
-                <button
-                  type="button"
-                  class="w-8 h-8 rounded-xl flex items-center justify-center border transition-all shrink-0"
-                  :class="
-                    char.locked
-                      ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 border-amber-200'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 border-slate-200'
-                  "
-                  @click="emit('toggle-lock', char)"
-                >
-                  <svg
-                    v-if="char.locked"
-                    class="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
+                <!-- 左侧：头像与锁（上下纵向排列） -->
+                <div class="flex flex-col items-center gap-2 shrink-0">
+                  <!-- 头像 -->
+                  <div
+                    class="w-9 h-9 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center shrink-0 shadow-sm"
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    <img
+                      v-if="char.profileImage && !char._imgError"
+                      :src="char.profileImage"
+                      alt="avatar"
+                      class="w-full h-full object-cover"
+                      @error="char._imgError = true"
                     />
-                  </svg>
+                    <!-- 没有头像时，默认展示角色名称的第一个字 -->
+                    <span
+                      v-else
+                      class="text-xs font-black text-slate-500 dark:text-slate-400"
+                    >
+                      {{ char.characterName ? char.characterName.charAt(0) : "游" }}
+                    </span>
+                  </div>
 
-                  <svg
-                    v-else
-                    class="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
+                  <!-- 锁按钮 -->
+                  <button
+                    type="button"
+                    class="w-8 h-8 rounded-xl flex items-center justify-center border transition-all shrink-0"
+                    :class="
+                      char.locked
+                        ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 border-amber-200 dark:border-amber-800/60'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 border-slate-200 dark:border-slate-700/60'
+                    "
+                    @click="emit('toggle-lock', char)"
+                    title="锁定/解锁状态"
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6v6a2 2 0 002 2z"
-                    />
-                  </svg>
-                </button>
+                    <svg
+                      v-if="char.locked"
+                      class="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
+                    </svg>
+
+                    <svg
+                      v-else
+                      class="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6v6a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </button>
+                </div>
 
                 <!-- 名称区域 -->
                 <div class="min-w-0 flex-1">
