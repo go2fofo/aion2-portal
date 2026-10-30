@@ -676,9 +676,9 @@ export const updateLogs = ref([
     tag: "新更新",
     tagClass:
       "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50",
-    title: "20261009",
+    title: "20261030",
     desc:
-      "添加了表格模式支持自定义，和会员修改",
+      "分组管理添加排序功能",
   },
       {
       tag: "新功能",

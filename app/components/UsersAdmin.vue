@@ -3228,6 +3228,43 @@ watch(
   },
   { deep: true, immediate: true }
 );
+// 1. 记录当前正被拖拽的分组索引
+let draggedGroupIndex = null
+
+const onGroupDragStart = (e, index) => {
+  draggedGroupIndex = index
+  e.dataTransfer.effectAllowed = 'move'
+}
+
+// 2. 放置时交换位置
+const onGroupDrop = (e, targetIndex) => {
+  e.preventDefault()
+  if (draggedGroupIndex === null || draggedGroupIndex === targetIndex) return
+
+  // 从原位置剪切出来，插入到目标位置
+  const movedItem = gameData.value.groups.splice(draggedGroupIndex, 1)[0]
+  gameData.value.groups.splice(targetIndex, 0, movedItem)
+
+  draggedGroupIndex = null
+  saveData(gameData.value, "onGroupDrop1111");
+}
+
+// 3. 手动输入目标序号进行跳转（例如把第 5 个输入为 1，直接排到第一位）
+const handleGroupIndexChange = (currentIndex, rawVal) => {
+  let targetIndex = parseInt(rawVal) - 1 // 转成对应的数组下标 (0-based)
+  
+  // 边界校验
+  if (isNaN(targetIndex)) return
+  if (targetIndex < 0) targetIndex = 0
+  if (targetIndex >= gameData.value.groups.length) targetIndex = gameData.value.groups.length - 1
+
+  if (currentIndex === targetIndex) return
+
+  // 重新排列数组
+  const item = gameData.value.groups.splice(currentIndex, 1)[0]
+  gameData.value.groups.splice(targetIndex, 0, item)
+   saveData(gameData.value, "handleGroupIndexChange1111");
+}
 </script>
 
 <template>
@@ -6335,7 +6372,7 @@ watch(
         </div>
       </Transition>
     </Teleport>
-    <!-- 分组管理 -->
+<!-- 分组管理 -->
     <Teleport to="body">
       <Transition name="modal3">
         <div
@@ -6407,27 +6444,46 @@ watch(
               <!-- 现有分组列表 -->
               <div class="space-y-3">
                 <div
-                  class="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
+                  class="flex items-center justify-between text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1"
                 >
-                  现有分组列表 ({{ gameData.groups.length }})
+                  <span>现有分组列表 ({{ gameData.groups.length }})</span>
+                  <span>💡 支持按住左侧 ⠿ 拖拽排序，或直接修改右侧序号</span>
                 </div>
 
                 <div
-                  v-for="group in gameData.groups"
+                  v-for="(group, index) in gameData.groups"
                   :key="group.id"
-                  class="flex items-center justify-between p-4 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl hover:border-slate-300 dark:hover:border-slate-700 transition-all shadow-sm"
+                  draggable="true"
+                  @dragstart="onGroupDragStart($event, index)"
+                  @dragover.prevent
+                  @drop="onGroupDrop($event, index)"
+                  class="flex items-center justify-between p-3.5 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl hover:border-slate-300 dark:hover:border-slate-700 transition-all shadow-sm cursor-grab active:cursor-grabbing"
                 >
+                  <!-- 左侧：拖拽手柄、序号与名称 -->
                   <div class="flex items-center gap-3">
-                    <span
-                      class="w-7 h-7 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-[#45a6d5] dark:text-sky-400 text-xs font-black flex items-center justify-center border border-sky-100 dark:border-sky-900/80 shadow-sm"
-                    >
-                      {{ group.id }}
+                    <!-- 拖拽手柄 -->
+                    <span class="text-slate-300 dark:text-slate-600 hover:text-slate-500 select-none font-bold text-base cursor-grab" title="按住拖拽排序">
+                      ⠿
                     </span>
-                    <span class="text-sm font-black text-slate-800 dark:text-slate-100">{{
+
+                    <!-- 手动输入序号跳转 -->
+                    <div class="flex items-center">
+                      <input
+                        :value="index + 1"
+                        @change="handleGroupIndexChange(index, $event.target.value)"
+                        min="1"
+                        :max="gameData.groups.length"
+                        class="w-10 h-7 text-center rounded-lg bg-sky-50 dark:bg-sky-950/60 text-[#45a6d5] dark:text-sky-400 text-xs font-black border border-sky-100 dark:border-sky-900/80 outline-none focus:border-[#45a6d5]"
+                        title="输入序号可直接调整位置"
+                      />
+                    </div>
+
+                    <span class="text-sm font-black text-slate-800 dark:text-slate-100 truncate max-w-[240px] sm:max-w-xs">{{
                       group.name
                     }}</span>
                   </div>
 
+                  <!-- 右侧：操作按钮 -->
                   <div class="flex items-center gap-2">
                     <button
                       @click="startEditGroup(group)"
