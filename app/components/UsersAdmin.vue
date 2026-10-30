@@ -3265,6 +3265,44 @@ const handleGroupIndexChange = (currentIndex, rawVal) => {
   gameData.value.groups.splice(targetIndex, 0, item)
    saveData(gameData.value, "handleGroupIndexChange1111");
 }
+
+// ==========================================
+// 小队上下调整与序号跳转排序逻辑（无拖拽）
+// ==========================================
+
+// 1. 点击 ▲ 或 ▼ 按钮上下移动小队
+const moveTeamIndex = (currentIndex, direction) => {
+  const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+  if (targetIndex < 0 || targetIndex >= gameData.value.teams.length) return
+
+  // 交换位置
+  const temp = gameData.value.teams[currentIndex]
+  gameData.value.teams[currentIndex] = gameData.value.teams[targetIndex]
+  gameData.value.teams[targetIndex] = temp
+  saveData(gameData.value, "moveTeamIndex22222");
+}
+
+// 2. 手动在输入框中修改数字序号跳转
+const handleTeamIndexChange = (currentIndex, rawVal) => {
+  let targetIndex = parseInt(rawVal) - 1 // 转换为 0-based 数组下标
+
+  if (isNaN(targetIndex)) return
+  if (targetIndex < 0) targetIndex = 0
+  if (targetIndex >= gameData.value.teams.length) {
+    targetIndex = gameData.value.teams.length - 1
+  }
+
+  if (currentIndex === targetIndex) return
+
+  // 剪切并插入到目标位置
+  const team = gameData.value.teams.splice(currentIndex, 1)[0]
+  gameData.value.teams.splice(targetIndex, 0, team)
+  saveData(gameData.value, "handleTeamIndexChange2222");
+}
+
+
+
+
 </script>
 
 <template>
@@ -8610,421 +8648,455 @@ const handleGroupIndexChange = (currentIndex, rawVal) => {
       </Transition>
     </Teleport>
     <!-- 小队管理/连锁管理弹窗 -->
-    <Teleport to="body">
-      <Transition name="teamChain">
+<!-- 小队管理/连锁管理弹窗 -->
+<Teleport to="body">
+  <Transition name="teamChain">
+    <div
+      v-if="teamChainOpen"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 backdrop-blur-sm"
+    >
+      <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+      <div
+        class="relative z-10 w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col max-h-[85vh]"
+      >
+        <!-- 弹窗头部 -->
         <div
-          v-if="teamChainOpen"
-          class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 backdrop-blur-sm"
+          class="px-8 py-2 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-900 z-10"
         >
-          <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
-          <div
-            class="relative z-10 w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col max-h-[85vh]"
-          >
-            <!-- 弹窗头部 -->
-            <!-- 弹窗头部 -->
+          <div class="flex items-center gap-6">
+            <!-- Tab 切换按钮组 -->
             <div
-              class="px-8 py-2 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-900 z-10"
-            >
-              <div class="flex items-center gap-6">
-                <!-- Tab 切换按钮组 -->
-                <div
-                  class="flex items-center gap-1.5 bg-slate-200/70 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700"
-                >
-                  <button
-                    type="button"
-                    class="flex-1 px-2 py-2 rounded-xl text-xs font-black transition-all shadow-2xs whitespace-nowrap cursor-pointer"
-                    :class="
-                      teamChainOptions.tab === 'chain'
-                        ? 'bg-[#45a6d5] text-white shadow-md shadow-[#45a6d5]/30'
-                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700/60'
-                    "
-                    @click="teamChainOptions.tab = 'chain'"
-                  >
-                    小队连锁
-                  </button>
-                  <button
-                    type="button"
-                    class="flex-1 px-2 py-2 rounded-xl text-xs font-black transition-all shadow-2xs whitespace-nowrap cursor-pointer"
-                    :class="
-                      teamChainOptions.tab === 'team'
-                        ? 'bg-[#45a6d5] text-white shadow-md shadow-[#45a6d5]/30'
-                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700/60'
-                    "
-                    @click="teamChainOptions.tab = 'team'"
-                  >
-                    小队管理
-                  </button>
-                </div>
-              </div>
-              <button
-                @click="teamChainOpen = false"
-                class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
-              >
-                关闭
-              </button>
-            </div>
-
-            <!-- 弹窗主体内容 -->
-            <div
-              class="p-6 space-y-4 overflow-y-auto custom-scroll flex-1 text-slate-700 dark:text-slate-300 text-sm"
-            >
-              <!-- 1. 小队连锁 Tab 面板 -->
-              <div v-if="teamChainOptions.tab === 'chain'" class="space-y-6">
-                <!-- 没有小队的空状态展位 -->
-                <div
-                  v-if="!gameData.teams || gameData.teams.length === 0"
-                  class="text-center py-16 flex flex-col items-center justify-center space-y-3"
-                >
-                  <div class="font-bold text-slate-600 dark:text-slate-300">
-                    暂无小队数据
-                  </div>
-                  <div class="text-xs text-slate-400 max-w-xs">
-                    当前还没有创建任何小队，请切换至“小队管理”标签页创建并配置小队成员。
-                  </div>
-                  <button
-                    type="button"
-                    @click="teamChainOptions.tab = 'team'"
-                    class="mt-2 px-4 py-2 rounded-xl bg-sky-500 text-white font-bold text-xs shadow-sm hover:bg-sky-600 transition-all cursor-pointer"
-                  >
-                    去创建小队
-                  </button>
-                </div>
-
-                <!-- 有小队时的连锁操作面板 -->
-                <template v-else>
-                  <!-- 顶部：选择进行连锁操作的队伍（网格卡片式） -->
-                  <div
-                    class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col gap-3"
-                  >
-                    <div class="flex items-center justify-between">
-                      <label class="text-xs font-bold text-slate-500 dark:text-slate-400"
-                        >选择连锁操作的目标队伍：</label
-                      >
-                      <span
-                        class="text-[10px] font-black text-[#45a6d5] px-2 py-0.5 bg-sky-50 dark:bg-sky-950/60 rounded-full border border-sky-200/60 dark:border-sky-800/60"
-                      >
-                        已选:
-                        {{
-                          gameData.teams.find(
-                            (t) => t.id === teamChainOptions.selectedChainTeamId
-                          )?.name || "未选择"
-                        }}
-                      </span>
-                    </div>
-
-                    <!-- 队伍网格列表（支持自适应列数） -->
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      <div
-                        v-for="team in gameData.teams"
-                        :key="team.id"
-                        @click="teamChainOptions.selectedChainTeamId = team.id"
-                        class="group relative p-3 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-1.5"
-                        :class="
-                          teamChainOptions.selectedChainTeamId === team.id
-                            ? 'bg-sky-500/10 dark:bg-sky-500/20 border-[#45a6d5] text-[#45a6d5] shadow-sm shadow-sky-500/10'
-                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-100/50 dark:hover:bg-slate-800'
-                        "
-                      >
-                        <!-- 选中状态指示器角标 -->
-                        <div
-                          v-if="teamChainOptions?.selectedChainTeamId === team.id"
-                          class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#45a6d5] animate-pulse"
-                        ></div>
-
-                        <!-- 队伍名称 -->
-                        <div class="text-xs font-black truncate pr-3">
-                          {{ team.name }}
-                        </div>
-
-                        <!-- 成员数量与状态 -->
-                        <div
-                          class="flex items-center justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500"
-                        >
-                          <span>队员</span>
-                          <span
-                            :class="
-                              getCharactersByTeamId(team.id).length > 0
-                                ? 'text-slate-600 dark:text-slate-300'
-                                : 'text-slate-400'
-                            "
-                          >
-                            {{ getCharactersByTeamId(team.id).length }} / 5
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <!-- 中间：连锁操作选项（类似游戏消耗按钮风格） -->
-                  <div class="space-y-4">
-                    <div class="space-y-2">
-                      <label class="text-xs font-bold text-slate-500 dark:text-slate-400"
-                        >选择连锁类型</label
-                      >
-                      <div class="grid grid-cols-5 gap-1.5">
-                        <button
-                          type="button"
-                          v-for="type in [
-                            { key: 'expedition', label: '远征副本' },
-                            { key: 'surpass', label: '超越副本' },
-                            { key: 'sanctuary', label: '圣域' },
-                            { key: 'nightmareCount', label: '清理噩梦' },
-                            { key: 'battlefield', label: '清理战场' },
-                          ]"
-                          :key="type.key"
-                          class="py-2 px-2 rounded-xl font-black text-[11px] transition-all border shadow-sm cursor-pointer truncate"
-                          :class="
-                            teamChainOptions.dungeonType === type.key
-                              ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sky-500/20'
-                              : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
-                          "
-                          @click="handleDungeonTypeChange(type.key)"
-                        >
-                          {{ type.label }}
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- 1. 远征副本 / 超越副本 / 圣域 的联动选择面板 -->
-                    <div
-                      v-if="
-                        ['expedition', 'surpass', 'sanctuary'].includes(
-                          teamChainOptions.dungeonType
-                        )
-                      "
-                      class="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800"
-                    >
-                      <!-- 第一步：选择具体副本 -->
-                      <div class="space-y-1.5">
-                        <div
-                          class="text-[11px] font-bold text-slate-400 dark:text-slate-500"
-                        >
-                          选择目标副本
-                        </div>
-                        <select
-                          v-model="teamChainOptions.selectedDungeonName"
-                          @change="handleDungeonChange"
-                          class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-[#45a6d5]"
-                        >
-                          <option value="" disabled>-- 请选择副本 --</option>
-                          <option
-                            v-for="dungeon in currentDungeonList"
-                            :key="dungeon.name"
-                            :value="dungeon.name"
-                          >
-                            [{{ dungeon.stars }}星] {{ dungeon.name }}
-                          </option>
-                        </select>
-                      </div>
-
-                      <!-- 第二步：选择难度 / 阶段（当选中了副本后显示） -->
-                      <div v-if="currentSelectedDungeon" class="space-y-1.5">
-                        <div
-                          class="text-[11px] font-bold text-slate-400 dark:text-slate-500"
-                        >
-                          选择难度 / 阶段
-                        </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                          <button
-                            type="button"
-                            v-for="diff in currentSelectedDungeon.difficulties"
-                            :key="diff.mode"
-                            @click="teamChainOptions.selectedDifficulty = diff.mode"
-                            class="p-2 rounded-xl border text-left transition-all text-xs flex flex-col justify-between"
-                            :class="
-                              teamChainOptions.selectedDifficulty === diff.mode
-                                ? 'bg-[#45a6d5]/10 border-[#45a6d5] text-[#45a6d5]'
-                                : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100'
-                            "
-                          >
-                            <div class="font-black flex items-center justify-between">
-                              <span>{{ diff.mode }}</span>
-                              <span class="text-[10px] text-slate-400"
-                                >奥德{{ diff.energy * 2 }}</span
-                              >
-                            </div>
-                            <div
-                              class="text-[10px] mt-1 font-bold text-amber-500 dark:text-amber-400"
-                            >
-                              吉纳: {{ diff.total }}
-                            </div>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- 2. 其他类型（如清理噩梦） -->
-                    <div
-                      v-if="teamChainOptions.dungeonType == 'nightmareCount'"
-                      class="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-xs text-slate-500"
-                    >
-                      清理噩梦相关配置项...
-                    </div>
-                    <div
-                      v-if="teamChainOptions.dungeonType == 'battlefield'"
-                      class="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-xs text-slate-500"
-                    >
-                      清理战场相关配置项...
-                    </div>
-                  </div>
-
-                  <!-- 下面：扣除次数设置与说明 -->
-                  <div
-                    class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3"
-                  >
-                    <div class="flex items-center justify-between">
-                      <span class="text-xs font-bold text-slate-700 dark:text-slate-300"
-                        >每次连锁扣除次数：</span
-                      >
-                      <input
-                        type="number"
-                        v-model.number="chainDeductCount"
-                        min="1"
-                        max="10"
-                        class="w-20 px-3 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-center text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500"
-                      />
-                    </div>
-                    <div class="text-[11px] text-slate-400 leading-relaxed">
-                      提示：执行连锁后，将对当前选中队伍中的所有成员统一应用该项任务的进度更新与次数扣除，操作默认角色全都是开通了会员！！！
-                    </div>
-                  </div>
-                </template>
-              </div>
-
-              <!-- 2. 小队管理 Tab 面板 -->
-              <div v-if="teamChainOptions.tab === 'team'" class="space-y-6">
-                <!-- 新增小队输入区 -->
-                <div
-                  class="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl"
-                >
-                  <input
-                    v-model="newTeamName"
-                    type="text"
-                    placeholder="输入新队伍名称..."
-                    class="flex-1 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:border-sky-400"
-                    @keyup.enter="handleAddTeam"
-                  />
-                  <button
-                    type="button"
-                    @click="handleAddTeam"
-                    class="px-5 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl text-sm transition-all cursor-pointer shadow-sm"
-                  >
-                    新增小队
-                  </button>
-                </div>
-
-                <!-- 队伍及角色归属列表 -->
-                <div class="space-y-4">
-                  <div
-                    v-for="team in gameData.teams"
-                    :key="team.id"
-                    class="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 space-y-3"
-                  >
-                    <div class="flex items-center justify-between">
-                      <input
-                        v-model="team.name"
-                        type="text"
-                        class="font-bold text-slate-800 dark:text-slate-100 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-sky-500 focus:outline-none px-1 py-0.5"
-                      />
-                      <button
-                        type="button"
-                        @click="handleDeleteTeam(team.id)"
-                        class="text-xs text-rose-500 hover:text-rose-600 font-bold px-2 py-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
-                      >
-                        删除队伍
-                      </button>
-                    </div>
-
-                    <!-- 小队成员展示（最多5个）与 SVG + 按钮 -->
-                    <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
-                      <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs text-slate-400 font-medium"
-                          >小队成员 ({{
-                            getCharactersByTeamId(team.id).length
-                          }}/5)：</span
-                        >
-                      </div>
-
-                      <div class="flex flex-wrap gap-2 items-center">
-                        <div
-                          v-for="char in getCharactersByTeamId(team.id)"
-                          :key="char.id || char.name"
-                          class="px-3 py-2 rounded-2xl text-xs border bg-white dark:bg-slate-800/90 border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 flex items-center gap-3 shadow-xs hover:border-sky-300 dark:hover:border-sky-700 transition-all group"
-                        >
-                          <!-- 角色详细信息（组合展示组别、职业、名称） -->
-                          <div class="flex items-center gap-1.5">
-                            <span
-                              class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700 shrink-0"
-                            >
-                              {{ getGroupById(char.group)?.name || "无"
-                              }}<template v-if="char.className"
-                                >/{{ char.className }}</template
-                              >
-                            </span>
-                            <span
-                              class="font-black text-xs text-slate-800 dark:text-slate-100 tracking-tight truncate"
-                            >
-                              {{ char.characterName || char.name }}
-                            </span>
-                          </div>
-
-                          <!-- 移除按钮 -->
-                          <button
-                            type="button"
-                            @click="handleRemoveCharacterFromTeam(char, team.id)"
-                            class="w-4 h-4 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-rose-500 dark:hover:bg-rose-600 transition-all cursor-pointer shrink-0"
-                            title="移出小队"
-                          >
-                            ×
-                          </button>
-                        </div>
-
-                        <!-- 人数小于5时显示的 SVG + 添加按钮 -->
-                        <button
-                          v-if="getCharactersByTeamId(team.id).length < 5"
-                          type="button"
-                          @click="openCharacterSelector(team.id)"
-                          class="px-3 py-1.5 rounded-xl text-xs font-bold border border-dashed border-slate-300 dark:border-slate-700 text-slate-400 hover:text-sky-500 hover:border-sky-400 dark:hover:border-sky-600 bg-slate-50/50 dark:bg-slate-800/40 flex items-center gap-1.5 transition-all cursor-pointer"
-                        >
-                          <svg
-                            class="w-3.5 h-3.5"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2.5"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              d="M12 4.5v15m7.5-7.5h-15"
-                            ></path>
-                          </svg>
-                          <span>添加角色</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 弹窗底部操作按钮 -->
-            <div
-              class="px-8 py-5 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-end gap-4 z-10"
+              class="flex items-center gap-1.5 bg-slate-200/70 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700"
             >
               <button
                 type="button"
-                v-if="teamChainOptions.tab === 'chain'"
-                :disabled="!gameData.teams || gameData.teams.length === 0"
-                @click="handleExecuteChain"
-                class="px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-black text-sm transition-all cursor-pointer shadow-sm active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-800"
+                class="flex-1 px-2 py-2 rounded-xl text-xs font-black transition-all shadow-2xs whitespace-nowrap cursor-pointer"
+                :class="
+                  teamChainOptions.tab === 'chain'
+                    ? 'bg-[#45a6d5] text-white shadow-md shadow-[#45a6d5]/30'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700/60'
+                "
+                @click="teamChainOptions.tab = 'chain'"
               >
-                执行连锁
+                小队连锁
+              </button>
+              <button
+                type="button"
+                class="flex-1 px-2 py-2 rounded-xl text-xs font-black transition-all shadow-2xs whitespace-nowrap cursor-pointer"
+                :class="
+                  teamChainOptions.tab === 'team'
+                    ? 'bg-[#45a6d5] text-white shadow-md shadow-[#45a6d5]/30'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-700/60'
+                "
+                @click="teamChainOptions.tab = 'team'"
+              >
+                小队管理
               </button>
             </div>
           </div>
+          <button
+            @click="teamChainOpen = false"
+            class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+          >
+            关闭
+          </button>
         </div>
-      </Transition>
-    </Teleport>
+
+        <!-- 弹窗主体内容 -->
+        <div
+          class="p-6 space-y-4 overflow-y-auto custom-scroll flex-1 text-slate-700 dark:text-slate-300 text-sm"
+        >
+          <!-- 1. 小队连锁 Tab 面板 -->
+          <div v-if="teamChainOptions.tab === 'chain'" class="space-y-6">
+            <!-- 没有小队的空状态展位 -->
+            <div
+              v-if="!gameData.teams || gameData.teams.length === 0"
+              class="text-center py-16 flex flex-col items-center justify-center space-y-3"
+            >
+              <div class="font-bold text-slate-600 dark:text-slate-300">
+                暂无小队数据
+              </div>
+              <div class="text-xs text-slate-400 max-w-xs">
+                当前还没有创建任何小队，请切换至“小队管理”标签页创建并配置小队成员。
+              </div>
+              <button
+                type="button"
+                @click="teamChainOptions.tab = 'team'"
+                class="mt-2 px-4 py-2 rounded-xl bg-sky-500 text-white font-bold text-xs shadow-sm hover:bg-sky-600 transition-all cursor-pointer"
+              >
+                去创建小队
+              </button>
+            </div>
+
+            <!-- 有小队时的连锁操作面板 -->
+            <template v-else>
+              <!-- 顶部：选择进行连锁操作的队伍（网格卡片式） -->
+              <div
+                class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col gap-3"
+              >
+                <div class="flex items-center justify-between">
+                  <label class="text-xs font-bold text-slate-500 dark:text-slate-400"
+                    >选择连锁操作的目标队伍：</label
+                  >
+                  <span
+                    class="text-[10px] font-black text-[#45a6d5] px-2 py-0.5 bg-sky-50 dark:bg-sky-950/60 rounded-full border border-sky-200/60 dark:border-sky-800/60"
+                  >
+                    已选:
+                    {{
+                      gameData.teams.find(
+                        (t) => t.id === teamChainOptions.selectedChainTeamId
+                      )?.name || "未选择"
+                    }}
+                  </span>
+                </div>
+
+                <!-- 队伍网格列表 -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <div
+                    v-for="team in gameData.teams"
+                    :key="team.id"
+                    @click="teamChainOptions.selectedChainTeamId = team.id"
+                    class="group relative p-3 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-1.5"
+                    :class="
+                      teamChainOptions.selectedChainTeamId === team.id
+                        ? 'bg-sky-500/10 dark:bg-sky-500/20 border-[#45a6d5] text-[#45a6d5] shadow-sm shadow-sky-500/10'
+                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-100/50 dark:hover:bg-slate-800'
+                    "
+                  >
+                    <div
+                      v-if="teamChainOptions?.selectedChainTeamId === team.id"
+                      class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#45a6d5] animate-pulse"
+                    ></div>
+
+                    <div class="text-xs font-black truncate pr-3">
+                      {{ team.name }}
+                    </div>
+
+                    <div
+                      class="flex items-center justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500"
+                    >
+                      <span>队员</span>
+                      <span
+                        :class="
+                          getCharactersByTeamId(team.id).length > 0
+                            ? 'text-slate-600 dark:text-slate-300'
+                            : 'text-slate-400'
+                        "
+                      >
+                        {{ getCharactersByTeamId(team.id).length }} / 5
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 中间：连锁操作选项 -->
+              <div class="space-y-4">
+                <div class="space-y-2">
+                  <label class="text-xs font-bold text-slate-500 dark:text-slate-400"
+                    >选择连锁类型</label
+                  >
+                  <div class="grid grid-cols-5 gap-1.5">
+                    <button
+                      type="button"
+                      v-for="type in [
+                        { key: 'expedition', label: '远征副本' },
+                        { key: 'surpass', label: '超越副本' },
+                        { key: 'sanctuary', label: '圣域' },
+                        { key: 'nightmareCount', label: '清理噩梦' },
+                        { key: 'battlefield', label: '清理战场' },
+                      ]"
+                      :key="type.key"
+                      class="py-2 px-2 rounded-xl font-black text-[11px] transition-all border shadow-sm cursor-pointer truncate"
+                      :class="
+                        teamChainOptions.dungeonType === type.key
+                          ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sky-500/20'
+                          : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                      "
+                      @click="handleDungeonTypeChange(type.key)"
+                    >
+                      {{ type.label }}
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  v-if="
+                    ['expedition', 'surpass', 'sanctuary'].includes(
+                      teamChainOptions.dungeonType
+                    )
+                  "
+                  class="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800"
+                >
+                  <div class="space-y-1.5">
+                    <div
+                      class="text-[11px] font-bold text-slate-400 dark:text-slate-500"
+                    >
+                      选择目标副本
+                    </div>
+                    <select
+                      v-model="teamChainOptions.selectedDungeonName"
+                      @change="handleDungeonChange"
+                      class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-[#45a6d5]"
+                    >
+                      <option value="" disabled>-- 请选择副本 --</option>
+                      <option
+                        v-for="dungeon in currentDungeonList"
+                        :key="dungeon.name"
+                        :value="dungeon.name"
+                      >
+                        [{{ dungeon.stars }}星] {{ dungeon.name }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <div v-if="currentSelectedDungeon" class="space-y-1.5">
+                    <div
+                      class="text-[11px] font-bold text-slate-400 dark:text-slate-500"
+                    >
+                      选择难度 / 阶段
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <button
+                        type="button"
+                        v-for="diff in currentSelectedDungeon.difficulties"
+                        :key="diff.mode"
+                        @click="teamChainOptions.selectedDifficulty = diff.mode"
+                        class="p-2 rounded-xl border text-left transition-all text-xs flex flex-col justify-between"
+                        :class="
+                          teamChainOptions.selectedDifficulty === diff.mode
+                            ? 'bg-[#45a6d5]/10 border-[#45a6d5] text-[#45a6d5]'
+                            : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100'
+                        "
+                      >
+                        <div class="font-black flex items-center justify-between">
+                          <span>{{ diff.mode }}</span>
+                          <span class="text-[10px] text-slate-400"
+                            >奥德{{ diff.energy * 2 }}</span
+                          >
+                        </div>
+                        <div
+                          class="text-[10px] mt-1 font-bold text-amber-500 dark:text-amber-400"
+                        >
+                          吉纳: {{ diff.total }}
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  v-if="teamChainOptions.dungeonType == 'nightmareCount'"
+                  class="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-xs text-slate-500"
+                >
+                  清理噩梦相关配置项...
+                </div>
+                <div
+                  v-if="teamChainOptions.dungeonType == 'battlefield'"
+                  class="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-xs text-slate-500"
+                >
+                  清理战场相关配置项...
+                </div>
+              </div>
+
+              <!-- 扣除次数设置 -->
+              <div
+                class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3"
+              >
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-slate-700 dark:text-slate-300"
+                    >每次连锁扣除次数：</span
+                  >
+                  <input
+                    type="number"
+                    v-model.number="chainDeductCount"
+                    min="1"
+                    max="10"
+                    class="w-20 px-3 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-center text-slate-800 dark:text-slate-100 focus:outline-none focus:border-sky-500"
+                  />
+                </div>
+                <div class="text-[11px] text-slate-400 leading-relaxed">
+                  提示：执行连锁后，将对当前选中队伍中的所有成员统一应用该项任务的进度更新与次数扣除，操作默认角色全都是开通了会员！！！
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- 2. 小队管理 Tab 面板 -->
+          <div v-if="teamChainOptions.tab === 'team'" class="space-y-6">
+            <!-- 新增小队输入区 -->
+            <div
+              class="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-2xl"
+            >
+              <input
+                v-model="newTeamName"
+                type="text"
+                placeholder="输入新队伍名称..."
+                class="flex-1 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:border-sky-400"
+                @keyup.enter="handleAddTeam"
+              />
+              <button
+                type="button"
+                @click="handleAddTeam"
+                class="px-5 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl text-sm transition-all cursor-pointer shadow-sm"
+              >
+                新增小队
+              </button>
+            </div>
+
+            <!-- 队伍列表提示文字 -->
+            <div
+              class="flex items-center justify-between text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-1"
+            >
+              <span>小队列表 ({{ gameData.teams.length }})</span>
+              <span>💡 可点击上下按钮或修改序号排序，双击角色可划转小队</span>
+            </div>
+
+            <!-- 队伍及角色归属列表 -->
+            <div class="space-y-4">
+              <div
+                v-for="(team, teamIndex) in gameData.teams"
+                :key="team.id"
+                class="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 space-y-3 shadow-xs transition-all hover:border-slate-300 dark:hover:border-slate-700"
+              >
+                <!-- 头部：上下排序按钮、序号输入框、名称、删除按钮 -->
+                <div class="flex items-center justify-between gap-3">
+                  <div class="flex items-center gap-2 flex-1">
+                    <!-- 上下微调按钮组 -->
+                    <div class="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700 shrink-0">
+                      <button
+                        type="button"
+                        @click="moveTeamIndex(teamIndex, 'up')"
+                        :disabled="teamIndex === 0"
+                        class="w-6 h-6 flex items-center justify-center rounded text-xs font-bold text-slate-500 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 cursor-pointer"
+                        title="上移"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        @click="moveTeamIndex(teamIndex, 'down')"
+                        :disabled="teamIndex === gameData.teams.length - 1"
+                        class="w-6 h-6 flex items-center justify-center rounded text-xs font-bold text-slate-500 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 cursor-pointer"
+                        title="下移"
+                      >
+                        ▼
+                      </button>
+                    </div>
+
+                    <!-- 手动序号输入框 -->
+                    <input
+                      :value="teamIndex + 1"
+                      @change="handleTeamIndexChange(teamIndex, $event.target.value)"
+                      min="1"
+                      :max="gameData.teams.length"
+                      class="w-10 h-7 text-center rounded-lg bg-sky-50 dark:bg-sky-950/60 text-[#45a6d5] dark:text-sky-400 text-xs font-black border border-sky-100 dark:border-sky-900/80 outline-none focus:border-[#45a6d5] shrink-0"
+                      title="修改数字可快速调整排位"
+                    />
+
+                    <!-- 小队名称编辑 -->
+                    <input
+                      v-model="team.name"
+                      type="text"
+                      class="font-bold text-slate-800 dark:text-slate-100 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-sky-500 focus:outline-none px-1 py-0.5 flex-1"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    @click="handleDeleteTeam(team.id)"
+                    class="text-xs text-rose-500 hover:text-rose-600 font-bold px-2 py-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer shrink-0"
+                  >
+                    删除队伍
+                  </button>
+                </div>
+
+                <!-- 小队成员展示 -->
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-slate-400 font-medium">
+                      小队成员 ({{ getCharactersByTeamId(team.id).length }}/5)：
+                    </span>
+                  </div>
+
+                  <div class="flex flex-wrap gap-2 items-center">
+                    <div
+                      v-for="char in getCharactersByTeamId(team.id)"
+                      :key="char.id || char.name"
+                      @dblclick="handleSelectDBCharacter(char, team.id)"
+                      class="px-3 py-2 rounded-2xl text-xs border bg-white dark:bg-slate-800/90 border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 flex items-center gap-3 shadow-xs hover:border-sky-400 dark:hover:border-sky-600 transition-all group cursor-pointer select-none"
+                      title="双击将角色快速移至其他小队"
+                    >
+                      <div class="flex items-center gap-1.5">
+                        <span
+                          class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700 shrink-0"
+                        >
+                          {{ getGroupById(char.group)?.name || "无" }}
+                          <template v-if="char.className">/{{ char.className }}</template>
+                        </span>
+                        <span
+                          class="font-black text-xs text-slate-800 dark:text-slate-100 tracking-tight truncate"
+                        >
+                          {{ char.characterName || char.name }}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        @click.stop="handleRemoveCharacterFromTeam(char, team.id)"
+                        class="w-4 h-4 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-rose-500 dark:hover:bg-rose-600 transition-all cursor-pointer shrink-0"
+                        title="移出小队"
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    <button
+                      v-if="getCharactersByTeamId(team.id).length < 5"
+                      type="button"
+                      @click="openCharacterSelector(team.id)"
+                      class="px-3 py-1.5 rounded-xl text-xs font-bold border border-dashed border-slate-300 dark:border-slate-700 text-slate-400 hover:text-sky-500 hover:border-sky-400 dark:hover:border-sky-600 bg-slate-50/50 dark:bg-slate-800/40 flex items-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      <svg
+                        class="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M12 4.5v15m7.5-7.5h-15"
+                        ></path>
+                      </svg>
+                      <span>添加角色</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 弹窗底部操作按钮 -->
+        <div
+          class="px-8 py-5 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-end gap-4 z-10"
+        >
+          <button
+            type="button"
+            v-if="teamChainOptions.tab === 'chain'"
+            :disabled="!gameData.teams || gameData.teams.length === 0"
+            @click="handleExecuteChain"
+            class="px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-black text-sm transition-all cursor-pointer shadow-sm active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-800"
+          >
+            执行连锁
+          </button>
+        </div>
+      </div>
+    </div>
+  </Transition>
+</Teleport>
     <!-- 内部嵌入的角色多选弹窗 (用于点击 + 号时选择角色) -->
     <Teleport to="body">
       <div
