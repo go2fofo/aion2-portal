@@ -1,4 +1,5 @@
 import { aionKrServerList, isKrServerId } from './aionKrServers'
+import { aionGlobalServerList, isGlobalServerId } from './aionGlobalServers'
 
 export type AionServer = {
   raceId: 1 | 2
@@ -61,6 +62,18 @@ export const getServerById = (serverId: number) => {
       }
     }
   }
+  // 国际服（偏移 ID 21101-21510 / 22101-22510）
+  if (isGlobalServerId(serverId)) {
+    const gl = aionGlobalServerList.find((s) => s.serverId === Number(serverId))
+    if (gl) {
+      return {
+        raceId: gl.raceId,
+        serverId: gl.serverId,
+        serverName: gl.serverName,
+        serverShortName: gl.serverShortName,
+      }
+    }
+  }
   return aionServerList.find((s) => s.serverId === Number(serverId)) || null
 }
 
@@ -72,6 +85,9 @@ export const getServerCode = (serverId: number) => {
   // 韩服偏移 ID
   if (id >= 11000 && id < 12000) return { raceId: 1 as const, code: id - 11000 }
   if (id >= 12000 && id < 13000) return { raceId: 2 as const, code: id - 12000 }
+  // 国际服偏移 ID
+  if (id >= 21000 && id < 22000) return { raceId: 1 as const, code: id - 21000 }
+  if (id >= 22000 && id < 23000) return { raceId: 2 as const, code: id - 22000 }
   return null
 }
 

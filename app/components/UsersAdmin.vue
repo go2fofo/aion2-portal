@@ -23,6 +23,15 @@ import {
   formatKrServerDisplay,
   parseKrNameWithServerShort,
 } from "~/utils/aionKrServers";
+import {
+  globalRegionList,
+  getGlobalServersByRegionRace,
+  getGlobalServerById,
+  getGlobalRealServerId,
+  toGlobalOffsetServerId,
+  formatGlobalServerDisplay,
+  parseGlobalNameWithServerShort,
+} from "~/utils/aionGlobalServers";
 import { formatCombatPower } from "~/utils/formatCombatPower";
 import GroupCharacterPanel from "./components/GroupCharacterPanel.vue";
 import GlobalModal from "./GlobalModal.vue";
@@ -1013,6 +1022,146 @@ const pickFromKrSearch = async (c) => {
   }
 };
 // ==================== 韩服角色搜索结束 ====================
+
+// ==================== 国际服角色搜索开始 ====================
+const glSearchRegionId = ref("naw");
+const glSearchRaceId = ref(1);
+const glSearchServerId = ref(0); // 0 = 全区服
+const glSearchQuick = ref("");
+const glSearchResults = ref([]);
+const glSearchLoading = ref(false);
+const glSearchedOnce = ref(false);
+
+const glServerOptions = computed(() =>
+  getGlobalServersByRegionRace(glSearchRegionId.value, glSearchRaceId.value)
+);
+
+const applyQuickToGlSearch = () => {
+  const parsed = parseGlobalNameWithServerShort(glSearchQuick.value);
+  if (!parsed) {
+    $alert("格式提示", "请正确输入国际服区服简写，例如：CharName[SIE] 或 CharName[TRI]");
+    return null;
+  }
+  glSearchRegionId.value = parsed.regionId;
+  glSearchRaceId.value = parsed.raceId;
+  glSearchServerId.value = parsed.serverId;
+  glSearchQuick.value = parsed.keyword;
+  return parsed;
+};
+
+const applyQuickToGlSearchAndSearch = async () => {
+  if (hasValidBrackets(glSearchQuick.value)) {
+    const parsed = applyQuickToGlSearch();
+    if (!parsed) return;
+  }
+  await searchGlCharacters();
+};
+
+const searchGlCharacters = async () => {
+  if (!glSearchQuick.value.trim()) return;
+  glSearchLoading.value = true;
+  glSearchedOnce.value = true;
+  try {
+    const embedded = parseGlobalNameWithServerShort(glSearchQuick.value);
+    if (embedded) {
+      applyQuickToGlSearch();
+    }
+    const res = await $fetch("/api/aion-global/search", {
+      query: {
+        keyword: glSearchQuick.value,
+        region: glSearchRegionId.value,
+        localeInfo: "en-US",
+        race: glSearchRaceId.value,
+        serverId: getGlobalRealServerId(glSearchServerId.value) || "",
+        page: 1,
+        size: 30,
+      },
+    });
+    if (res?.list?.length == 1) {
+      pickFromGlSearch(res?.list[0]);
+      return;
+    }
+    glSearchResults.value = res?.list || [];
+  } catch {
+    glSearchResults.value = [];
+  } finally {
+    glSearchLoading.value = false;
+  }
+};
+
+const fetchGlCharacterInfo = async (characterId, serverId, regionId) => {
+  const detail = await $fetch("/api/aion-global/info", {
+    params: { characterId, serverId, region: regionId },
+  });
+  const profile = detail?.profile;
+  if (!profile) throw new Error("角色信息不存在");
+  const itemLevel = detail?.stat?.statList?.find((x) => x?.type === "ItemLevel")?.value;
+  return { ...profile, itemLevel };
+};
+
+const buildGlFallbackProfile = ({
+  characterId,
+  characterName,
+  serverId,
+  raceId,
+  level,
+  className,
+}) => {
+  const sid = Number(serverId);
+  const s = getGlobalServerById(sid);
+  const rid = Number(raceId);
+  return {
+    characterId: String(characterId),
+    characterName: String(characterName),
+    serverId: sid,
+    serverName: s?.serverName || String(serverId),
+    raceId: rid,
+    raceName: rid === 1 ? "天族" : "魔族",
+    className: className ? String(className) : "未知",
+    characterLevel: level ? Number(level) : null,
+    combatPower: null,
+    itemLevel: null,
+    needsRefresh: true,
+    remark: "",
+  };
+};
+
+const pickFromGlSearch = async (c) => {
+  $loading.show("正在获取国际服角色信息...");
+  try {
+    // 国际服搜索结果 serverId 为官方真实 ID，入库统一转为偏移 ID，避免与台服/韩服冲突
+    const offsetServerId = toGlobalOffsetServerId(c.serverId) || c.serverId;
+    // 通过偏移 ID 反查所属区域（搜索结果未直接返回 region 字段）
+    const serverInfo = getGlobalServerById(offsetServerId);
+    let profile;
+    try {
+      profile = await fetchGlCharacterInfo(
+        c.characterId,
+        c.serverId,
+        serverInfo?.regionId || "naw"
+      );
+      profile.serverId = offsetServerId;
+      profile.serverName = serverInfo?.serverName || profile.serverName;
+      profile.needsRefresh = false;
+    } catch {
+      profile = buildGlFallbackProfile({
+        characterId: c.characterId,
+        characterName: stripHtml(c.name),
+        serverId: offsetServerId,
+        raceId: c.race,
+        level: c.level,
+        className: null,
+      });
+      $alert("已添加", "国际服角色详情接口暂时不可用，已先添加占位信息，可稍后点刷新补全");
+    }
+    addMemberToTeam(profile);
+  } catch (e) {
+    $alert("添加失败", e?.message || String(e));
+  } finally {
+    $loading.hide();
+  }
+};
+// ==================== 国际服角色搜索结束 ====================
 
 // 添加自定义角色
 const confirmAddCustomCharacter = async () => {
@@ -6236,6 +6385,18 @@ const handleTeamIndexChange = (currentIndex, rawVal) => {
               </button>
               <button
                 type="button"
+                @click="pickerTab = 'global'"
+                class="px-5 py-2.5 rounded-xl font-black text-xs transition-all cursor-pointer border"
+                :class="
+                  pickerTab === 'global'
+                    ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sm'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
+                "
+              >
+                永恒之塔2（国际服）
+              </button>
+              <button
+                type="button"
                 @click="pickerTab = 'custom'"
                 class="px-5 py-2.5 rounded-xl font-black text-xs transition-all cursor-pointer border"
                 :class="
@@ -6520,7 +6681,120 @@ const handleTeamIndexChange = (currentIndex, rawVal) => {
                 </div>
               </template>
 
-              <!-- ==================== TAB 3: 自定义角色 ==================== -->
+              <!-- ==================== TAB 3: 永恒之塔2（国际服） ==================== -->
+              <template v-else-if="pickerTab === 'global'">
+                <div
+                  v-if="pickerOpenOther.type === 'myroles'"
+                  class="py-10 text-center text-slate-400 font-bold"
+                >
+                  国际服暂不支持「我的角色」列表，请使用搜索添加
+                </div>
+                <!-- 添加角色 / 搜索 -->
+                <div v-else class="space-y-3">
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <select
+                      v-model="glSearchRegionId"
+                      class="px-5 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-700 dark:text-slate-200 cursor-pointer"
+                      @change="glSearchServerId = 0"
+                    >
+                      <option
+                        v-for="r in globalRegionList"
+                        :key="r.id"
+                        :value="r.id"
+                      >
+                        {{ r.label }}
+                      </option>
+                    </select>
+                    <select
+                      v-model.number="glSearchRaceId"
+                      class="px-5 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-700 dark:text-slate-200 cursor-pointer"
+                      @change="glSearchServerId = 0"
+                    >
+                      <option :value="1">天族</option>
+                      <option :value="2">魔族</option>
+                    </select>
+                    <select
+                      v-model.number="glSearchServerId"
+                      class="px-5 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-[#45a6d5] focus:bg-white dark:focus:bg-slate-900 outline-none font-black text-slate-700 dark:text-slate-200 cursor-pointer"
+                    >
+                      <option :value="0">全区服</option>
+                      <option
+                        v-for="s in glServerOptions"
+                        :key="s.serverId"
+                        :value="s.serverId"
+                      >
+                        {{ formatGlobalServerDisplay(s.serverId) }}
+                      </option>
+                    </select>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2">
+                    <input
+                      v-model="glSearchQuick"
+                      class="px-4 py-3 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-700 focus:border-[#45a6d5] outline-none font-bold text-slate-700 dark:text-slate-100 transition-all"
+                      placeholder="输入国际服角色名关键字或快捷粘贴：角色名[区服简写]（例如 CharName[SIE]、CharName[TRI]）"
+                      @keyup.enter="applyQuickToGlSearchAndSearch"
+                    />
+                  </div>
+                  <div class="flex items-center justify-end">
+                    <button
+                      class="px-5 py-2 rounded-xl bg-[#45a6d5] text-white font-black text-sm hover:bg-[#3b95c0] transition-colors disabled:opacity-50 cursor-pointer"
+                      :disabled="glSearchLoading"
+                      @click="applyQuickToGlSearchAndSearch"
+                    >
+                      {{ glSearchLoading ? "查询中..." : "查询" }}
+                    </button>
+                  </div>
+
+                  <div
+                    v-if="glSearchLoading"
+                    class="py-10 text-center text-slate-400 font-bold"
+                  >
+                    查询中...
+                  </div>
+                  <div
+                    v-else
+                    class="max-h-[40vh] overflow-y-auto custom-scroll space-y-2"
+                  >
+                    <div
+                      v-for="c in glSearchResults"
+                      :key="c.characterId"
+                      class="p-3 rounded-2xl border border-slate-100 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors cursor-pointer"
+                    >
+                      <div class="flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                          <div
+                            class="font-black text-slate-800 dark:text-slate-100 truncate"
+                            v-html="c.name"
+                          ></div>
+                          <div
+                            class="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2 flex-wrap"
+                          >
+                            <span>{{ formatGlobalServerDisplay(toGlobalOffsetServerId(c.serverId) || c.serverId) }}</span>
+                            <span>{{ c.race === 1 ? "天族" : "魔族" }}</span>
+                            <span>Lv.{{ c.level }}</span>
+                          </div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                          <button
+                            class="px-3 py-1.5 rounded-xl bg-[#45a6d5] text-white font-black text-xs hover:bg-[#3b95c0] transition-colors cursor-pointer"
+                            @click.stop="pickFromGlSearch(c)"
+                          >
+                            选择
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      v-if="glSearchedOnce && glSearchResults.length === 0"
+                      class="py-8 text-center text-slate-400 font-bold"
+                    >
+                      暂无结果
+                    </div>
+                  </div>
+                </div>
+              </template>
+
+              <!-- ==================== TAB 4: 自定义角色 ==================== -->
               <template v-else-if="pickerTab === 'custom'">
                 <div class="space-y-4 py-2">
                   <div class="text-xs font-bold text-slate-400 dark:text-slate-500">
