@@ -678,7 +678,7 @@ export const updateLogs = ref([
       "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50",
     title: "20261030",
     desc:
-      "新增角色支持韩服",
+      "新增角色支持韩服和国际服",
   },
     //   {
     //   tag: "新功能",
