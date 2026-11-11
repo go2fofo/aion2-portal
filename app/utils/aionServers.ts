@@ -1,3 +1,5 @@
+import { aionKrServerList, isKrServerId } from './aionKrServers'
+
 export type AionServer = {
   raceId: 1 | 2
   serverId: number
@@ -46,13 +48,30 @@ export const aionServerList: AionServer[] = [
 
 export const getServersByRace = (raceId: 1 | 2) => aionServerList.filter(s => s.raceId === raceId)
 
-export const getServerById = (serverId: number) => aionServerList.find(s => s.serverId === Number(serverId)) || null
+export const getServerById = (serverId: number) => {
+  // 韩服（偏移 ID 11001-11021 / 12001-12021）
+  if (isKrServerId(serverId)) {
+    const kr = aionKrServerList.find((s) => s.serverId === Number(serverId))
+    if (kr) {
+      return {
+        raceId: kr.raceId,
+        serverId: kr.serverId,
+        serverName: kr.serverName,
+        serverShortName: kr.serverShortName,
+      }
+    }
+  }
+  return aionServerList.find((s) => s.serverId === Number(serverId)) || null
+}
 
 export const getServerCode = (serverId: number) => {
   const id = Number(serverId)
   if (!Number.isFinite(id)) return null
   if (id >= 1000 && id < 2000) return { raceId: 1 as const, code: id - 1000 }
   if (id >= 2000 && id < 3000) return { raceId: 2 as const, code: id - 2000 }
+  // 韩服偏移 ID
+  if (id >= 11000 && id < 12000) return { raceId: 1 as const, code: id - 11000 }
+  if (id >= 12000 && id < 13000) return { raceId: 2 as const, code: id - 12000 }
   return null
 }
 
