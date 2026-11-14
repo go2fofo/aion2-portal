@@ -242,13 +242,13 @@ export const gameRulesDictionary = [
     targetField: "awakening",
     // storedTargetField: "storedAwakening",
     lastTimeField: "lastAwakeningUpdate",
-    maxCount: 3,
+    maxCount: 9,
     // storedMaxCount: 30,
     refreshType: "weekly",
     cron: "0 5 * * 3",
     incrementCount: 3,
     description:
-      "角色单独：觉醒战，于每周三5点恢复3次，上限3次，补充上限30次。",
+      "角色单独：觉醒战，于每周三5点恢复3次，上限9次，补充上限30次。",
   },
   {
     id: "trial",

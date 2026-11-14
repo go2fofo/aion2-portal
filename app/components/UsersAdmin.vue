@@ -128,8 +128,8 @@ const characterValidationRules = [
   {
     field: "awakening",
     label: "觉醒战次数",
-    validate: (form) => (Number(form.awakening) || 0) <= 3,
-    message: () => "次数不能超过3次",
+    validate: (form) => (Number(form.awakening) || 0) <= 9,
+    message: () => "次数不能超过9次",
   },
   //  存储觉醒战次数 (storedAwakening)
   {
@@ -585,7 +585,7 @@ const openAddCharModal = () => {
   // const defaultAccount = gameData.value.accounts?.[0]?.id || "";
   newCharForm.value = {
     nightmareCount: 14, //噩梦次数
-    awakening: 3, //觉醒战
+    awakening: 9, //觉醒战
     nightmareCount: 14, //噩梦
 
     battlefield: 3, //战场
@@ -1215,7 +1215,7 @@ const confirmAddCustomCharacter = async () => {
       storedNightmareCount: 0,
       lastNightmareUpdate: nowIso, // 噩梦副本最后更新时间（使用过去时间）
 
-      awakening: 3,
+      awakening: 9,
       storedAwakening: 0,
       lastAwakeningUpdate: nowIso, // 觉醒战最后更新时间（使用过去时间）
 
@@ -5637,7 +5637,7 @@ const handleTeamIndexChange = (currentIndex, rawVal) => {
                     </div>
 
                     <p class="text-xs font-bold text-slate-400 dark:text-slate-500">
-                      觉醒战挑战次数（上限3）与存储补充次数（上限30）均为当前角色独立所有，不与其他组内角色共享。
+                      觉醒战挑战次数（上限9）与存储补充次数（上限30）均为当前角色独立所有，不与其他组内角色共享。
                     </p>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
