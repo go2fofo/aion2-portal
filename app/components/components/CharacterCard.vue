@@ -481,7 +481,8 @@ const handleTaskClickWithDblClick = (char, field, type) => {
         getGroupSharedTaskData(char.group, "minigameCount", "storedMinigameCount", 14)
           .total > 0,
       awakening:
-        getCharacterSharedTaskData(char, "awakening", "storedAwakening", 14).total > 0,
+        getGroupSharedTaskData(char.group, "awakening", "storedAwakening", 9).total >
+        0,
       nightmareCount:
         getCharacterSharedTaskData(char, "nightmareCount", "storedNightmareCount", 14)
           .total > 0,
@@ -654,9 +655,9 @@ const taskList = computed(() => [
       text: "text-indigo-600 dark:text-indigo-400",
     },
     hasCount: (char) =>
-      getGroupSharedTaskData(char.group, "awakening", "storedAwakening", 14).total > 0,
+      getGroupSharedTaskData(char.group, "awakening", "storedAwakening", 9).total > 0,
     getCountText: (char) => {
-      const data = getGroupSharedTaskData(char.group, "awakening", "storedAwakening", 14);
+      const data = getGroupSharedTaskData(char.group, "awakening", "storedAwakening", 9);
       const group = props.getGroup(char.group);
       return `剩余${data.total}次 (${group?.awakening || 0}/${
         group?.storedAwakening || 0

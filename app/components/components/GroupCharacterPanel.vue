@@ -114,8 +114,9 @@ const supplementValidationRules = [
   {
     field: "storedAwakening",
     label: "存储觉醒战次数",
-    validate: (form) => (Number(form.storedAwakening) || 0) <= 30,
-    message: () => "存储噩梦次数不能超过30次",
+    // 觉醒战为服务器共享（组内共用）：组内已有存储 + 当前表单输入 不能超过 30
+    validate: () => totalStoredAwakeningRuns.value <= 30,
+    message: () => "同组账号下觉醒战存储补充次数总和不能超过30次",
   },
   // // 6. 存储成长副本次数 (storedDailyRuns)
   // {
@@ -735,11 +736,11 @@ const handleTaskClick = async (char, field, tab, clickType) => {
         },
         awakening: {
           key: "awakening",
-          title: "觉醒战消耗",
+          title: "觉醒战消耗（服务器共享）",
           color: "purple",
           hasAvailable: () =>
-            (gameplayCharForm.value?.awakening || 0) +
-              (gameplayCharForm.value?.storedAwakening || 0) >
+            (Number(getCharGroup.value?.awakening) || 0) +
+              (Number(getCharGroup.value?.storedAwakening) || 0) >
             0,
           getRemaining: () => totalsRemainingAwakeningCountRuns.value || 0,
           remainingLabel: "剩余可消耗",
@@ -1057,7 +1058,7 @@ const summaryItems = computed(() => {
       {
         key: "awakening",
         label: "觉醒战",
-        getValue: (form) => form?.awakening || 0,
+        getValue: (form, group) => group?.awakening || 0,
         getStoredValue: () => totalStoredAwakeningRuns.value || 0,
         colorClass: "text-emerald-600",
       },
@@ -1153,9 +1154,9 @@ const totalsToredNightmareCountRuns = computed(() => {
   return totalsToredNightmareCountNum;
 });
 
-// 觉醒战补充次数：角色统计
+// 觉醒战补充次数：组内（服务器共享）统计
 const totalStoredAwakeningRuns = computed(() => {
-  const otherSum = gameplayCharForm.value?.storedAwakening || 0;
+  const otherSum = Number(getCharGroup.value?.storedAwakening) || 0;
   // 加上当前表单里输入的数值
   let totalstoredAwakeningCountNum =
     otherSum + (Number(supplementFormValues.value?.storedAwakening || 0) || 0);
@@ -1214,9 +1215,6 @@ const handleExecuteSupplement = async () => {
     ...(storedNightmareCount
       ? { storedNightmareCount: totalsToredNightmareCountRuns.value }
       : {}),
-
-    //觉醒战补充（角色）
-    ...(storedAwakening ? { storedAwakening: totalStoredAwakeningRuns.value } : {}),
   };
 
   // 修改了角色基础奥德能量，并且更新时间戳为当前时间
@@ -1242,6 +1240,9 @@ const handleExecuteSupplement = async () => {
         ...(storedDimensionalCount
           ? { storedDimensionalCount: totalGroupStoredDimensionalCount.value }
           : {}),
+
+        // 觉醒战补充，（服务器共享/组内共用）
+        ...(storedAwakening ? { storedAwakening: totalStoredAwakeningRuns.value } : {}),
       };
     }
     return g;
@@ -2121,10 +2122,10 @@ const totalsRemainingNightmareCountRuns = computed(() => {
 
   return total;
 });
-// 觉醒战剩余次数：角色统计
+// 觉醒战剩余次数：组内（服务器共享）统计
 const totalsRemainingAwakeningCountRuns = computed(() => {
-  const storedAwakeningCount = gameplayCharForm.value?.storedAwakening || 0;
-  const awakeningCount = gameplayCharForm.value?.awakening || 0;
+  const storedAwakeningCount = Number(getCharGroup.value?.storedAwakening || 0);
+  const awakeningCount = Number(getCharGroup.value?.awakening || 0);
   // 当前表单里输入的数值
   const currentAwakeningCount = weeklydailyFormValues.value.awakening;
 
@@ -2227,26 +2228,6 @@ const handleExecuteWeeklyDaily = () => {
       );
     }
   }
-  //觉醒战消耗计算，先消耗基础的（updatedCharacter.awakening），然后在消耗存储的（storedAwakening）
-  if (awakening && awakening > 0) {
-    // 1. 先计算基础消耗中还能扣多少
-    const currentBase = updatedCharacter.awakening || 0;
-
-    if (currentBase >= awakening) {
-      // 基础数量完全足够，直接在基础中扣除
-      updatedCharacter.awakening -= awakening;
-    } else {
-      // 基础数量不够，先全部扣完（归零）
-      const remainder = awakening - currentBase;
-      updatedCharacter.awakening = 0;
-
-      // 2. 剩余的量去扣减存储的 (storedAwakening)
-      updatedCharacter.storedAwakening = Math.max(
-        0,
-        (updatedCharacter.storedAwakening || 0) - remainder
-      );
-    }
-  }
   //战场没有存储只有基础
   if (battlefield && battlefield > 0) {
     updatedCharacter.battlefield -= battlefield;
@@ -2316,6 +2297,27 @@ const handleExecuteWeeklyDaily = () => {
           newGroup.storedDimensionalCount = Math.max(
             0,
             (newGroup.storedDimensionalCount || 0) - remainder
+          );
+        }
+      }
+
+      // 觉醒战消耗（服务器共享/组内共用），先消耗基础的（newGroup.awakening），然后在消耗存储的（storedAwakening）
+      if (awakening && awakening > 0) {
+        // 1. 先计算基础消耗中还能扣多少
+        const currentBase = newGroup.awakening || 0;
+
+        if (currentBase >= awakening) {
+          // 基础数量完全足够，直接在基础中扣除
+          newGroup.awakening -= awakening;
+        } else {
+          // 基础数量不够，先全部扣完（归零）
+          const remainder = awakening - currentBase;
+          newGroup.awakening = 0;
+
+          // 2. 剩余的量去扣减存储的 (storedAwakening)
+          newGroup.storedAwakening = Math.max(
+            0,
+            (newGroup.storedAwakening || 0) - remainder
           );
         }
       }
@@ -2813,8 +2815,8 @@ watchFieldLimit(
 
 const awakeningCountSum = computed(() => {
   return (
-    (gameplayCharForm.value?.storedAwakening || 0) +
-    (gameplayCharForm.value?.awakening || 0)
+    (Number(getCharGroup.value?.storedAwakening) || 0) +
+    (Number(getCharGroup.value?.awakening) || 0)
   );
 });
 
@@ -4527,7 +4529,7 @@ defineExpose({
                     <span
                       class="text-[10px] font-bold text-slate-400 dark:text-slate-500"
                     >
-                      角色总上限：30次
+                      账号总上限：30次
                     </span>
                   </div>
 
@@ -4582,7 +4584,7 @@ defineExpose({
                       class="pt-3 border-t border-slate-200 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs"
                     >
                       <span class="font-bold text-slate-500 dark:text-slate-400">
-                        当前角色觉醒战补充:
+                        当前账号觉醒战补充（组内共享）:
                         <strong class="text-purple-600 dark:text-purple-400"
                           >+{{ supplementFormValues.storedAwakening || 0 }} 次</strong
                         >
@@ -5186,8 +5188,8 @@ defineExpose({
                 >
                   <template
                     v-if="
-                      (gameplayCharForm?.awakening || 0) +
-                        (gameplayCharForm?.storedAwakening || 0) >
+                      (Number(getCharGroup?.awakening) || 0) +
+                        (Number(getCharGroup?.storedAwakening) || 0) >
                       0
                     "
                   >
@@ -5230,7 +5232,7 @@ defineExpose({
                         <div
                           class="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-400 px-0.5"
                         >
-                          <span>角色消耗次数</span>
+                          <span>消耗次数（组内共享）</span>
                           <span
                             class="text-purple-600 dark:text-purple-400 font-black text-xs"
                             >-{{ weeklydailyFormValues.awakening || 0 }}</span

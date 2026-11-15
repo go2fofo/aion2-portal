@@ -90,6 +90,13 @@ const handleToggleTask = (char, field) => {
   const updatedChar = { ...char, [field]: !char[field] }
   emit('update-character', updatedChar)
 }
+
+// 获取角色所在分组（觉醒战等服务器共享任务数据存放在分组上）
+const getCharGroupData = (char) => {
+  return props.gameData?.groups?.find(
+    g => Number(g.id) === Number(char?.group)
+  )
+}
 </script>
 
 <template>
@@ -234,11 +241,11 @@ const handleToggleTask = (char, field) => {
           >
             每日签到
           </button>
+          <!-- 觉醒之战：服务器共享（组内共用），仅展示分组剩余次数，不可单角色切换 -->
           <button 
             type="button"
-            class="px-2 py-1.5 rounded-xl text-[11px] font-black border transition-all shadow-sm"
-            :class="char.awakening ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'"
-            @click="handleToggleTask(char, 'awakening')"
+            class="px-2 py-1.5 rounded-xl text-[11px] font-black border transition-all shadow-sm cursor-default"
+            :class="(getCharGroupData(char)?.awakening || 0) + (getCharGroupData(char)?.storedAwakening || 0) > 0 ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'"
           >
             觉醒之战
           </button>

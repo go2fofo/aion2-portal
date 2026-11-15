@@ -400,7 +400,8 @@ const handleFileUpload = (event) => {
             <li class="flex items-start gap-2">
               <span class="text-blue-500">•</span>
               <span
-                ><strong>觉醒战 / 战场 (weekly)</strong>：跨越每周三 05:00 恢复 3
+                ><strong>觉醒战 (weekly/服务器共享)</strong>：每周三 05:00
+                重置/恢复 9 次；战场 (weekly)：跨越每周三 05:00 恢复 3
                 次或重置状态。</span
               >
             </li>

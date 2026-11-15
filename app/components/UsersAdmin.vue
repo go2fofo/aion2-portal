@@ -128,19 +128,19 @@ const characterValidationRules = [
     validate: (form) => (Number(form.storedNightmareCount) || 0) <= 30,
     message: () => "存储噩梦次数不能超过30次",
   },
-  //  觉醒战次数 (awakening)
+  //  觉醒战次数 (awakening) - 服务器共享（组内共用），配置写入分组
   {
     field: "awakening",
     label: "觉醒战次数",
     validate: (form) => (Number(form.awakening) || 0) <= 9,
     message: () => "次数不能超过9次",
   },
-  //  存储觉醒战次数 (storedAwakening)
+  //  存储觉醒战次数 (storedAwakening) - 组内共享校验
   {
     field: "storedAwakening",
     label: "存储觉醒战次数",
-    validate: (form) => (Number(form.storedAwakening) || 0) <= 30,
-    message: () => "存储觉醒战次数不能超过30次",
+    validate: () => totalGroupStoredAwakening.value <= 30,
+    message: () => "同组账号下存储觉醒战次数总和不能超过30次",
   },
 
   // 7. 圣域副本 s1
@@ -375,6 +375,16 @@ let defGroup = {
   storedDimensionalCount: 0,
   /** 次元袭击次数最后更新时间 */
   lastDimensionalUpdate: "",
+
+  awakeningInput: 0,
+  storedAwakeningInput: 0,
+  //觉醒战刷新规则：服务器共享（既同一组内共享），每周三5点重置/恢复9次
+  /** 觉醒战的次数 */
+  awakening: 0,
+  /** 补充觉醒战次数 */
+  storedAwakening: 0,
+  /** 觉醒战次数最后更新时间 */
+  lastAwakeningUpdate: "",
 };
 const newCharGroupForm = ref(cloneDeep(defGroup));
 const gameData = computed({
@@ -589,7 +599,6 @@ const openAddCharModal = () => {
   // const defaultAccount = gameData.value.accounts?.[0]?.id || "";
   newCharForm.value = {
     nightmareCount: 14, //噩梦次数
-    awakening: 9, //觉醒战
     nightmareCount: 14, //噩梦
 
     battlefield: 3, //战场
@@ -1219,10 +1228,6 @@ const confirmAddCustomCharacter = async () => {
       storedNightmareCount: 0,
       lastNightmareUpdate: nowIso, // 噩梦副本最后更新时间（使用过去时间）
 
-      awakening: 9,
-      storedAwakening: 0,
-      lastAwakeningUpdate: nowIso, // 觉醒战最后更新时间（使用过去时间）
-
       battlefield: 3,
       lastBattlefieldUpdate: nowIso, // 战场最后更新时间（使用过去时间，确保本周能正常刷新）
 
@@ -1310,6 +1315,7 @@ const handleGroupChange = (e) => {
     dailyRuns: getCharGroup.value?.dailyRuns || 14, //成长副本次数
     minigameCount: getCharGroup.value?.minigameCount || 14, //古树庆典小游戏次数
     dimensionalCount: getCharGroup.value?.dimensionalCount || 7, //次元袭击次数
+    awakening: getCharGroup.value?.awakening || 9, //觉醒战次数（服务器共享）
   };
 };
 
@@ -1425,10 +1431,6 @@ const handleSaveCharacter = async () => {
     storedNightmareCount: 0,
     lastNightmareUpdate: nowIso,
 
-    awakening: 0,
-    storedAwakening: 0,
-    lastAwakeningUpdate: nowIso,
-
     battlefield: 0,
     lastBattlefieldUpdate: nowIso,
 
@@ -1485,6 +1487,7 @@ const handleSaveCharacter = async () => {
         storedDailyRunsInput,
         storedMinigameCountInput,
         storedDimensionalCountInput,
+        storedAwakeningInput,
         primaryAccountID,
         ...formWithoutInput
       } = form;
@@ -1494,6 +1497,7 @@ const handleSaveCharacter = async () => {
         "dimensionalCount" in originalGroup ||
         "dailyRuns" in originalGroup ||
         "minigameCount" in originalGroup ||
+        "awakening" in originalGroup ||
         !!originalGroup.lastUpdatedAt;
 
       if (hasConfiguredBefore) {
@@ -1511,6 +1515,7 @@ const handleSaveCharacter = async () => {
         const newStoredDailyRuns = Number(storedDailyRunsInput) || 0;
         const newStoredMinigameCount = Number(storedMinigameCountInput) || 0;
         const newStoredDimensional = Number(storedDimensionalCountInput) || 0;
+        const newStoredAwakening = Number(storedAwakeningInput) || 0;
 
         gameData.value.groups[index] = {
           ...originalGroup,
@@ -1520,6 +1525,7 @@ const handleSaveCharacter = async () => {
           lastDailyRunsUpdate: nowIso,
           lastMinigameUpdate: nowIso,
           lastDimensionalUpdate: nowIso,
+          lastAwakeningUpdate: nowIso,
           lastUpdatedAt: nowIso,
           lastBreezeShopWeeklyUpdate: nowIso,
           lastAbyssInstructionUpdate: nowIso,
@@ -1528,6 +1534,7 @@ const handleSaveCharacter = async () => {
           storedDailyRuns: newStoredDailyRuns,
           storedMinigameCount: newStoredMinigameCount,
           storedDimensionalCount: newStoredDimensional,
+          storedAwakening: newStoredAwakening,
         };
         if (form.premiumMember) {
           gameData.value.groups[index].premiumMemberDay = form.premiumMemberDay;
@@ -2357,6 +2364,25 @@ const totalGroupStoredDailyRuns = computed(() => {
 });
 //================ 成长副本 结束 =====================
 
+// ==================== 觉醒战（服务器共享配置与统计） ====================
+
+// 判断当前分组内是否已经有其他角色配置过“觉醒战挑战次数”
+// 对应字典中的 lastTimeField: "lastAwakeningUpdate"
+const hasGroupAwakening = computed(() => {
+  const group = getCharGroup.value;
+  if (!group) return false;
+  return !!group.lastAwakeningUpdate || group.awakening !== undefined;
+});
+
+// 计算“觉醒战存储补充次数”的组内共享总和（包含当前表单实时输入的数值）
+const totalGroupStoredAwakening = computed(() => {
+  let total =
+    (Number(getCharGroup.value?.storedAwakening) || 0) +
+    (Number(newCharGroupForm.value?.storedAwakeningInput) || 0);
+
+  return total;
+});
+
 // ==================== 古树庆典小游戏（组内共享配置与统计） ====================
 
 // 判断当前分组内是否已经有其他角色配置过“小游戏挑战次数”
@@ -2788,10 +2814,10 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType, clickT
           nightmareCount: char?.nightmareCount || 0,
           storedNightmareCount: char?.storedNightmareCount || 0,
         },
-        // 角色--觉醒副本
+        // 账号--觉醒战（服务器共享）
         awakening: {
-          awakening: char?.awakening || 0,
-          storedAwakening: char?.storedAwakening || 0,
+          awakening: targetGroup?.awakening || 0,
+          storedAwakening: targetGroup?.storedAwakening || 0,
         },
         // 账号--成长副本
         dailyRuns: {
@@ -3138,8 +3164,7 @@ const handleGlobalPopupFill = async (type) => {
 
       switch (fieldType) {
         case "battlefield":
-        case "nightmareCount":
-        case "awakening": {
+        case "nightmareCount": {
           const newCharacter = cloneDeep(globalPopupOp.value?.targetChar);
           if (newCharacter) {
             for (const key in formData) {
@@ -3149,6 +3174,7 @@ const handleGlobalPopupFill = async (type) => {
           }
           break;
         }
+        case "awakening":
         case "dailyRuns":
         case "dimensionalCount":
         case "minigameCount": {
@@ -3449,6 +3475,9 @@ watch(
       }
       if (totalGroupStoredDimensionalCount.value > 30) {
         overrideForm.storedDimensionalCount = totalGroupStoredDimensionalCount.value;
+      }
+      if (totalGroupStoredAwakening.value > 30) {
+        overrideForm.storedAwakening = totalGroupStoredAwakening.value;
       }
 
       updateValidation(overrideForm, {}, "group");
@@ -5620,9 +5649,10 @@ const handleTeamIndexChange = (currentIndex, rawVal) => {
                       </div>
                     </div>
                   </div>
-                  <!-- 觉醒战卡片 -->
+                  <!-- 觉醒战卡片（服务器共享） -->
                   <div
                     class="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-3xl space-y-4 shadow-sm"
+                    v-if="newCharGroupForm?.id"
                   >
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-3">
@@ -5630,32 +5660,42 @@ const handleTeamIndexChange = (currentIndex, rawVal) => {
                         <div
                           class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                         >
-                          觉醒战 (角色独立配置)
+                          觉醒战 (组内共享挑战与补充)
                         </div>
                       </div>
                       <span
-                        class="text-[10px] font-bold px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950/40 text-[#45a6d5] border border-sky-100 dark:border-sky-900/50"
+                        class="text-[10px] font-bold px-3 py-1 rounded-full border"
+                        :class="
+                          hasGroupAwakening
+                            ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/50'
+                            : 'bg-sky-50 dark:bg-sky-950/40 text-[#45a6d5] border-sky-100 dark:border-sky-900/50'
+                        "
                       >
-                        当前角色独立维护
+                        {{
+                          hasGroupAwakening
+                            ? "同组已有角色配置过挑战次数 (当前角色已隐藏)"
+                            : "当前分组首次配置挑战次数"
+                        }}
                       </span>
                     </div>
 
                     <p class="text-xs font-bold text-slate-400 dark:text-slate-500">
-                      觉醒战挑战次数（上限9）与存储补充次数（上限30）均为当前角色独立所有，不与其他组内角色共享。
+                      同一分组账号下觉醒战挑战次数（上限9）与存储补充次数（上限30）均视为组内共用（服务器共享，每周三5点重置/恢复9次）。
                     </p>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                       <!-- 挑战次数卡片 -->
                       <div
+                        v-if="!hasGroupAwakening"
                         class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
                           class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
                         >
-                          <span>挑战次数 (角色独立 / 上限3)</span>
+                          <span>挑战次数 (组内共用 / 上限9)</span>
                           <span class="text-xs font-black text-[#45a6d5]">
-                            {{ newCharForm.awakening || 0 }}
-                            / 3
+                            {{ newCharGroupForm.awakening || 0 }}
+                            / 9
                           </span>
                         </div>
                         <div class="grid grid-cols-1 gap-4">
@@ -5667,8 +5707,8 @@ const handleTeamIndexChange = (currentIndex, rawVal) => {
                               >
                             </div>
                             <input
-                              v-model.number="newCharForm.awakening"
-                              max="3"
+                              v-model.number="newCharGroupForm.awakening"
+                              max="9"
                               min="0"
                               class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"
                               :class="
@@ -5687,18 +5727,36 @@ const handleTeamIndexChange = (currentIndex, rawVal) => {
                         </div>
                       </div>
 
-                      <!-- 存储补充次数卡片 -->
+                      <!-- 同组已配置占位 -->
+                      <div
+                        v-else
+                        class="p-4 bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/50 rounded-2xl flex flex-col justify-center space-y-2"
+                      >
+                        <div class="text-xs font-bold text-amber-800 dark:text-amber-300">
+                          挑战次数已由同组角色共享设定
+                        </div>
+                        <div
+                          class="text-xs font-medium text-amber-600 dark:text-amber-400"
+                        >
+                          当前分组共享挑战次数为：<span
+                            class="font-black text-amber-700 dark:text-amber-200"
+                            >{{ getCharGroup?.awakening || 0 }} / 9</span
+                          >。当前角色无需重复配置。
+                        </div>
+                      </div>
+
+                      <!-- 存储补充次数卡片 (组内共享计算) -->
                       <div
                         class="p-4 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 rounded-2xl space-y-3"
                       >
                         <div
                           class="flex items-center justify-between text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
                         >
-                          <span>存储补充次数 (角色独立 / 上限30)</span>
+                          <span>存储补充次数 (组内共用 / 上限30)</span>
                           <span
                             class="text-xs font-black text-amber-600 dark:text-amber-400"
                           >
-                            {{ newCharForm.storedAwakening || 0 }}
+                            {{ totalGroupStoredAwakening }}
                             / 30
                           </span>
                         </div>
@@ -5712,12 +5770,12 @@ const handleTeamIndexChange = (currentIndex, rawVal) => {
                               <span
                                 class="text-[10px] font-black text-amber-600 dark:text-amber-400"
                               >
-                                剩余可补充:
-                                {{ Math.max(0, 30 - (newCharForm.storedAwakening || 0)) }}
+                                组内剩余可补充:
+                                {{ Math.max(0, 30 - totalGroupStoredAwakening) }}
                               </span>
                             </div>
                             <input
-                              v-model.number="newCharForm.storedAwakening"
+                              v-model.number="newCharGroupForm.storedAwakeningInput"
                               max="30"
                               min="0"
                               class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 outline-none font-bold text-sm text-slate-800 dark:text-slate-100 transition-all shadow-sm"

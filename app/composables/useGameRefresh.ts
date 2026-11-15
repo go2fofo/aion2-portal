@@ -159,6 +159,7 @@ const sanitizeGameData = (gameData: any) => {
     "lastDailyRunsUpdate",
     "lastMinigameUpdate",
     "lastDimensionalUpdate",
+    "lastAwakeningUpdate", // 觉醒战（服务器共享）
 
     "lastUpdatedAt",
     "updatedAt",
@@ -169,7 +170,6 @@ const sanitizeGameData = (gameData: any) => {
     "lastSanctuaryRunsUpdate",
     "lastBattlefieldUpdate",
 
-    "lastAwakeningUpdate",
     "lastNightmareUpdate",
 
     "lastEnergyUpdate",
@@ -229,6 +229,32 @@ const sanitizeGameData = (gameData: any) => {
       group.lastDimensionalUpdate = nowIso; // 同步更新时间戳
       // 标记为有变动
       hasModified = true;
+    }
+
+    // ==================== 觉醒战数据迁移：角色维度 → 分组（服务器共享）维度 ====================
+    // 仅当分组尚未拥有觉醒战字段时执行一次，把组内角色的觉醒数据汇总到分组上
+    if (group.awakening === undefined && group.storedAwakening === undefined) {
+      const members = (gameData.characters || []).filter(
+        (char: any) => Number(char.group) === Number(group.id),
+      );
+      const sumAwakening = members.reduce(
+        (sum: number, char: any) => sum + (Number(char.awakening) || 0),
+        0,
+      );
+      const sumStoredAwakening = members.reduce(
+        (sum: number, char: any) => sum + (Number(char.storedAwakening) || 0),
+        0,
+      );
+
+      group.awakening = Math.min(9, sumAwakening);
+      group.storedAwakening = Math.min(30, sumStoredAwakening);
+      // 写入当前时间戳，避免周重置规则因“首次初始化”把迁移出的数据直接重置为 9
+      group.lastAwakeningUpdate = nowIso;
+      hasModified = true;
+
+      console.log(
+        `[DataMigration] 分组 [${group.name || group.id}] 觉醒战已从角色维度迁移为服务器共享维度 (当前${group.awakening} / 补充${group.storedAwakening})`,
+      );
     }
     // 会员相关时间赋值
     if (
