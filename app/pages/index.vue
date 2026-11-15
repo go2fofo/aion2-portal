@@ -70,7 +70,7 @@
         <span
           class="text-2xl md:text-3xl font-black text-[#45a6d5] dark:text-sky-400 tracking-widest"
         >
-          AION2
+          AION2搬砖之友
         </span>
       </div>
 
