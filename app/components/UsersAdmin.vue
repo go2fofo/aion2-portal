@@ -276,22 +276,22 @@ const groupValidationRules = [
       return "特级会员剩余天数不能超过 30 天";
     },
   },
-  //  每日副本次数 (dailyRuns)
+  //  成长副本次数 (dailyRuns)
   {
     field: "dailyRuns",
-    label: "每日副本次数",
+    label: "成长副本次数",
     validate: (form) => (Number(form.dailyRuns) || 0) <= 14,
-    message: () => "每日副本次数不能超过14次",
+    message: () => "成长副本次数不能超过14次",
   },
-  //  存储每日副本次数 (storedDailyRuns) - 组内共享校验
+  //  存储成长副本次数 (storedDailyRuns) - 组内共享校验
   {
     field: "storedDailyRuns",
-    label: "存储每日副本次数",
+    label: "存储成长副本次数",
     validate: (form, context = {}) => {
       const total = totalGroupStoredDailyRuns.value;
       return total <= 30;
     },
-    message: () => "同组账号下存储每日副本次数总和不能超过30次",
+    message: () => "同组账号下存储成长副本次数总和不能超过30次",
   },
   // 古树庆典小游戏挑战次数校验（组内共用）
 
@@ -334,7 +334,7 @@ const groupValidationRules = [
 // 新增角色的表单数据一角色的默认数据
 const newCharForm = ref({
   nightmareCount: 14, //噩梦次数
-  dailyRuns: 14, //每日副本次数
+  dailyRuns: 14, //成长副本次数
   //圣域
   sanctuary: {
     s1: 1,
@@ -344,16 +344,16 @@ const newCharForm = ref({
 });
 // 新增角色的表单数据组默认数据
 let defGroup = {
-  //每日副本刷新规则：服务器共享（既同一组内共享），每周三5点更新，固定14次
+  //成长副本刷新规则：服务器共享（既同一组内共享），每周三5点更新，固定14次
 
   //输入框占位
   dailyRunsInput: 0,
   storedDailyRunsInput: 0,
-  /** 每日副本挑战次数 */
+  /** 成长副本挑战次数 */
   dailyRuns: 0,
-  /** 每日副本补充挑战次数 服务器共享（既同一组内共享），30次上限*/
+  /** 成长副本补充挑战次数 服务器共享（既同一组内共享），30次上限*/
   storedDailyRuns: 0,
-  /** 每日副本次数最后更新时间 */
+  /** 成长副本次数最后更新时间 */
   lastDailyRunsUpdate: "",
 
   minigameCountInput: 0,
@@ -1307,7 +1307,7 @@ const handleGroupChange = (e) => {
 
   newCharGroupForm.value = {
     ...cloneDeep(getCharGroup.value),
-    dailyRuns: getCharGroup.value?.dailyRuns || 14, //每日副本次数
+    dailyRuns: getCharGroup.value?.dailyRuns || 14, //成长副本次数
     minigameCount: getCharGroup.value?.minigameCount || 14, //古树庆典小游戏次数
     dimensionalCount: getCharGroup.value?.dimensionalCount || 7, //次元袭击次数
   };
@@ -2337,8 +2337,8 @@ const groupCharacterPanelHandleConsumeEnergy = async (char) => {
   await groupCharacterPanelHandleUpdateCharacter(char);
 };
 
-//================ 每日副本 开始================
-// 2. 检查同组是否已经配置过每日副本挑战次数
+//================ 成长副本 开始================
+// 2. 检查同组是否已经配置过成长副本挑战次数
 // 对应服务器共享/分组的日常时间字段，通常为 lastUpdatedAt 或专属的 lastDailyUpdate
 const hasGroupDailyRuns = computed(() => {
   const group = getCharGroup.value;
@@ -2347,7 +2347,7 @@ const hasGroupDailyRuns = computed(() => {
   return !!group.lastDailyUpdate || "dailyRuns" in group;
 });
 
-//  每日副本补充次数：组内全员共享统计
+//  成长副本补充次数：组内全员共享统计
 const totalGroupStoredDailyRuns = computed(() => {
   // 加上当前表单里输入的数值
   let total =
@@ -2355,7 +2355,7 @@ const totalGroupStoredDailyRuns = computed(() => {
     (Number(newCharGroupForm.value?.storedDailyRunsInput) || 0);
   return total;
 });
-//================ 每日副本 结束 =====================
+//================ 成长副本 结束 =====================
 
 // ==================== 古树庆典小游戏（组内共享配置与统计） ====================
 
@@ -2694,8 +2694,8 @@ const keyNameMap = {
   storedNightmareCount: "噩梦副本身存储值",
   awakening: "觉醒战当前次数",
   storedAwakening: "觉醒战存储值",
-  dailyRuns: "每日副本当前次数",
-  storedDailyRuns: "每日副本存储值",
+  dailyRuns: "成长副本当前次数",
+  storedDailyRuns: "成长副本存储值",
   minigameCount: "小游戏当前次数",
   storedMinigameCount: "小游戏存储值",
   battlefield: "战场当前次数",
@@ -2793,7 +2793,7 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType, clickT
           awakening: char?.awakening || 0,
           storedAwakening: char?.storedAwakening || 0,
         },
-        // 账号--每日副本
+        // 账号--成长副本
         dailyRuns: {
           dailyRuns: targetGroup?.dailyRuns || 0,
           storedDailyRuns: targetGroup?.storedDailyRuns || 0,
@@ -2826,7 +2826,7 @@ const groupCharacterPanelHandleClickTask = async (char, gType, fieldType, clickT
       const getGlobalPopupOpFieldName = {
         nightmareCount: "快捷操作噩梦副本",
         awakening: "快捷操作觉醒",
-        dailyRuns: "快捷操作每日副本",
+        dailyRuns: "快捷操作成长副本",
         minigameCount: "快捷操作古树庆典小游戏",
         battlefield: "快捷操作战场",
         dimensionalCount: "快捷操作次元袭击",
@@ -5738,7 +5738,7 @@ const handleTeamIndexChange = (currentIndex, rawVal) => {
                       </div>
                     </div>
                   </div>
-                  <!-- 每日副本卡片 -->
+                  <!-- 成长副本卡片 -->
                   <div
                     class="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-3xl space-y-4 shadow-sm"
                     v-if="newCharGroupForm?.id"
@@ -5749,7 +5749,7 @@ const handleTeamIndexChange = (currentIndex, rawVal) => {
                         <div
                           class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200"
                         >
-                          每日副本 (组内共享挑战与补充)
+                          成长副本 (组内共享挑战与补充)
                         </div>
                       </div>
                       <span
@@ -7271,7 +7271,7 @@ const handleTeamIndexChange = (currentIndex, rawVal) => {
                           v-model="cardConfig.customFields.showDailyRuns"
                           class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#45a6d5] focus:ring-[#45a6d5]"
                         />
-                        显示每日副本
+                        显示成长副本
                       </label>
                       <label
                         class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"

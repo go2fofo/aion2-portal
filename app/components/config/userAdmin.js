@@ -3,21 +3,41 @@ export const KinahOdSate = {
   // 远征副本
   expedition: [
     {
+      stars: 7,
+      name: "狂信乌努库库峡谷",
+      difficulties: [
+        {
+          mode: "困难",
+          energy: 60,
+          kina: 480,
+          boundKina: 0,
+          total: 480,
+        },
+        {
+          mode: "普通",
+          energy: 40,
+          kina: 420,
+          boundKina: 0,
+          total: 420,
+        },
+      ],
+    },
+    {
       stars: 6,
       name: "被蚕食的德乌斯研究基地",
       difficulties: [
         {
           mode: "困难",
-          energy: 60,
-          kina: 360,
-          boundKina: 0,
+          energy: 60,//单次的
+          kina: 180,//双倍的
+          boundKina: 180,
           total: 360,
         },
         {
           mode: "普通",
           energy: 40,
-          kina: 201,
-          boundKina: 0,
+          kina: 100.5,
+          boundKina: 100.5,
           total: 201,
         },
       ],
@@ -29,15 +49,15 @@ export const KinahOdSate = {
         {
           mode: "困难",
           energy: 60,
-          kina: 360,
-          boundKina: 0,
+          kina: 180,
+          boundKina: 180,
           total: 360,
         },
         {
           mode: "普通",
           energy: 40,
-          kina: 201,
-          boundKina: 0,
+          kina: 100.5,
+          boundKina: 100.5,
           total: 201,
         },
       ],
@@ -46,386 +66,375 @@ export const KinahOdSate = {
       stars: 5,
       name: "青息之岛",
       difficulties: [
-        {
-          mode: "困难",
-          energy: 40,
-          kina: 201,
-          boundKina: 0,
-          total: 201,
-        },
-        {
-          mode: "普通",
-          energy: 40,
-          kina: 162,
-          boundKina: 0,
-          total: 162,
-        },
+        { mode: "默认", energy: 60, kina: 0, boundKina: 240, total: 240 },
       ],
     },
-    {
-      stars: 5,
-      name: "幻影回廊",
-      difficulties: [
-        {
-          mode: "困难",
-          energy: 40,
-          kina: 201,
-          boundKina: 0,
-          total: 201,
-        },
-        {
-          mode: "普通",
-          energy: 40,
-          kina: 162,
-          boundKina: 0,
-          total: 162,
-        },
-      ],
-    },
+    // {
+    //   stars: 5,
+    //   name: "幻影回廊",
+    //   difficulties: [
+    //     {
+    //       mode: "困难",
+    //       energy: 40,
+    //       kina: 201,
+    //       boundKina: 0,
+    //       total: 201,
+    //     },
+    //     {
+    //       mode: "普通",
+    //       energy: 40,
+    //       kina: 162,
+    //       boundKina: 0,
+    //       total: 162,
+    //     },
+    //   ],
+    // },
     {
       stars: 4,
       name: "无之摇篮",
       difficulties: [
-        {
-          mode: "困难",
-          energy: 40,
-          kina: 0,
-          boundKina: 162,
-          total: 162,
-        },
-        {
-          mode: "普通",
-          energy: 40,
-          kina: 0,
-          boundKina: 120,
-          total: 120,
-        },
+        { mode: "默认", energy: 60, kina: 0, boundKina: 180, total: 180 },
       ],
     },
-    {
-      stars: 4,
-      name: "死亡德拉玛塔巢穴",
-      difficulties: [
-        {
-          mode: "困难",
-          energy: 40,
-          kina: 0,
-          boundKina: 162,
-          total: 162,
-        },
-        {
-          mode: "普通",
-          energy: 40,
-          kina: 0,
-          boundKina: 120,
-          total: 120,
-        },
-      ],
-    },
-    {
-      stars: 3,
-      name: "凶猛的角窟",
-      difficulties: [
-        {
-          mode: "困难",
-          energy: 40,
-          kina: 0,
-          boundKina: 102,
-          total: 102,
-        },
-        {
-          mode: "普通",
-          energy: 40,
-          kina: 0,
-          boundKina: 102,
-          total: 102,
-        },
-      ],
-    },
+    // {
+    //   stars: 4,
+    //   name: "死亡德拉玛塔巢穴",
+    //   difficulties: [
+    //     {
+    //       mode: "困难",
+    //       energy: 40,
+    //       kina: 0,
+    //       boundKina: 162,
+    //       total: 162,
+    //     },
+    //     {
+    //       mode: "普通",
+    //       energy: 40,
+    //       kina: 0,
+    //       boundKina: 120,
+    //       total: 120,
+    //     },
+    //   ],
+    // },
+    // {
+    //   stars: 3,
+    //   name: "凶猛的角窟",
+    //   difficulties: [
+    //     {
+    //       mode: "困难",
+    //       energy: 40,
+    //       kina: 0,
+    //       boundKina: 102,
+    //       total: 102,
+    //     },
+    //     {
+    //       mode: "普通",
+    //       energy: 40,
+    //       kina: 0,
+    //       boundKina: 102,
+    //       total: 102,
+    //     },
+    //   ],
+    // },
     {
       stars: 3,
       name: "火之神殿",
       difficulties: [
-        {
-          mode: "困难",
-          energy: 40,
-          kina: 0,
-          boundKina: 102,
-          total: 102,
-        },
-        {
-          mode: "普通",
-          energy: 40,
-          kina: 0,
-          boundKina: 102,
-          total: 102,
-        },
+        { mode: "默认", energy: 60, kina: 0, boundKina: 153, total: 153 },
       ],
     },
-    {
-      stars: 2,
-      name: "巴克隆空中岛",
-      difficulties: [
-        {
-          mode: "困难",
-          energy: 40,
-          kina: 0,
-          boundKina: 102,
-          total: 102,
-        },
-        { mode: "普通", energy: 40, kina: 0, boundKina: 102, total: 102 },
-      ],
-    },
+    // {
+    //   stars: 2,
+    //   name: "巴克隆空中岛",
+    //   difficulties: [
+    //     {
+    //       mode: "困难",
+    //       energy: 40,
+    //       kina: 0,
+    //       boundKina: 102,
+    //       total: 102,
+    //     },
+    //     { mode: "普通", energy: 40, kina: 0, boundKina: 102, total: 102 },
+    //   ],
+    // },
     {
       stars: 2,
       name: "乌努库库峡谷",
       difficulties: [
-        {
-          mode: "困难",
-          energy: 40,
-          kina: 0,
-          boundKina: 102,
-          total: 102,
-        },
-        { mode: "普通", energy: 40, kina: 0, boundKina: 102, total: 102 },
+        { mode: "默认", energy: 60, kina: 0, boundKina: 120, total: 120 },
       ],
     },
     {
       stars: 1,
       name: "德拉乌伯尼尔",
       difficulties: [
-        {
-          mode: "困难",
-          energy: 40,
-          kina: 0,
-          boundKina: 102,
-          total: 102,
-        },
-        { mode: "普通", energy: 40, kina: 0, boundKina: 102, total: 102 },
+        // {
+        //   mode: "困难",
+        //   energy: 40,
+        //   kina: 0,
+        //   boundKina: 102,
+        //   total: 102,
+        // },
+        // { mode: "普通", energy: 40, kina: 0, boundKina: 102, total: 102 },
+        { mode: "默认", energy: 60, kina: 0, boundKina: 90, total: 90 },
       ],
     },
-    {
-      stars: 1,
-      name: "克劳洞穴",
-      difficulties: [
-        {
-          mode: "困难",
-          energy: 40,
-          kina: 0,
-          boundKina: 102,
-          total: 102,
-        },
-        { mode: "普通", energy: 40, kina: 0, boundKina: 102, total: 102 },
-      ],
-    },
+    // {
+    //   stars: 1,
+    //   name: "克劳洞穴",
+    //   difficulties: [
+    //     {
+    //       mode: "困难",
+    //       energy: 40,
+    //       kina: 0,
+    //       boundKina: 102,
+    //       total: 102,
+    //     },
+    //     { mode: "普通", energy: 40, kina: 0, boundKina: 102, total: 102 },
+    //   ],
+    // },
   ],
 
   // 超越副本
   surpass: [
     {
-      stars: 4,
+      stars: 7,
+      name: "耶拉庫斯遺跡",
+      difficulties: [
+        // {
+        //   mode: "阶段4",
+        //   energy: 60,
+        //   kina: 420,
+        //   boundKina: 0,
+        //   total: 420,
+        // },
+        {
+          mode: "阶段3",
+          energy: 160,
+          kina: 1160,
+          boundKina: 0,
+          total: 1160,
+        },
+        {
+          mode: "阶段2",
+          energy: 160,
+          kina: 1060,
+          boundKina: 0,
+          total: 1060,
+        },
+        {
+          mode: "阶段1",
+          energy: 160,
+          kina: 960,
+          boundKina: 0,
+          total: 960,
+        },
+      ],
+    },
+    {
+      stars: 6,
       name: "诺伊兰隐藏的遗产",
       difficulties: [
+        // {
+        //   mode: "阶段4",
+        //   energy: 60,
+        //   kina: 420,
+        //   boundKina: 0,
+        //   total: 420,
+        // },
         {
-          mode: "阶段4",
+          mode: "阶段3",
           energy: 60,
-          kina: 420,
-          boundKina: 0,
+          kina: 210,
+          boundKina: 210,
           total: 420,
         },
         {
-          mode: "阶段3",
-          energy: 40,
-          kina: 240,
-          boundKina: 0,
-          total: 240,
-        },
-        {
           mode: "阶段2",
-          energy: 40,
-          kina: 201,
-          boundKina: 0,
-          total: 201,
-        },
-        {
-          mode: "阶段1",
-          energy: 40,
-          kina: 171,
-          boundKina: 0,
-          total: 171,
-        },
-      ],
-    },
-    {
-      stars: 4,
-      name: "深渊角窟",
-      difficulties: [
-        {
-          mode: "阶段4",
           energy: 60,
-          kina: 420,
-          boundKina: 0,
-          total: 420,
-        },
-        {
-          mode: "阶段3",
-          energy: 40,
-          kina: 240,
-          boundKina: 0,
-          total: 240,
-        },
-        {
-          mode: "阶段2",
-          energy: 40,
-          kina: 201,
-          boundKina: 0,
-          total: 201,
+          kina: 180,
+          boundKina: 180,
+          total: 360,
         },
         {
           mode: "阶段1",
-          energy: 40,
-          kina: 171,
-          boundKina: 0,
-          total: 171,
-        },
-      ],
-    },
-    {
-      stars: 3,
-      name: "绯红羁绊之镜",
-      difficulties: [
-        {
-          mode: "阶段4",
-          energy: 40,
-          kina: 240,
-          boundKina: 0,
-          total: 240,
-        },
-        {
-          mode: "阶段3",
-          energy: 40,
-          kina: 201,
-          boundKina: 0,
-          total: 201,
-        },
-        {
-          mode: "阶段2",
-          energy: 40,
-          kina: 171,
-          boundKina: 0,
-          total: 171,
-        },
-        {
-          mode: "阶段1",
-          energy: 40,
+          energy: 60,
           kina: 150,
-          boundKina: 0,
-          total: 150,
+          boundKina: 150,
+          total: 300,
         },
       ],
     },
+    // {
+    //   stars: 4,
+    //   name: "深渊角窟",
+    //   difficulties: [
+    //     {
+    //       mode: "阶段4",
+    //       energy: 60,
+    //       kina: 420,
+    //       boundKina: 0,
+    //       total: 420,
+    //     },
+    //     {
+    //       mode: "阶段3",
+    //       energy: 40,
+    //       kina: 240,
+    //       boundKina: 0,
+    //       total: 240,
+    //     },
+    //     {
+    //       mode: "阶段2",
+    //       energy: 40,
+    //       kina: 201,
+    //       boundKina: 0,
+    //       total: 201,
+    //     },
+    //     {
+    //       mode: "阶段1",
+    //       energy: 40,
+    //       kina: 171,
+    //       boundKina: 0,
+    //       total: 171,
+    //     },
+    //   ],
+    // },
+    // {
+    //   stars: 3,
+    //   name: "绯红羁绊之镜",
+    //   difficulties: [
+    //     {
+    //       mode: "阶段4",
+    //       energy: 40,
+    //       kina: 240,
+    //       boundKina: 0,
+    //       total: 240,
+    //     },
+    //     {
+    //       mode: "阶段3",
+    //       energy: 40,
+    //       kina: 201,
+    //       boundKina: 0,
+    //       total: 201,
+    //     },
+    //     {
+    //       mode: "阶段2",
+    //       energy: 40,
+    //       kina: 171,
+    //       boundKina: 0,
+    //       total: 171,
+    //     },
+    //     {
+    //       mode: "阶段1",
+    //       energy: 40,
+    //       kina: 150,
+    //       boundKina: 0,
+    //       total: 150,
+    //     },
+    //   ],
+    // },
     {
-      stars: 2,
+      stars: 5,
       name: "沉没的生命神殿",
       difficulties: [
         {
           mode: "阶段4",
-          energy: 40,
+          energy: 60,
           kina: 0,
-          boundKina: 150,
-          total: 150,
+          boundKina: 240,
+          total: 240,
         },
         {
           mode: "阶段3",
-          energy: 40,
+          energy: 60,
           kina: 0,
-          boundKina: 141,
-          total: 141,
+          boundKina: 180,
+          total: 180,
         },
         {
           mode: "阶段2",
-          energy: 40,
-          kina: 0,
-          boundKina: 132,
-          total: 132,
-        },
-        {
-          mode: "阶段1",
-          energy: 40,
+          energy: 60,
           kina: 0,
           boundKina: 120,
           total: 120,
         },
-      ],
-    },
-    {
-      stars: 1,
-      name: "破碎的雅尔卡尼斯",
-      difficulties: [
-        {
-          mode: "阶段4",
-          energy: 40,
-          kina: 0,
-          boundKina: 114,
-          total: 114,
-        },
-        {
-          mode: "阶段3",
-          energy: 40,
-          kina: 0,
-          boundKina: 90,
-          total: 90,
-        },
-        {
-          mode: "阶段2",
-          energy: 40,
-          kina: 0,
-          boundKina: 72,
-          total: 72,
-        },
         {
           mode: "阶段1",
-          energy: 40,
+          energy: 60,
           kina: 0,
-          boundKina: 60,
-          total: 60,
+          boundKina: 80,
+          total: 80,
         },
       ],
     },
-    {
-      stars: 1,
-      name: "德乌斯研究基地",
-      difficulties: [
-        {
-          mode: "阶段4",
-          energy: 40,
-          kina: 0,
-          boundKina: 114,
-          total: 114,
-        },
-        {
-          mode: "阶段3",
-          energy: 40,
-          kina: 0,
-          boundKina: 90,
-          total: 90,
-        },
-        {
-          mode: "阶段2",
-          energy: 40,
-          kina: 0,
-          boundKina: 72,
-          total: 72,
-        },
-        {
-          mode: "阶段1",
-          energy: 40,
-          kina: 0,
-          boundKina: 60,
-          total: 60,
-        },
-      ],
-    },
+    // {
+    //   stars: 1,
+    //   name: "破碎的雅尔卡尼斯",
+    //   difficulties: [
+    //     {
+    //       mode: "阶段4",
+    //       energy: 40,
+    //       kina: 0,
+    //       boundKina: 114,
+    //       total: 114,
+    //     },
+    //     {
+    //       mode: "阶段3",
+    //       energy: 40,
+    //       kina: 0,
+    //       boundKina: 90,
+    //       total: 90,
+    //     },
+    //     {
+    //       mode: "阶段2",
+    //       energy: 40,
+    //       kina: 0,
+    //       boundKina: 72,
+    //       total: 72,
+    //     },
+    //     {
+    //       mode: "阶段1",
+    //       energy: 40,
+    //       kina: 0,
+    //       boundKina: 60,
+    //       total: 60,
+    //     },
+    //   ],
+    // },
+    // {
+    //   stars: 1,
+    //   name: "德乌斯研究基地",
+    //   difficulties: [
+    //     {
+    //       mode: "阶段4",
+    //       energy: 40,
+    //       kina: 0,
+    //       boundKina: 114,
+    //       total: 114,
+    //     },
+    //     {
+    //       mode: "阶段3",
+    //       energy: 40,
+    //       kina: 0,
+    //       boundKina: 90,
+    //       total: 90,
+    //     },
+    //     {
+    //       mode: "阶段2",
+    //       energy: 40,
+    //       kina: 0,
+    //       boundKina: 72,
+    //       total: 72,
+    //     },
+    //     {
+    //       mode: "阶段1",
+    //       energy: 40,
+    //       kina: 0,
+    //       boundKina: 60,
+    //       total: 60,
+    //     },
+    //   ],
+    // },
   ],
 
   // 圣域
@@ -452,8 +461,8 @@ export const KinahOdSate = {
         {
           mode: "默认",
           energy: 80,
-          kina: 800,
-          boundKina: 0,
+          kina: 0,
+          boundKina: 800,
           total: 800,
         },
       ],
@@ -513,19 +522,21 @@ export const KinahOdSate = {
 export const dungeonDecayRules = {
   // 征服/远征副本衰减阶梯
   expedition: [
-    { maxCount: 84, rate: 1.0, label: "0-84次 (基纳获得量 100%)" },
-    { maxCount: 105, rate: 0.8, label: "85-105次 (基纳获得量 80%)" },
-    { maxCount: 126, rate: 0.6, label: "106-126次 (基纳获得量 60%)" },
-    { maxCount: 147, rate: 0.4, label: "127-147次 (基纳获得量 40%)" },
-    { maxCount: Infinity, rate: 0.2, label: "148次以上 (基纳获得量 20%)" },
+    { maxCount: 62, rate: 1.0, label: "0-62次 (基纳获得量 100%)" },
+    // { maxCount: 105, rate: 0.8, label: "85-105次 (基纳获得量 80%)" },
+    // { maxCount: 126, rate: 0.6, label: "106-126次 (基纳获得量 60%)" },
+    // { maxCount: 147, rate: 0.4, label: "127-147次 (基纳获得量 40%)" },
+    // { maxCount: Infinity, rate: 0.2, label: "148次以上 (基纳获得量 20%)" },
+    { maxCount: Infinity, rate: 1.0, label: "62次以上 (基纳获得量 100%获得绑定吉纳)" },
   ],
   // 超越副本衰减阶梯
   surpass: [
-    { maxCount: 56, rate: 1.0, label: "0-56次 (基纳获得量 100%)" },
-    { maxCount: 70, rate: 0.8, label: "57-70次 (基纳获得量 80%)" },
-    { maxCount: 84, rate: 0.6, label: "71-84次 (基纳获得量 60%)" },
-    { maxCount: 98, rate: 0.4, label: "85-98次 (基纳获得量 40%)" },
-    { maxCount: Infinity, rate: 0.2, label: "99次以上 (基纳获得量 20%)" },
+    { maxCount: 14, rate: 1.0, label: "0-14次 (基纳获得量 100%)" },
+    // { maxCount: 70, rate: 0.8, label: "57-70次 (基纳获得量 80%)" },
+    // { maxCount: 84, rate: 0.6, label: "71-84次 (基纳获得量 60%)" },
+    // { maxCount: 98, rate: 0.4, label: "85-98次 (基纳获得量 40%)" },
+    // { maxCount: Infinity, rate: 0.2, label: "99次以上 (基纳获得量 20%)" },
+    { maxCount: Infinity, rate: 1.0, label: "14次以上 (基纳获得量 100%获得绑定吉纳)" },
   ],
   // 圣域默认不衰减 (100%)
   sanctuary: [{ maxCount: Infinity, rate: 1.0, label: "无衰减 (基纳获得量 100%)" }],
@@ -672,22 +683,22 @@ export const updateLogs = ref([
     desc:
       "免费云端数据库偶尔受网络影响波动，建议经常前往【存储设置】进行手动同步，或通过【设置】定期导出导入本地备份防丢失。",
   },
-      {
+  {
     tag: "新更新",
     tagClass:
       "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50",
-    title: "20261030",
+    title: "同步近期游戏更改，感谢b友【zoieder】提供的游戏信息数据支持。",
     desc:
-      "新增角色支持韩服和国际服/添加韩服恢复能量时间区分",
+      "",
   },
-    //   {
-    //   tag: "新功能",
-    //   tagClass:
-    //     "bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400 border border-sky-200/50 dark:border-sky-800/50",
-    //   title: "双击圣域支持修改",
-    //   desc:
-    //     "新增会员到期提示",
-    // },
+  //   {
+  //   tag: "新功能",
+  //   tagClass:
+  //     "bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400 border border-sky-200/50 dark:border-sky-800/50",
+  //   title: "双击圣域支持修改",
+  //   desc:
+  //     "新增会员到期提示",
+  // },
   //   {
   //   tag: "新更新",
   //   tagClass:

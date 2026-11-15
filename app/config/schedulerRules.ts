@@ -235,21 +235,21 @@ export const gameRulesDictionary = [
   },
 
   // ==================== 4. 每周三刷新项目====================
-  {
-    id: "awakening_battle",
-    name: "觉醒战",
-    dimension: "character",
-    targetField: "awakening",
-    // storedTargetField: "storedAwakening",
-    lastTimeField: "lastAwakeningUpdate",
-    maxCount: 9,
-    // storedMaxCount: 30,
-    refreshType: "weekly",
-    cron: "0 5 * * 3",
-    incrementCount: 3,
-    description:
-      "角色单独：觉醒战，于每周三5点恢复3次，上限9次，补充上限30次。",
-  },
+  // {
+  //   id: "awakening_battle",
+  //   name: "觉醒战",
+  //   dimension: "character",
+  //   targetField: "awakening",
+  //   // storedTargetField: "storedAwakening",
+  //   lastTimeField: "lastAwakeningUpdate",
+  //   maxCount: 9,
+  //   // storedMaxCount: 30,
+  //   refreshType: "weekly",
+  //   cron: "0 5 * * 3",
+  //   incrementCount: 3,
+  //   description:
+  //     "角色单独：觉醒战，于每周三5点恢复3次，上限9次，补充上限30次。",
+  // },
   {
     id: "trial",
     name: "试炼",
@@ -299,10 +299,10 @@ export const gameRulesDictionary = [
       return true;
     },
   },
-  // ==================== 9. 每日副本服务器共享周重置（每周三5点重置并恢复14次） ====================
+  // ==================== 9. 觉醒战服务器共享周重置（每周三5点重置并恢复14次） ====================
   {
     id: "daily_runs_server_weekly",
-    name: "每日副本（服务器共享周重置）",
+    name: "成长副本（服务器共享周重置）",
     dimension: "server",
     targetField: "dailyRuns",
     // storedTargetField: "storedDailyRuns",
@@ -314,7 +314,23 @@ export const gameRulesDictionary = [
     incrementCount: 14,
     resetValue: 14,
     description:
-      "服务器共享：每日副本挑战次数，于每周三5点重置/恢复14次，补充次数上限30次。",
+      "服务器共享：觉醒战挑战次数，于每周三5点重置/恢复14次，补充次数上限30次。",
+  },
+  {
+    id: "daily_runs_server_awakening_battle",
+    name: "觉醒战（服务器共享周重置）",
+    dimension: "server",
+    targetField: "awakening",
+    // storedTargetField: "storedDailyRuns",
+    lastTimeField: "lastAwakeningUpdate",
+    maxCount: 9, // 每周基础恢复上限 14 次
+    // storedMaxCount: 30, // 补充次数上限 30 次
+    refreshType: "weekly",
+    cron: "0 5 * * 3",
+    incrementCount: 9,
+    resetValue: 9,
+    description:
+      "服务器共享：觉醒战挑战次数，于每周三5点重置/恢复9次，补充次数上限30次。",
   },
   // ==================== 5. 指令书管理（本地/深渊/地区） ====================
   {

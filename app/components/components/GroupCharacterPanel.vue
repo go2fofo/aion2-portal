@@ -33,10 +33,10 @@ const supplementValidationRules = [
     },
     message: () => "补充奥德能量不能超过2000",
   },
-  //  存储每日副本次数 (storedDailyRuns) - 组内共享校验
+  //  存储成长副本次数 (storedDailyRuns) - 组内共享校验
   {
     field: "storedDailyRuns",
-    label: "存储每日副本次数",
+    label: "存储成长副本次数",
     validate: (form, context = {}) => {
       const currentGroupId = form?.group;
       const allCharacters = context.allCharacters || [];
@@ -52,7 +52,7 @@ const supplementValidationRules = [
 
       return total <= 30;
     },
-    message: () => "同组账号下存储每日副本次数总和不能超过30次",
+    message: () => "同组账号下存储成长副本次数总和不能超过30次",
   },
   // 古树庆典小游戏存储补充次数校验（组内共享上限 30）
   {
@@ -117,12 +117,12 @@ const supplementValidationRules = [
     validate: (form) => (Number(form.storedAwakening) || 0) <= 30,
     message: () => "存储噩梦次数不能超过30次",
   },
-  // // 6. 存储每日副本次数 (storedDailyRuns)
+  // // 6. 存储成长副本次数 (storedDailyRuns)
   // {
   //   field: "storedDailyRuns",
-  //   label: "存储每日副本次数",
+  //   label: "存储成长副本次数",
   //   validate: (form) => (Number(form.storedDailyRuns) || 0) <= 30,
-  //   message: () => "存储每日副本次数不能超过30次",
+  //   message: () => "存储成长副本次数不能超过30次",
   // },
   // // 7. 圣域副本 s1
   // {
@@ -164,10 +164,10 @@ const weeklyDailyValidationRules = [
   //   validate: (form) => (Number(form?.storedEnergy) || 0) <= 2000,
   //   message: () => "补充奥德能量不能超过2000",
   // },
-  // //  存储每日副本次数 (storedDailyRuns) - 组内共享校验
+  // //  存储成长副本次数 (storedDailyRuns) - 组内共享校验
   // {
   //   field: "storedDailyRuns",
-  //   label: "存储每日副本次数",
+  //   label: "存储成长副本次数",
   //   validate: (form, context = {}) => {
   //     const currentGroupId = form?.group;
   //     const allCharacters = context.allCharacters || [];
@@ -183,7 +183,7 @@ const weeklyDailyValidationRules = [
 
   //     return total <= 30;
   //   },
-  //   message: () => "同组账号下存储每日副本次数总和不能超过30次",
+  //   message: () => "同组账号下存储成长副本次数总和不能超过30次",
   // },
   // // 古树庆典小游戏存储补充次数校验（组内共享上限 30）
   // {
@@ -266,15 +266,15 @@ const weeklyDailyValidationRules = [
       return `战场消耗次数不能超过3次`;
     },
   },
-  // 每日副本消耗次数 (dailyRuns)
+  // 成长副本消耗次数 (dailyRuns)
   {
     field: "dailyRuns",
-    label: "每日副本消耗次数",
+    label: "成长副本消耗次数",
     validate: (form) => {
       return (form?.dailyRuns || 0) < totalGroupStoredDailyRuns.value;
     },
     message: (form) => {
-      return `每日副本消耗次数不能超过${
+      return `成长副本消耗次数不能超过${
         getCharGroup.value?.storedDailyRuns + getCharGroup.value?.dailyRuns
       }次`;
     },
@@ -318,7 +318,7 @@ const defaultSupplementFormValues = {
   storedEnergy: 0, //当前修改后补充奥德能量 需要修改时间
   bigOdCount: 0, //大奥德数量
   smallOdCount: 0, //小奥德数量
-  // 每日副本补充
+  // 成长副本补充
   storedDailyRuns: 0,
   //噩梦补充
   storedNightmareCount: 0,
@@ -369,7 +369,7 @@ const validationRules = computed(() => {
 });
 // 日周任务 表单内的控制 默认值
 const defaultWeeklydailyFormValues = {
-  // 每日副本消耗
+  // 成长副本消耗
   dailyRuns: 0,
   //噩梦消耗
   nightmareCount: 0,
@@ -653,7 +653,7 @@ const handleTaskClick = async (char, field, tab, clickType) => {
       const taskCardConfigs = {
         dailyRuns: {
           key: "dailyRuns",
-          title: "每日副本消耗",
+          title: "成长副本消耗",
           color: "amber",
           // 渲染时判断是否有可用的前置条件
           hasAvailable: () =>
@@ -1071,7 +1071,7 @@ const summaryItems = computed(() => {
       },
       {
         key: "dailyRuns",
-        label: "每日副本",
+        label: "成长副本",
         getValue: (form, group) => group?.dailyRuns || 0,
         getStoredValue: () => totalGroupStoredDailyRuns.value || 0,
         colorClass: "text-purple-600",
@@ -1119,7 +1119,7 @@ const totalsStoredEnergyCount = computed(() => {
 
   return total;
 });
-//  每日副本补充次数：组内全员共享统计
+//  成长副本补充次数：组内全员共享统计
 const totalGroupStoredDailyRuns = computed(() => {
   // 加上当前表单里输入的数值
   let total =
@@ -1177,7 +1177,7 @@ const handleUpdateOdCount = (type, delta) => {
     );
   }
 };
-// 执行游玩补充确认（支持奥德、每日副本、古树庆典/次元袭击等多种类型的统一扩展）
+// 执行游玩补充确认（支持奥德、成长副本、古树庆典/次元袭击等多种类型的统一扩展）
 const handleExecuteSupplement = async () => {
   const currentTarget = gameplayCharForm.value;
   if (!currentTarget) return;
@@ -1231,7 +1231,7 @@ const handleExecuteSupplement = async () => {
     if (g.id === groupId) {
       return {
         ...g,
-        // 每日副本补充（账号共享）
+        // 成长副本补充（账号共享）
         ...(storedDailyRuns ? { storedDailyRuns: totalGroupStoredDailyRuns.value } : {}),
 
         // 古树庆典小游戏补充，（账号共享）
@@ -2132,7 +2132,7 @@ const totalsRemainingAwakeningCountRuns = computed(() => {
 
   return total;
 });
-// 每日副本剩余次数：角色统计
+// 成长副本剩余次数：角色统计
 const totalsRemainingDailyRunsCountRuns = computed(() => {
   const storedDailyCount = Number(getCharGroup.value?.storedDailyRuns || 0);
   const dailyRuns = Number(getCharGroup.value?.dailyRuns || 0);
@@ -2258,7 +2258,7 @@ const handleExecuteWeeklyDaily = () => {
       let newGroup = {
         ...g,
       };
-      // 每日副本消耗 先消耗基础在消耗存储
+      // 成长副本消耗 先消耗基础在消耗存储
       if (dailyRuns && dailyRuns > 0) {
         // 1. 先计算基础消耗中还能扣多少
         const currentBase = newGroup.dailyRuns || 0;
@@ -2749,7 +2749,7 @@ watchFieldLimit(
   }
 );
 
-// 每日副本校验 (> 30 且 补充值 > 0)
+// 成长副本校验 (> 30 且 补充值 > 0)
 watchFieldLimit(
   () => totalGroupStoredDailyRuns.value,
   "storedDailyRuns",
@@ -2835,7 +2835,7 @@ watchFieldLimit(
   }
 );
 
-//每日副本消耗
+//成长副本消耗
 watchFieldLimit(
   () => weeklydailyFormValues.value?.dailyRuns,
   "dailyRuns",
@@ -3303,7 +3303,7 @@ defineExpose({
                   >
                 </div>
 
-                <!-- 每日副本 -->
+                <!-- 成长副本 -->
                 <div
                   class="flex items-center gap-1.5 px-2.5 py-1 border rounded-xl transition-all"
                   :class="
@@ -4600,7 +4600,7 @@ defineExpose({
                   </div>
                 </div>
 
-                <!-- 每日副本补充卡片 -->
+                <!-- 成长副本补充卡片 -->
                 <div
                   class="p-6 bg-white dark:bg-slate-900 border-2 rounded-3xl space-y-5 shadow-sm transition-all md:col-span-3 h-full flex flex-col"
                   ref="dailyRunsSection"
@@ -4619,7 +4619,7 @@ defineExpose({
                         <div
                           class="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2"
                         >
-                          <span>每日副本补充</span>
+                          <span>成长副本补充</span>
                           <span
                             class="text-[11px] px-2 py-0.5 rounded-full font-bold transition-colors"
                             :class="{
@@ -4667,7 +4667,7 @@ defineExpose({
                       <div
                         class="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-300"
                       >
-                        <span>每日副本卷 (每次增加 1 次)</span>
+                        <span>成长副本卷 (每次增加 1 次)</span>
                         <span class="text-amber-600 dark:text-amber-400 font-black"
                           >+{{ supplementFormValues.storedDailyRuns || 0 }} 次</span
                         >
@@ -4714,7 +4714,7 @@ defineExpose({
                         >
                       </span>
                       <span class="font-bold text-slate-500 dark:text-slate-400">
-                        该账号下每日副本补充总计:
+                        该账号下成长副本补充总计:
                         <strong
                           class="text-sm font-black"
                           :class="
@@ -5016,7 +5016,7 @@ defineExpose({
             >
               <!-- ================= 3. 噩梦、觉醒战、战场消耗（一行三列布局） ================= -->
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <!-- ================= 每日副本消耗管理 ================= -->
+                <!-- ================= 成长副本消耗管理 ================= -->
                 <div
                   class="h-full flex flex-col justify-between p-4 bg-white dark:bg-slate-900 border-2 rounded-3xl space-y-4 shadow-sm transition-all"
                   ref="dailyRunsSection"
@@ -5045,7 +5045,7 @@ defineExpose({
                         <div
                           class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-100"
                         >
-                          <span>每日副本消耗</span>
+                          <span>成长副本消耗</span>
                         </div>
                       </div>
 
@@ -5149,7 +5149,7 @@ defineExpose({
                         <div
                           class="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500"
                         >
-                          <span>每日副本消耗</span>
+                          <span>成长副本消耗</span>
                         </div>
                       </div>
                       <span
@@ -5488,7 +5488,7 @@ defineExpose({
                   </template>
                 </div>
               </div>
-              <!-- ================= 4. 每日副本、古树庆典、次元袭击（一行三列布局） ================= -->
+              <!-- ================= 4. 成长副本、古树庆典、次元袭击（一行三列布局） ================= -->
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <!-- ================= 噩梦消耗管理 ================= -->
                 <div

@@ -602,7 +602,7 @@ const taskList = computed(() => [
   },
   {
     key: "dailyRuns",
-    name: "每日副本",
+    name: "成长副本",
     type: "group",
     fieldKey: "showDailyRuns",
     colorTheme: {
@@ -622,10 +622,29 @@ const taskList = computed(() => [
       })`;
     },
   },
-  {
+  // {
+  //   key: "awakening",
+  //   name: "觉醒",
+  //   type: "character-stored",
+  //   fieldKey: "showAwakening",
+  //   colorTheme: {
+  //     activeBg:
+  //       "bg-indigo-50/30 dark:bg-indigo-950/20 border-indigo-200/50 dark:border-indigo-900/40 hover:bg-indigo-50/60 dark:hover:bg-indigo-900/30",
+  //     badge:
+  //       "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 border-indigo-100 dark:border-indigo-900/80",
+  //     text: "text-indigo-600 dark:text-indigo-400",
+  //   },
+  //   hasCount: (char) =>
+  //     getCharacterSharedTaskData(char, "awakening", "storedAwakening", 30).total > 0,
+  //   getCountText: (char) => {
+  //     const data = getCharacterSharedTaskData(char, "awakening", "storedAwakening", 30);
+  //     return `剩余${data.total}次 (${char.awakening || 0}/${char?.storedAwakening || 0})`;
+  //   },
+  // },
+   {
     key: "awakening",
     name: "觉醒",
-    type: "character-stored",
+    type: "group",
     fieldKey: "showAwakening",
     colorTheme: {
       activeBg:
@@ -635,10 +654,13 @@ const taskList = computed(() => [
       text: "text-indigo-600 dark:text-indigo-400",
     },
     hasCount: (char) =>
-      getCharacterSharedTaskData(char, "awakening", "storedAwakening", 30).total > 0,
+      getGroupSharedTaskData(char.group, "awakening", "storedAwakening", 14).total > 0,
     getCountText: (char) => {
-      const data = getCharacterSharedTaskData(char, "awakening", "storedAwakening", 30);
-      return `剩余${data.total}次 (${char.awakening || 0}/${char?.storedAwakening || 0})`;
+      const data = getGroupSharedTaskData(char.group, "awakening", "storedAwakening", 14);
+      const group = props.getGroup(char.group);
+      return `剩余${data.total}次 (${group?.awakening || 0}/${
+        group?.storedAwakening || 0
+      })`;
     },
   },
   {
