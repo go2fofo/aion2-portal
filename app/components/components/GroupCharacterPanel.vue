@@ -1473,23 +1473,28 @@ const calculationByRuns = computed(() => {
   let totalKina = 0;
   let totalBoundKina = 0;
 
-  // 模拟每一把的消耗与衰减累加
-  // 注意：这里的起始次数可以根据你实际业务是否需要加上“今日已刷次数”来决定，目前按从第 1 把到目标次数计算
+  // 从本周已通关次数之后开始模拟，使阈值（远征62/超越14）跨越判断与当前进度联动
+  const startCount = Number(currentActiveRuns.value) || 0;
+
+  // 模拟每一把的消耗与收益累加
   for (let i = 1; i <= targetRuns; i++) {
-    // 获取当前第 i 把对应的衰减率
-    const decayRule = getDecayRuleByCount(dungeonType, i);
+    // 获取当前第 i 把（基于本周累计进度）对应的阶梯规则
+    const decayRule = getDecayRuleByCount(dungeonType, startCount + i);
     const decayRate = decayRule.rate;
 
     // 单把消耗奥德（考虑单双倍）
     const energyCost = isDouble ? baseEnergyPerRun * 2 : baseEnergyPerRun;
     totalEnergy += energyCost;
 
-    // 单把吉纳产出
-    const kina = baseKina * rewardMultiplier * decayRate;
-    const boundKina = baseBoundKina * rewardMultiplier * decayRate;
-
-    totalKina += kina;
-    totalBoundKina += boundKina;
+    // 单把吉纳产出：收益率恒为 100%（不衰减），
+    // 超过阈值（allBound）后，非绑定基纳全部转为绑定吉纳
+    if (decayRule.allBound) {
+      totalBoundKina +=
+        (baseKina + baseBoundKina) * rewardMultiplier * decayRate;
+    } else {
+      totalKina += baseKina * rewardMultiplier * decayRate;
+      totalBoundKina += baseBoundKina * rewardMultiplier * decayRate;
+    }
   }
 
   return {
@@ -1548,6 +1553,9 @@ const calculationByEnergy = computed(() => {
   const baseKina = currentSelectedDiff.value.kina || 0;
   const baseBoundKina = currentSelectedDiff.value.boundKina || 0;
 
+  // 从本周已通关次数之后开始模拟，使阈值（远征62/超越14）跨越判断与当前进度联动
+  const startCount = Number(currentActiveRuns.value) || 0;
+
   let possibleRuns = 0;
   let actualEnergy = 0;
   let totalKina = 0;
@@ -1566,15 +1574,18 @@ const calculationByEnergy = computed(() => {
     currentSimulateEnergy += energyNeeded;
     possibleRuns++;
 
-    // 获取当前把数的衰减率
-    const decayRule = getDecayRuleByCount(dungeonType, i);
+    // 获取当前把数（基于本周累计进度）对应的阶梯规则
+    const decayRule = getDecayRuleByCount(dungeonType, startCount + i);
     const decayRate = decayRule.rate;
 
-    const kina = baseKina * rewardMultiplier * decayRate;
-    const boundKina = baseBoundKina * rewardMultiplier * decayRate;
-
-    totalKina += kina;
-    totalBoundKina += boundKina;
+    // 收益率恒为 100%（不衰减），超过阈值（allBound）后基纳全部转为绑定吉纳
+    if (decayRule.allBound) {
+      totalBoundKina +=
+        (baseKina + baseBoundKina) * rewardMultiplier * decayRate;
+    } else {
+      totalKina += baseKina * rewardMultiplier * decayRate;
+      totalBoundKina += baseBoundKina * rewardMultiplier * decayRate;
+    }
     i++;
   }
 
@@ -1591,14 +1602,26 @@ const calculationByEnergy = computed(() => {
   };
 });
 
-// 最终统一对外暴露的计算结果（包含原始收益与经衰减计算后的最终收益）
+// 最终统一对外暴露的计算结果（包含原始收益与按新规则换算后的最终收益）
+// 新规则：收益率恒为 100%（不衰减），超过阈值后非绑定基纳全部转为绑定吉纳
 const currentCalculationResult = computed(() => {
-  const decayRate = currentDecayRate.value ?? 1; // 获取当前的衰减收益率比例
+  const decayRate = currentDecayRate.value ?? 1; // 收益率比例（新规则恒为 1）
+  const allBound = !!currentDecayRule.value?.allBound; // 当前阶梯是否“全部转绑定吉纳”
+
+  // 按规则换算单把收益：超阈值后 kina → boundKina，总量不变
+  const applyBoundRule = (rawKina, rawBound) => {
+    return {
+      kinaGain: allBound ? 0 : Math.round(rawKina),
+      boundKinaGain: allBound
+        ? Math.round(rawKina + rawBound)
+        : Math.round(rawBound),
+    };
+  };
 
   if (consumeForm.value.activeCalcTab === "runs") {
     const baseResult = calculationByRuns.value || {};
 
-    // 原始未衰减数值
+    // 独立保留的原始数值（未换算绑定）
     let rawKinaGain = baseResult.kinaGain || 0;
     let rawBoundKinaGain = baseResult.boundKinaGain || 0;
     let rawTotalGain = baseResult.totalGain || rawKinaGain + rawBoundKinaGain;
@@ -1607,21 +1630,21 @@ const currentCalculationResult = computed(() => {
       type: "runs",
       ...baseResult,
       possibleRuns: consumeForm.value.calcInput,
-      // 独立保留的未衰减收益字段
+      // 独立保留的原始收益字段
       rawKinaGain,
       rawBoundKinaGain,
       rawTotalGain,
-      // 衰减后实际收益
-      kinaGain: Math.round(rawKinaGain * decayRate),
-      boundKinaGain: Math.round(rawBoundKinaGain * decayRate),
+      // 按规则换算后的实际收益（超阈值后全部为绑定吉纳，总量不变）
+      ...applyBoundRule(rawKinaGain, rawBoundKinaGain),
       totalGain: Math.round(rawTotalGain * decayRate),
 
       decayRate,
+      allBound,
     };
   } else {
     const baseResult = calculationByEnergy.value || {};
 
-    // 原始未衰减数值
+    // 独立保留的原始数值（未换算绑定）
     const rawKinaGain = baseResult.kinaGain || 0;
     const rawBoundKinaGain = baseResult.boundKinaGain || 0;
     const rawTotalGain = baseResult.totalGain || rawKinaGain + rawBoundKinaGain;
@@ -1629,16 +1652,16 @@ const currentCalculationResult = computed(() => {
     return {
       type: "energy",
       ...baseResult,
-      // 独立保留的未衰减收益字段
+      // 独立保留的原始收益字段
       rawKinaGain,
       rawBoundKinaGain,
       rawTotalGain,
-      // 衰减后实际收益
-      kinaGain: Math.round(rawKinaGain * decayRate),
-      boundKinaGain: Math.round(rawBoundKinaGain * decayRate),
+      // 按规则换算后的实际收益（超阈值后全部为绑定吉纳，总量不变）
+      ...applyBoundRule(rawKinaGain, rawBoundKinaGain),
       totalGain: Math.round(rawTotalGain * decayRate),
 
       decayRate,
+      allBound,
     };
   }
 });
@@ -1678,21 +1701,29 @@ const calculatedEnergyCost = computed(() => {
 });
 const currentDecayRate = computed(() => currentDecayRule.value.rate);
 const currentDecayRuleLabel = computed(() => currentDecayRule.value.label);
+// 当前阶梯是否“全部转绑定吉纳”（超过阈值：远征62 / 超越14）
+const currentDecayAllBound = computed(() => !!currentDecayRule.value?.allBound);
 // 收益倍率
 const getRewardMultiplier = computed(() => {
   return isEffectiveDoubleEnergy.value ? 1 : 0.5;
 });
-// 计算基纳增益
+// 计算基纳增益（非绑定）：超过阈值后全部转为绑定吉纳，此处归零
 const calculatedKinaGain = computed(() => {
   if (!currentSelectedDiff.value) return 0;
+  // 超过阈值后：收益不衰减但全部转为绑定吉纳
+  if (currentDecayRule.value?.allBound) return 0;
   const base = currentSelectedDiff.value.kina || 0;
   return Number((base * getRewardMultiplier.value * currentDecayRate.value).toFixed(2));
 });
-// 计算绑定基纳增益
+// 计算绑定基纳增益：超过阈值后 = 原绑定 + 原非绑定（收益率仍为 100%）
 const calculatedBoundKinaGain = computed(() => {
   if (!currentSelectedDiff.value) return 0;
-  const base = currentSelectedDiff.value.boundKina || 0;
-  return Number((base * getRewardMultiplier.value * currentDecayRate.value).toFixed(2));
+  const baseBound = currentSelectedDiff.value.boundKina || 0;
+  const baseKina = currentSelectedDiff.value.kina || 0;
+  const boundBase = currentDecayRule.value?.allBound
+    ? baseBound + baseKina
+    : baseBound;
+  return Number((boundBase * getRewardMultiplier.value * currentDecayRate.value).toFixed(2));
 });
 
 // 计算吉纳总收益
@@ -3456,13 +3487,15 @@ defineExpose({
                         <span
                           class="text-[10px] font-black px-2.5 py-0.5 rounded-full"
                           :class="
-                            currentDecayRate < 1
+                            currentDecayAllBound
                               ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-900'
                               : 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900'
                           "
                         >
                           当前收益率:
-                          {{ currentDecayRate * 100 }}%
+                          {{ currentDecayRate * 100 }}%{{
+                            currentDecayAllBound ? "（全部绑定吉纳）" : ""
+                          }}
                         </span>
                       </div>
 
@@ -3478,7 +3511,7 @@ defineExpose({
                         <div
                           class="text-[11px] font-bold text-slate-500 dark:text-slate-400"
                         >
-                          当前衰减阶梯:
+                          当前收益阶梯:
                           <span class="text-amber-600 dark:text-amber-400 font-black">{{
                             currentDecayRuleLabel
                           }}</span>
@@ -3876,7 +3909,7 @@ defineExpose({
                         class="grid grid-cols-2 gap-2 text-[11px] font-bold text-amber-900/70 dark:text-amber-400/80"
                       >
                         <div>
-                          基纳 (折后):
+                          非绑定基纳:
                           <span class="font-black text-amber-900 dark:text-amber-200"
                             >{{ currentCalculationResult.kinaGain }} 万</span
                           >
@@ -3885,7 +3918,7 @@ defineExpose({
                           >
                         </div>
                         <div>
-                          绑定基纳 (折后):
+                          绑定基纳:
                           <span class="font-black text-amber-900 dark:text-amber-200"
                             >{{ currentCalculationResult.boundKinaGain }} 万</span
                           >
@@ -3895,7 +3928,7 @@ defineExpose({
                         </div>
                       </div>
 
-                      <!-- 衰减前后收益对比提示 -->
+                      <!-- 收益换算提示 -->
                       <div
                         class="pt-2.5 mt-1 border-t border-amber-200/60 dark:border-amber-900/40 flex items-center justify-between text-[11px]"
                       >
@@ -3905,28 +3938,25 @@ defineExpose({
                           <span
                             class="px-1.5 py-0.5 rounded bg-amber-500/10 font-black text-[10px]"
                           >
-                            衰减率:
+                            收益率:
                             {{
                               Math.round((currentCalculationResult.decayRate ?? 1) * 100)
                             }}%
                           </span>
                           <span class="text-slate-400 dark:text-slate-500">|</span>
                           <span>
-                            未衰减原总收益:
+                            原始总收益:
                             <span class="font-mono font-bold"
                               >{{ currentCalculationResult.rawTotalGain }} 万</span
                             >
                           </span>
                         </div>
                         <div class="text-amber-600 dark:text-amber-400 font-bold">
-                          已折损: -{{
-                            Math.max(
-                              0,
-                              currentCalculationResult.rawTotalGain -
-                                currentCalculationResult.totalGain
-                            )
+                          {{
+                            currentCalculationResult.allBound
+                              ? `超过阈值，${currentCalculationResult.rawKinaGain} 万非绑定基纳已转为绑定吉纳`
+                              : "收益不衰减 (100%)"
                           }}
-                          万
                         </div>
                       </div>
                     </div>

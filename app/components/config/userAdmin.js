@@ -518,25 +518,36 @@ export const KinahOdSate = {
     },
   ],
 };
-// 副本挑战次数与吉纳获取衰减规则
+// 副本挑战次数与吉纳获取规则
+// 新规则：收益率恒为 100%，超过阈值后收益不衰减，但基纳全部转为“绑定吉纳”（allBound 标记）
 export const dungeonDecayRules = {
-  // 征服/远征副本衰减阶梯
+  // 征服/远征副本阶梯（阈值 62 次）
   expedition: [
     { maxCount: 62, rate: 1.0, label: "0-62次 (基纳获得量 100%)" },
     // { maxCount: 105, rate: 0.8, label: "85-105次 (基纳获得量 80%)" },
     // { maxCount: 126, rate: 0.6, label: "106-126次 (基纳获得量 60%)" },
     // { maxCount: 147, rate: 0.4, label: "127-147次 (基纳获得量 40%)" },
     // { maxCount: Infinity, rate: 0.2, label: "148次以上 (基纳获得量 20%)" },
-    { maxCount: Infinity, rate: 1.0, label: "62次以上 (基纳获得量 100%获得绑定吉纳)" },
+    {
+      maxCount: Infinity,
+      rate: 1.0,
+      allBound: true, // 超过阈值后：非绑定基纳全部转为绑定吉纳
+      label: "62次以上 (基纳获得量 100%获得绑定吉纳)",
+    },
   ],
-  // 超越副本衰减阶梯
+  // 超越副本阶梯（阈值 14 次）
   surpass: [
     { maxCount: 14, rate: 1.0, label: "0-14次 (基纳获得量 100%)" },
     // { maxCount: 70, rate: 0.8, label: "57-70次 (基纳获得量 80%)" },
     // { maxCount: 84, rate: 0.6, label: "71-84次 (基纳获得量 60%)" },
     // { maxCount: 98, rate: 0.4, label: "85-98次 (基纳获得量 40%)" },
     // { maxCount: Infinity, rate: 0.2, label: "99次以上 (基纳获得量 20%)" },
-    { maxCount: Infinity, rate: 1.0, label: "14次以上 (基纳获得量 100%获得绑定吉纳)" },
+    {
+      maxCount: Infinity,
+      rate: 1.0,
+      allBound: true, // 超过阈值后：非绑定基纳全部转为绑定吉纳
+      label: "14次以上 (基纳获得量 100%获得绑定吉纳)",
+    },
   ],
   // 圣域默认不衰减 (100%)
   sanctuary: [{ maxCount: Infinity, rate: 1.0, label: "无衰减 (基纳获得量 100%)" }],

@@ -2573,7 +2573,7 @@ const getGroupDecayInfo = (groupId, type) => {
 
   const rules = dungeonDecayRules[type] || [];
 
-  let rateLabel = "基纳获得量 20%";
+  let rateLabel = "基纳获得量 100%";
   for (const rule of rules) {
     if (totalRuns <= rule.maxCount) {
       rateLabel = rule.label;
