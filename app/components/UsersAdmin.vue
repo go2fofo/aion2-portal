@@ -32,6 +32,10 @@ import {
   formatGlobalServerDisplay,
   parseGlobalNameWithServerShort,
 } from "~/utils/aionGlobalServers";
+import {
+  getRegionByServerId,
+  getRegionLabelByServerId,
+} from "~/utils/serverRegion";
 import { formatCombatPower } from "~/utils/formatCombatPower";
 import GroupCharacterPanel from "./components/GroupCharacterPanel.vue";
 import GlobalModal from "./GlobalModal.vue";
@@ -9029,6 +9033,13 @@ const handleTeamIndexChange = (currentIndex, rawVal) => {
                       class="font-black text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2"
                     >
                       {{ char.characterName || "未命名角色" }}
+                      <!-- 服务器区域标识（韩服/国际服显示，台服默认不显示） -->
+                      <span
+                        v-if="getRegionByServerId(char?.serverId) !== 'tw'"
+                        class="px-2 py-0.5 rounded-md bg-violet-500/10 text-violet-600 dark:text-violet-400 font-black text-[10px]"
+                      >
+                        {{ getRegionLabelByServerId(char?.serverId) }}
+                      </span>
                       <!-- 如果当前是主角色，显示一个小徽章 -->
                       <span
                         v-if="char?.primaryAccount"

@@ -1,54 +1,74 @@
 import { gameRulesDictionary } from "../config/schedulerRules";
+import {
+  getCharRegion,
+  getRegionDailyBoundary,
+  getRegionEnergyRefreshHours,
+  getRegionWeeklyBoundary,
+  regionGameConfig,
+  type RegionGameConfig,
+} from "./serverRegion";
 
 /**
- * 获取周三 5 点的时间戳（Aion2 周期基准）
+ * 获取周重置时间戳（默认台服：周三 5 点，Aion2 周期基准）
  */
-const getWednesday5amTimestamp = (date: Date = new Date()): number => {
+const getWednesday5amTimestamp = (
+  date: Date = new Date(),
+  cfg: RegionGameConfig = regionGameConfig.tw,
+): number => {
   const d = new Date(date);
   const day = d.getDay();
   const hour = d.getHours();
-  let diffDays = day - 3;
-  if (diffDays < 0 || (diffDays === 0 && hour < 5)) {
+  let diffDays = day - cfg.weeklyResetDay;
+  if (diffDays < 0 || (diffDays === 0 && hour < cfg.dailyResetHour)) {
     diffDays += 7;
   }
   d.setDate(d.getDate() - diffDays);
-  d.setHours(5, 0, 0, 0);
+  d.setHours(cfg.dailyResetHour, 0, 0, 0);
   return d.getTime();
 };
 
 /**
- * 获取某个时间戳对应的“本周周期所属的周三5点时间戳”
+ * 获取某个时间戳对应的“本周周期所属的周重置时间戳”
  */
-const getWeekPeriodTimestamp = (timestamp: number): number => {
-  return getWednesday5amTimestamp(new Date(timestamp));
+const getWeekPeriodTimestamp = (
+  timestamp: number,
+  cfg: RegionGameConfig = regionGameConfig.tw,
+): number => {
+  return getWednesday5amTimestamp(new Date(timestamp), cfg);
 };
 
 /**
- * 获取指定时间所在日期的 5 点时间戳
+ * 获取指定时间所在日期的每日重置时间戳（默认台服 5 点）
  * @param {Number} [baseTime=Date.now()] - 基准时间戳
  */
-const getToday5amTimestamp = (baseTime: number = Date.now()): number => {
+const getToday5amTimestamp = (
+  baseTime: number = Date.now(),
+  cfg: RegionGameConfig = regionGameConfig.tw,
+): number => {
   const date = new Date(baseTime);
-  const today5am = new Date(date);
-  today5am.setHours(5, 0, 0, 0);
+  const todayReset = new Date(date);
+  todayReset.setHours(cfg.dailyResetHour, 0, 0, 0);
 
-  // 如果基准时间还没到当天 5 点，说明它属于“上一天”的 5 点
-  if (date.getTime() < today5am.getTime()) {
-    today5am.setDate(today5am.getDate() - 1);
+  // 如果基准时间还没到当天重置时间，说明它属于“上一天”的重置
+  if (date.getTime() < todayReset.getTime()) {
+    todayReset.setDate(todayReset.getDate() - 1);
   }
-  return today5am.getTime();
+  return todayReset.getTime();
 };
 /**
- * 获取某个时间戳对应的“当天 5 点的时间戳”（用于每日固定周期判断）
+ * 获取某个时间戳对应的“当天重置时间戳”（用于每日固定周期判断）
  */
-const getDaily5amTimestamp = (timestamp: number): number => {
+const getDaily5amTimestamp = (
+  timestamp: number,
+  cfg: RegionGameConfig = regionGameConfig.tw,
+): number => {
   const d = new Date(timestamp);
-  const fiveAm = new Date(d);
-  fiveAm.setHours(5, 0, 0, 0);
-  if (d.getTime() < fiveAm.getTime()) {
-    fiveAm.setDate(fiveAm.getDate() - 1);
+  const reset = new Date(d);
+  reset.setHours(cfg.dailyResetHour, 0, 0, 0);
+  if (d.getTime() < reset.getTime()) {
+    reset.setDate(reset.getDate() - 1);
   }
-  return fiveAm.getTime();
+  return reset.getTime();
 };
 /**
  * 获取当前时间点之前（或刚好等于）最近的一个“周三或周六 22:10”的时间戳
@@ -80,17 +100,24 @@ function getLatestArtifactCloisterResetTarget(currentTime: any) {
  */
 export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
   const now = mockNow !== undefined ? mockNow : getBeijingTimestamp();
-  const today5amTime = getToday5amTimestamp(now);
-  const currentWednesday5am = getWednesday5amTimestamp(new Date(now));
 
   let hasChanges = false;
 
   // 建立一个分组查找映射表，方便角色快速找到自己所属的分组
   const groupMap = new Map();
+  // 分组 -> 区域 映射表：由组内第一个可识别区域的角色决定（服务器共享组应同区）
+  const groupRegionMap = new Map();
   if (Array.isArray(gameData.groups)) {
     gameData.groups.forEach((g: any) => {
       groupMap.set(g.id, g);
       if (g.sort !== undefined) groupMap.set(g.sort, g);
+    });
+  }
+  if (Array.isArray(gameData.characters)) {
+    gameData.characters.forEach((c: any) => {
+      if (c.group !== undefined && c.group !== null && !groupRegionMap.has(c.group)) {
+        groupRegionMap.set(c.group, getCharRegion(c));
+      }
     });
   }
 
@@ -102,6 +129,14 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
     // ==========================================
     if (dimension === "server" && Array.isArray(gameData.groups)) {
       gameData.groups.forEach((group: any) => {
+        // 该分组所属区域（组内角色推导，无法识别时按台服规则）
+        const regionId =
+          group.region || groupRegionMap.get(group.id) || groupRegionMap.get(group.sort) || "tw";
+        const regionCfg = regionGameConfig[regionId] || regionGameConfig.tw;
+        // 每日/每周重置边界按区域动态计算（台服 5 点 / 韩服 4 点 ...）
+        const today5amTime = getToday5amTimestamp(now, regionCfg);
+        const currentWednesday5am = getWednesday5amTimestamp(new Date(now), regionCfg);
+
         let groupChanged = false;
         const timeField = rule.lastTimeField || "lastUpdatedAt";
         const lastTimeVal =
@@ -124,7 +159,7 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
             lastTime = 0; // 设为 0 确保触发第一次全量追赶
           }
 
-          let lastPeriod = getWeekPeriodTimestamp(lastTime);
+          let lastPeriod = getWeekPeriodTimestamp(lastTime, regionCfg);
           const oneWeekMs = 7 * 24 * 3600 * 1000;
           let serverWeeklyChanged = false;
 
@@ -185,7 +220,7 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
             lastTime = 0;
           }
 
-          let lastDailyPeriod = getDaily5amTimestamp(lastTime);
+          let lastDailyPeriod = getDaily5amTimestamp(lastTime, regionCfg);
           const oneDayMs = 24 * 60 * 60 * 1000;
           let dailyChanged = false;
 
@@ -245,6 +280,13 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
         let charChanged = false;
         const ownerGroup = groupMap.get(char.group) || {};
 
+        // 该角色所属区域（显式 region 字段 > serverId 推导 > 默认台服）
+        const charRegionId = char.region || getCharRegion(char);
+        const charRegionCfg = regionGameConfig[charRegionId] || regionGameConfig.tw;
+        // 每日/每周重置边界按角色区域动态计算
+        const today5amTime = getToday5amTimestamp(now, charRegionCfg);
+        const currentWednesday5am = getWednesday5amTimestamp(new Date(now), charRegionCfg);
+
         const ruleContext = {
           ...char,
           premiumMember: !!ownerGroup.premiumMember,
@@ -264,7 +306,10 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
             Number(char[timeField]) || 0,
             Number(char.createDate) || 0,
           );
-          const refreshHours = [2, 5, 8, 11, 14, 17, 20, 23];
+          // 能量恢复锚点随区域变化：台服重置 5 点 -> [2,5,8...]；韩服重置 4 点 -> [1,4,7...]
+          const refreshHours = getRegionEnergyRefreshHours(
+            charRegionCfg.dailyResetHour,
+          );
 
           let periodsPassed = 0;
           let maxTriggerTime = effectiveLastTime;
@@ -353,7 +398,7 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
         }
         // 2. 每天 5点 固定恢复类规则（如噩梦副本）- 改造成多天追赶循环
         if (refreshType === "daily") {
-          let lastDailyPeriod = getDaily5amTimestamp(lastTime);
+          let lastDailyPeriod = getDaily5amTimestamp(lastTime, charRegionCfg);
           const oneDayMs = 24 * 60 * 60 * 1000;
           let dailyCharChanged = false;
 
@@ -409,7 +454,7 @@ export const executeRulesByDictionary = (gameData: any, mockNow?: number) => {
             lastTime = 0; // 设为 0 确保触发第一次全量追赶
           }
 
-          let lastPeriod = getWeekPeriodTimestamp(lastTime);
+          let lastPeriod = getWeekPeriodTimestamp(lastTime, charRegionCfg);
           const oneWeekMs = 7 * 24 * 3600 * 1000;
           let weeklyCharChanged = false;
 
