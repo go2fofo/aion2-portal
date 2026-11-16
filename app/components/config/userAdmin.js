@@ -210,21 +210,21 @@ export const KinahOdSate = {
         // },
         {
           mode: "阶段3",
-          energy: 160,
+          energy: 60,
           kina: 1160,
           boundKina: 0,
           total: 1160,
         },
         {
           mode: "阶段2",
-          energy: 160,
+          energy: 60,
           kina: 1060,
           boundKina: 0,
           total: 1060,
         },
         {
           mode: "阶段1",
-          energy: 160,
+          energy: 60,
           kina: 960,
           boundKina: 0,
           total: 960,
@@ -684,6 +684,12 @@ export const defGameData = {
 };
 
 
+// 一键本地部署安装包下载地址（文件放在 public/locdw/ 目录下，部署后直接以 /locdw/xxx 路径访问）
+export const localDeployPackage = {
+  url: "/locdw/bbbs.zip",
+  fileName: "bbbs.zip",
+};
+
 // 公告内容数组对象
 export const updateLogs = ref([
   {
@@ -693,6 +699,7 @@ export const updateLogs = ref([
     title: "数据库同步与数据安全提示",
     desc:
       "免费云端数据库偶尔受网络影响波动，建议经常前往【存储设置】进行手动同步，或通过【设置】定期导出导入本地备份防丢失。",
+      
   },
   {
     tag: "新更新",

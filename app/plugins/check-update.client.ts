@@ -1,30 +1,42 @@
 /*
- * @Author: fofo
- * @Date: 2026-09-08 15:01:50
- * @LastEditTime: 2026-09-08 15:01:57
- * @LastEditors: fofo
- * @Description: 
- * @FilePath: /aion2-portal/app/plugins/check-update.client.ts
+- @Author: fofo
+- @Date: 2026-09-08 15:01:50
+ * @LastEditTime: 2026-11-16 09:30:05
+ * @LastEditors: fofo wang 313612895@qq.com
+- @Description: 
+- @FilePath: /aion2-portal/app/plugins/check-update.client.ts
  */
 // plugins/check-update.client.ts
-export default defineNuxtPlugin(() => {
+export default defineNuxtPlugin((nuxtApp) => {
+  // 开发环境直接跳过
   if (process.dev) return;
 
+  // 确保仅在客户端且 nuxtApp 上下文完全就绪时执行
+  if (!import.meta.client) return;
+
   const config = useRuntimeConfig();
-  const currentVersion = config.public.appVersion; // 当前客户端运行的版本
-  const updateAvailable = useState('updateAvailable', () => false);
+  const currentVersion = config.public?.appVersion;
+  if (!currentVersion) return;
+
+  // 安全获取或初始化状态，避免 Windows 下上下文断链时报错
+  let updateAvailable: any;
+  try {
+    updateAvailable = useState('updateAvailable', () => false);
+  } catch (e) {
+    // 降级兜底，防止初始化失败直接 crash
+    return;
+  }
 
   const CHECK_INTERVAL = 5 * 60 * 1000; // 每 5 分钟检查一次
 
   async function checkVersion() {
     try {
-      // 通过抓取首页 HTML（加时间戳防缓存），比对里面内联的或者通过接口拿到的版本号
-      // 另一个优雅的方式是请求一个简单的版本检查路由或直接对比静态文件
       const res: any = await $fetch(`/?t=${Date.now()}`, { parseResponse: txt => txt });
       
-      // 如果新部署的页面中包含了不同于当前的 appVersion 字样，说明有新版本
       if (typeof res === 'string' && !res.includes(currentVersion)) {
-        updateAvailable.value = true;
+        if (updateAvailable) {
+          updateAvailable.value = true;
+        }
       }
     } catch (err) {
       // 忽略网络错误
@@ -32,11 +44,13 @@ export default defineNuxtPlugin(() => {
   }
 
   // 页面切回可见时触发
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-      checkVersion();
-    }
-  });
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        checkVersion();
+      }
+    });
+  }
 
   setInterval(checkVersion, CHECK_INTERVAL);
 });

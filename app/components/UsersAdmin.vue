@@ -48,6 +48,7 @@ import {
   parseLogTimestamp,
   defGameData,
   updateLogs,
+  localDeployPackage,
 } from "./config/userAdmin";
 import { useGameStore } from "@/stores/useGameStore";
 import { KinahOdSate } from "./config/userAdmin.js";
@@ -3650,6 +3651,32 @@ const handleTeamIndexChange = (currentIndex, rawVal) => {
         </div>
       </div>
 
+      <!-- 一键本地部署下载 -->
+      <div
+        class="flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-emerald-50/80 to-teal-50/30 dark:from-emerald-950/40 dark:to-slate-900/40 border border-emerald-100/80 dark:border-emerald-800/50 shadow-xs"
+      >
+        <div class="flex-1 min-w-0 space-y-0.5">
+          <div class="text-xs font-black text-slate-800 dark:text-slate-100">
+            一键本地部署项目
+          </div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+            下载压缩包后解压，按说明即可一键完成本地部署
+          </div>
+        </div>
+        <a
+          :href="localDeployPackage.url"
+          :download="localDeployPackage.fileName"
+          class="px-3 py-1.5 rounded-xl bg-emerald-500 text-white font-black text-xs shadow-sm shadow-emerald-500/30 tracking-tight shrink-0 flex items-center gap-1.5 transition-all hover:bg-emerald-600 active:scale-95"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          下载
+        </a>
+      </div>
+
       <!-- 动态渲染的公告列表 -->
       <div class="space-y-2.5">
         <div
@@ -3695,6 +3722,32 @@ const handleTeamIndexChange = (currentIndex, rawVal) => {
           class="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 underline underline-offset-2 transition-colors shrink-0 text-[11px] font-medium"
         >
           GitHub 源码
+        </a>
+        <span class="text-slate-300 dark:text-slate-700">|</span>
+        <span class="text-slate-400 dark:text-slate-500 text-[11px] font-medium shrink-0">
+          支持一键本地部署
+        </span>
+        <a
+          :href="localDeployPackage.url"
+          :download="localDeployPackage.fileName"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-[11px] shadow-md shadow-emerald-500/20 transition-all transform active:scale-95 cursor-pointer shrink-0"
+        >
+          <!-- 下载图标 -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-3.5 h-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          <span>一键本地部署</span>
         </a>
       </div>
 
