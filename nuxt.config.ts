@@ -14,6 +14,11 @@ import { defineNuxtConfig } from "nuxt/config"; // 临时添加这一行
  * 通过 `pnpm dev:nosupabase` 启动时注入 NUXT_NOSUPABASE=1。
  * 该模式下：不登录、不鉴权、不请求 Supabase，仅使用浏览器 IndexedDB，
  * 页面只保留「多角色管理」。
+ *
+ * 该模式会加载 ./modules/nosupabase.ts：在所有模块安装完成后移除
+ * @nuxtjs/supabase 的 client / server 插件，彻底不创建 Supabase 客户端，
+ * 避免环境里残留的 `NUXT_PUBLIC_SUPABASE_URL`（例如缺少 http:// 协议）
+ * 在运行时覆盖配置并抛 `Invalid supabaseUrl: Must be a valid HTTP or HTTPS URL.`。
  */
 const noSupabase =
   process.env.NUXT_NOSUPABASE === "1" ||
@@ -36,13 +41,30 @@ export default defineNuxtConfig({
      */
     appManifest: process.env.NODE_ENV === "production",
   },
+  vite: {
+    optimizeDeps: {
+      /**
+       * 这些依赖是运行时动态 import 的，Vite 可能在 dev 过程中才首次发现并触发二次预构建，
+       * 导致浏览器拿着旧的 hash 请求依赖，报 `504 (Outdated Optimize Dep)`。
+       * 提前写入 include，让它们在启动时就完成预构建。
+       */
+      include: ["scrollreveal"],
+    },
+  },
   // Nuxt 3 标准配置
   srcDir: "app/",
   // 添加以下配置指向根目录的 public
   dir: {
     public: "../public",
   },
-  modules: ["@nuxtjs/tailwindcss", "@nuxtjs/supabase", "nuxt-echarts", "@pinia/nuxt"],
+  modules: [
+    "@nuxtjs/tailwindcss",
+    "@nuxtjs/supabase",
+    "nuxt-echarts",
+    "@pinia/nuxt",
+    // 本地模式：移除 supabase 客户端/服务端插件（见 modules/nosupabase.ts）
+    ...(noSupabase ? ["./modules/nosupabase"] : []),
+  ],
   devtools: { enabled: true },
   echarts: {
     // 渲染器选择：Canvas 更通用，SVG 在小图表或移动端表现更好

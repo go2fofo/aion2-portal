@@ -1685,7 +1685,8 @@ const onOutroEnded = () => {
   // 视频结束后初始化内容动画
   // 延迟一点点，让幕布上拉的动画先开始，内容再入场，形成交错感
   setTimeout(() => {
-    initScrollReveal();
+    // 动画非核心逻辑，动态导入失败（如 dev 依赖重优化）时忽略即可
+    initScrollReveal().catch(() => {});
   }, 300);
 };
 
@@ -1837,7 +1838,8 @@ onMounted(() => {
 
     // 如果已经播放过，直接初始化动画
     if (!showIntro.value) {
-      initScrollReveal();
+      // 动画非核心逻辑，动态导入失败（如 dev 依赖重优化）时忽略即可
+      initScrollReveal().catch(() => {});
     }
 
     // 初始位置：右侧，距顶部约 60% (中下位置)
