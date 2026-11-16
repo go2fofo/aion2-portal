@@ -1,4 +1,10 @@
 export default defineNuxtRouteMiddleware(async (to) => {
+  // 纯本地模式：没有登录与后台，所有路由收敛到首页（仅「多角色管理」）
+  if (useNoSupabaseMode()) {
+    if (to.path !== "/") return navigateTo("/", { replace: true });
+    return;
+  }
+
   if (!process.client) return;
   if (!to.path.startsWith("/admin")) return;
 

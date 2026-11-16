@@ -15,7 +15,7 @@ export const KinahOdSate = {
         },
         {
           mode: "普通",
-          energy: 40,
+          energy: 60,
           kina: 420,
           boundKina: 0,
           total: 420,
@@ -35,7 +35,7 @@ export const KinahOdSate = {
         },
         {
           mode: "普通",
-          energy: 40,
+          energy: 60,
           kina: 100.5,
           boundKina: 100.5,
           total: 201,
@@ -55,7 +55,7 @@ export const KinahOdSate = {
         },
         {
           mode: "普通",
-          energy: 40,
+          energy: 60,
           kina: 100.5,
           boundKina: 100.5,
           total: 201,

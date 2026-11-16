@@ -114,8 +114,8 @@
           </svg>
         </button>
 
-        <!-- 用户状态区 -->
-        <div v-if="user" class="group relative">
+        <!-- 用户状态区（纯本地模式不展示登录相关） -->
+        <div v-if="!noSupabase && user" class="group relative">
           <div
             class="bg-white dark:bg-slate-800 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-2 cursor-pointer transition-all"
           >
@@ -144,7 +144,7 @@
         </div>
 
         <!-- 未登录按钮 -->
-        <div v-else>
+        <div v-else-if="!noSupabase">
           <NuxtLink
             to="/login"
             class="bg-[#f9b11d] hover:bg-[#fbc02d] text-white px-5 py-2 rounded-full font-black text-sm shadow-[0_3px_0_0_#d98a00] active:translate-y-1 active:shadow-none transition-all inline-block"
@@ -152,6 +152,13 @@
             登录 / 注册
           </NuxtLink>
         </div>
+        <!-- 纯本地模式标记 -->
+        <span
+          v-else
+          class="px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-black border border-emerald-200 dark:border-emerald-800 whitespace-nowrap"
+        >
+          本地模式
+        </span>
       </div>
     </nav>
 
@@ -201,7 +208,7 @@
 
       <div class="w-[100%] px-1 md:px-6 pb-20 relative">
         <!-- 移动端侧边悬浮 Tab 菜单 (优化版) -->
-        <div class="md:hidden">
+        <div v-if="!noSupabase" class="md:hidden">
           <!-- 悬浮触发按钮 (小鸟造型) -->
           <div
             ref="floatingBtnRef"
@@ -294,7 +301,10 @@
         </div>
 
         <!-- 桌面端横向排列 Tab -->
-        <div class="hidden md:flex md:mb-4 justify-center gap-4 flex-wrap">
+        <div
+          v-if="!noSupabase"
+          class="hidden md:flex md:mb-4 justify-center gap-4 flex-wrap"
+        >
           <button
             v-for="tab in visibleTabs"
             :key="tab.id"
@@ -1086,6 +1096,8 @@ import UsersAdmin from "../components/UsersAdmin.vue";
 import ShiftSchedule from "../components/ShiftSchedule.vue";
 import BackToTop from "../components/BackToTop.vue";
 import DungeonPlans from "./admin/dungeon-plans.vue";
+// 纯本地模式（pnpm dev:nosupabase）：无登录/鉴权，仅保留「多角色管理」
+const noSupabase = useNoSupabaseMode();
 const user = useSupabaseUser();
 const supabase = useSupabaseClient();
 const router = useRouter();
@@ -1100,7 +1112,7 @@ const { isDark, toggleTheme } = inject("theme");
 
 // 获取用户信息
 const fetchUserInfo = async () => {
-  if (!user.value) return;
+  if (noSupabase || !user.value) return;
 
   // 1. 优先尝试从 admin_user_list 获取（如果已同步）
   const { data, error } = await supabase
@@ -1133,7 +1145,9 @@ const getHandleTop = computed(() => {
 });
 
 // Tab 标签页配置 (改用异步数据)
-const tabs = ref([]);
+const tabs = ref(
+  noSupabase ? [{ id: "userAdmin", name: "多角色管理", hidden: false }] : []
+);
 // 默认占位 Tab
 const defaultTabs = [
   { id: "news", name: "军团伴说", hidden: false },
@@ -1150,7 +1164,9 @@ const defaultTabs = [
   { id: "userAdmin", name: "用户管理", hidden: false },
 ];
 
-const activeTab = useState("homeActiveTab", () => "");
+const activeTab = useState("homeActiveTab", () =>
+  noSupabase ? "userAdmin" : ""
+);
 const showMobileMenu = ref(false);
 
 //默认显示
@@ -1301,6 +1317,7 @@ const otherMembers = computed(() => {
 
 // 1. 获取 Tab 配置
 const fetchTabs = async () => {
+  if (noSupabase) return;
   const { data, error } = await supabase
     .from("site_config")
     .select("value")
@@ -1386,6 +1403,10 @@ onUnmounted(() => {
 
 // 2. 根据当前 Tab 获取内容
 const fetchPosts = async () => {
+  if (noSupabase) {
+    posts.value = [];
+    return;
+  }
   loadingPosts.value = true;
   const { data, error } = await supabase
     .from("posts")
@@ -1403,6 +1424,10 @@ const fetchPosts = async () => {
 
 // 3. 获取成员列表
 const fetchMembers = async () => {
+  if (noSupabase) {
+    members.value = [];
+    return;
+  }
   loadingMembers.value = true;
   const { data, error } = await supabase
     .from("legion_members")
@@ -1430,6 +1455,7 @@ onActivated(() => {
 watch(
   activeTab,
   async (val) => {
+    if (noSupabase) return;
     if (val === "members") {
       fetchMembers();
     } else if (val === "cost" || val === "search") {
@@ -1479,6 +1505,7 @@ watch(
 );
 
 const logout = async () => {
+  if (noSupabase) return;
   const { error } = await supabase.auth.signOut();
   if (error) console.error(error);
   router.push("/login");
@@ -1501,6 +1528,12 @@ if (process.client) {
   }
 } else {
   showIntro.value = !introPlayed.value;
+}
+
+// 纯本地模式不需要开场引导，直接进入「多角色管理」
+if (noSupabase) {
+  showIntro.value = false;
+  introPlayed.value = true;
 }
 
 // ECharts 配置

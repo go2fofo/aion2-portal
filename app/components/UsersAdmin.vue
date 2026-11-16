@@ -56,6 +56,8 @@ import { calcPremiumRemainingDays } from "@/utils/index.ts";
 const gameStore = useGameStore();
 const client = useSupabaseClient();
 const user = useSupabaseUser();
+// 纯本地模式（pnpm dev:nosupabase）：不登录、不访问 Supabase，仅使用 IndexedDB
+const noSupabase = useNoSupabaseMode();
 const { executeDataRefresh } = useGameRefresh();
 
 // 游戏数据结构 参考 docs/多角色管理模块相关.md
@@ -722,9 +724,13 @@ const legionMembers = ref([]);
 const legionKeyword = ref("");
 
 const fetchLegionMembers = async () => {
+  if (noSupabase) {
+    legionMembers.value = [];
+    return;
+  }
   legionLoading.value = true;
   try {
-    const { data } = await supabase
+    const { data } = await client
       .from("legion_members")
       .select(
         "character_id,name,server_id,server_name,race_id,race_name,level,class_name"
@@ -3337,6 +3343,10 @@ const openStorageSettingsModal = () => {
 
 // 1. 本地数据同步到云端
 const syncLocalToCloud = async () => {
+  if (noSupabase) {
+    $toast("本地单机模式不支持云端同步");
+    return;
+  }
   if (!user.value) {
     $toast("请先登录账号");
     return;
@@ -3373,6 +3383,10 @@ const syncLocalToCloud = async () => {
 
 // 2. 云端数据同步到本地
 const syncCloudToLocal = async () => {
+  if (noSupabase) {
+    $toast("本地单机模式不支持云端同步");
+    return;
+  }
   if (!user.value) {
     $toast("请先登录账号");
     return;
@@ -9236,7 +9250,7 @@ const handleTeamIndexChange = (currentIndex, rawVal) => {
                 class="font-black text-slate-800 dark:text-slate-100 text-lg flex items-center gap-2"
               >
                 <div class="w-2.5 h-2.5 rounded-full bg-[#45a6d5]"></div>
-                存储与云端同步设置
+                {{ noSupabase ? "存储设置" : "存储与云端同步设置" }}
               </div>
               <button
                 class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
@@ -9258,14 +9272,20 @@ const handleTeamIndexChange = (currentIndex, rawVal) => {
                 </div>
                 <div class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                   本地数据存储在浏览器 IndexedDB
-                  中，清除浏览器缓存可能会导致数据丢失。您可以通过云端同步将本地游戏数据备份到
-                  Supabase，或者从云端恢复到当前浏览器。
+                  中，清除浏览器缓存可能会导致数据丢失。
+                  <template v-if="!noSupabase">
+                    您可以通过云端同步将本地游戏数据备份到 Supabase，或者从云端恢复到当前浏览器。
+                  </template>
+                  <template v-else>
+                    当前为本地单机模式，数据仅保存在本机浏览器中，不支持云端同步。
+                  </template>
                 </div>
               </div>
             </div>
 
-            <!-- 弹窗底部操作按钮 -->
+            <!-- 弹窗底部操作按钮（纯本地模式无云端同步） -->
             <div
+              v-if="!noSupabase"
               class="px-8 py-5 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-end gap-4 z-10"
             >
               <button

@@ -6,6 +6,9 @@
     "build": "nuxt build",
     "update-version": "node scripts/update-version.js",
     "dev": "nuxt dev --host",
+    "dev:nosupabase": "node scripts/run-nosupabase.mjs dev --host",
+    "build:nosupabase": "node scripts/run-nosupabase.mjs build",
+    "generate:nosupabase": "node scripts/run-nosupabase.mjs generate",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
