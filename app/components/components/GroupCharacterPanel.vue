@@ -7,10 +7,12 @@ import { useGameStore } from "@/stores/useGameStore";
 import { defGameData } from "../config/userAdmin.js";
 const gameStore = useGameStore();
 import {
-  KinahOdSate,
   dungeonDecayRules,
   parseLogTimestamp,
+  getKinahOdSate,
+  getDungeonListByRegion,
 } from "../config/userAdmin.js";
+import { getCharRegion } from "~/utils/serverRegion";
 // 游玩补充验证规则配置数组
 const supplementValidationRules = [
   //  奥德能量 (energy)
@@ -831,6 +833,11 @@ const handleTaskClick = async (char, field, tab, clickType) => {
         emit("task-click", char, "globalDbClick", 'sanctuary', "dbclick");
       } else {
         await handleClickGameplay(char, "consume");
+        // 国际服（Steam）没有圣域副本，直接回退到该区域第一个可用的大类
+        if (!getDungeonListByRegion(getCharRegion(char), "sanctuary").length) {
+          handleSelectDungeonType("expedition");
+          break;
+        }
         consumeForm.value.dungeonType = "sanctuary";
         consumeForm.value.calcInput = 1;
 
@@ -1390,9 +1397,26 @@ const currentActiveRuns = computed({
     emit("update-characters", newCharacters);
   },
 });
-// 2. 当前大类对应的副本列表
+// 1. 当前操作角色所属区域（台服/韩服共用一套副本数据，国际服独立一套）
+const currentRegion = computed(() => getCharRegion(gameplayCharForm.value));
+
+// 当前区域对应的整套副本配置（含远征/超越/圣域）
+const currentDungeonState = computed(() => getKinahOdSate(currentRegion.value));
+
+// 当前区域实际开放的副本大类页签（国际服没有圣域，页签自动隐藏）
+const dungeonTypeTabs = computed(() => {
+  const state = currentDungeonState.value;
+  const tabs = [
+    { key: "expedition", label: "远征副本" },
+    { key: "surpass", label: "超越副本" },
+    { key: "sanctuary", label: "圣域" },
+  ];
+  return tabs.filter((tab) => (state?.[tab.key] || []).length > 0);
+});
+
+// 2. 当前大类对应的副本列表（按区域取数据）
 const currentDungeonList = computed(() => {
-  return KinahOdSate[consumeForm.value.dungeonType] || [];
+  return currentDungeonState.value?.[consumeForm.value.dungeonType] || [];
 });
 
 // 3. 当前具体副本对应的难度/阶段列表
@@ -1404,17 +1428,40 @@ const currentDifficultiesList = computed(() => {
 
 // 切换副本大类时，自动把索引重置为 0 防止数组越界
 const handleSelectDungeonType = (type) => {
-  console.log(
-    `🔍 [GroupCharacterPanel:1531] %c 消耗奥德切换tab触发111: `,
-    "font-size:14px; background:#26A08F; color:#fff;font-weight: bold;",
-    type
-  );
+  // 当前区域未开放的副本大类（例如国际服没有圣域）直接忽略
+  if (!getDungeonListByRegion(currentRegion.value, type).length) {
+    const fallback = dungeonTypeTabs.value[0]?.key;
+    if (!fallback || fallback === type) return;
+    type = fallback;
+  }
   consumeForm.value.dungeonType = type;
   consumeForm.value.selectedDungeonIndex = 0;
   consumeForm.value.selectedDiffIndex = 0;
   consumeForm.value.calcInput = 1;
   consumeForm.value.activeCalcTab = "runs";
 };
+
+// 切换角色（区域可能变化）时，把副本大类与索引校正到该区域可用范围
+watch(
+  currentRegion,
+  () => {
+    const tabs = dungeonTypeTabs.value;
+    if (!tabs.length) return;
+    if (!tabs.some((tab) => tab.key === consumeForm.value.dungeonType)) {
+      consumeForm.value.dungeonType = tabs[0].key;
+    }
+    const list = currentDungeonList.value;
+    const maxIndex = Math.max(0, list.length - 1);
+    if (
+      consumeForm.value.selectedDungeonIndex === null ||
+      consumeForm.value.selectedDungeonIndex > maxIndex
+    ) {
+      consumeForm.value.selectedDungeonIndex = maxIndex;
+      consumeForm.value.selectedDiffIndex = 0;
+    }
+  },
+  { immediate: true }
+);
 
 // 监听具体副本切换，自动把难度索引重置为 0
 watch(
@@ -3415,42 +3462,23 @@ defineExpose({
                     <label class="text-xs font-bold text-slate-500 dark:text-slate-400"
                       >选择副本类型</label
                     >
-                    <div class="grid grid-cols-3 gap-2">
+                    <div
+                      class="grid gap-2"
+                      :class="dungeonTypeTabs.length === 2 ? 'grid-cols-2' : 'grid-cols-3'"
+                    >
                       <button
                         type="button"
+                        v-for="tab in dungeonTypeTabs"
+                        :key="tab.key"
                         class="py-2.5 px-3 rounded-2xl font-black text-xs transition-all border shadow-sm cursor-pointer"
                         :class="
-                          consumeForm.dungeonType === 'expedition'
+                          consumeForm.dungeonType === tab.key
                             ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sky-500/20'
                             : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                         "
-                        @click="handleSelectDungeonType('expedition')"
+                        @click="handleSelectDungeonType(tab.key)"
                       >
-                        远征副本
-                      </button>
-                      <button
-                        type="button"
-                        class="py-2.5 px-3 rounded-2xl font-black text-xs transition-all border shadow-sm cursor-pointer"
-                        :class="
-                          consumeForm.dungeonType === 'surpass'
-                            ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sky-500/20'
-                            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
-                        "
-                        @click="handleSelectDungeonType('surpass')"
-                      >
-                        超越副本
-                      </button>
-                      <button
-                        type="button"
-                        class="py-2.5 px-3 rounded-2xl font-black text-xs transition-all border shadow-sm cursor-pointer"
-                        :class="
-                          consumeForm.dungeonType === 'sanctuary'
-                            ? 'bg-[#45a6d5] text-white border-[#45a6d5] shadow-sky-500/20'
-                            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
-                        "
-                        @click="handleSelectDungeonType('sanctuary')"
-                      >
-                        圣域
+                        {{ tab.label }}
                       </button>
                     </div>
                   </div>

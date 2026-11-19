@@ -35,6 +35,7 @@ import {
 import {
   getRegionByServerId,
   getRegionLabelByServerId,
+  getCharRegion,
 } from "~/utils/serverRegion";
 import { formatCombatPower } from "~/utils/formatCombatPower";
 import GroupCharacterPanel from "./components/GroupCharacterPanel.vue";
@@ -51,7 +52,7 @@ import {
   localDeployPackage,
 } from "./config/userAdmin";
 import { useGameStore } from "@/stores/useGameStore";
-import { KinahOdSate } from "./config/userAdmin.js";
+import { getKinahOdSate } from "./config/userAdmin.js";
 import { calcPremiumRemainingDays } from "@/utils/index.ts";
 const gameStore = useGameStore();
 const client = useSupabaseClient();
@@ -2134,9 +2135,42 @@ const handleExecuteChain = () => {
   }
   console.log("执行连锁操作...");
 };
-// 1. 根据当前选中的大类型，获取对应的副本数组
+// 0. 当前连锁队伍所属区域（台服/韩服共用一套副本数据，国际服独立一套）
+const chainTeamRegion = computed(() => {
+  const teamId = teamChainOptions.value?.selectedChainTeamId;
+  if (!teamId) return "tw";
+  const member = (gameData.value?.characters || []).find((char) =>
+    Array.isArray(char.teamId)
+      ? char.teamId.includes(teamId)
+      : char.teamId === teamId
+  );
+  return getCharRegion(member);
+});
+
+// 1. 根据当前选中的大类型，获取对应的副本数组（按区域取数据）
 const currentDungeonList = computed(() => {
-  return KinahOdSate[teamChainOptions.value.dungeonType] || [];
+  return getKinahOdSate(chainTeamRegion.value)[teamChainOptions.value.dungeonType] || [];
+});
+
+// 当前区域实际可用的连锁类型（国际服没有圣域，自动隐藏该项）
+const chainDungeonTypeOptions = computed(() => {
+  const state = getKinahOdSate(chainTeamRegion.value);
+  return [
+    { key: "expedition", label: "远征副本" },
+    { key: "surpass", label: "超越副本" },
+    { key: "sanctuary", label: "圣域" },
+    { key: "nightmareCount", label: "清理噩梦" },
+    { key: "battlefield", label: "清理战场" },
+  ].filter((item) => {
+    if (!["expedition", "surpass", "sanctuary"].includes(item.key)) return true;
+    return (state?.[item.key] || []).length > 0;
+  });
+});
+
+// 连锁类型按钮栅格列数（Tailwind 需静态类名，这里做映射）
+const chainDungeonTypeGridClass = computed(() => {
+  const map = { 1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-3", 4: "grid-cols-4" };
+  return map[chainDungeonTypeOptions.value.length] || "grid-cols-5";
 });
 
 // 2. 当前选中的具体副本对象
@@ -2149,6 +2183,8 @@ const currentSelectedDungeon = computed(() => {
 
 // 3. 切换大类型时的重置逻辑
 const handleDungeonTypeChange = (typeKey) => {
+  // 当前区域未开放的类型（例如国际服没有圣域）直接忽略
+  if (!chainDungeonTypeOptions.value.some((item) => item.key === typeKey)) return;
   teamChainOptions.value.dungeonType = typeKey;
   teamChainOptions.value.selectedDungeonName = "";
   teamChainOptions.value.selectedDifficulty = "";
@@ -2167,6 +2203,21 @@ const handleDungeonChange = () => {
     teamChainOptions.value.selectedDifficulty = "";
   }
 };
+
+// 5. 队伍切换（区域可能从台服/韩服变成国际服）时，校正副本类型与已选副本
+watch(chainTeamRegion, () => {
+  if (
+    !chainDungeonTypeOptions.value.some(
+      (item) => item.key === teamChainOptions.value.dungeonType
+    )
+  ) {
+    teamChainOptions.value.dungeonType =
+      chainDungeonTypeOptions.value[0]?.key || "expedition";
+  }
+  // 区域切换后原副本名可能不存在，直接清空由用户重选
+  teamChainOptions.value.selectedDungeonName = "";
+  teamChainOptions.value.selectedDifficulty = "";
+});
 // ================ 小队管理/连锁 结束 =================
 
 // 点击刷新按钮的处理逻辑
@@ -9458,16 +9509,10 @@ const handleTeamIndexChange = (currentIndex, rawVal) => {
                   <label class="text-xs font-bold text-slate-500 dark:text-slate-400"
                     >选择连锁类型</label
                   >
-                  <div class="grid grid-cols-5 gap-1.5">
+                  <div class="grid gap-1.5" :class="chainDungeonTypeGridClass">
                     <button
                       type="button"
-                      v-for="type in [
-                        { key: 'expedition', label: '远征副本' },
-                        { key: 'surpass', label: '超越副本' },
-                        { key: 'sanctuary', label: '圣域' },
-                        { key: 'nightmareCount', label: '清理噩梦' },
-                        { key: 'battlefield', label: '清理战场' },
-                      ]"
+                      v-for="type in chainDungeonTypeOptions"
                       :key="type.key"
                       class="py-2 px-2 rounded-xl font-black text-[11px] transition-all border shadow-sm cursor-pointer truncate"
                       :class="

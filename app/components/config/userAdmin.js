@@ -518,6 +518,113 @@ export const KinahOdSate = {
     },
   ],
 };
+
+// ==========================================================================
+// 国际服（Steam / 全球服）副本配置
+// 与台服/韩服（上面 KinahOdSate）的差异：
+//   1. 只有 1-3 星副本：远征仅 1-3 星，超越仅 1 星，且没有圣域副本
+//   2. 消耗奥德能量不同：单倍 40，双倍 80（这里只配「单倍」，双倍由计算逻辑 ×2 得出）
+// 若国际服后续开放新副本，直接往下面的数组里补充即可（格式与 KinahOdSate 完全一致）
+// ==========================================================================
+export const KinahOdSateGlobal = {
+  // 远征副本（仅 1-3 星，单倍 40 奥德）
+  expedition: [
+    {
+      stars: 3,
+      name: "火之神殿",
+      difficulties: [
+        { mode: "默认", energy: 40, kina: 0, boundKina: 153, total: 153 },
+      ],
+    },
+    {
+      stars: 2,
+      name: "乌努库库峡谷",
+      difficulties: [
+        { mode: "默认", energy: 40, kina: 0, boundKina: 120, total: 120 },
+      ],
+    },
+    {
+      stars: 1,
+      name: "德拉乌伯尼尔",
+      difficulties: [
+        { mode: "默认", energy: 40, kina: 0, boundKina: 90, total: 90 },
+      ],
+    },
+  ],
+
+  // 超越副本（仅 1 星，单倍 40 奥德）
+  surpass: [
+    {
+      stars: 1,
+      name: "破碎的雅尔卡尼斯",
+      difficulties: [
+        {
+          mode: "阶段4",
+          energy: 40,
+          kina: 0,
+          boundKina: 114,
+          total: 114,
+        },
+        {
+          mode: "阶段3",
+          energy: 40,
+          kina: 0,
+          boundKina: 90,
+          total: 90,
+        },
+        {
+          mode: "阶段2",
+          energy: 40,
+          kina: 0,
+          boundKina: 72,
+          total: 72,
+        },
+        {
+          mode: "阶段1",
+          energy: 40,
+          kina: 0,
+          boundKina: 60,
+          total: 60,
+        },
+      ],
+    },
+    // 国际服若也开放该 1 星超越本，取消注释即可
+    // {
+    //   stars: 1,
+    //   name: "德乌斯研究基地",
+    //   difficulties: [
+    //     { mode: "阶段4", energy: 40, kina: 0, boundKina: 114, total: 114 },
+    //     { mode: "阶段3", energy: 40, kina: 0, boundKina: 90, total: 90 },
+    //     { mode: "阶段2", energy: 40, kina: 0, boundKina: 72, total: 72 },
+    //     { mode: "阶段1", energy: 40, kina: 0, boundKina: 60, total: 60 },
+    //   ],
+    // },
+  ],
+
+  // 国际服暂无圣域副本（保留空数组，UI 会自动隐藏「圣域」页签）
+  sanctuary: [],
+};
+
+// 区域 -> 副本配置映射：台服(tw)、韩服(kr) 共用一套；国际服(global) 独立一套
+export const dungeonStateByRegion = {
+  tw: KinahOdSate,
+  kr: KinahOdSate,
+  global: KinahOdSateGlobal,
+};
+
+/**
+ * 根据角色区域（'tw' | 'kr' | 'global'）获取对应的副本配置
+ * 传入未知区域时回退到台服/韩服通用配置，保持历史行为
+ */
+export const getKinahOdSate = (region) => {
+  return dungeonStateByRegion[region] || KinahOdSate;
+};
+
+/** 根据角色区域 + 副本大类（expedition/surpass/sanctuary）获取副本列表 */
+export const getDungeonListByRegion = (region, dungeonType) => {
+  return getKinahOdSate(region)?.[dungeonType] || [];
+};
+
 // 副本挑战次数与吉纳获取规则
 // 新规则：收益率恒为 100%，超过阈值后收益不衰减，但基纳全部转为“绑定吉纳”（allBound 标记）
 export const dungeonDecayRules = {
